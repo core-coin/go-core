@@ -3,8 +3,8 @@ package http
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/swarm/api"
-	"github.com/ethereum/go-ethereum/swarm/sctx"
+	"github.com/ethereum/go-core/swarm/api"
+	"github.com/ethereum/go-core/swarm/sctx"
 )
 
 type uriKey struct{}

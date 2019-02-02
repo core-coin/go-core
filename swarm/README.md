@@ -4,7 +4,7 @@
 
 Swarm is a distributed storage platform and content distribution service, a native base layer service of the ethereum web3 stack. The primary objective of Swarm is to provide a decentralized and redundant store for dapp code and data as well as block chain and state data. Swarm is also set out to provide various base layer services for web3, including node-to-node messaging, media streaming, decentralised database services and scalable state-channel infrastructure for decentralised service economies.
 
-[![Travis](https://travis-ci.org/ethereum/go-ethereum.svg?branch=master)](https://travis-ci.org/ethereum/go-ethereum)
+[![Travis](https://travis-ci.org/ethereum/go-core.svg?branch=master)](https://travis-ci.org/ethereum/go-core)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ethersphere/orange-lounge?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## Table of Contents
@@ -27,9 +27,9 @@ Swarm is a distributed storage platform and content distribution service, a nati
 
 Building Swarm requires Go (version 1.10 or later).
 
-    go get -d github.com/ethereum/go-ethereum
+    go get -d github.com/ethereum/go-core
 
-    go install github.com/ethereum/go-ethereum/cmd/swarm
+    go install github.com/ethereum/go-core/cmd/swarm
 
 ## Running Swarm
 
@@ -90,12 +90,12 @@ Swarm documentation can be found at [https://swarm-guide.readthedocs.io](https:/
 
 We assume that you have Go v1.10 installed, and `GOPATH` is set.
 
-You must have your working copy under `$GOPATH/src/github.com/ethereum/go-ethereum`.
+You must have your working copy under `$GOPATH/src/github.com/ethereum/go-core`.
 
-Most likely you will be working from your fork of `go-ethereum`, let's say from `github.com/nirname/go-ethereum`. Clone or move your fork into the right place:
+Most likely you will be working from your fork of `go-core`, let's say from `github.com/nirname/go-core`. Clone or move your fork into the right place:
 
 ```
-git clone git@github.com:nirname/go-ethereum.git $GOPATH/src/github.com/ethereum/go-ethereum
+git clone git@github.com:nirname/go-core.git $GOPATH/src/github.com/ethereum/go-core
 ```
 
 
@@ -181,7 +181,7 @@ Once you have `stateth` installed, and you have Docker running locally, you have
 
 1. Run `stateth` and keep it running in the background
 ```
-stateth --rm --grafana-dashboards-folder $GOPATH/src/github.com/ethereum/go-ethereum/swarm/grafana_dashboards --influxdb-database metrics
+stateth --rm --grafana-dashboards-folder $GOPATH/src/github.com/ethereum/go-core/swarm/grafana_dashboards --influxdb-database metrics
 ```
 
 2. Run `swarm` with at least the following params:
@@ -228,17 +228,17 @@ Please make sure your contributions adhere to our coding guidelines:
  * Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting) guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
  * Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
  * Pull requests need to be based on and opened against the `master` branch.
- * [Code review guidelines](https://github.com/ethereum/go-ethereum/wiki/Code-Review-Guidelines).
+ * [Code review guidelines](https://github.com/ethereum/go-core/wiki/Code-Review-Guidelines).
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "swarm/fuse: ignore default manifest entry"
 
 
 ## License
 
-The go-ethereum library (i.e. all code outside of the `cmd` directory) is licensed under the
+The go-core library (i.e. all code outside of the `cmd` directory) is licensed under the
 [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html), also
 included in our repository in the `COPYING.LESSER` file.
 
-The go-ethereum binaries (i.e. all code inside of the `cmd` directory) is licensed under the
+The go-core binaries (i.e. all code inside of the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also included
 in our repository in the `COPYING` file.

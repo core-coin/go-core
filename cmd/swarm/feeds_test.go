@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The go-core Authors
+// This file is part of go-core.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-core is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-core is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -23,15 +23,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/swarm/api"
-	swarm "github.com/ethereum/go-ethereum/swarm/api/client"
-	swarmhttp "github.com/ethereum/go-ethereum/swarm/api/http"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed/lookup"
-	"github.com/ethereum/go-ethereum/swarm/testutil"
+	"github.com/ethereum/go-core/common/hexutil"
+	"github.com/ethereum/go-core/crypto"
+	"github.com/ethereum/go-core/log"
+	"github.com/ethereum/go-core/swarm/api"
+	swarm "github.com/ethereum/go-core/swarm/api/client"
+	swarmhttp "github.com/ethereum/go-core/swarm/api/http"
+	"github.com/ethereum/go-core/swarm/storage/feed"
+	"github.com/ethereum/go-core/swarm/storage/feed/lookup"
+	"github.com/ethereum/go-core/swarm/testutil"
 )
 
 func TestCLIFeedUpdate(t *testing.T) {
