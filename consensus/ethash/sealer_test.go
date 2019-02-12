@@ -53,7 +53,7 @@ func TestRemoteNotify(t *testing.T) {
 	defer ethash.Close()
 
 	// Stream a work task and ensure the notification bubbles out.
-	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
+	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(2)}
 	block := types.NewBlockWithHeader(header)
 
 	ethash.Seal(nil, block, nil, nil)
@@ -99,7 +99,7 @@ func TestRemoteMultiNotify(t *testing.T) {
 
 	// Stream a lot of work task and ensure all the notifications bubble out.
 	for i := 0; i < cap(sink); i++ {
-		header := &types.Header{Number: big.NewInt(int64(i)), Difficulty: big.NewInt(100)}
+		header := &types.Header{Number: big.NewInt(int64(i)), Difficulty: big.NewInt(2)}
 		block := types.NewBlockWithHeader(header)
 		ethash.Seal(nil, block, nil, nil)
 	}
