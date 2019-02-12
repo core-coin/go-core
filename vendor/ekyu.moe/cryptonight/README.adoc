@@ -1,0 +1,144 @@
+= cryptonight
+Equim <https://github.com/Equim-chan[@Equim-chan]>
+
+image:http://img.shields.io/badge/godoc-reference-5272B4.svg[GoDoc, link=https://godoc.org/ekyu.moe/cryptonight]
+image:https://img.shields.io/github/tag/Equim-chan/cryptonight.svg[tag, link=https://github.com/Equim-chan/cryptonight/tags]
+image:https://img.shields.io/circleci/project/github/Equim-chan/cryptonight.svg[CircleCI, link=https://circleci.com/gh/Equim-chan/cryptonight]
+image:https://img.shields.io/codecov/c/github/Equim-chan/cryptonight.svg[Codecov, link=https://codecov.io/github/Equim-chan/cryptonight]
+image:https://goreportcard.com/badge/github.com/Equim-chan/cryptonight[Go Report Card, link=https://goreportcard.com/report/github.com/Equim-chan/cryptonight]
+image:https://img.shields.io/github/license/Equim-chan/cryptonight.svg[License, link=https://github.com/Equim-chan/cryptonight/blob/master/LICENSE]
+
+Pure Go/ASM implementation of CryptoNight hash function and some of its variant, without any CGO binding.
+
+== Features
+* Support Monero v7 variant, and also the upcoming https://github.com/monero-project/monero/pull/4218/[variant 2]!
+* No CGO hell, making builds easier and faster.
+* Hardware acceleration available for amd64 architecture.
+* Use of an internal sync.Pool to manage caches, since it is memory hard.
+
+== Install
+[source,shell]
+----
+$ go get -u ekyu.moe/cryptonight
+----
+
+A simple CLI utility is also available with `go get -u ekyu.moe/cryptonight/cmd/cnhash`.
+
+[source,plain]
+----
+Usage of cnhash:
+  -bench
+        Benchmark mode, don't do anything else.
+  -in-file string
+        Read input from file instead of stdin.
+  -in-hex
+        Read input in hex instead of binary.
+  -include-diff
+        Append the difficulty of the result hash to the output. If -out-binary is not given,
+the difficulty will be appeneded to the output in decimal with comma separated (CSV friendly)
+, otherwise it will be appeneded to the hash binary (which is 32 bytes long) directly, in 8
+bytes little endian.
+  -out-binary
+        Produce output in binary (little endian) instead of hex.
+  -out-file string
+        Produce output to file instead of stdout.
+  -variant int
+        Set CryptoNight variant, default 0. This applies to benchmark mode as well.
+----
+
+== Example
+[source,go]
+----
+package main
+
+import (
+    "fmt"
+
+    "ekyu.moe/cryptonight"
+)
+
+func main() {
+    blob := []byte("Hello, 世界")
+    fmt.Printf("%x\n", cryptonight.Sum(blob, 0)) // original
+    // Output: 0999794e4e20d86e6a81b54495aeb370b6a9ae795fb5af4f778afaf07c0b2e0e
+
+    blob = []byte("variant 1 requires at least 43 bytes of input.")
+    fmt.Printf("%x\n", cryptonight.Sum(blob, 1)) // variant 1
+    // Output: 261124c5a6dca5d4aa3667d328a94ead9a819ae714e1f1dc113ceeb14f1ecf99
+
+    blob = []byte("Monero is cash for a connected world. It’s fast, private, and secure.")
+    fmt.Printf("%x\n", cryptonight.Sum(blob, 2)) // variant 2
+    // Output: abb61f40468c70234051e4bb5e8b670812473b2a71e02c9633ef94996a621b96
+}
+----
+
+== Tested architectures
+* amd64 _(w/ AVX, SSE, AES)_
+* amd64 _(w/o AVX, SSE, AES)_
+* 386
+* arm64
+
+== Benchmarks
+CPU: 4 x Intel(R) Xeon(R) CPU E3-1270 v3 @ 3.50GHz
+
+[source,plain]
+----
+goos: linux
+goarch: amd64
+pkg: ekyu.moe/cryptonight
+BenchmarkSum/v0-4            100   20208070 ns/op   21584 B/op   2 allocs/op
+BenchmarkSum/v1-4            100   20535318 ns/op   21584 B/op   2 allocs/op
+BenchmarkSum/v2-4            100   22328893 ns/op   21584 B/op   2 allocs/op
+BenchmarkSum/v0-parallel-4   100   10798945 ns/op   42664 B/op   2 allocs/op
+BenchmarkSum/v1-parallel-4   100   10316040 ns/op   42655 B/op   2 allocs/op
+BenchmarkSum/v2-parallel-4   100   11740615 ns/op   42661 B/op   2 allocs/op
+PASS
+----
+
+== Development
+While this repository is already out-of-box, which means what you need to do to use it in your code is just a `go get` (or `dep ensure -add` whatsoever), in case you want to hack on this library, some additional steps are required since it uses code generation.
+
+=== Preprocess
+If you modified a source file in this library that uses C-kind macros (the comments tells), in order to expand them and generate the final code, https://linux.die.net/man/1/cpp[cpp(1)] is needed, which a part of GCC toolchain and should be already available if you have installed gcc (or MinGW for Windows) in your machine.
+
+Once some modification is made in a file that used macro, simply use `go generate ekyu.moe/cryptonight/\...` to run the gcc preprocessor on them.
+
+=== Packages information
+``ekyu.moe/cryptonight/internal/aes``:: From Go's crypto/aes. Since CryptoNight's use of AES is quite non-standard and not intended for encryption, you must use this package this package with care for project that's not CryptoNight associated.
+
+``ekyu.moe/cryptonight/internal/sha3``:: From Go's golang.org/x/crypto/sha3. All CryptoNight specific additional works are made in `cn.go` only; other files are untouched at all.
+
+``ekyu.moe/cryptonight/groestl``:: Grøstl-256 implementation. It is directly ported from C and not quite optimized.
+
+``ekyu.moe/cryptonight/jh``:: JH-256 implementation. It is directly ported from C and not quite optimized.
+
+=== Tests, coverage and benchmarks
+[source,shell]
+----
+$ go test -v -race -coverprofile=coverage.txt -covermode=atomic
+$ go tool cover -html=coverage.txt
+$ go test -v -run=^$ -bench=. -benchmem
+----
+
+=== TODO
+* [ ] ARM64-specific optimization
+* [x] Tests on other architectures
+* [x] Improve performance for variant 2
+* [ ] Improve performance for groestl and jh
+* [x] Try a nearly full assembly implementation (except for the final hash) for amd64
+
+== References
+* https://cryptonote.org/cns/cns008.txt[CryptoNote Standard 008 - CryptoNight Hash Function]
+* https://github.com/monero-project/monero/pull/3253[Variant 1]
+* https://github.com/monero-project/monero/pull/4218[Variant 2]
+
+== Donation
+If you find this lib helpful, maybe consider buying me a cup of coffee at
+
+XMR:: `4777777jHFbZB4gyqrB1JHDtrGFusyj4b3M2nScYDPKEM133ng2QDrK9ycqizXS2XofADw5do5rU19LQmpTGCfeQTerm1Ti`
+BTC:: `1Eqqqq9xR78wJyRXXgvR73HEfKdEwq68BT`
+
+Much thanks.
+
+== License
+https://github.com/Equim-chan/cryptonight/blob/master/LICENSE[MIT]
