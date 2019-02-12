@@ -32,6 +32,8 @@ import (
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"golang.org/x/crypto/sha3"
+
+	"ekyu.moe/cryptonight"
 )
 
 const (
@@ -327,6 +329,61 @@ func generateDataset(dest []uint32, epoch uint64, cache []uint32) {
 	}
 	// Wait for all the generators to finish and return
 	pend.Wait()
+}
+
+// hashimoto_simple doesn't use a DAG
+func hashimoto_simple(hash []byte, nonce uint64) ([]byte, []byte) {
+	// Combine header+nonce into a 64 byte seed
+	seed := make([]byte, 40)
+	copy(seed, hash)
+	binary.LittleEndian.PutUint64(seed[32:], nonce)
+
+	seed = crypto.Keccak512(seed)
+
+	// Start the mix with replicated seed
+	mix := make([]uint32, mixBytes/4)
+	for i := 0; i < len(mix); i++ {
+		mix[i] = binary.LittleEndian.Uint32(seed[i%16*4:])
+	}
+
+	// Compress mix
+	for i := 0; i < len(mix); i += 4 {
+		mix[i/4] = fnv(fnv(fnv(mix[i], mix[i+1]), mix[i+2]), mix[i+3])
+	}
+	mix = mix[:len(mix)/4]
+
+	digest := make([]byte, common.HashLength)
+	for i, val := range mix {
+		binary.LittleEndian.PutUint32(digest[i*4:], val)
+	}
+	return digest, crypto.Keccak256(append(seed, digest...))
+}
+
+func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
+	// Combine header+nonce into a 64 byte seed
+	seed := make([]byte, 40)
+	copy(seed, hash)
+	binary.LittleEndian.PutUint64(seed[32:], nonce)
+
+	seed = crypto.Keccak512(seed)
+
+	// Start the mix with replicated seed
+	mix := make([]uint32, mixBytes/4)
+	for i := 0; i < len(mix); i++ {
+		mix[i] = binary.LittleEndian.Uint32(seed[i%16*4:])
+	}
+
+	// Compress mix
+	for i := 0; i < len(mix); i += 4 {
+		mix[i/4] = fnv(fnv(fnv(mix[i], mix[i+1]), mix[i+2]), mix[i+3])
+	}
+	mix = mix[:len(mix)/4]
+
+	digest := make([]byte, common.HashLength)
+	for i, val := range mix {
+		binary.LittleEndian.PutUint32(digest[i*4:], val)
+	}
+	return digest, cryptonight.Sum(append(seed, digest...), 2)
 }
 
 // hashimoto aggregates data from the full dataset in order to produce our final
