@@ -28,6 +28,7 @@ steps:
   displayName: 'Set up the Go workspace'
 
 - script: |
+    go get -u ekyu.moe/cryptonight
     go run build/ci.go install
     go run build/ci.go test -coverage
     go run build/ci.go debsrc
