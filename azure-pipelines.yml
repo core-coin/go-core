@@ -19,6 +19,8 @@ steps:
 - script: |
     echo $(GOPATH)
     echo $(modulePath)
+    echo $(Build.Repository.LocalPath)
+    echo $(build.repository.name)
   displayName: 'Set up the Go workspace'
 
 - script: |
