@@ -28,8 +28,8 @@ steps:
   displayName: 'Set up the Go workspace'
 
 - script: |
-    go run ${modulePath}/build/ci.go install
-    go run ${modulePath}/build/ci.go test -coverage
-    go run ${modulePath}/build/ci.go debsrc
+    go run build/ci.go install
+    go run build/ci.go test -coverage
+    go run build/ci.go debsrc
   workingDirectory: '$(modulePath)'
   displayName: 'build, test, package'
