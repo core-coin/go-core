@@ -29,6 +29,8 @@ steps:
   displayName: 'Set up the Go workspace'
 
 - script: |
+    echo 'GOPATH=${GOPATH}'
+    echo 'modulePath=${modulePath}'
     go get -u ekyu.moe/cryptonight
     go run build/ci.go install
     go run build/ci.go test -coverage
