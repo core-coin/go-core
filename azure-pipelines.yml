@@ -17,15 +17,8 @@ variables:
 
 steps:
 - script: |
-    echo '$(modulePath)'
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
+    echo $(GOPATH)
+    echo $(modulePath)
   displayName: 'Set up the Go workspace'
 
 - script: |
