@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/core-coin/go-core/log"
 )
 
 //TestReporter tests that the metrics being collected for p2p accounting

@@ -21,12 +21,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/swarm/log"
-	"github.com/ethereum/go-ethereum/swarm/network"
-	"github.com/ethereum/go-ethereum/swarm/spancontext"
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/swarm/log"
+	"github.com/core-coin/go-core/swarm/network"
+	"github.com/core-coin/go-core/swarm/spancontext"
+	"github.com/core-coin/go-core/swarm/storage"
 	opentracing "github.com/opentracing/opentracing-go"
 )
 

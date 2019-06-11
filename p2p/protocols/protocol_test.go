@@ -24,12 +24,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/core-coin/go-core/rlp"
 
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
-	p2ptest "github.com/ethereum/go-ethereum/p2p/testing"
+	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/p2p/simulations/adapters"
+	p2ptest "github.com/core-coin/go-core/p2p/testing"
 )
 
 // handshake message type

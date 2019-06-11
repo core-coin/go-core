@@ -24,10 +24,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/swarm/storage/feed/lookup"
+	"github.com/core-coin/go-core/swarm/storage/feed/lookup"
 
-	"github.com/ethereum/go-ethereum/swarm/log"
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/core-coin/go-core/swarm/log"
+	"github.com/core-coin/go-core/swarm/storage"
 )
 
 type Handler struct {

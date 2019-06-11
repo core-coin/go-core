@@ -31,14 +31,14 @@ import (
 
 	"github.com/mattn/go-colorable"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/rpc"
 
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/simulations"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/node"
+	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/p2p/simulations"
+	"github.com/core-coin/go-core/p2p/simulations/adapters"
 )
 
 const (

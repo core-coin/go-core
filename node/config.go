@@ -26,15 +26,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/accounts/usbwallet"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/core-coin/go-core/accounts"
+	"github.com/core-coin/go-core/accounts/keystore"
+	"github.com/core-coin/go-core/accounts/usbwallet"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/rpc"
 )
 
 const (

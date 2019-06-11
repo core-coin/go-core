@@ -19,9 +19,9 @@ package rpc
 import (
 	"testing"
 
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/swarm/storage/mock/mem"
-	"github.com/ethereum/go-ethereum/swarm/storage/mock/test"
+	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/swarm/storage/mock/mem"
+	"github.com/core-coin/go-core/swarm/storage/mock/test"
 )
 
 // TestDBStore is running test for a GlobalStore

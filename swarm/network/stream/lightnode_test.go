@@ -18,7 +18,7 @@ package stream
 import (
 	"testing"
 
-	p2ptest "github.com/ethereum/go-ethereum/p2p/testing"
+	p2ptest "github.com/core-coin/go-core/p2p/testing"
 )
 
 // This test checks the default behavior of the server, that is
