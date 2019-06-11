@@ -1,0 +1,39 @@
+# Go
+# Build your Go project.
+# Add steps that test, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/go
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-18.04'
+    mac:
+      imageName: 'macos-10.13'
+    windows:
+      imageName: 'vs2017-win2016'
+
+pool:
+  vmImage: $(imageName)
+
+variables:
+  GOPATH: '$(system.defaultWorkingDirectory)/../../../../'
+
+steps:
+- checkout: self
+  path: src/github.com/core-coin/go-core
+- bash: |
+    sudo apt-get install -y devscripts build-essential dh-make
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  displayName: tools
+- script: |
+    go run build/ci.go install
+  displayName: build
+- script: |
+    go run build/ci.go test -coverage
+  continueOnError: "true"
+  displayName: test
+- script: |
+    go run build/ci.go debsrc
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  continueOnError: "true"
+  displayName: package
