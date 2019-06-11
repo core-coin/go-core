@@ -24,7 +24,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/swarm/testutil"
+	"github.com/core-coin/go-core/swarm/testutil"
 )
 
 const testDataSize = 0x0001000

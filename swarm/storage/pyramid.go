@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	ch "github.com/ethereum/go-ethereum/swarm/chunk"
-	"github.com/ethereum/go-ethereum/swarm/log"
+	ch "github.com/core-coin/go-core/swarm/chunk"
+	"github.com/core-coin/go-core/swarm/log"
 )
 
 /*

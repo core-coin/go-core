@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/core-coin/go-core/swarm/storage"
 )
 
 // TestDB_SubscribePush uploads some chunks before and after

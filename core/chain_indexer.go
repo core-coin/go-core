@@ -24,12 +24,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/core/rawdb"
+	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/log"
 )
 
 // ChainIndexerBackend defines the methods needed to process chain segments in

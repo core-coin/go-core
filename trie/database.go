@@ -24,11 +24,11 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/rlp"
 )
 
 var (

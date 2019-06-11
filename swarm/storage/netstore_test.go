@@ -27,9 +27,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	ch "github.com/ethereum/go-ethereum/swarm/chunk"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/p2p/enode"
+	ch "github.com/core-coin/go-core/swarm/chunk"
 )
 
 var sourcePeerID = enode.HexID("99d8594b52298567d2ca3f4c441a5ba0140ee9245e26460d01102a52773c73b9")
