@@ -17,13 +17,10 @@
 package discover
 
 import (
-	"crypto/ecdsa"
-	"errors"
-	"math/big"
+	ecdsa "github.com/core-coin/eddsa"
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
 )
@@ -36,24 +33,15 @@ type node struct {
 	livenessChecks uint      // how often liveness was checked
 }
 
-type encPubkey [64]byte
+type encPubkey [56]byte
 
-func encodePubkey(key *ecdsa.PublicKey) encPubkey {
-	var e encPubkey
-	math.ReadBits(key.X, e[:len(e)/2])
-	math.ReadBits(key.Y, e[len(e)/2:])
-	return e
+func encodePubkey(pub *ecdsa.PublicKey) (key encPubkey) {
+	copy(key[:], pub.X[:])
+	return key
 }
 
 func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
-	p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
-	half := len(e) / 2
-	p.X.SetBytes(e[:half])
-	p.Y.SetBytes(e[half:])
-	if !p.Curve.IsOnCurve(p.X, p.Y) {
-		return nil, errors.New("invalid secp256k1 curve point")
-	}
-	return p, nil
+	return crypto.UnmarshalPubkey(e[:])
 }
 
 func (e encPubkey) id() enode.ID {
@@ -67,7 +55,7 @@ func recoverNodeKey(hash, sig []byte) (key encPubkey, err error) {
 	if err != nil {
 		return key, err
 	}
-	copy(key[:], pubkey[1:])
+	copy(key[:], pubkey[:])
 	return key, nil
 }
 

@@ -31,8 +31,9 @@ package ecies
 
 import (
 	"crypto/cipher"
-	"crypto/ecdsa"
 	"crypto/elliptic"
+	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/go-core/crypto"
 	"crypto/hmac"
 	"crypto/subtle"
 	"fmt"
@@ -52,38 +53,36 @@ var (
 
 // PublicKey is a representation of an elliptic curve public key.
 type PublicKey struct {
-	X *big.Int
-	Y *big.Int
+	X []byte
 	elliptic.Curve
 	Params *ECIESParams
 }
 
 // Export an ECIES public key as an ECDSA public key.
 func (pub *PublicKey) ExportECDSA() *ecdsa.PublicKey {
-	return &ecdsa.PublicKey{Curve: pub.Curve, X: pub.X, Y: pub.Y}
+	key, _ := crypto.UnmarshalPubkey(pub.X)
+	return key
 }
 
 // Import an ECDSA public key as an ECIES public key.
 func ImportECDSAPublic(pub *ecdsa.PublicKey) *PublicKey {
 	return &PublicKey{
 		X:      pub.X,
-		Y:      pub.Y,
-		Curve:  pub.Curve,
-		Params: ParamsFromCurve(pub.Curve),
+		Curve:  crypto.S256(),
+		Params: ParamsFromCurve(crypto.S256()),
 	}
 }
 
 // PrivateKey is a representation of an elliptic curve private key.
 type PrivateKey struct {
 	PublicKey
-	D *big.Int
+	D []byte
 }
 
 // Export an ECIES private key as an ECDSA private key.
 func (prv *PrivateKey) ExportECDSA() *ecdsa.PrivateKey {
-	pub := &prv.PublicKey
-	pubECDSA := pub.ExportECDSA()
-	return &ecdsa.PrivateKey{PublicKey: *pubECDSA, D: prv.D}
+	privkey, _ := crypto.ToECDSA(prv.D)
+	return privkey
 }
 
 // Import an ECDSA private key as an ECIES private key.
@@ -95,26 +94,16 @@ func ImportECDSA(prv *ecdsa.PrivateKey) *PrivateKey {
 // Generate an elliptic curve public / private keypair. If params is nil,
 // the recommended default parameters for the key will be chosen.
 func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv *PrivateKey, err error) {
-	pb, x, y, err := elliptic.GenerateKey(curve, rand)
+	_ = curve
+	pb, err := crypto.GenerateKey()
 	if err != nil {
 		return
 	}
 	prv = new(PrivateKey)
-	prv.PublicKey.X = x
-	prv.PublicKey.Y = y
-	prv.PublicKey.Curve = curve
-	prv.D = new(big.Int).SetBytes(pb)
-	if params == nil {
-		params = ParamsFromCurve(curve)
-	}
+	prv.PublicKey.X = pb.X
+	prv.D = pb.D
 	prv.PublicKey.Params = params
 	return
-}
-
-// MaxSharedKeyLength returns the maximum length of the shared key the
-// public key can produce.
-func MaxSharedKeyLength(pub *PublicKey) int {
-	return (pub.Curve.Params().BitSize + 7) / 8
 }
 
 // ECDH key agreement method used to establish secret keys for encryption.
@@ -122,19 +111,16 @@ func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []b
 	if prv.PublicKey.Curve != pub.Curve {
 		return nil, ErrInvalidCurve
 	}
-	if skLen+macLen > MaxSharedKeyLength(pub) {
-		return nil, ErrSharedKeyTooBig
+	privkey, err := crypto.ToECDSA(prv.D)
+	if err != nil {
+		return nil, err
 	}
-
-	x, _ := pub.Curve.ScalarMult(pub.X, pub.Y, prv.D.Bytes())
-	if x == nil {
-		return nil, ErrSharedKeyIsPointAtInfinity
+	pubkey, err := crypto.UnmarshalPubkey(pub.X)
+	if err != nil {
+		return nil, err
 	}
-
-	sk = make([]byte, skLen+macLen)
-	skBytes := x.Bytes()
-	copy(sk[len(sk)-len(skBytes):], skBytes)
-	return sk, nil
+	secret := crypto.ComputeSecret(privkey, pubkey)
+	return secret, nil
 }
 
 var (
@@ -283,7 +269,7 @@ func Encrypt(rand io.Reader, pub *PublicKey, m, s1, s2 []byte) (ct []byte, err e
 
 	d := messageTag(params.Hash, Km, em, s2)
 
-	Rb := elliptic.Marshal(pub.Curve, R.PublicKey.X, R.PublicKey.Y)
+	Rb := R.PublicKey.X
 	ct = make([]byte, len(Rb)+len(em)+len(d))
 	copy(ct, Rb)
 	copy(ct[len(Rb):], em)
@@ -306,36 +292,16 @@ func (prv *PrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
 	hash := params.Hash()
 
 	var (
-		rLen   int
+		rLen   int = len(prv.PublicKey.X)
 		hLen   int = hash.Size()
-		mStart int
-		mEnd   int
+		mStart int = rLen;
+		mEnd   int = len(c) - hLen
 	)
 
-	switch c[0] {
-	case 2, 3, 4:
-		rLen = (prv.PublicKey.Curve.Params().BitSize + 7) / 4
-		if len(c) < (rLen + hLen + 1) {
-			err = ErrInvalidMessage
-			return
-		}
-	default:
-		err = ErrInvalidPublicKey
-		return
-	}
-
-	mStart = rLen
-	mEnd = len(c) - hLen
-
 	R := new(PublicKey)
-	R.Curve = prv.PublicKey.Curve
-	R.X, R.Y = elliptic.Unmarshal(R.Curve, c[:rLen])
+	R.X = c[:rLen]
 	if R.X == nil {
 		err = ErrInvalidPublicKey
-		return
-	}
-	if !R.Curve.IsOnCurve(R.X, R.Y) {
-		err = ErrInvalidCurve
 		return
 	}
 

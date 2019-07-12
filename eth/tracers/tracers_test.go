@@ -17,7 +17,7 @@
 package tracers
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/rand"
 	"encoding/json"
 	"io/ioutil"

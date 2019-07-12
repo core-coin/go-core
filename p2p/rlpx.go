@@ -20,8 +20,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
@@ -329,7 +328,7 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
-	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
+	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[:])
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = 4
 	return msg, nil
@@ -508,18 +507,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 
 // importPublicKey unmarshals 512 bit public keys.
 func importPublicKey(pubKey []byte) (*ecies.PublicKey, error) {
-	var pubKey65 []byte
-	switch len(pubKey) {
-	case 64:
-		// add 'uncompressed key' flag
-		pubKey65 = append([]byte{0x04}, pubKey...)
-	case 65:
-		pubKey65 = pubKey
-	default:
-		return nil, fmt.Errorf("invalid public key length %v (expect 64/65)", len(pubKey))
-	}
-	// TODO: fewer pointless conversions
-	pub, err := crypto.UnmarshalPubkey(pubKey65)
+	pub, err := crypto.UnmarshalPubkey(pubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -530,7 +518,7 @@ func exportPubkey(pub *ecies.PublicKey) []byte {
 	if pub == nil {
 		panic("nil pubkey")
 	}
-	return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
+	return pub.X[:]
 }
 
 func xor(one, other []byte) (xor []byte) {

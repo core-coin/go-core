@@ -17,11 +17,10 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
@@ -83,10 +82,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	if err != nil {
 		return nil
 	}
-	buf := make([]byte, 64)
-	math.ReadBits(pubkey.X, buf[:32])
-	math.ReadBits(pubkey.Y, buf[32:])
-	return crypto.Keccak256(buf)
+	return crypto.Keccak256(pubkey.X)
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.

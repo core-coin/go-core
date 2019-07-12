@@ -21,7 +21,7 @@ package whisperv6
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"

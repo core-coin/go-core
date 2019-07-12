@@ -18,7 +18,7 @@ package types
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/json"
 	"math/big"
 	"testing"

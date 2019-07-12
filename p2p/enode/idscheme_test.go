@@ -18,7 +18,7 @@ package enode
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"math/big"
 	"testing"

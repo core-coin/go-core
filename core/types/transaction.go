@@ -25,7 +25,6 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
 )
 
@@ -167,6 +166,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return ErrInvalidSig
 		}
 	}
+
 
 	*tx = Transaction{data: dec}
 	return nil

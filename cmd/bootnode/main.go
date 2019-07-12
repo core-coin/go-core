@@ -18,7 +18,7 @@
 package main
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
 	"net"
@@ -86,7 +86,7 @@ func main() {
 	}
 
 	if *writeAddr {
-		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey)[1:])
+		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey))
 		os.Exit(0)
 	}
 

@@ -20,7 +20,7 @@
 package eth
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/rand"
 	"math/big"
 	"sort"

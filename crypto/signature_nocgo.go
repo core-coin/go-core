@@ -19,7 +19,7 @@
 package crypto
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/elliptic"
 	"errors"
 	"fmt"

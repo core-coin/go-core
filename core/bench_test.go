@@ -17,7 +17,7 @@
 package core
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"os"

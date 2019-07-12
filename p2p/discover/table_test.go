@@ -17,7 +17,7 @@
 package discover
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"math/rand"
 

@@ -17,7 +17,7 @@
 package adapters
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"

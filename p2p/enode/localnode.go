@@ -17,7 +17,7 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"net"
 	"reflect"

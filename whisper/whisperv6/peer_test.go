@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	mrand "math/rand"
 	"sync"
