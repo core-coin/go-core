@@ -21,7 +21,7 @@ package main
 
 import (
 	"bufio"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"

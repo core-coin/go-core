@@ -17,7 +17,6 @@
 package whisperv6
 
 import (
-	"math/big"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -453,8 +452,7 @@ func TestMatchMessageSym(t *testing.T) {
 	}
 
 	// Src: match
-	*f.Src.X = *params.Src.PublicKey.X
-	*f.Src.Y = *params.Src.PublicKey.Y
+	copy(f.Src.X, params.Src.PublicKey.X[:])
 	if !f.MatchMessage(msg) {
 		t.Fatalf("failed MatchEnvelope(src match) with seed %d.", seed)
 	}
@@ -547,8 +545,7 @@ func TestMatchMessageAsym(t *testing.T) {
 	}
 
 	// Src: match
-	*f.Src.X = *params.Src.PublicKey.X
-	*f.Src.Y = *params.Src.PublicKey.Y
+	copy(f.Src.X, params.Src.PublicKey.X[:])
 	if !f.MatchMessage(msg) {
 		t.Fatalf("failed MatchMessage(src match) with seed %d.", seed)
 	}
@@ -574,14 +571,13 @@ func TestMatchMessageAsym(t *testing.T) {
 	f.Topics[index][0]--
 
 	// key mismatch
-	prev := *f.KeyAsym.PublicKey.X
-	zero := *big.NewInt(0)
-	*f.KeyAsym.PublicKey.X = zero
+	var prev [56]byte
+	copy(prev[:], f.KeyAsym.PublicKey.X[:])
+	f.KeyAsym.PublicKey.X = f.KeyAsym.PublicKey.X[:0]
 	if f.MatchMessage(msg) {
 		t.Fatalf("failed MatchEnvelope(key mismatch) with seed %d.", seed)
 	}
-	*f.KeyAsym.PublicKey.X = prev
-
+	f.KeyAsym.PublicKey.X = prev[:]
 	// Src absent: match
 	f.Src = nil
 	if !f.MatchMessage(msg) {

@@ -17,7 +17,7 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/abi/bind"

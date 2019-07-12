@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"container/list"
 	"context"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -621,7 +621,7 @@ func (t *UDPv4) loop() {
 
 const (
 	macSize  = 256 / 8
-	sigSize  = 520 / 8
+	sigSize  = 112 + 56
 	headSize = macSize + sigSize // space of packet frame data
 )
 

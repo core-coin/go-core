@@ -17,7 +17,7 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 	"math"
@@ -747,11 +747,11 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 }
 
 func encodePubkey64(pub *ecdsa.PublicKey) []byte {
-	return crypto.FromECDSAPub(pub)[1:]
+	return crypto.FromECDSAPub(pub)
 }
 
 func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
-	return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
+	return crypto.UnmarshalPubkey(b)
 }
 
 // discoveredEntry implements wrsItem

@@ -25,7 +25,7 @@ package testing
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 	"io/ioutil"

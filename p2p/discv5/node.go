@@ -17,12 +17,10 @@
 package discv5
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/big"
 	"math/rand"
 	"net"
 	"net/url"
@@ -240,7 +238,7 @@ func (n *Node) UnmarshalText(text []byte) error {
 // 	*nl = append(slice[:i], slice[i+1:]...)
 // }
 
-const nodeIDBits = 512
+const nodeIDBits = 448
 
 // NodeID is a unique identifier for each node.
 // The node identifier is a marshaled elliptic curve public key.
@@ -288,25 +286,20 @@ func MustHexID(in string) NodeID {
 // PubkeyID returns a marshaled representation of the given public key.
 func PubkeyID(pub *ecdsa.PublicKey) NodeID {
 	var id NodeID
-	pbytes := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
-	if len(pbytes)-1 != len(id) {
-		panic(fmt.Errorf("need %d bit pubkey, got %d bits", (len(id)+1)*8, len(pbytes)))
+	if len(pub.X) != len(id) {
+		panic("id len != pub len")
 	}
-	copy(id[:], pbytes[1:])
+	copy(id[:], pub.X)
 	return id
 }
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
 func (n NodeID) Pubkey() (*ecdsa.PublicKey, error) {
-	p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
-	half := len(n) / 2
-	p.X.SetBytes(n[:half])
-	p.Y.SetBytes(n[half:])
-	if !p.Curve.IsOnCurve(p.X, p.Y) {
-		return nil, errors.New("id is invalid secp256k1 curve point")
+	if n.String() == "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
+		return nil, errors.New("invalid node id")
 	}
-	return p, nil
+	return crypto.UnmarshalPubkey(n[:])
 }
 
 // recoverNodeID computes the public key used to sign the
@@ -316,11 +309,11 @@ func recoverNodeID(hash, sig []byte) (id NodeID, err error) {
 	if err != nil {
 		return id, err
 	}
-	if len(pubkey)-1 != len(id) {
-		return id, fmt.Errorf("recovered pubkey has %d bits, want %d bits", len(pubkey)*8, (len(id)+1)*8)
+	if len(pubkey) != len(id) {
+		return id, fmt.Errorf("recovered pubkey has %d bits, want %d bits", len(pubkey)*8, (len(id))*8)
 	}
 	for i := range id {
-		id[i] = pubkey[i+1]
+		id[i] = pubkey[i]
 	}
 	return id, nil
 }

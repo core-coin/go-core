@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/sha256"
 	"fmt"
 	"math"
@@ -974,12 +974,12 @@ func (s *Statistics) reset() {
 
 // ValidatePublicKey checks the format of the given public key.
 func ValidatePublicKey(k *ecdsa.PublicKey) bool {
-	return k != nil && k.X != nil && k.Y != nil && k.X.Sign() != 0 && k.Y.Sign() != 0
+	return k != nil && k.X != nil && len(k.X) > 0
 }
 
 // validatePrivateKey checks the format of the given private key.
 func validatePrivateKey(k *ecdsa.PrivateKey) bool {
-	if k == nil || k.D == nil || k.D.Sign() == 0 {
+	if k == nil || k.D == nil {
 		return false
 	}
 	return ValidatePublicKey(&k.PublicKey)

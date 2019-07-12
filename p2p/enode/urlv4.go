@@ -17,7 +17,7 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -26,7 +26,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enr"
 )
@@ -159,10 +158,9 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
-	} else if len(b) != 64 {
-		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
+	} else if len(b) != 56 {
+		return nil, fmt.Errorf("wrong length, want %d hex chars", 112)
 	}
-	b = append([]byte{0x4}, b...)
 	return crypto.UnmarshalPubkey(b)
 }
 
@@ -175,8 +173,10 @@ func (n *Node) URLv4() string {
 	n.Load(&scheme)
 	n.Load((*Secp256k1)(&key))
 	switch {
-	case scheme == "v4" || key != ecdsa.PublicKey{}:
-		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
+	case scheme == "v4":
+		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[:])
+	case scheme == "":
+		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key))
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
@@ -196,8 +196,6 @@ func (n *Node) URLv4() string {
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
 func PubkeyToIDV4(key *ecdsa.PublicKey) ID {
-	e := make([]byte, 64)
-	math.ReadBits(key.X, e[:len(e)/2])
-	math.ReadBits(key.Y, e[len(e)/2:])
+	e := key.X[:]
 	return ID(crypto.Keccak256Hash(e))
 }

@@ -18,7 +18,7 @@ package keystore
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -147,7 +147,7 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 		panic("key generation: could not read from random source: " + err.Error())
 	}
 	reader := bytes.NewReader(randBytes)
-	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), reader)
+	privateKeyECDSA, err := ecdsa.Ed448().GenerateKey(reader)
 	if err != nil {
 		panic("key generation: ecdsa.GenerateKey failed: " + err.Error())
 	}
@@ -159,7 +159,7 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 }
 
 func newKey(rand io.Reader) (*Key, error) {
-	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)
+	privateKeyECDSA, err := ecdsa.Ed448().GenerateKey(rand)
 	if err != nil {
 		return nil, err
 	}

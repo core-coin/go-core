@@ -18,7 +18,7 @@ package checkpointoracle
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
 	"math/big"
@@ -150,7 +150,7 @@ func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]
 		return false
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
+	copy(signer[:], crypto.Keccak256(pubkey)[12:])
 	return bytes.Equal(signer.Bytes(), expect.Bytes())
 }
 

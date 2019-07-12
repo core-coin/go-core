@@ -18,7 +18,7 @@ package types
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -40,23 +40,23 @@ var (
 
 	rightvrsTx, _ = NewTransaction(
 		3,
-		common.HexToAddress("b94f5374fce5edbc8e2a8697c15331677e6ebf0b"),
+		common.HexToAddress("0x1A1f598a1b3f1614C7c5F3AD27D0ef4875A874Ec"),
 		big.NewInt(10),
 		2000,
 		big.NewInt(1),
-		common.FromHex("5544"),
+		common.FromHex("1123"),
 	).WithSignature(
 		HomesteadSigner{},
-		common.Hex2Bytes("98ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4a8887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a301"),
+		common.Hex2Bytes("26ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef56cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da40852e9afe4b052cd457d485c62b0e55a6db68f1da40845e4d7349e1df3ecac5db2b90bee5f9f15be07e9470b0c7ffe2f05e9d5802c26b97d81"),
 	)
 )
 
 func TestTransactionSigHash(t *testing.T) {
 	var homestead HomesteadSigner
-	if homestead.Hash(emptyTx) != common.HexToHash("c775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
+	if homestead.Hash(emptyTx) != common.HexToHash("0xc775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if homestead.Hash(rightvrsTx) != common.HexToHash("fe7a79529ed5f7c3375d06b26b186a8644e0e16c373d7a12be41c62d6042b77a") {
+	if homestead.Hash(rightvrsTx) != common.HexToHash("0xfff0e45edb61906f1bbbcb67c1ed7b17a538f02a17a58ebc6e01b50d5f55ce68") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -66,7 +66,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f86103018207d094b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a8255441ca098ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4aa08887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a3")
+	should := common.FromHex("f8a803018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a8211231bb83826ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef5b8386cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da408941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -80,14 +80,14 @@ func decodeTx(data []byte) (*Transaction, error) {
 }
 
 func defaultTestKey() (*ecdsa.PrivateKey, common.Address) {
-	key, _ := crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
+	key, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	return key, addr
 }
 
 func TestRecipientEmpty(t *testing.T) {
 	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("f8498080808080011ca09b16de9d5bdee2cf56c28d16275a4da68cd30273e2525f3959f5d62557489921a0372ebd8fb3345f7db7b5a86d42e24d36e983e259b0664ceb8c227ec9af572f3d"))
+	tx, err := decodeTx(common.Hex2Bytes("f85e8080808080011ca09b16de9d5bdee2cf56c28d16275a4da68cd30273e2525f3959f5d62557489921a0372ebd8fb3345f7db7b5a86d42e24d36e983e259b0664ceb8c227ec9af572f3d94858a65a40fa13231ba88c574db2c9539124e6e1c"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestRecipientEmpty(t *testing.T) {
 func TestRecipientNormal(t *testing.T) {
 	_, addr := defaultTestKey()
 
-	tx, err := decodeTx(common.Hex2Bytes("f85d80808094000000000000000000000000000000000000000080011ca0527c0d8f5c63f7b9f41324a7c8a563ee1190bcbf0dac8ab446291bdbf32f5c79a0552c4ef0a09a04395074dab9ed34d3fbfb843c2f2546cc30fe89ec143ca94ca6"))
+	tx, err := decodeTx(common.Hex2Bytes("f87280808094000000000000000000000000000000000000000080011ca0527c0d8f5c63f7b9f41324a7c8a563ee1190bcbf0dac8ab446291bdbf32f5c79a0552c4ef0a09a04395074dab9ed34d3fbfb843c2f2546cc30fe89ec143ca94ca694858a65a40fa13231ba88c574db2c9539124e6e1c"))
 	if err != nil {
 		t.Fatal(err)
 	}

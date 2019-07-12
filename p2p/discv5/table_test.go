@@ -17,7 +17,7 @@
 package discv5
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"math/rand"
 

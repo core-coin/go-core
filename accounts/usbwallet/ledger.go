@@ -32,7 +32,6 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 )
@@ -343,7 +342,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		op = ledgerP1ContTransactionData
 	}
 	// Extract the Ethereum signature and do a sanity validation
-	if len(reply) != crypto.SignatureLength {
+	if len(reply) != 112 + 56 {
 		return common.Address{}, nil, errors.New("reply lacks signature")
 	}
 	signature := append(reply[1:], reply[0])
@@ -354,7 +353,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		signer = new(types.HomesteadSigner)
 	} else {
 		signer = types.NewEIP155Signer(chainID)
-		signature[64] -= byte(chainID.Uint64()*2 + 35)
+		//signature[64] -= byte(chainID.Uint64()*2 + 35)
 	}
 	signed, err := tx.WithSignature(signer, signature)
 	if err != nil {
