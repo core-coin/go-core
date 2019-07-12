@@ -20,6 +20,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Price        *hexutil.Big    `json:"gasPrice" gencodec:"required"`
 		GasLimit     hexutil.Uint64  `json:"gas"      gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
+		Spender      common.Address `json:"from"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
@@ -34,6 +35,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
+	enc.Spender = t.Spender
 	enc.V = (*hexutil.Big)(t.V)
 	enc.R = (*hexutil.Big)(t.R)
 	enc.S = (*hexutil.Big)(t.S)
@@ -48,6 +50,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Price        *hexutil.Big    `json:"gasPrice" gencodec:"required"`
 		GasLimit     *hexutil.Uint64 `json:"gas"      gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
+		Spender      common.Address `json:"from"       rlp:"-"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
@@ -73,6 +76,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	t.GasLimit = uint64(*dec.GasLimit)
 	if dec.Recipient != nil {
 		t.Recipient = dec.Recipient
+	}
+	empty := *new(common.Address)
+	if dec.Spender != empty {
+		t.Spender = dec.Spender
 	}
 	if dec.Amount == nil {
 		return errors.New("missing required field 'value' for txdata")

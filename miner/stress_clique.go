@@ -21,7 +21,7 @@ package main
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"

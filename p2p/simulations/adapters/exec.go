@@ -19,7 +19,7 @@ package adapters
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/json"
 	"errors"
 	"fmt"

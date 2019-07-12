@@ -17,11 +17,10 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
@@ -54,7 +53,6 @@ func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	sig = sig[:len(sig)-1] // remove v
 	if err = cpy.SetSig(V4ID{}, sig); err == nil {
 		*r = cpy
 	}
@@ -65,7 +63,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 	var entry s256raw
 	if err := r.Load(&entry); err != nil {
 		return err
-	} else if len(entry) != 33 {
+	} else if len(entry) != 56 {
 		return fmt.Errorf("invalid public key")
 	}
 
@@ -83,16 +81,13 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	if err != nil {
 		return nil
 	}
-	buf := make([]byte, 64)
-	math.ReadBits(pubkey.X, buf[:32])
-	math.ReadBits(pubkey.Y, buf[32:])
-	return crypto.Keccak256(buf)
+	return crypto.Keccak256(pubkey.X)
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.
 type Secp256k1 ecdsa.PublicKey
 
-func (v Secp256k1) ENRKey() string { return "secp256k1" }
+func (v Secp256k1) ENRKey() string { return "ed448" }
 
 // EncodeRLP implements rlp.Encoder.
 func (v Secp256k1) EncodeRLP(w io.Writer) error {
@@ -116,7 +111,7 @@ func (v *Secp256k1) DecodeRLP(s *rlp.Stream) error {
 // s256raw is an unparsed secp256k1 public key entry.
 type s256raw []byte
 
-func (s256raw) ENRKey() string { return "secp256k1" }
+func (s256raw) ENRKey() string { return "ed448" }
 
 // v4CompatID is a weaker and insecure version of the "v4" scheme which only checks for the
 // presence of a secp256k1 public key, but doesn't verify the signature.
@@ -130,6 +125,7 @@ func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
 }
 
 func signV4Compat(r *enr.Record, pubkey *ecdsa.PublicKey) {
+	r.Set(enr.ID("v4"))
 	r.Set((*Secp256k1)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {
 		panic(err)

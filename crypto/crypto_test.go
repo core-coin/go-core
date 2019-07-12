@@ -18,20 +18,17 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"io/ioutil"
-	"math/big"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
 )
 
-var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"
-var testPrivHex = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
+var testAddrHex = "b2a6f9a2c6925d2407314b99518f8109156d0b09"
+var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 
 // These tests are sanity checks.
 // They should ensure that we don't e.g. use Sha3-224 instead of Sha3-256
@@ -69,19 +66,11 @@ func TestUnmarshalPubkey(t *testing.T) {
 	}
 
 	var (
-		enc, _ = hex.DecodeString("04760c4460e5336ac9bbd87952a3c7ec4363fc0a97bd31c86430806e287b437fd1b01abc6e1db640cf3106b520344af1d58b00b57823db3e1407cbc433e1b6d04d")
-		dec    = &ecdsa.PublicKey{
-			Curve: S256(),
-			X:     hexutil.MustDecodeBig("0x760c4460e5336ac9bbd87952a3c7ec4363fc0a97bd31c86430806e287b437fd1"),
-			Y:     hexutil.MustDecodeBig("0xb01abc6e1db640cf3106b520344af1d58b00b57823db3e1407cbc433e1b6d04d"),
-		}
+		enc, _ = hex.DecodeString("ee47e4f7afb3a0dfd813320278e8ce0c9b1f94bded9a7e0ad9f9250c3360e16cbb3d90484ccc59805be6398b6ca774959d37a8a4cdc81faf")
 	)
 	key, err = UnmarshalPubkey(enc)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
-	}
-	if !reflect.DeepEqual(key, dec) {
-		t.Fatal("wrong result")
 	}
 }
 
@@ -174,52 +163,6 @@ func TestLoadECDSAFile(t *testing.T) {
 	checkKey(key1)
 }
 
-func TestValidateSignatureValues(t *testing.T) {
-	check := func(expected bool, v byte, r, s *big.Int) {
-		if ValidateSignatureValues(v, r, s, false) != expected {
-			t.Errorf("mismatch for v: %d r: %d s: %d want: %v", v, r, s, expected)
-		}
-	}
-	minusOne := big.NewInt(-1)
-	one := common.Big1
-	zero := common.Big0
-	secp256k1nMinus1 := new(big.Int).Sub(secp256k1N, common.Big1)
-
-	// correct v,r,s
-	check(true, 0, one, one)
-	check(true, 1, one, one)
-	// incorrect v, correct r,s,
-	check(false, 2, one, one)
-	check(false, 3, one, one)
-
-	// incorrect v, combinations of incorrect/correct r,s at lower limit
-	check(false, 2, zero, zero)
-	check(false, 2, zero, one)
-	check(false, 2, one, zero)
-	check(false, 2, one, one)
-
-	// correct v for any combination of incorrect r,s
-	check(false, 0, zero, zero)
-	check(false, 0, zero, one)
-	check(false, 0, one, zero)
-
-	check(false, 1, zero, zero)
-	check(false, 1, zero, one)
-	check(false, 1, one, zero)
-
-	// correct sig with max r,s
-	check(true, 0, secp256k1nMinus1, secp256k1nMinus1)
-	// correct v, combinations of incorrect r,s at upper limit
-	check(false, 0, secp256k1N, secp256k1nMinus1)
-	check(false, 0, secp256k1nMinus1, secp256k1N)
-	check(false, 0, secp256k1N, secp256k1N)
-
-	// current callers ensures r,s cannot be negative, but let's test for that too
-	// as crypto package could be used stand-alone
-	check(false, 0, minusOne, one)
-	check(false, 0, one, minusOne)
-}
-
 func checkhash(t *testing.T, name string, f func([]byte) []byte, msg, exp []byte) {
 	sum := f(msg)
 	if !bytes.Equal(exp, sum) {
@@ -236,7 +179,7 @@ func checkAddr(t *testing.T, addr0, addr1 common.Address) {
 // test to help Python team with integration of libsecp256k1
 // skip but keep it after they are done
 func TestPythonIntegration(t *testing.T) {
-	kh := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
+	kh := "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 	k0, _ := HexToECDSA(kh)
 
 	msg0 := Keccak256([]byte("foo"))

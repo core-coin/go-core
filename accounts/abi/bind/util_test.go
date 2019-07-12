@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/crypto"
 )
 
-var testKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+var testKey, _ = crypto.HexToECDSA("b2fb76df787478beafecf1f6078ac7aca04f3fca47a72c0c1d6c86dd0b9ee2dae860c95215cf34876b08df18ccf7dea17088509293490d2f5525317c15925fb81176640fab59b644f31b253d97bc6b2a7379f671ac23fb378df28bf7fdcbb2fae277121c294f221f745a993a851ab7d69c6906ddc8f1aa0a2025379650111efe9c4413efe1a738dfd626df3916ff8406")
 
 var waitDeployedTests = map[string]struct {
 	code        string
@@ -41,13 +41,13 @@ var waitDeployedTests = map[string]struct {
 	"successful deploy": {
 		code:        `6060604052600a8060106000396000f360606040526008565b00`,
 		gas:         3000000,
-		wantAddress: common.HexToAddress("0x3a220f351252089d385b29beca14e27f204c296a"),
+		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
 	},
 	"empty code": {
 		code:        ``,
 		gas:         300000,
 		wantErr:     bind.ErrNoCodeAfterDeploy,
-		wantAddress: common.HexToAddress("0x3a220f351252089d385b29beca14e27f204c296a"),
+		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
 	},
 }
 

@@ -55,7 +55,7 @@ const (
 	signatureFlag = byte(4)
 
 	TopicLength     = 4  // in bytes
-	signatureLength = 65 // in bytes
+	signatureLength = 112 + 56 // in bytes
 	aesKeyLength    = 32 // in bytes
 	aesNonceLength  = 12 // in bytes; for more info please see cipher.gcmStandardNonceSize & aesgcm.NonceSize()
 	keyIDSize       = 32 // in bytes

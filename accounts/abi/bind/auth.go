@@ -17,7 +17,7 @@
 package bind
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"errors"
 	"io"
 	"io/ioutil"

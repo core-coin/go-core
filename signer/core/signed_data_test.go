@@ -215,7 +215,7 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != 65 {
+	if signature == nil || len(signature) != 112 + 56 {
 		t.Errorf("Expected 65 byte signature (got %d bytes)", len(signature))
 	}
 	// data/typed
@@ -225,7 +225,7 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != 65 {
+	if signature == nil || len(signature) != 112 + 56 {
 		t.Errorf("Expected 65 byte signature (got %d bytes)", len(signature))
 	}
 }
