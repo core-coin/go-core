@@ -37,7 +37,6 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"math/big"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -75,29 +74,13 @@ func cmpParams(p1, p2 *ECIESParams) bool {
 		p1.BlockSize == p2.BlockSize
 }
 
-// cmpPublic returns true if the two public keys represent the same pojnt.
-func cmpPublic(pub1, pub2 PublicKey) bool {
-	if pub1.X == nil || pub1.Y == nil {
-		fmt.Println(ErrInvalidPublicKey.Error())
-		return false
-	}
-	if pub2.X == nil || pub2.Y == nil {
-		fmt.Println(ErrInvalidPublicKey.Error())
-		return false
-	}
-	pub1Out := elliptic.Marshal(pub1.Curve, pub1.X, pub1.Y)
-	pub2Out := elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y)
-
-	return bytes.Equal(pub1Out, pub2Out)
-}
-
 // Validate the ECDH component.
 func TestSharedKey(t *testing.T) {
 	prv1, err := GenerateKey(rand.Reader, DefaultCurve, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	skLen := MaxSharedKeyLength(&prv1.PublicKey) / 2
+	skLen := 16
 
 	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
 	if err != nil {
@@ -121,24 +104,16 @@ func TestSharedKey(t *testing.T) {
 
 func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
-	prv0 := hexKey("1adf5c18167d96a1f9a0b1ef63be8aa27eaf6032c233b2b38f7850cf5b859fd9")
-	prv1 := hexKey("0097a076fc7fcd9208240668e31c9abee952cbb6e375d1b8febc7499d6e16f1a")
-	x0, _ := new(big.Int).SetString("1a8ed022ff7aec59dc1b440446bdda5ff6bcb3509a8b109077282b361efffbd8", 16)
-	x1, _ := new(big.Int).SetString("6ab3ac374251f638d0abb3ef596d1dc67955b507c104e5f2009724812dc027b8", 16)
-	y0, _ := new(big.Int).SetString("e040bd480b1deccc3bc40bd5b1fdcb7bfd352500b477cb9471366dbd4493f923", 16)
-	y1, _ := new(big.Int).SetString("8ad915f2b503a8be6facab6588731fefeb584fd2dfa9a77a5e0bba1ec439e4fa", 16)
+	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
+	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
+	pub0 := hexPub("919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1")
+	pub1 := hexPub("b086d547bc4bd08d7808da56399bc1ec182c5cb26a21be11a8cb89546094fe95bacee4cae7d4f233fabb3407c4f3e56cfb22b0517dcd2211")
 
-	if prv0.PublicKey.X.Cmp(x0) != 0 {
-		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X.Bytes(), x0.Bytes())
+	if !bytes.Equal(prv0.PublicKey.X, pub0) {
+		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X, pub0)
 	}
-	if prv0.PublicKey.Y.Cmp(y0) != 0 {
-		t.Errorf("mismatched prv0.Y:\nhave: %x\nwant: %x\n", prv0.PublicKey.Y.Bytes(), y0.Bytes())
-	}
-	if prv1.PublicKey.X.Cmp(x1) != 0 {
-		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1.PublicKey.X.Bytes(), x1.Bytes())
-	}
-	if prv1.PublicKey.Y.Cmp(y1) != 0 {
-		t.Errorf("mismatched prv1.Y:\nhave: %x\nwant: %x\n", prv1.PublicKey.Y.Bytes(), y1.Bytes())
+	if !bytes.Equal(prv1.PublicKey.X, pub1) {
+		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1.PublicKey.X, pub1)
 	}
 
 	// test shared secret generation
@@ -410,7 +385,7 @@ func TestSharedKeyStatic(t *testing.T) {
 	prv1 := hexKey("7ebbc6a8358bc76dd73ebc557056702c8cfc34e5cfcd90eb83af0347575fd2ad")
 	prv2 := hexKey("6a3d6396903245bba5837752b9e0348874e72db0c4e11e9c485a81b4ea4353b9")
 
-	skLen := MaxSharedKeyLength(&prv1.PublicKey) / 2
+	skLen := 16
 
 	sk1, err := prv1.GenerateShared(&prv2.PublicKey, skLen, skLen)
 	if err != nil {
@@ -439,3 +414,17 @@ func hexKey(prv string) *PrivateKey {
 	}
 	return ImportECDSA(key)
 }
+
+func hexPub(key string) []byte {
+	b, err := hex.DecodeString(key)
+	if err != nil {
+		panic(err)
+	}
+
+	pub, err := crypto.UnmarshalPubkey(b)
+	if err != nil {
+		panic(err)
+	}
+	return pub.X
+}
+

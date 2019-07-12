@@ -17,7 +17,7 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"net"
 	"reflect"
 	"strings"
@@ -36,7 +36,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enr:-IS4QGrdq0ugARp5T2BZ41TrZOqLc_oKvZoPuZP5--anqWE_J-Tucc1xgkOL7qXl0puJgT7qc2KSvcupc4NCb0nr4tdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQM6UUF2Rm-oFe1IH_rQkRCi00T2ybeMHRSvw1HDpRvjPYN1ZHCCdl8",
 		wantResult: func() *Node {
-			testKey, _ := crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
+			testKey, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 			var r enr.Record
 			r.Set(enr.IP{127, 0, 0, 1})
 			r.Set(enr.UDP(30303))

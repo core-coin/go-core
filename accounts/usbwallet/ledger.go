@@ -341,7 +341,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		op = ledgerP1ContTransactionData
 	}
 	// Extract the Ethereum signature and do a sanity validation
-	if len(reply) != 65 {
+	if len(reply) != 112 + 56 {
 		return common.Address{}, nil, errors.New("reply lacks signature")
 	}
 	signature := append(reply[1:], reply[0])
@@ -352,7 +352,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		signer = new(types.HomesteadSigner)
 	} else {
 		signer = types.NewEIP155Signer(chainID)
-		signature[64] -= byte(chainID.Uint64()*2 + 35)
+		//signature[64] -= byte(chainID.Uint64()*2 + 35)
 	}
 	signed, err := tx.WithSignature(signer, signature)
 	if err != nil {

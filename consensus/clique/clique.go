@@ -56,7 +56,7 @@ var (
 	epochLength = uint64(30000) // Default number of blocks after which to checkpoint and reset the pending votes
 
 	extraVanity = 32 // Fixed number of extra-data prefix bytes reserved for signer vanity
-	extraSeal   = 65 // Fixed number of extra-data suffix bytes reserved for signer seal
+	extraSeal   = 112 + 56 // Fixed number of extra-data suffix bytes reserved for signer seal
 
 	nonceAuthVote = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
 	nonceDropVote = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
@@ -93,8 +93,8 @@ var (
 	errMissingVanity = errors.New("extra-data 32 byte vanity prefix missing")
 
 	// errMissingSignature is returned if a block's extra-data section doesn't seem
-	// to contain a 65 byte secp256k1 signature.
-	errMissingSignature = errors.New("extra-data 65 byte signature suffix missing")
+	// to contain a 112 + 56 byte signature.
+	errMissingSignature = errors.New("extra-data 112 + 56 byte signature suffix missing")
 
 	// errExtraSigners is returned if non-checkpoint block contain signer data in
 	// their extra-data fields.
@@ -160,7 +160,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 		return common.Address{}, err
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
+	copy(signer[:], crypto.Keccak256(pubkey)[12:])
 
 	sigcache.Add(hash, signer)
 	return signer, nil
@@ -702,10 +702,10 @@ func SealHash(header *types.Header) (hash common.Hash) {
 }
 
 // CliqueRLP returns the rlp bytes which needs to be signed for the proof-of-authority
-// sealing. The RLP to sign consists of the entire header apart from the 65 byte signature
+// sealing. The RLP to sign consists of the entire header apart from the 112 + 56 byte signature
 // contained at the end of the extra data.
 //
-// Note, the method requires the extra data to be at least 65 bytes, otherwise it
+// Note, the method requires the extra data to be at least 112 + 56 bytes, otherwise it
 // panics. This is done to avoid accidentally using both forms (signature present
 // or not), which could be abused to produce different hashes for the same header.
 func CliqueRLP(header *types.Header) []byte {

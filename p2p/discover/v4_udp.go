@@ -19,7 +19,7 @@ package discover
 import (
 	"bytes"
 	"container/list"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"

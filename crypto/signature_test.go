@@ -18,13 +18,11 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"reflect"
 	"testing"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
 )
 
 var (
@@ -45,7 +43,7 @@ func TestEcrecover(t *testing.T) {
 }
 
 func TestVerifySignature(t *testing.T) {
-	sig := testsig[:len(testsig)-1] // remove recovery id
+	sig := testsig
 	if !VerifySignature(testpubkey, testmsg, sig) {
 		t.Errorf("can't verify signature with uncompressed key")
 	}
@@ -101,18 +99,6 @@ func TestDecompressPubkey(t *testing.T) {
 	}
 	if _, err := DecompressPubkey(append(common.CopyBytes(testpubkeyc), 1, 2, 3)); err == nil {
 		t.Errorf("no error for pubkey with extra bytes at the end")
-	}
-}
-
-func TestCompressPubkey(t *testing.T) {
-	key := &ecdsa.PublicKey{
-		Curve: S256(),
-		X:     math.MustParseBig256("0xe32df42865e97135acfb65f3bae71bdc86f4d49150ad6a440b6f15878109880a"),
-		Y:     math.MustParseBig256("0x0a2b2667f7e725ceea70c673093bf67663e0312623c8e091b13cf2c0f11ef652"),
-	}
-	compressed := CompressPubkey(key)
-	if !bytes.Equal(compressed, testpubkeyc) {
-		t.Errorf("wrong public key result: got %x, want %x", compressed, testpubkeyc)
 	}
 }
 

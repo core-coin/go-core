@@ -18,9 +18,8 @@ package enode
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
-	"math/big"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -31,7 +30,7 @@ import (
 )
 
 var (
-	privkey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	privkey, _ = crypto.HexToECDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 	pubkey     = &privkey.PublicKey
 )
 
@@ -42,13 +41,13 @@ func TestEmptyNodeID(t *testing.T) {
 	}
 
 	require.NoError(t, SignV4(&r, privkey))
-	expected := "a448f24c6d18e575453db13171562b71999873db5b286df957af199ec94617f7"
+	expected := "1f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b9"
 	assert.Equal(t, expected, hex.EncodeToString(ValidSchemes.NodeAddr(&r)))
 }
 
 // Checks that failure to sign leaves the record unmodified.
 func TestSignError(t *testing.T) {
-	invalidKey := &ecdsa.PrivateKey{D: new(big.Int), PublicKey: *pubkey}
+	invalidKey := &ecdsa.PrivateKey{D: []byte{}, PublicKey: *pubkey}
 
 	var r enr.Record
 	emptyEnc, _ := rlp.EncodeToBytes(&r)

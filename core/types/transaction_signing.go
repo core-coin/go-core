@@ -17,7 +17,7 @@
 package types
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"math/big"
@@ -133,7 +133,7 @@ func (s EIP155Signer) Sender(tx *Transaction) (common.Address, error) {
 	}
 	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
 	V.Sub(V, big8)
-	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
+	return tx.data.Spender, nil
 }
 
 // SignatureValues returns signature values. This signature
@@ -144,7 +144,7 @@ func (s EIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big
 		return nil, nil, nil, err
 	}
 	if s.chainId.Sign() != 0 {
-		V = big.NewInt(int64(sig[64] + 35))
+		V = big.NewInt(int64(0 + 35))
 		V.Add(V, s.chainIdMul)
 	}
 	return R, S, V, nil
@@ -180,7 +180,7 @@ func (hs HomesteadSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v 
 }
 
 func (hs HomesteadSigner) Sender(tx *Transaction) (common.Address, error) {
-	return recoverPlain(hs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, true)
+	return tx.data.Spender, nil
 }
 
 type FrontierSigner struct{}
@@ -193,12 +193,12 @@ func (s FrontierSigner) Equal(s2 Signer) bool {
 // SignatureValues returns signature values. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
 func (fs FrontierSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	if len(sig) != 65 {
-		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
+	if len(sig) != 112 + 56 {
+		panic(fmt.Sprintf("wrong size for signature: got %d, want 168", len(sig)))
 	}
-	r = new(big.Int).SetBytes(sig[:32])
-	s = new(big.Int).SetBytes(sig[32:64])
-	v = new(big.Int).SetBytes([]byte{sig[64] + 27})
+	r = new(big.Int).SetBytes(sig[:56])
+	s = new(big.Int).SetBytes(sig[56:112])
+	v = new(big.Int).SetBytes([]byte{0 + 27})
 	return r, s, v, nil
 }
 
@@ -216,33 +216,29 @@ func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
 }
 
 func (fs FrontierSigner) Sender(tx *Transaction) (common.Address, error) {
-	return recoverPlain(fs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, false)
+	return tx.data.Spender, nil
 }
 
 func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (common.Address, error) {
 	if Vb.BitLen() > 8 {
 		return common.Address{}, ErrInvalidSig
 	}
-	V := byte(Vb.Uint64() - 27)
-	if !crypto.ValidateSignatureValues(V, R, S, homestead) {
-		return common.Address{}, ErrInvalidSig
-	}
+	// V := byte(Vb.Uint64() - 27)
 	// encode the signature in uncompressed format
 	r, s := R.Bytes(), S.Bytes()
-	sig := make([]byte, 65)
-	copy(sig[32-len(r):32], r)
-	copy(sig[64-len(s):64], s)
-	sig[64] = V
+	sig := make([]byte, 112 + 56)
+	copy(sig[56-len(r):56], r)
+	copy(sig[112-len(s):112], s)
 	// recover the public key from the signature
 	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
 		return common.Address{}, err
 	}
-	if len(pub) == 0 || pub[0] != 4 {
+	if len(pub) == 0 {
 		return common.Address{}, errors.New("invalid public key")
 	}
 	var addr common.Address
-	copy(addr[:], crypto.Keccak256(pub[1:])[12:])
+	copy(addr[:], crypto.Keccak256(pub)[12:])
 	return addr, nil
 }
 

@@ -18,7 +18,7 @@
 package utils
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"io/ioutil"

@@ -4,9 +4,9 @@
   "engine":{
     "Ethash":{
       "params":{
-        "minimumDifficulty":"0x20000",
-        "difficultyBoundDivisor":"0x800",
-        "durationLimit":"0xd",
+        "minimumDifficulty":"0x20",
+        "difficultyBoundDivisor":"0x2",
+        "durationLimit":"0x6",
         "blockReward":{
           "0x0":"0x4563918244f40000",
           "0x7530":"0x29a2241af62c0000",
@@ -52,7 +52,7 @@
         "mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000"
       }
     },
-    "difficulty":"0x20000",
+    "difficulty":"0x20",
     "author":"0x0000000000000000000000000000000000000000",
     "timestamp":"0x59a4e76d",
     "parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000",

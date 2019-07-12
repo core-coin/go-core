@@ -442,13 +442,16 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 //
 // https://github.com/core-coin/go-core/wiki/Management-APIs#personal_ecRecover
 func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (common.Address, error) {
-	if len(sig) != 65 {
-		return common.Address{}, fmt.Errorf("signature must be 65 bytes long")
+	if len(sig) != 112 + 56 {
+		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
 	}
+
+    /*
 	if sig[64] != 27 && sig[64] != 28 {
 		return common.Address{}, fmt.Errorf("invalid Ethereum signature (V is not 27 or 28)")
 	}
 	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
+    */
 
 	rpk, err := crypto.SigToPub(accounts.TextHash(data), sig)
 	if err != nil {
@@ -1677,7 +1680,7 @@ func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address comm
 		return common.Address{}, err
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
+	copy(signer[:], crypto.Keccak256(pubkey)[12:])
 
 	return signer, nil
 }

@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	"crypto/sha512"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
@@ -47,14 +47,14 @@ const (
 	maxUint24 = ^uint32(0) >> 8
 
 	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
-	sigLen = 65 // elliptic S256
-	pubLen = 64 // 512 bit pubkey in uncompressed representation without format byte
-	shaLen = 32 // hash length (for nonce etc)
+	sigLen = 112 + 56
+	pubLen = 56
+	shaLen = sha512.Size
 
 	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1
 	authRespLen = pubLen + shaLen + 1
 
-	eciesOverhead = 65 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
+	eciesOverhead = 56 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
 
 	encAuthMsgLen  = authMsgLen + eciesOverhead  // size of encrypted pre-EIP-8 initiator handshake
 	encAuthRespLen = authRespLen + eciesOverhead // size of encrypted pre-EIP-8 handshake reply
@@ -164,7 +164,7 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 	if err := msg.Decode(&hs); err != nil {
 		return nil, err
 	}
-	if len(hs.ID) != 64 || !bitutil.TestBytes(hs.ID) {
+	if len(hs.ID) != 56 || !bitutil.TestBytes(hs.ID) {
 		return nil, DiscInvalidIdentity
 	}
 	return &hs, nil
@@ -329,7 +329,7 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
-	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
+	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[:])
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = 4
 	return msg, nil
@@ -508,18 +508,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 
 // importPublicKey unmarshals 512 bit public keys.
 func importPublicKey(pubKey []byte) (*ecies.PublicKey, error) {
-	var pubKey65 []byte
-	switch len(pubKey) {
-	case 64:
-		// add 'uncompressed key' flag
-		pubKey65 = append([]byte{0x04}, pubKey...)
-	case 65:
-		pubKey65 = pubKey
-	default:
-		return nil, fmt.Errorf("invalid public key length %v (expect 64/65)", len(pubKey))
-	}
-	// TODO: fewer pointless conversions
-	pub, err := crypto.UnmarshalPubkey(pubKey65)
+	pub, err := crypto.UnmarshalPubkey(pubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -530,7 +519,7 @@ func exportPubkey(pub *ecies.PublicKey) []byte {
 	if pub == nil {
 		panic("nil pubkey")
 	}
-	return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
+	return pub.X[:]
 }
 
 func xor(one, other []byte) (xor []byte) {

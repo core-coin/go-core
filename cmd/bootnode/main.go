@@ -18,7 +18,7 @@
 package main
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
 	"net"
@@ -70,7 +70,6 @@ func main() {
 		if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
 			utils.Fatalf("%v", err)
 		}
-		return
 	case *nodeKeyFile == "" && *nodeKeyHex == "":
 		utils.Fatalf("Use -nodekey or -nodekeyhex to specify a private key")
 	case *nodeKeyFile != "" && *nodeKeyHex != "":
@@ -85,9 +84,11 @@ func main() {
 		}
 	}
 
-	if *writeAddr {
-		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey)[1:])
-		os.Exit(0)
+	if *genKey != "" || *writeAddr {
+		fmt.Printf("%x\n", crypto.FromECDSA(nodeKey))
+		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey))
+		fmt.Printf("%x\n", crypto.PubkeyToAddress(nodeKey.PublicKey))
+		return
 	}
 
 	var restrictList *netutil.Netlist
@@ -142,7 +143,7 @@ func printNotice(nodeKey *ecdsa.PublicKey, addr net.UDPAddr) {
 	if addr.IP.IsUnspecified() {
 		addr.IP = net.IP{127, 0, 0, 1}
 	}
-	n := enode.NewV4(nodeKey, addr.IP, 0, addr.Port)
+	n := enode.NewV4(nodeKey, addr.IP, addr.Port, addr.Port)
 	fmt.Println(n.URLv4())
 	fmt.Println("Note: you're using cmd/bootnode, a developer tool.")
 	fmt.Println("We recommend using a regular node as bootstrap node for production deployments.")
