@@ -25,9 +25,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/rlp"
 )
 
 // Msg defines the structure of a p2p message.

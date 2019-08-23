@@ -27,13 +27,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/contracts/checkpointoracle/contract"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/core-coin/go-core/accounts/abi/bind"
+	"github.com/core-coin/go-core/accounts/abi/bind/backends"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
+	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/params"
 )
 
 var (
