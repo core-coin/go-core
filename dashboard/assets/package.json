@@ -48,7 +48,7 @@
         "webpack": "4.29.6",
         "webpack-cli": "3.2.3",
         "webpack-dashboard": "3.0.0",
-        "webpack-dev-server": "3.2.1",
+        "webpack-dev-server": "3.8.0",
         "webpack-merge": "4.2.1"
     },
     "scripts": {
