@@ -34,12 +34,12 @@ import (
 	"unsafe"
 
 	mmap "github.com/edsrzf/mmap-go"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/consensus"
+	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/rpc"
 	"github.com/hashicorp/golang-lru/simplelru"
 )
 

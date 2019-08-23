@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/internal/jsre"
-	"github.com/ethereum/go-ethereum/miner"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/internal/jsre"
+	"github.com/core-coin/go-core/miner"
+	"github.com/core-coin/go-core/node"
 )
 
 const (
