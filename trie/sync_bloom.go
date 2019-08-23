@@ -24,10 +24,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/metrics"
 	"github.com/steakknife/bloomfilter"
 )
 

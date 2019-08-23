@@ -19,8 +19,8 @@ package les
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/p2p/enode"
 )
 
 type ulc struct {
