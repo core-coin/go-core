@@ -89,16 +89,11 @@ func (c *ecrecover) RequiredGas(input []byte) uint64 {
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = 32 + 112
+	const ecRecoverInputLength = 112 + 56
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
-	// "input" is (hash, signarure), each 32 bytes
+	// "input" is (hash, signarure)
 
-	// tighter sig s values input homestead only apply to tx sigs
-	if !allZero(input[32:63]) {
-		return nil, nil
-	}
-	// v needs to be at the end for libsecp256k1
 	pubKey, err := crypto.Ecrecover(input[:32], input[32:])
 	// make sure the public key is a valid one
 	if err != nil {

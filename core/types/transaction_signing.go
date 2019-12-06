@@ -144,7 +144,7 @@ func (s EIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big
 		return nil, nil, nil, err
 	}
 	if s.chainId.Sign() != 0 {
-		V = big.NewInt(int64(sig[64] + 35))
+		V = big.NewInt(int64(0 + 35))
 		V.Add(V, s.chainIdMul)
 	}
 	return R, S, V, nil
@@ -193,12 +193,12 @@ func (s FrontierSigner) Equal(s2 Signer) bool {
 // SignatureValues returns signature values. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
 func (fs FrontierSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	if len(sig) != 65 {
+	if len(sig) != 112 + 56 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
 	}
-	r = new(big.Int).SetBytes(sig[:32])
-	s = new(big.Int).SetBytes(sig[32:64])
-	v = new(big.Int).SetBytes([]byte{sig[64] + 27})
+	r = new(big.Int).SetBytes(sig[:56])
+	s = new(big.Int).SetBytes(sig[56:112])
+	v = new(big.Int).SetBytes([]byte{0 + 27})
 	return r, s, v, nil
 }
 
