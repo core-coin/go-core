@@ -26,6 +26,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/crypto"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -162,7 +163,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 		} else {
 			V = byte(dec.V.Uint64() - 27)
 		}
-		if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
+		if !crypto.ValidateSignatureValues(V) {
 			return ErrInvalidSig
 		}
 	}
