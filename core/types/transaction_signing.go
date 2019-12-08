@@ -223,19 +223,18 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (commo
 	if Vb.BitLen() > 8 {
 		return common.Address{}, ErrInvalidSig
 	}
-	V := byte(Vb.Uint64() - 27)
+	// V := byte(Vb.Uint64() - 27)
 	// encode the signature in uncompressed format
 	r, s := R.Bytes(), S.Bytes()
-	sig := make([]byte, 65)
-	copy(sig[32-len(r):32], r)
-	copy(sig[64-len(s):64], s)
-	sig[64] = V
+	sig := make([]byte, 112 + 56)
+	copy(sig[56-len(r):56], r)
+	copy(sig[112-len(s):112], s)
 	// recover the public key from the signature
 	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
 		return common.Address{}, err
 	}
-	if len(pub) == 0 || pub[0] != 4 {
+	if len(pub) == 0 {
 		return common.Address{}, errors.New("invalid public key")
 	}
 	var addr common.Address
