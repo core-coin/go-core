@@ -53,6 +53,11 @@
     - name: Install required system packages
       apt: name={{ sys_packages }} state=latest
 
+# Install docker-py
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
 # Docker Login
     - name: Login to Docker Registry
       docker_login:
@@ -61,3 +66,14 @@
         password: "{{ docker_registry_password }}"
         reauthorize: yes
 
+# Docker pull&start
+    - name: Start Corecoin
+      docker_container:
+        image: registry2.dbatyuk.pp.ua/corecoin:20191214
+        name: corecoin
+        state: started
+        exposed_ports:
+          - "8545"
+          - "8546"
+          - "30303"
+          - "30303/udp"

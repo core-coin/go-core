@@ -1,8 +1,8 @@
 ---
 create_user: deployer
 copy_local_key: "{{ lookup('file', lookup('env','HOME') + '/corecoin/ansible_corecoin_rsa.pub') }}"
-sys_packages: [ 'curl', 'vim', 'git', 'mc', 'docker.io']
+sys_packages: [ 'curl', 'vim', 'git', 'mc', 'docker.io', 'python-docker', 'python3-pip', 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'virtualenv', 'python3-setuptools']
 ansible_ssh_private_key_file: "ansible_corecoin_rsa"
-docker_regitsry: "registry2.dbatyuk.pp.ua"
+docker_registry: "registry2.dbatyuk.pp.ua"
 docker_registry_username: "deployer"
 docker_registry_password: "the0uN2i"
