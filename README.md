@@ -98,7 +98,7 @@ Specifying the `--testnet` flag, however, will reconfigure your `geth` instance 
    this.
  * Instead of connecting the main Ethereum network, the client will connect to the test
    network, which uses different P2P bootnodes, different network IDs and genesis states.
-   
+
 *Note: Although there are some internal protective measures to prevent transactions from
 crossing over between the main network and test network, you should make sure to always
 use separate accounts for play-money and real-money. Unless you manually move
@@ -342,3 +342,4 @@ also included in our repository in the `COPYING.LESSER` file.
 The go-ethereum binaries (i.e. all code inside of the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
 included in our repository in the `COPYING` file.
+ 
