@@ -77,7 +77,7 @@ func getPassphrase(ctx *cli.Context) string {
 // This gives context to the signed message and prevents signing of transactions.
 func signHash(data []byte) []byte {
 	msg := fmt.Sprintf("\x19Core Signed Message:\n%d%s", len(data), data)
-	return crypto.Keccak256([]byte(msg))
+	return crypto.SHA3([]byte(msg))
 }
 
 // mustPrintJSON prints the JSON encoding of the given object and

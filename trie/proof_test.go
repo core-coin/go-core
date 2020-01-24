@@ -48,7 +48,7 @@ func makeProvers(trie *Trie) []func(key []byte) *memorydb.Database {
 		proof := memorydb.New()
 		if it := NewIterator(trie.NodeIterator(key)); it.Next() && bytes.Equal(key, it.Key) {
 			for _, p := range it.Prove() {
-				proof.Put(crypto.Keccak256(p), p)
+				proof.Put(crypto.SHA3(p), p)
 			}
 		}
 		return proof
@@ -97,7 +97,7 @@ func TestOneElementProof(t *testing.T) {
 	}
 }
 
-func TestBadProof(t *testing.T) {
+func TestBadProof(t *testing.T) { //TODO: TEST
 	trie, vals := randomTrie(800)
 	root := trie.Hash()
 	for i, prover := range makeProvers(trie) {
@@ -116,7 +116,7 @@ func TestBadProof(t *testing.T) {
 			it.Release()
 
 			mutateByte(val)
-			proof.Put(crypto.Keccak256(val), val)
+			proof.Put(crypto.SHA3(val), val)
 
 			if _, _, err := VerifyProof(root, kv.k, proof); err == nil {
 				t.Fatalf("prover %d: expected proof to fail for key %x", i, kv.k)

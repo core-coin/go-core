@@ -160,7 +160,7 @@ func (a *announceData) sanityCheck() error {
 // sign adds a signature to the block announcement by the given privKey
 func (a *announceData) sign(privKey *eddsa.PrivateKey) {
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
-	sig, _ := crypto.Sign(crypto.Keccak256(rlp), privKey)
+	sig, _ := crypto.Sign(crypto.SHA3(rlp), privKey)
 	a.Update = a.Update.add("sign", sig)
 }
 
@@ -171,7 +171,7 @@ func (a *announceData) checkSignature(id enode.ID, update keyValueMap) error {
 		return err
 	}
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
-	recPubkey, err := crypto.SigToPub(crypto.Keccak256(rlp), sig)
+	recPubkey, err := crypto.SigToPub(crypto.SHA3(rlp), sig)
 	if err != nil {
 		return err
 	}

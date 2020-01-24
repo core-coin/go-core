@@ -384,7 +384,7 @@ func (api *PublicWhisperAPI) Messages(ctx context.Context, crit Criteria) (*rpc.
 			return nil, ErrInvalidSymmetricKey
 		}
 		filter.KeySym = key
-		filter.SymKeyHash = crypto.Keccak256Hash(filter.KeySym)
+		filter.SymKeyHash = crypto.SHA3Hash(filter.KeySym)
 	}
 
 	// listen for messages that are encrypted with the given public key

@@ -86,5 +86,5 @@ func (method Method) String() string {
 // ID returns the canonical representation of the method's signature used by the
 // abi definition to identify method names and types.
 func (method Method) ID() []byte {
-	return crypto.Keccak256([]byte(method.Sig()))[:4]
+	return crypto.SHA3([]byte(method.Sig()))[:4]
 }

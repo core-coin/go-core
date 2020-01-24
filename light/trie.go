@@ -96,7 +96,7 @@ type odrTrie struct {
 }
 
 func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	var res []byte
 	err := t.do(key, func() (err error) {
 		res, err = t.trie.TryGet(key)
@@ -106,14 +106,14 @@ func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
 }
 
 func (t *odrTrie) TryUpdate(key, value []byte) error {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	return t.do(key, func() error {
 		return t.trie.TryUpdate(key, value)
 	})
 }
 
 func (t *odrTrie) TryDelete(key []byte) error {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	return t.do(key, func() error {
 		return t.trie.TryDelete(key)
 	})

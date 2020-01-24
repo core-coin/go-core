@@ -28,12 +28,12 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/xcedb/leveldb"
 	"github.com/core-coin/go-core/xcedb/memorydb"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func init() {
@@ -652,7 +652,7 @@ func makeAccounts(size int) (addresses [][20]byte, accounts [][]byte) {
 			nonce   = uint64(random.Int63())
 			balance = new(big.Int).Rand(random, new(big.Int).Exp(common.Big2, common.Big256, nil))
 			root    = emptyRoot
-			code    = crypto.Keccak256(nil)
+			code    = crypto.SHA3(nil)
 		)
 		accounts[i], _ = rlp.EncodeToBytes(&account{nonce, balance, root, code})
 	}
@@ -706,7 +706,7 @@ func benchmarkHashFixedSize(b *testing.B, addresses [][20]byte, accounts [][]byt
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	b.StartTimer()

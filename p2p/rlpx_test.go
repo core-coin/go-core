@@ -31,11 +31,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/crypto/ecies"
 	"github.com/core-coin/go-core/p2p/simulations/pipes"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/davecgh/go-spew/spew"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -268,8 +268,8 @@ func TestRLPXFrameFake(t *testing.T) {
 	buf := new(bytes.Buffer)
 	hash := fakeHash([]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})
 	rw := newRLPXFrameRW(buf, secrets{
-		AES:        crypto.Keccak256(),
-		MAC:        crypto.Keccak256(),
+		AES:        crypto.SHA3(),
+		MAC:        crypto.SHA3(),
 		IngressMAC: hash,
 		EgressMAC:  hash,
 	})

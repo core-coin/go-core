@@ -268,7 +268,7 @@ func testGetCode(t *testing.T, protocol int) {
 		header := bc.GetHeaderByNumber(i)
 		req := &CodeReq{
 			BHash:  header.Hash(),
-			AccKey: crypto.Keccak256(testContractAddr[:]),
+			AccKey: crypto.SHA3(testContractAddr[:]),
 		}
 		codereqs = append(codereqs, req)
 		if i >= testContractDeployed {
@@ -294,7 +294,7 @@ func testGetStaleCode(t *testing.T, protocol int) {
 	check := func(number uint64, expected [][]byte) {
 		req := &CodeReq{
 			BHash:  bc.GetHeaderByNumber(number).Hash(),
-			AccKey: crypto.Keccak256(testContractAddr[:]),
+			AccKey: crypto.SHA3(testContractAddr[:]),
 		}
 		sendRequest(server.peer.app, GetCodeMsg, 42, []*CodeReq{req})
 		if err := expectResponse(server.peer.app, CodeMsg, 42, testBufLimit, expected); err != nil {
@@ -355,10 +355,10 @@ func testGetProofs(t *testing.T, protocol int) {
 		for _, acc := range accounts {
 			req := ProofReq{
 				BHash: header.Hash(),
-				Key:   crypto.Keccak256(acc[:]),
+				Key:   crypto.SHA3(acc[:]),
 			}
 			proofreqs = append(proofreqs, req)
-			trie.Prove(crypto.Keccak256(acc[:]), 0, proofsV2)
+			trie.Prove(crypto.SHA3(acc[:]), 0, proofsV2)
 		}
 	}
 	// Send the proof request and verify the response
@@ -380,7 +380,7 @@ func testGetStaleProof(t *testing.T, protocol int) {
 	check := func(number uint64, wantOK bool) {
 		var (
 			header  = bc.GetHeaderByNumber(number)
-			account = crypto.Keccak256(userAddr1.Bytes())
+			account = crypto.SHA3(userAddr1.Bytes())
 		)
 		req := &ProofReq{
 			BHash: header.Hash(),

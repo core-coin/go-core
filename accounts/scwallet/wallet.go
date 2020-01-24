@@ -672,7 +672,7 @@ func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain core.ChainSta
 // the needed details via SignDataWithPassphrase, or by other means (e.g. unlock
 // the account in a keystore).
 func (w *Wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
-	return w.signHash(account, crypto.Keccak256(data))
+	return w.signHash(account, crypto.SHA3(data))
 }
 
 func (w *Wallet) signHash(account accounts.Account, hash []byte) ([]byte, error) {
@@ -714,7 +714,7 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 // It looks up the account specified either solely via its address contained within,
 // or optionally with the aid of any location metadata from the embedded URL field.
 func (w *Wallet) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {
-	return w.signHashWithPassphrase(account, passphrase, crypto.Keccak256(data))
+	return w.signHashWithPassphrase(account, passphrase, crypto.SHA3(data))
 }
 
 func (w *Wallet) signHashWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
@@ -745,7 +745,7 @@ func (w *Wallet) SignText(account accounts.Account, text []byte) ([]byte, error)
 // SignTextWithPassphrase implements accounts.Wallet, attempting to sign the
 // given hash with the given account using passphrase as extra authentication
 func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, text []byte) ([]byte, error) {
-	return w.signHashWithPassphrase(account, passphrase, crypto.Keccak256(accounts.TextHash(text)))
+	return w.signHashWithPassphrase(account, passphrase, crypto.SHA3(accounts.TextHash(text)))
 }
 
 // SignTxWithPassphrase requests the wallet to sign the given transaction, with the

@@ -646,7 +646,7 @@ func (b *topicRadiusBucket) adjust(now mclock.AbsTime, inside float64) {
 }
 
 func newTopicRadius(t Topic) *topicRadius {
-	topicHash := crypto.Keccak256Hash([]byte(t))
+	topicHash := crypto.SHA3Hash([]byte(t))
 	topicHashPrefix := binary.BigEndian.Uint64(topicHash[0:8])
 
 	return &topicRadius{

@@ -86,8 +86,8 @@ func TestPassingBlockNumber(t *testing.T) {
 
 const hexData = "0x000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158"
 
-func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
-	hash := crypto.Keccak256Hash([]byte("testName"))
+func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) { // TODO: TEST
+	hash := crypto.SHA3Hash([]byte("testName"))
 	mockLog := types.Log{
 		Address: common.HexToAddress("0x0"),
 		Topics: []common.Hash{
@@ -135,12 +135,12 @@ func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) { // TODO: TEST
 	sliceBytes, err := rlp.EncodeToBytes([]string{"name1", "name2", "name3", "name4"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := crypto.Keccak256Hash(sliceBytes)
+	hash := crypto.SHA3Hash(sliceBytes)
 	mockLog := types.Log{
 		Address: common.HexToAddress("0x0"),
 		Topics: []common.Hash{
@@ -188,12 +188,12 @@ func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) { //TODO: TEST
 	arrBytes, err := rlp.EncodeToBytes([2]common.Address{common.HexToAddress("0x0"), common.HexToAddress("0x376c47978271565f56DEB45495afa69E59c16Ab2")})
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := crypto.Keccak256Hash(arrBytes)
+	hash := crypto.SHA3Hash(arrBytes)
 	mockLog := types.Log{
 		Address: common.HexToAddress("0x0"),
 		Topics: []common.Hash{
@@ -241,10 +241,10 @@ func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) { //TODO: TEST
 	mockAddress := common.HexToAddress("0x376c47978271565f56DEB45495afa69E59c16Ab2")
 	addrBytes := mockAddress.Bytes()
-	hash := crypto.Keccak256Hash([]byte("mockFunction(address,uint)"))
+	hash := crypto.SHA3Hash([]byte("mockFunction(address,uint)"))
 	functionSelector := hash[:4]
 	functionTyBytes := append(addrBytes, functionSelector...)
 	var functionTy [24]byte
@@ -296,9 +296,9 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) { //TODO: TEST
 	byts := []byte{1, 2, 3, 4, 5}
-	hash := crypto.Keccak256Hash(byts)
+	hash := crypto.SHA3Hash(byts)
 	mockLog := types.Log{
 		Address: common.HexToAddress("0x0"),
 		Topics: []common.Hash{

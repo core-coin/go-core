@@ -273,7 +273,7 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 func TestGetNodeData63(t *testing.T) { testGetNodeData(t, 63) }
 func TestGetNodeData64(t *testing.T) { testGetNodeData(t, 64) }
 
-func testGetNodeData(t *testing.T, protocol int) {
+func testGetNodeData(t *testing.T, protocol int) { // TODO: TEST
 	// Define three accounts to simulate transactions with
 	acc1Key, _ := crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc58e25e14a72ed78cdb9f548c184ed0832b63c40d5a1676f57af96a4b3553ffa32e6902a4a5e7e9cb825506c840deb4c5e712527a145a850058c14249e21225ad937eb07659a7d5ab1064be4159fdd22175845e9aa24620f")
 	acc2Key, _ := crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383e6c839b66f15fd1b172bd0ccf0a00e5a4ca1f8675a9aa1251c5375d2dd8eccb3d637820a0204faf8e110911a25501a6a8200c633d5b7f8553c5662abd270756f096b04e0a834a49cf218c5fce341ec9af5e47d1fe7bf6d")
@@ -339,7 +339,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	}
 	// Verify that all hashes correspond to the requested data, and reconstruct a state tree
 	for i, want := range hashes {
-		if hash := crypto.Keccak256Hash(data[i]); hash != want {
+		if hash := crypto.SHA3Hash(data[i]); hash != want {
 			t.Errorf("data hash mismatch: have %x, want %x", hash, want)
 		}
 	}

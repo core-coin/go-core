@@ -565,7 +565,7 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
-func TestCreate2Addreses(t *testing.T) {
+func TestCreate2Addreses(t *testing.T) { //TODO: TEST
 	type testcase struct {
 		origin   string
 		salt     string
@@ -621,7 +621,7 @@ func TestCreate2Addreses(t *testing.T) {
 		origin := common.BytesToAddress(common.FromHex(tt.origin))
 		salt := common.BytesToHash(common.FromHex(tt.salt))
 		code := common.FromHex(tt.code)
-		codeHash := crypto.Keccak256(code)
+		codeHash := crypto.SHA3(code)
 		address := crypto.CreateAddress2(origin, salt, codeHash)
 		/*
 			stack          := newstack()

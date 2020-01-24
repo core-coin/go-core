@@ -197,5 +197,5 @@ func (n *Node) URLv4() string {
 // PubkeyToIDV4 derives the v4 node address from the given public key.
 func PubkeyToIDV4(key *eddsa.PublicKey) ID {
 	e := key.X[:]
-	return ID(crypto.Keccak256Hash(e))
+	return ID(crypto.SHA3Hash(e))
 }

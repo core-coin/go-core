@@ -555,7 +555,7 @@ func (s *PublicBlockChainAPI) GetProof(ctx context.Context, address common.Addre
 		storageHash = storageTrie.Hash()
 	} else {
 		// no storageTrie means the account does not exist, so the codeHash is the hash of an empty bytearray.
-		codeHash = crypto.Keccak256Hash(nil)
+		codeHash = crypto.SHA3Hash(nil)
 	}
 
 	// create the proof for the storageKeys
@@ -1662,7 +1662,7 @@ func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address comm
 		return common.Address{}, err
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey)[12:])
+	copy(signer[:], crypto.SHA3(pubkey)[12:])
 
 	return signer, nil
 }

@@ -520,7 +520,7 @@ func (w *wallet) signHash(account accounts.Account, hash []byte) ([]byte, error)
 
 // SignData signs keccak256(data). The mimetype parameter describes the type of data being signed
 func (w *wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
-	return w.signHash(account, crypto.Keccak256(data))
+	return w.signHash(account, crypto.SHA3(data))
 }
 
 // SignDataWithPassphrase implements accounts.Wallet, attempting to sign the given

@@ -392,7 +392,7 @@ func New(code string) (*Tracer, error) {
 		} else {
 			code = common.FromHex(ctx.GetString(-1))
 		}
-		codeHash := crypto.Keccak256(code)
+		codeHash := crypto.SHA3(code)
 		ctx.Pop3()
 		contract := crypto.CreateAddress2(from, salt, codeHash)
 		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])

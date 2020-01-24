@@ -244,12 +244,12 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 	}
 
 	// derive base secrets from ephemeral key agreement
-	sharedSecret := crypto.Keccak256(ecdheSecret, crypto.Keccak256(h.respNonce, h.initNonce))
-	aesSecret := crypto.Keccak256(ecdheSecret, sharedSecret)
+	sharedSecret := crypto.SHA3(ecdheSecret, crypto.SHA3(h.respNonce, h.initNonce))
+	aesSecret := crypto.SHA3(ecdheSecret, sharedSecret)
 	s := secrets{
 		Remote: h.remote,
 		AES:    aesSecret,
-		MAC:    crypto.Keccak256(ecdheSecret, aesSecret),
+		MAC:    crypto.SHA3(ecdheSecret, aesSecret),
 	}
 
 	// setup sha3 instances for the MACs

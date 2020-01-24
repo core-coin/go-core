@@ -177,7 +177,7 @@ func (c *TrustedCheckpoint) Hash() common.Hash {
 	copy(buf[8:], c.SectionHead.Bytes())
 	copy(buf[8+common.HashLength:], c.CHTRoot.Bytes())
 	copy(buf[8+2*common.HashLength:], c.BloomRoot.Bytes())
-	return crypto.Keccak256Hash(buf)
+	return crypto.SHA3Hash(buf)
 }
 
 // Empty returns an indicator whether the checkpoint is regarded as empty.

@@ -36,8 +36,8 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"hash"
 )
 
@@ -55,7 +55,7 @@ type ECIESParams struct {
 }
 
 var ECIES_AES128_SHA256 = &ECIESParams{
-	Hash:      sha256.New,
+	Hash:      sha3.New256,
 	hashAlgo:  crypto.SHA256,
 	Cipher:    aes.NewCipher,
 	BlockSize: aes.BlockSize,

@@ -36,7 +36,7 @@ var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a949
 func TestKeccak256Hash(t *testing.T) {
 	msg := []byte("abc")
 	exp, _ := hex.DecodeString("4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45")
-	checkhash(t, "Sha3-256-array", func(in []byte) []byte { h := Keccak256Hash(in); return h[:] }, msg, exp)
+	checkhash(t, "Sha3-256-array", func(in []byte) []byte { h := SHA3Hash(in); return h[:] }, msg, exp)
 }
 
 func TestToEDDSAErrors(t *testing.T) {
@@ -48,10 +48,10 @@ func TestToEDDSAErrors(t *testing.T) {
 	}
 }
 
-func BenchmarkSha3(b *testing.B) {
+func BenchmarkSha3(b *testing.B) { //TODO: TEST
 	a := []byte("hello world")
 	for i := 0; i < b.N; i++ {
-		Keccak256(a)
+		SHA3(a)
 	}
 }
 
@@ -78,7 +78,7 @@ func TestSign(t *testing.T) {
 	key, _ := HexToEDDSA(testPrivHex)
 	addr := common.HexToAddress(testAddrHex)
 
-	msg := Keccak256([]byte("foo"))
+	msg := SHA3([]byte("foo"))
 	sig, err := Sign(msg, key)
 	if err != nil {
 		t.Errorf("Sign error: %s", err)
@@ -182,7 +182,7 @@ func TestPythonIntegration(t *testing.T) {
 	kh := "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 	k0, _ := HexToEDDSA(kh)
 
-	msg0 := Keccak256([]byte("foo"))
+	msg0 := SHA3([]byte("foo"))
 	sig0, _ := Sign(msg0, k0)
 
 	msg1 := common.FromHex("00000000000000000000000000000000")

@@ -338,7 +338,7 @@ func sign(typedData core.TypedData) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
-	sighash := crypto.Keccak256(rawData)
+	sighash := crypto.SHA3(rawData)
 	return typedDataHash, sighash, nil
 }
 

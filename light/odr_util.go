@@ -28,7 +28,7 @@ import (
 	"github.com/core-coin/go-core/rlp"
 )
 
-var sha3Nil = crypto.Keccak256Hash(nil)
+var sha3Nil = crypto.SHA3Hash(nil)
 
 func GetHeaderByNumber(ctx context.Context, odr OdrBackend, number uint64) (*types.Header, error) {
 	db := odr.Database()

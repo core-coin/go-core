@@ -89,13 +89,13 @@ func TestSecureDelete(t *testing.T) {
 	}
 }
 
-func TestSecureGetKey(t *testing.T) {
+func TestSecureGetKey(t *testing.T) { //TODO: TEST
 	trie := newEmptySecure()
 	trie.Update([]byte("foo"), []byte("bar"))
 
 	key := []byte("foo")
 	value := []byte("bar")
-	seckey := crypto.Keccak256(key)
+	seckey := crypto.SHA3(key)
 
 	if !bytes.Equal(trie.Get(key), value) {
 		t.Errorf("Get did not return bar")

@@ -515,7 +515,7 @@ func (api *RetestxceAPI) GetLogHash(ctx context.Context, txHash common.Hash) (co
 		if logListRlp, err := rlp.EncodeToBytes(receipt.Logs); err != nil {
 			return common.Hash{}, err
 		} else {
-			return common.BytesToHash(crypto.Keccak256(logListRlp)), nil
+			return common.BytesToHash(crypto.SHA3(logListRlp)), nil
 		}
 	}
 }

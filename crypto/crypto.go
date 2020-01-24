@@ -38,9 +38,18 @@ var errInvalidPubkey = errors.New("invalid public key")
 var errInvalidPrivkey = errors.New("invalid private key")
 var errInvalidSignature = errors.New("invalid signature")
 
-// Keccak256 calculates and returns the Keccak256 hash of the input data.
+// Keccak256 calculates and returns the Keccak256 hash of the input data. //Substituted in CoreCoin by NIPS SHA3-256
 func Keccak256(data ...[]byte) []byte {
 	d := sha3.NewLegacyKeccak256()
+	for _, b := range data {
+		d.Write(b)
+	}
+	return d.Sum(nil)
+}
+
+//NIPS implementation of SHA3-256
+func SHA3(data ...[]byte) []byte {
+	d := sha3.New256()
 	for _, b := range data {
 		d.Write(b)
 	}
@@ -51,6 +60,17 @@ func Keccak256(data ...[]byte) []byte {
 // converting it to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	d := sha3.NewLegacyKeccak256()
+	for _, b := range data {
+		d.Write(b)
+	}
+	d.Sum(h[:0])
+	return h
+}
+
+// SHA3Hash calculates and returns the NIPS SHA3-256 hash of the input data,
+// converting it to an internal Hash data structure.
+func SHA3Hash(data ...[]byte) (h common.Hash) {
+	d := sha3.New256()
 	for _, b := range data {
 		d.Write(b)
 	}
@@ -70,13 +90,13 @@ func Keccak512(data ...[]byte) []byte {
 // CreateAddress creates an core address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	return common.BytesToAddress(SHA3(data)[12:])
 }
 
 // CreateAddress2 creates an core address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+	return common.BytesToAddress(SHA3([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
 // ToEDDSA creates a private key with the given D value.
@@ -181,7 +201,7 @@ func PubkeyToAddress(p eddsa.PublicKey) common.Address {
 	if pubBytes == nil {
 		return common.Address{}
 	}
-	return common.BytesToAddress(Keccak256(pubBytes)[12:])
+	return common.BytesToAddress(SHA3(pubBytes)[12:])
 }
 
 func zeroBytes(bytes []byte) {

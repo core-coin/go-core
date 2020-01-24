@@ -31,7 +31,7 @@ import (
 var testBankSecureTrieKey = secAddr(bankAddr)
 
 func secAddr(addr common.Address) []byte {
-	return crypto.Keccak256(addr[:])
+	return crypto.SHA3(addr[:])
 }
 
 type accessTestFn func(db xcedb.Database, bhash common.Hash, number uint64) light.OdrRequest
@@ -73,8 +73,8 @@ func tfCodeAccess(db xcedb.Database, bhash common.Hash, num uint64) light.OdrReq
 		return nil
 	}
 	sti := light.StateTrieID(header)
-	ci := light.StorageTrieID(sti, crypto.Keccak256Hash(testContractAddr[:]), common.Hash{})
-	return &light.CodeRequest{Id: ci, Hash: crypto.Keccak256Hash(testContractCodeDeployed)}
+	ci := light.StorageTrieID(sti, crypto.SHA3Hash(testContractAddr[:]), common.Hash{})
+	return &light.CodeRequest{Id: ci, Hash: crypto.SHA3Hash(testContractCodeDeployed)}
 }
 
 func testAccess(t *testing.T, protocol int, fn accessTestFn) {

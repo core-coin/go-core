@@ -24,11 +24,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/crypto"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var dumper = spew.ConfigState{Indent: "    "}
@@ -61,7 +61,7 @@ func (h resultHash) Len() int           { return len(h) }
 func (h resultHash) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 func (h resultHash) Less(i, j int) bool { return bytes.Compare(h[i].Bytes(), h[j].Bytes()) < 0 }
 
-func TestAccountRange(t *testing.T) {
+func TestAccountRange(t *testing.T) { // TODO: TEST
 	var (
 		statedb  = state.NewDatabase(rawdb.NewMemoryDatabase())
 		state, _ = state.New(common.Hash{}, statedb)
@@ -71,7 +71,7 @@ func TestAccountRange(t *testing.T) {
 
 	for i := range addrs {
 		hash := common.HexToHash(fmt.Sprintf("%x", i))
-		addr := common.BytesToAddress(crypto.Keccak256Hash(hash.Bytes()).Bytes())
+		addr := common.BytesToAddress(crypto.SHA3Hash(hash.Bytes()).Bytes())
 		addrs[i] = addr
 		state.SetBalance(addrs[i], big.NewInt(1))
 		if _, ok := m[addr]; ok {

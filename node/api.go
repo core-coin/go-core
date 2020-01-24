@@ -313,5 +313,5 @@ func (s *PublicWeb3API) ClientVersion() string {
 // Sha3 applies the core sha3 implementation on the input.
 // It assumes the input is hex encoded.
 func (s *PublicWeb3API) Sha3(input hexutil.Bytes) hexutil.Bytes {
-	return crypto.Keccak256(input)
+	return crypto.SHA3(input)
 }

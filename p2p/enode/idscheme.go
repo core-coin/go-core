@@ -81,7 +81,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	if err != nil {
 		return nil
 	}
-	return crypto.Keccak256(pubkey.X)
+	return crypto.SHA3(pubkey.X)
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.

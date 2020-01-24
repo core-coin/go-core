@@ -73,10 +73,10 @@ func makeTopics(query ...[]interface{}) ([][]common.Hash, error) {
 				blob := new(big.Int).SetUint64(rule).Bytes()
 				copy(topic[common.HashLength-len(blob):], blob)
 			case string:
-				hash := crypto.Keccak256Hash([]byte(rule))
+				hash := crypto.SHA3Hash([]byte(rule))
 				copy(topic[:], hash[:])
 			case []byte:
-				hash := crypto.Keccak256Hash(rule)
+				hash := crypto.SHA3Hash(rule)
 				copy(topic[:], hash[:])
 
 			default:

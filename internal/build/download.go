@@ -21,6 +21,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"log"
@@ -52,7 +53,7 @@ func (db *ChecksumDB) Verify(path string) error {
 	}
 	defer fd.Close()
 
-	h := sha256.New()
+	h := sha3.New256()
 	if _, err := io.Copy(h, bufio.NewReader(fd)); err != nil {
 		return err
 	}
