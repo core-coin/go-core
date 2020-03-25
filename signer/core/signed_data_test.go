@@ -216,7 +216,7 @@ func TestSignData(t *testing.T) {
 		t.Fatal(err)
 	}
 	if signature == nil || len(signature) != 112 + 56 {
-		t.Errorf("Expected 65 byte signature (got %d bytes)", len(signature))
+		t.Errorf("Expected 112 + 56 byte signature (got %d bytes)", len(signature))
 	}
 	// data/typed
 	control.approveCh <- "Y"
@@ -226,7 +226,7 @@ func TestSignData(t *testing.T) {
 		t.Fatal(err)
 	}
 	if signature == nil || len(signature) != 112 + 56 {
-		t.Errorf("Expected 65 byte signature (got %d bytes)", len(signature))
+		t.Errorf("Expected 112 + 56 byte signature (got %d bytes)", len(signature))
 	}
 }
 

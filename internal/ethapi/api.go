@@ -443,7 +443,7 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 // https://github.com/core-coin/go-core/wiki/Management-APIs#personal_ecRecover
 func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (common.Address, error) {
 	if len(sig) != 112 + 56 {
-		return common.Address{}, fmt.Errorf("signature must be 65 bytes long")
+		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
 	}
 
     /*
