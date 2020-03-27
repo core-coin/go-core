@@ -18,18 +18,17 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/core-coin/go-core/common"
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 )
 
 var (
-	testmsg     = hexutil.MustDecode("0xce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
-	testsig     = hexutil.MustDecode("0x90f27b8b488db00b00606796d2987f6a5f59ae62ea05effe84fef5b8b0e549984a691139ad57a3f0b906637673aa2f63d1f55cb1a69199d4009eea23ceaddc9301")
-	testpubkey  = hexutil.MustDecode("0x04e32df42865e97135acfb65f3bae71bdc86f4d49150ad6a440b6f15878109880a0a2b2667f7e725ceea70c673093bf67663e0312623c8e091b13cf2c0f11ef652")
-	testpubkeyc = hexutil.MustDecode("0x02e32df42865e97135acfb65f3bae71bdc86f4d49150ad6a440b6f15878109880a")
+	testmsg     = common.Hex2Bytes("ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
+	testsig     = common.Hex2Bytes("d89625e1348f5444e4aa07c65b6810d4984d2d75d28de35e4bf79cf2bf6068d6922e2628a7111ff91d6c676f0be5c9d464ea935045ad8cb0f0e29c15cd4473a474e3c950214d6303633c4abee7d4d1582530d1bc9f75d37754f6ed82bfafb4a70b3283ca6dc996815b0042eedd7c873671583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
+	testpubkey  = common.Hex2Bytes("71583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
 )
 
 func TestEcrecover(t *testing.T) {
@@ -47,28 +46,25 @@ func TestVerifySignature(t *testing.T) {
 	if !VerifySignature(testpubkey, testmsg, sig) {
 		t.Errorf("can't verify signature with uncompressed key")
 	}
-	if !VerifySignature(testpubkeyc, testmsg, sig) {
-		t.Errorf("can't verify signature with compressed key")
-	}
 
 	if VerifySignature(nil, testmsg, sig) {
 		t.Errorf("signature valid with no key")
 	}
-	if VerifySignature(testpubkey, nil, sig) {
+	if VerifySignature(testpubkey, nil, testsig) {
 		t.Errorf("signature valid with no message")
 	}
 	if VerifySignature(testpubkey, testmsg, nil) {
 		t.Errorf("nil signature valid")
 	}
-	if VerifySignature(testpubkey, testmsg, append(common.CopyBytes(sig), 1, 2, 3)) {
+	if VerifySignature(testpubkey, testmsg, append(common.CopyBytes(testsig), 1, 2, 3)) {
 		t.Errorf("signature valid with extra bytes at the end")
 	}
-	if VerifySignature(testpubkey, testmsg, sig[:len(sig)-2]) {
+	if VerifySignature(testpubkey, testmsg, testsig[:len(testsig)-2]) {
 		t.Errorf("signature valid even though it's incomplete")
 	}
 	wrongkey := common.CopyBytes(testpubkey)
 	wrongkey[10]++
-	if VerifySignature(wrongkey, testmsg, sig) {
+	if VerifySignature(wrongkey, testmsg, testsig) {
 		t.Errorf("signature valid with with wrong public key")
 	}
 }
@@ -80,25 +76,6 @@ func TestVerifySignatureMalleable(t *testing.T) {
 	msg := hexutil.MustDecode("0xd301ce462d3e639518f482c7f03821fec1e602018630ce621e1e7851c12343a6")
 	if VerifySignature(key, msg, sig) {
 		t.Error("VerifySignature returned true for malleable signature")
-	}
-}
-
-func TestDecompressPubkey(t *testing.T) {
-	key, err := DecompressPubkey(testpubkeyc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if uncompressed := FromECDSAPub(key); !bytes.Equal(uncompressed, testpubkey) {
-		t.Errorf("wrong public key result: got %x, want %x", uncompressed, testpubkey)
-	}
-	if _, err := DecompressPubkey(nil); err == nil {
-		t.Errorf("no error for nil pubkey")
-	}
-	if _, err := DecompressPubkey(testpubkeyc[:5]); err == nil {
-		t.Errorf("no error for incomplete pubkey")
-	}
-	if _, err := DecompressPubkey(append(common.CopyBytes(testpubkeyc), 1, 2, 3)); err == nil {
-		t.Errorf("no error for pubkey with extra bytes at the end")
 	}
 }
 
@@ -133,14 +110,6 @@ func BenchmarkVerifySignature(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		if !VerifySignature(testpubkey, testmsg, sig) {
 			b.Fatal("verify error")
-		}
-	}
-}
-
-func BenchmarkDecompressPubkey(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		if _, err := DecompressPubkey(testpubkeyc); err != nil {
-			b.Fatal(err)
 		}
 	}
 }
