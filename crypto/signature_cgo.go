@@ -22,6 +22,7 @@ import (
 	ecdsa "github.com/core-coin/eddsa"
 	"crypto/elliptic"
 	"github.com/core-coin/go-core/crypto/secp256k1"
+	"errors"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.
@@ -48,6 +49,9 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
 func Sign(hash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
+	if prv == nil || len(prv.D) == 0{
+		return []byte{}, errors.New("invalid private key")
+	}
 	return ecdsa.Ed448().Sign(prv, hash)
 }
 
