@@ -255,7 +255,7 @@ func (n *Node) UnmarshalText(text []byte) error {
 // 	*nl = append(slice[:i], slice[i+1:]...)
 // }
 
-const nodeIDBits = 512
+const nodeIDBits = 448
 
 // NodeID is a unique identifier for each node.
 // The node identifier is a marshaled elliptic curve public key.
@@ -313,6 +313,9 @@ func PubkeyID(pub *ecdsa.PublicKey) NodeID {
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
 func (n NodeID) Pubkey() (*ecdsa.PublicKey, error) {
+	if n.String() == "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
+		return nil, errors.New("invalid node id")
+	}
 	return crypto.UnmarshalPubkey(n[:])
 }
 
@@ -331,11 +334,11 @@ func recoverNodeID(hash, sig []byte) (id NodeID, err error) {
 	if err != nil {
 		return id, err
 	}
-	if len(pubkey)-1 != len(id) {
-		return id, fmt.Errorf("recovered pubkey has %d bits, want %d bits", len(pubkey)*8, (len(id)+1)*8)
+	if len(pubkey) != len(id) {
+		return id, fmt.Errorf("recovered pubkey has %d bits, want %d bits", len(pubkey)*8, (len(id))*8)
 	}
 	for i := range id {
-		id[i] = pubkey[i+1]
+		id[i] = pubkey[i]
 	}
 	return id, nil
 }
