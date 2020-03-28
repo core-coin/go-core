@@ -152,7 +152,7 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 	if err != nil {
 		return nil, err
 	} else if len(b) != 56 {
-		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
+		return nil, fmt.Errorf("wrong length, want %d hex chars", 112)
 	}
 	return crypto.UnmarshalPubkey(b)
 }
