@@ -373,7 +373,11 @@ func (c *Clique) snapshot(chain consensus.ChainReader, number uint64, hash commo
 			checkpoint := chain.GetHeaderByNumber(number)
 			if checkpoint != nil {
 				hash := checkpoint.Hash()
-
+				if len(checkpoint.Extra) < extraVanity+extraSeal+common.AddressLength {
+					oldExtra := checkpoint.Extra
+					checkpoint.Extra = make([]byte, extraVanity+extraSeal+common.AddressLength)
+					copy(checkpoint.Extra, oldExtra)
+				}
 				signers := make([]common.Address, (len(checkpoint.Extra)-extraVanity-extraSeal)/common.AddressLength)
 				for i := 0; i < len(signers); i++ {
 					copy(signers[i][:], checkpoint.Extra[extraVanity+i*common.AddressLength:])
