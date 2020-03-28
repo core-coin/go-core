@@ -32,7 +32,7 @@ import (
 
 // Tests that ethash works correctly in test mode.
 func TestTestMode(t *testing.T) {
-	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
+	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(2)}
 
 	ethash := NewTester(nil, false)
 	defer ethash.Close()
