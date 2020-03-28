@@ -87,7 +87,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 // Secp256k1 is the "secp256k1" key, which holds a public key.
 type Secp256k1 ecdsa.PublicKey
 
-func (v Secp256k1) ENRKey() string { return "ed448" }
+func (v Secp256k1) ENRKey() string { return "secp256k1" }
 
 // EncodeRLP implements rlp.Encoder.
 func (v Secp256k1) EncodeRLP(w io.Writer) error {
@@ -111,7 +111,7 @@ func (v *Secp256k1) DecodeRLP(s *rlp.Stream) error {
 // s256raw is an unparsed secp256k1 public key entry.
 type s256raw []byte
 
-func (s256raw) ENRKey() string { return "ed448" }
+func (s256raw) ENRKey() string { return "secp256k1" }
 
 // v4CompatID is a weaker and insecure version of the "v4" scheme which only checks for the
 // presence of a secp256k1 public key, but doesn't verify the signature.
