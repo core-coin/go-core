@@ -81,7 +81,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	if err != nil {
 		return nil
 	}
-	return crypto.Keccak256(pubkey.X)
+	return pubkey.X
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.
@@ -125,7 +125,7 @@ func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
 }
 
 func signV4Compat(r *enr.Record, pubkey *ecdsa.PublicKey) {
-	r.Set(enr.ID("v4"))
+	//r.Set(enr.ID("v4"))
 	r.Set((*Secp256k1)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {
 		panic(err)

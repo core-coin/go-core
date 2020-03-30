@@ -168,6 +168,8 @@ func (n *Node) URLv4() string {
 	switch {
 	case scheme == "v4":
 		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[:])
+	case scheme == "":
+		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[:])
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
@@ -188,5 +190,7 @@ func (n *Node) URLv4() string {
 // PubkeyToIDV4 derives the v4 node address from the given public key.
 func PubkeyToIDV4(key *ecdsa.PublicKey) ID {
 	e := key.X[:]
-	return ID(crypto.Keccak256Hash(e))
+	id := [56]byte{}
+	copy(id[:], e[:])
+	return id
 }

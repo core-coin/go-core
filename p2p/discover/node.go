@@ -45,7 +45,9 @@ func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
 }
 
 func (e encPubkey) id() enode.ID {
-	return enode.ID(crypto.Keccak256Hash(e[:]))
+	id := [56]byte{}
+	copy(id[:], e[:])
+	return id
 }
 
 // recoverNodeKey computes the public key used to sign the

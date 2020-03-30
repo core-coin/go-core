@@ -336,8 +336,10 @@ func (t *UDPv4) lookupSelf() []*enode.Node {
 // target by querying nodes that are closer to it on each iteration. The given target does
 // not need to be an actual node identifier.
 func (t *UDPv4) lookup(targetKey encPubkey) []*node {
+	id := [56]byte{}
+	copy(id[:], targetKey[:])
 	var (
-		target         = enode.ID(crypto.Keccak256Hash(targetKey[:]))
+		target         = id
 		asked          = make(map[enode.ID]bool)
 		seen           = make(map[enode.ID]bool)
 		reply          = make(chan []*node, alpha)
@@ -957,7 +959,9 @@ func (req *findnodeV4) preverify(t *UDPv4, from *net.UDPAddr, fromID enode.ID, f
 
 func (req *findnodeV4) handle(t *UDPv4, from *net.UDPAddr, fromID enode.ID, mac []byte) {
 	// Determine closest nodes.
-	target := enode.ID(crypto.Keccak256Hash(req.Target[:]))
+	id := [56]byte{}
+	copy(id[:], req.Target[:])
+	target := id
 	t.tab.mutex.Lock()
 	closest := t.tab.closest(target, bucketSize, true).entries
 	t.tab.mutex.Unlock()

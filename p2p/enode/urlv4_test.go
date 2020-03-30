@@ -34,7 +34,7 @@ var parseNodeTests = []struct {
 }{
 	// Records
 	{
-		input: "enr:-IS4QGrdq0ugARp5T2BZ41TrZOqLc_oKvZoPuZP5--anqWE_J-Tucc1xgkOL7qXl0puJgT7qc2KSvcupc4NCb0nr4tdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQM6UUF2Rm-oFe1IH_rQkRCi00T2ybeMHRSvw1HDpRvjPYN1ZHCCdl8",
+		input: "enr:-QEEuKg9LTc-uVLHTQs-ECOU-Sa1hhx7FmoR4BUIXsUruLCkY7-iAUCp-JJf7V-jR1hNPnCoLku-iWBSv186Pq671AlLisOVfmVq9dEuBtfeLuRoE27CueyMMCs5XKlMQbXL6xgeITTfk-UpZ43-rGwQCosx8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdl8",
 		wantResult: func() *Node {
 			testKey, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 			var r enr.Record
@@ -56,7 +56,7 @@ var parseNodeTests = []struct {
 		wantError: "illegal base64 data at input byte 0",
 	},
 	{
-		input:     "enr:-EmGZm9vYmFyY4JpZIJ2NIJpcIR_AAABiXNlY3AyNTZrMaEDOlFBdkZvqBXtSB_60JEQotNE9sm3jB0Ur8NRw6Ub4z2DdWRwgnZf",
+		input:     "enr:-EOAY4JpZIRudWxsgmlwhH8AAAGIbnVsbGFkZHKgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDdWRwgnZf",
 		wantError: enr.ErrInvalidSig.Error(),
 	},
 	// Complete node URLs with IP address and ports
