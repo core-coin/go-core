@@ -19,10 +19,10 @@ package discover
 import (
 	"bytes"
 	"container/list"
-	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	ecdsa "github.com/core-coin/eddsa"
 	"io"
 	"net"
 	"sync"
@@ -692,7 +692,7 @@ func (t *UDPv4) loop() {
 
 const (
 	macSize  = 256 / 8
-	sigSize  = 520 / 8
+	sigSize  = 112 + 56
 	headSize = macSize + sigSize // space of packet frame data
 )
 
@@ -746,7 +746,7 @@ func (t *UDPv4) encode(priv *ecdsa.PrivateKey, req packetV4) (packet, hash []byt
 		return nil, nil, err
 	}
 	packet = b.Bytes()
-	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
+	sig, err := crypto.Sign(packet[headSize:], priv)
 	if err != nil {
 		t.log.Error(fmt.Sprintf("Can't sign %s packet", name), "err", err)
 		return nil, nil, err
@@ -816,7 +816,7 @@ func decodeV4(buf []byte) (packetV4, encPubkey, []byte, error) {
 	if !bytes.Equal(hash, shouldhash) {
 		return nil, encPubkey{}, nil, errBadHash
 	}
-	fromKey, err := recoverNodeKey(crypto.Keccak256(buf[headSize:]), sig)
+	fromKey, err := recoverNodeKey(buf[headSize:], sig)
 	if err != nil {
 		return nil, fromKey, hash, err
 	}
