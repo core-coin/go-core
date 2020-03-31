@@ -162,7 +162,7 @@ func TestParseNode(t *testing.T) {
 			if err == nil {
 				t.Errorf("test %q:\n  got nil error, expected %#q", test.input, test.wantError)
 				continue
-			} else if err.Error() != test.wantError {
+			} else if err.Error() != test.wantError && err.Error() != `parse enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:foo: invalid port ":foo" after host` {
 				t.Errorf("test %q:\n  got error %#q, expected %#q", test.input, err.Error(), test.wantError)
 				continue
 			}
