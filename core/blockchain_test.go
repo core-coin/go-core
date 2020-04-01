@@ -1388,28 +1388,6 @@ func TestEIP155Transition(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// generate an invalid chain id transaction
-	config := &params.ChainConfig{ChainID: big.NewInt(2), EIP155Block: big.NewInt(2), HomesteadBlock: new(big.Int)}
-	blocks, _ = GenerateChain(config, blocks[len(blocks)-1], ethash.NewFaker(), db, 4, func(i int, block *BlockGen) {
-		var (
-			tx      *types.Transaction
-			err     error
-			basicTx = func(signer types.Signer) (*types.Transaction, error) {
-				return types.SignTx(types.NewTransaction(block.TxNonce(address), common.Address{}, new(big.Int), 21000, new(big.Int), nil), signer, key)
-			}
-		)
-		if i == 0 {
-			tx, err = basicTx(types.NewEIP155Signer(big.NewInt(2)))
-			if err != nil {
-				t.Fatal(err)
-			}
-			block.AddTx(tx)
-		}
-	})
-	_, err := blockchain.InsertChain(blocks)
-	if err != types.ErrInvalidChainId {
-		t.Error("expected error:", types.ErrInvalidChainId)
-	}
 }
 
 func TestEIP161AccountRemoval(t *testing.T) {
