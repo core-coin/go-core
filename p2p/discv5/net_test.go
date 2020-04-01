@@ -57,7 +57,7 @@ func TestNetwork_Lookup(t *testing.T) {
 	if hasDuplicates(results) {
 		t.Errorf("result set contains duplicate entries")
 	}
-	if !sortedByDistanceTo(lookupTestnet.targetSha, results) {
+	if !sortedByDistanceTo(crypto.Keccak256Hash(lookupTestnet.target[:]), results) {
 		t.Errorf("result set not sorted by distance to target")
 	}
 	// TODO: check result nodes are actually closest
