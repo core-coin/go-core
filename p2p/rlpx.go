@@ -433,7 +433,7 @@ func (msg *authMsgV4) sealPlain(h *encHandshake) ([]byte, error) {
 
 func (msg *authMsgV4) decodePlain(input []byte) {
 	n := copy(msg.Signature[:], input)
-	n += shaLen // skip sha3(initiator-ephemeral-pubk)
+	n += 32 // skip sha3(initiator-ephemeral-pubk)
 	n += copy(msg.InitiatorPubkey[:], input[n:])
 	copy(msg.Nonce[:], input[n:])
 	msg.Version = 4
