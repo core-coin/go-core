@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2015 The go-core Authors
+// This file is part of go-core.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-core is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-core is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -26,17 +26,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/console"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/core-coin/go-core/cmd/utils"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/console"
+	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/core/rawdb"
+	"github.com/core-coin/go-core/core/state"
+	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/trie"
 	"gopkg.in/urfave/cli.v1"
 )
 

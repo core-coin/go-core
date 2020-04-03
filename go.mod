@@ -1,4 +1,4 @@
-module github.com/ethereum/go-ethereum
+module github.com/core-coin/go-core
 
 go 1.13
 
