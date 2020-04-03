@@ -1,18 +1,18 @@
-// Copyright 2019 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2019 The go-core Authors
+// This file is part of go-core.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-core is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-core is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -26,26 +26,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/consensus/misc"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/core-coin/go-core/cmd/utils"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/consensus"
+	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/misc"
+	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/core/rawdb"
+	"github.com/core-coin/go-core/core/state"
+	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/node"
+	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/trie"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

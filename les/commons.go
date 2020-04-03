@@ -1,18 +1,18 @@
-// Copyright 2018 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2018 The go-core Authors
+// This file is part of the go-core library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-core library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-core library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
 package les
 
@@ -21,18 +21,18 @@ import (
 	"math/big"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/les/checkpointoracle"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/core/rawdb"
+	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/les/checkpointoracle"
+	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/p2p/discv5"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/params"
 )
 
 func errResp(code errCode, format string, v ...interface{}) error {
