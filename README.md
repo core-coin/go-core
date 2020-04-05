@@ -143,7 +143,7 @@ Docker:
 
 ```shell
 docker run -d --name ethereum-node -v /Users/alice/ethereum:/root \
-           -p 8545:8545 -p 30303:30303 \
+           -p 8545:8545 -p 30300:30300 \
            ethereum/client-go
 ```
 
