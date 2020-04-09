@@ -44,12 +44,12 @@ var parseNodeTests = []struct {
 }{
 	// Records
 	{
-		input: "enr:-IS4QGrdq0ugARp5T2BZ41TrZOqLc_oKvZoPuZP5--anqWE_J-Tucc1xgkOL7qXl0puJgT7qc2KSvcupc4NCb0nr4tdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQM6UUF2Rm-oFe1IH_rQkRCi00T2ybeMHRSvw1HDpRvjPYN1ZHCCdl8",
+		input: "enr:-IS4QJfUHaaVp3rwRIRhO3LwvTtW9MJiYkFd3qSuHKgSKhqBIpzhLtV4e9Q0feH1QttZbkgsLjLbwMygn7hmzMzSjktjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQM6UUF2Rm-oFe1IH_rQkRCi00T2ybeMHRSvw1HDpRvjPYN1ZHCCdlw",
 		wantResult: func() *Node {
 			testKey, _ := crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
 			var r enr.Record
 			r.Set(enr.IP{127, 0, 0, 1})
-			r.Set(enr.UDP(30303))
+			r.Set(enr.UDP(30300))
 			r.SetSeq(99)
 			SignV4(&r, testKey)
 			n, _ := New(ValidSchemes, &r)
