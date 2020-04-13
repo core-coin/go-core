@@ -16,7 +16,9 @@
   "timestamp": "0x59a4e76d",
   "extraData": "0x0000000000000000000000000000000000000000000000000000000b4dc0ffee",
   "gasLimit": "0x47b760",
-  "difficulty": "0x20000",
+  "difficulty": "0x20",
+  "minimumDifficulty":"0x20",
+  "difficultyBoundDivisor":"0x2",
   "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "coinbase": "0x0000000000000000000000000000000000000000",
   "alloc": {
