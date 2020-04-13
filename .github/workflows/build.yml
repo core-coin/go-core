@@ -10,12 +10,12 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - name: Set up Go 1.13
+    - name: Setup
       uses: actions/setup-go@v1
       with:
         go-version: 1.13
       id: go
-    - name: Check out code into the Go module directory
+    - name: Checkout
       uses: actions/checkout@v1
       with:
         path: 'src/github.com/core-coin/go-core'
@@ -23,6 +23,3 @@ jobs:
       run: go run build/ci.go install
     - name: Test
       run: go run build/ci.go test -coverage
-    - name: Deploy
-      if: matrix.platform == 'ubuntu-latest'
-      run: go run build/ci.go debsrc
