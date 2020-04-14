@@ -7,7 +7,7 @@ jobs:
       GOPATH: '${{ github.workspace }}/../'
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
