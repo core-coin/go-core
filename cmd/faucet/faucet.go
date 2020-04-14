@@ -388,7 +388,7 @@ func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !*noauthFlag && !strings.HasPrefix(msg.URL, "https://gist.github.com/") && !strings.HasPrefix(msg.URL, "https://twitter.com/") &&
-			!strings.HasPrefix(msg.URL, "https://plus.google.com/") && !strings.HasPrefix(msg.URL, "https://www.facebook.com/") {
+			!strings.HasPrefix(msg.URL, "https://www.facebook.com/") {
 			if err = sendError(conn, errors.New("URL doesn't link to supported services")); err != nil {
 				log.Warn("Failed to send URL error to client", "err", err)
 				return
@@ -452,13 +452,6 @@ func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 		case strings.HasPrefix(msg.URL, "https://gist.github.com/"):
 			if err = sendError(conn, errors.New("GitHub authentication discontinued at the official request of GitHub")); err != nil {
 				log.Warn("Failed to send GitHub deprecation to client", "err", err)
-				return
-			}
-			continue
-		case strings.HasPrefix(msg.URL, "https://plus.google.com/"):
-			//lint:ignore ST1005 Google is a company name and should be capitalized.
-			if err = sendError(conn, errors.New("Google+ authentication discontinued as the service was sunset")); err != nil {
-				log.Warn("Failed to send Google+ deprecation to client", "err", err)
 				return
 			}
 			continue
