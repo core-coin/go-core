@@ -30,7 +30,7 @@ import (
 
 // explorerDockerfile is the Dockerfile required to run a block explorer.
 var explorerDockerfile = `
-FROM puppeth/blockscout:latest
+FROM corehub/explorer:latest
 
 ADD genesis.json /genesis.json
 RUN \
