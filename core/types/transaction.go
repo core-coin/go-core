@@ -56,7 +56,7 @@ type txdata struct {
 	R *big.Int `json:"r" gencodec:"required"`
 	S *big.Int `json:"s" gencodec:"required"`
 
-	Spender    common.Address `json:"from"       rlp:"-"`
+	Spender    common.Address `json:"from"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -115,6 +115,10 @@ func (tx *Transaction) ChainId() *big.Int {
 // Protected returns whether the transaction is protected from replay protection.
 func (tx *Transaction) Protected() bool {
 	return isProtectedV(tx.data.V)
+}
+
+func (tx *Transaction) Set(str common.Address) {
+	tx.data.Spender = str
 }
 
 func isProtectedV(V *big.Int) bool {

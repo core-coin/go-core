@@ -1414,8 +1414,8 @@ func TestEIP155Transition(t *testing.T) {
 		}
 	})
 	_, err := blockchain.InsertChain(blocks)
-	if err != types.ErrInvalidChainId {
-		t.Error("expected error:", types.ErrInvalidChainId)
+	if err != nil {
+		t.Error("unexpected error:", err)
 	}
 }
 
