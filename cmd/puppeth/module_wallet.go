@@ -30,7 +30,7 @@ import (
 
 // walletDockerfile is the Dockerfile required to run a web wallet.
 var walletDockerfile = `
-FROM puppeth/wallet:latest
+FROM corehub/wallet:latest
 
 ADD genesis.json /genesis.json
 

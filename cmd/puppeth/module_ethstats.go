@@ -31,7 +31,7 @@ import (
 // ethstatsDockerfile is the Dockerfile required to build an ethstats backend
 // and associated monitoring site.
 var ethstatsDockerfile = `
-FROM puppeth/ethstats:latest
+FROM corehub/xcestats:latest
 
 RUN echo 'module.exports = {trusted: [{{.Trusted}}], banned: [{{.Banned}}], reserved: ["yournode"]};' > lib/utils/config.js
 `
@@ -41,10 +41,10 @@ RUN echo 'module.exports = {trusted: [{{.Trusted}}], banned: [{{.Banned}}], rese
 var ethstatsComposefile = `
 version: '2'
 services:
-  ethstats:
+  xcestats:
     build: .
-    image: {{.Network}}/ethstats
-    container_name: {{.Network}}_ethstats_1{{if not .VHost}}
+    image: {{.Network}}/xcestats
+    container_name: {{.Network}}_xcestats_1{{if not .VHost}}
     ports:
       - "{{.Port}}:3000"{{end}}
     environment:
