@@ -117,10 +117,6 @@ func (tx *Transaction) Protected() bool {
 	return isProtectedV(tx.data.V)
 }
 
-func (tx *Transaction) Set(str common.Address) {
-	tx.data.Spender = str
-}
-
 func isProtectedV(V *big.Int) bool {
 	if V.BitLen() <= 8 {
 		v := V.Uint64()
