@@ -662,6 +662,11 @@ var (
 		Name:  "discovery.dns",
 		Usage: "Sets DNS discovery entry points (use \"\" to disable DNS)",
 	}
+	NtpServerFlag = cli.StringFlag{
+		Name:  "ntp",
+		Usage: "NTP server and port for time synchronisation",
+		Value: "pool.ntp.org:123",
+	}
 
 	// ATM the url is left to the user and deployment to
 	JSpathFlag = cli.StringFlag{
@@ -1488,6 +1493,9 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 		} else {
 			cfg.DiscoveryURLs = splitAndTrim(urls)
 		}
+	}
+	if ctx.GlobalIsSet(NtpServerFlag.Name) {
+		cfg.NtpServer = ctx.GlobalString(NtpServerFlag.Name)
 	}
 
 	// Override any default configs for hard coded networks.

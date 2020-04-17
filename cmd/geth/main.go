@@ -134,6 +134,7 @@ var (
 		utils.DNSDiscoveryFlag,
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
+		utils.NtpServerFlag,
 		utils.TestnetFlag,
 		utils.RinkebyFlag,
 		utils.GoerliFlag,

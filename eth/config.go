@@ -99,6 +99,9 @@ type Config struct {
 	// for nodes to connect to.
 	DiscoveryURLs []string
 
+	// NTP server for time synchronisation
+	NtpServer string
+
 	NoPruning  bool // Whether to disable pruning and flush everything to disk
 	NoPrefetch bool // Whether to disable prefetching and only load state on demand
 
