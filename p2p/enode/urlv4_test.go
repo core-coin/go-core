@@ -44,7 +44,7 @@ var parseNodeTests = []struct {
 }{
 	// Records
 	{
-		input: "enr:-QEEuKg9LTc-uVLHTQs-ECOU-Sa1hhx7FmoR4BUIXsUruLCkY7-iAUCp-JJf7V-jR1hNPnCoLku-iWBSv186Pq671AlLisOVfmVq9dEuBtfeLuRoE27CueyMMCs5XKlMQbXL6xgeITTfk-UpZ43-rGwQCosx8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdl8",
+		input: "enr:-QEEuKg-xhCAH4rxbeh_FAWSBkFQJg2uYqutz-8XM8SuYhFeOhX3tM1ZjGb6jPtvDYCpWULW2w5MiH_eHNBZcae1eKJBenm9qvrqyLEGqOppUceywwdFsGztcvKbBgHSuR8YmVH2417PFz6Fiz6WPd42wwYf8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdlw",
 		wantResult: func() *Node {
 			testKey, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 			var r enr.Record
@@ -71,7 +71,7 @@ var parseNodeTests = []struct {
 	},
 	// Complete node URLs with IP address and ports
 	{
-		input:     "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@invalid.:3",
+		input:     "enode://767b2d3eb5828a9c2e11d1e9aa515f0435ee7ce80f3749ed33f462921587bc9bb55a7231b2e79ae6ce86e8ff4f83e9a151e855d6bbe87838@invalid.:3",
 		wantError: `no such host`,
 	},
 	{
