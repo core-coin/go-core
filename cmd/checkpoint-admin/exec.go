@@ -236,8 +236,8 @@ func sighash(index uint64, oracle common.Address, hash common.Hash) []byte {
 
 // ecrecover calculates the sender address from a sighash and signature combo.
 func ecrecover(sighash []byte, sig []byte) common.Address {
-	sig[64] -= 27
-	defer func() { sig[64] += 27 }()
+	//sig[64] -= 27
+	//defer func() { sig[64] += 27 }()
 
 	signer, err := crypto.SigToPub(sighash, sig)
 	if err != nil {

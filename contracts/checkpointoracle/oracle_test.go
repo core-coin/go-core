@@ -136,7 +136,7 @@ func signCheckpoint(addr common.Address, privateKey *ecdsa.PrivateKey, index uin
 	binary.BigEndian.PutUint64(buf, index)
 	data := append([]byte{0x19, 0x00}, append(addr.Bytes(), append(buf, hash.Bytes()...)...)...)
 	sig, _ := crypto.Sign(crypto.Keccak256(data), privateKey)
-	sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	return sig
 }
 

@@ -154,7 +154,7 @@ func (api *SignerAPI) sign(addr common.MixedcaseAddress, req *SignDataRequest, l
 		return nil, err
 	}
 	if legacyV {
-		signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+		//signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	}
 	return signature, nil
 }
