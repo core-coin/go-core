@@ -98,7 +98,6 @@ func TestClientSyncTreeBadNode(t *testing.T) {
 
 // This test checks that randomIterator finds all entries.
 func TestIterator(t *testing.T) {
-	t.Skip()
 	nodes := testNodes(nodesSeed1, 30)
 	tree, url := makeTestTree("n", nodes, nil)
 	r := mapResolver(tree.ToTXT("n"))
@@ -140,7 +139,6 @@ func TestIteratorClose(t *testing.T) {
 
 // This test checks that randomIterator traverses linked trees as well as explicitly added trees.
 func TestIteratorLinks(t *testing.T) {
-	t.Skip()
 	nodes := testNodes(nodesSeed1, 40)
 	tree1, url1 := makeTestTree("t1", nodes[:10], nil)
 	tree2, url2 := makeTestTree("t2", nodes[10:], []string{url1})

@@ -34,7 +34,7 @@ import (
 const SignatureLength = 112 + 56
 
 // RecoveryIDOffset points to the byte offset within the signature that contains the recovery id.
-const RecoveryIDOffset = 64
+// const RecoveryIDOffset = 64
 
 // DigestLength sets the signature digest exact length
 const DigestLength = 32
