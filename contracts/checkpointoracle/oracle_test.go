@@ -200,9 +200,9 @@ func TestCheckpointRegister(t *testing.T) {
 			if unauthorized != nil {
 				sig = signCheckpoint(contractAddr, unauthorized, index, hash)
 			}
-			r = append(r, common.BytesToHash(sig[:32]))
-			s = append(s, common.BytesToHash(sig[32:64]))
-			v = append(v, sig[64])
+			//r = append(r, common.BytesToHash(sig[:32]))
+			//s = append(s, common.BytesToHash(sig[32:64]))
+			//v = append(v, sig[64])
 		}
 		return v, r, s
 	}

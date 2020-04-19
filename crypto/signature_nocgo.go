@@ -42,8 +42,8 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	// Convert to btcec input format with 'recovery id' v at the beginning.
 	btcsig := make([]byte, SignatureLength)
-	btcsig[0] = sig[64] + 27
-	copy(btcsig[1:], sig)
+	//btcsig[0] = sig[64] + 27
+	copy(btcsig, sig)
 
 	pub, _, err := btcec.RecoverCompact(btcec.S256(), btcsig, hash)
 	return (*ecdsa.PublicKey)(pub), err
@@ -69,9 +69,9 @@ func Sign(hash []byte, prv *ecdsa.PrivateKey) ([]byte, error) {
 		return nil, err
 	}
 	// Convert to Ethereum signature format with 'recovery id' v at the end.
-	v := sig[0] - 27
-	copy(sig, sig[1:])
-	sig[64] = v
+	//v := sig[0] - 27
+	//copy(sig, sig[1:])
+	//sig[64] = v
 	return sig, nil
 }
 
