@@ -196,9 +196,9 @@ func TestCheckpointRegister(t *testing.T) {
 	// collectSig generates specified number signatures.
 	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *ecdsa.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
 		for i := 0; i < n; i++ {
-			sig := signCheckpoint(contractAddr, accounts[i].key, index, hash)
+			_ = signCheckpoint(contractAddr, accounts[i].key, index, hash)
 			if unauthorized != nil {
-				sig = signCheckpoint(contractAddr, unauthorized, index, hash)
+				_ = signCheckpoint(contractAddr, unauthorized, index, hash)
 			}
 			//r = append(r, common.BytesToHash(sig[:32]))
 			//s = append(s, common.BytesToHash(sig[32:64]))
