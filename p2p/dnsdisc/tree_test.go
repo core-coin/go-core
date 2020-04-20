@@ -42,7 +42,7 @@ func TestParseRoot(t *testing.T) {
 			err:   entryError{"root", errInvalidSig},
 		},
 		{
-				input: "enrtree-root:v1 e=QFT4PBCRX4XQCV3VUYJ6BTCEPU l=JGUFMSAGI7KZYB3P7IZW4S5Y3A seq=3 sig=ab4ORUpvvYww0a4tQjlPFzDGsYHpe-KCDtPd90UpFepgkbKePE7GVl-apanTF5epCknYPmWcJkm2C_uQwKuqbv0IXcOo1VJSOap3lxvtqyOpRce37HazGZSaQpmbEk7OpbMjGxMJeirfCy6jS5CiPWHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
+			input: "enrtree-root:v1 e=QFT4PBCRX4XQCV3VUYJ6BTCEPU l=JGUFMSAGI7KZYB3P7IZW4S5Y3A seq=3 sig=ab4ORUpvvYww0a4tQjlPFzDGsYHpe-KCDtPd90UpFepgkbKePE7GVl-apanTF5epCknYPmWcJkm2C_uQwKuqbv0IXcOo1VJSOap3lxvtqyOpRce37HazGZSaQpmbEk7OpbMjGxMJeirfCy6jS5CiPWHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
 			e: rootEntry{
 				eroot: "QFT4PBCRX4XQCV3VUYJ6BTCEPU",
 				lroot: "JGUFMSAGI7KZYB3P7IZW4S5Y3A",
