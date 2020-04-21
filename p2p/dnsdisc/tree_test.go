@@ -23,6 +23,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/p2p/enr"
 )
 
 func TestParseRoot(t *testing.T) {
@@ -40,12 +42,12 @@ func TestParseRoot(t *testing.T) {
 			err:   entryError{"root", errInvalidSig},
 		},
 		{
-			input: "enrtree-root:v1 e=QFT4PBCRX4XQCV3VUYJ6BTCEPU l=JGUFMSAGI7KZYB3P7IZW4S5Y3A seq=3 sig=3FmXuVwpa8Y7OstZTx9PIb1mt8FrW7VpDOFv4AaGCsZ2EIHmhraWhe4NxYhQDlw5MjeFXYMbJjsPeKlHzmJREQE",
+			input: "enrtree-root:v1 e=QFT4PBCRX4XQCV3VUYJ6BTCEPU l=JGUFMSAGI7KZYB3P7IZW4S5Y3A seq=3 sig=ab4ORUpvvYww0a4tQjlPFzDGsYHpe-KCDtPd90UpFepgkbKePE7GVl-apanTF5epCknYPmWcJkm2C_uQwKuqbv0IXcOo1VJSOap3lxvtqyOpRce37HazGZSaQpmbEk7OpbMjGxMJeirfCy6jS5CiPWHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
 			e: rootEntry{
 				eroot: "QFT4PBCRX4XQCV3VUYJ6BTCEPU",
 				lroot: "JGUFMSAGI7KZYB3P7IZW4S5Y3A",
 				seq:   3,
-				sig:   hexutil.MustDecode("0xdc5997b95c296bc63b3acb594f1f4f21bd66b7c16b5bb5690ce16fe006860ac6761081e686b69685ee0dc588500e5c393237855d831b263b0f78a947ce62511101"),
+				sig:   hexutil.MustDecode("0x69be0e454a6fbd8c30d1ae2d42394f1730c6b181e97be2820ed3ddf7452915ea6091b29e3c4ec6565f9aa5a9d31797a90a49d83e659c2649b60bfb90c0abaa6efd085dc3a8d5525239aa77971bedab23a945c7b7ec76b319949a42999b124ecea5b3231b13097a2adf0b2ea34b90a23d61d9fc0b79cbfa3cc268c8563bac36b6f092f7e36614e592968ecf136fff70f725c636850695cf93796042e5243187da15b33c287b34cb08"),
 			},
 		},
 	}
@@ -61,7 +63,11 @@ func TestParseRoot(t *testing.T) {
 }
 
 func TestParseEntry(t *testing.T) {
-	testkey := testKey(signingKeySeed)
+	testkey, _ := crypto.HexToECDSA("2796d9027a01fc620ff9cfd1bca479d03b8cd24a5e847510d20f5bbcd7ae1b9603f0d1976852615ed2603291f7c197b4b361db6bcbdf661fa0e48c7d07e49780ae1879f28ea401f0e6518af8d381ceead958987ed795e78312868fb2248505ce43ea2cc44f5d325b5c895c2528c80fda8205105f86c755e7d40301ff215f473e1b1bc4a104048d26d0ffff1ddc3b918a")
+	testNode, _ := enode.Parse(enr.SchemeMap{
+		"v4": enode.V4ID{},
+	}, "enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw")
+
 	tests := []struct {
 		input string
 		e     entry
@@ -90,8 +96,8 @@ func TestParseEntry(t *testing.T) {
 		},
 		// Links
 		{
-			input: "enrtree://AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@nodes.example.org",
-			e:     &linkEntry{"AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
+			input: "enrtree://UDSIY7IH4SLYBLQYPHZI5JAB6DTFDCXY2OA452WZLCMH5V4V46BRFBUPWISIKBOOIPVCZRCPLUZFWXEJLQSSRSAP3I@nodes.example.org",
+			e:     &linkEntry{"UDSIY7IH4SLYBLQYPHZI5JAB6DTFDCXY2OA452WZLCMH5V4V46BRFBUPWISIKBOOIPVCZRCPLUZFWXEJLQSSRSAP3I@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
 		},
 		{
 			input: "enrtree://nodes.example.org",
@@ -107,8 +113,8 @@ func TestParseEntry(t *testing.T) {
 		},
 		// ENRs
 		{
-			input: "enr:-HW4QES8QIeXTYlDzbfr1WEzE-XKY4f8gJFJzjJL-9D7TC9lJb4Z3JPRRz1lP4pL_N_QpT6rGQjAU9Apnc-C1iMP36OAgmlkgnY0iXNlY3AyNTZrMaED5IdwfMxdmR8W37HqSFdQLjDkIwBd4Q_MjxgZifgKSdM",
-			e:     &enrEntry{node: testNode(nodesSeed1)},
+			input: "enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw",
+			e:     &enrEntry{node: testNode},
 		},
 		{
 			input: "enr:-HW4QLZHjM4vZXkbp-5xJoHsKSbE7W39FPC8283X-y8oHcHPTnDDlIlzL5ArvDUlHZVDPgmFASrh7cWgLOLxj4wprRkHgmlkgnY0iXNlY3AyNTZrMaEC3t2jLMhDpCDX5mbSEwDn4L3iUfyXzoO8G28XvjGRkrAg=",
