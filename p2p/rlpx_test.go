@@ -40,9 +40,9 @@ import (
 )
 
 func TestSharedSecret(t *testing.T) {
-	prv0, _ := crypto.GenerateKey() // = ecdsa.GenerateKey(crypto.S256(), rand.Reader)
+	prv0, _ := crypto.GenerateKey(rand.Reader) // = ecdsa.GenerateKey(crypto.S256(), rand.Reader)
 	pub0 := &prv0.PublicKey
-	prv1, _ := crypto.GenerateKey()
+	prv1, _ := crypto.GenerateKey(rand.Reader)
 	pub1 := &prv1.PublicKey
 
 	ss0, err := ecies.ImportECDSA(prv0).GenerateShared(ecies.ImportECDSAPublic(pub1), sskLen, sskLen)
@@ -85,8 +85,8 @@ func testEncHandshake(token []byte) error {
 		err    error
 	}
 	var (
-		prv0, _  = crypto.GenerateKey()
-		prv1, _  = crypto.GenerateKey()
+		prv0, _  = crypto.GenerateKey(rand.Reader)
+		prv1, _  = crypto.GenerateKey(rand.Reader)
 		fd0, fd1 = net.Pipe()
 		c0, c1   = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
 		output   = make(chan result)
@@ -146,11 +146,11 @@ func testEncHandshake(token []byte) error {
 
 func TestProtocolHandshake(t *testing.T) {
 	var (
-		prv0, _ = crypto.GenerateKey()
+		prv0, _ = crypto.GenerateKey(rand.Reader)
 		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
-		prv1, _ = crypto.GenerateKey()
+		prv1, _ = crypto.GenerateKey(rand.Reader)
 		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 

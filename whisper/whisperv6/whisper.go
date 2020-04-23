@@ -18,6 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"crypto/sha256"
 	"fmt"
@@ -397,9 +398,9 @@ func (whisper *Whisper) SendP2PDirect(peer *Peer, envelope *Envelope) error {
 // NewKeyPair generates a new cryptographic identity for the client, and injects
 // it into the known identities for message decryption. Returns ID of the new key pair.
 func (whisper *Whisper) NewKeyPair() (string, error) {
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil || !validatePrivateKey(key) {
-		key, err = crypto.GenerateKey() // retry once
+		key, err = crypto.GenerateKey(rand.Reader) // retry once
 	}
 	if err != nil {
 		return "", err

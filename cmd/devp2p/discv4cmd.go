@@ -17,6 +17,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"net"
 	"strings"
@@ -210,7 +211,7 @@ func startV4(ctx *cli.Context) *discover.UDPv4 {
 
 func listen() (*net.UDPConn, *enode.LocalNode, discover.Config, error) {
 	var cfg discover.Config
-	cfg.PrivateKey, _ = crypto.GenerateKey()
+	cfg.PrivateKey, _ = crypto.GenerateKey(rand.Reader)
 	db, _ := enode.OpenDB("")
 	ln := enode.NewLocalNode(db, cfg.PrivateKey)
 

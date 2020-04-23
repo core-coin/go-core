@@ -17,6 +17,7 @@
 package discv5
 
 import (
+	"crypto/rand"
 	"net"
 	"testing"
 	"time"
@@ -26,7 +27,7 @@ import (
 )
 
 func TestNetwork_Lookup(t *testing.T) {
-	key, _ := crypto.GenerateKey()
+	key, _ := crypto.GenerateKey(rand.Reader)
 	network, err := newNetwork(lookupTestnet, key.PublicKey, "", nil)
 	if err != nil {
 		t.Fatal(err)

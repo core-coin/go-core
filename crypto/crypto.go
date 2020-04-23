@@ -18,7 +18,6 @@ package crypto
 
 import (
 	ecdsa "github.com/core-coin/eddsa"
-	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -172,8 +171,8 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
 
-func GenerateKey() (*ecdsa.PrivateKey, error) {
-	return ecdsa.Ed448().GenerateKey(rand.Reader)
+func GenerateKey(read io.Reader) (*ecdsa.PrivateKey, error) {
+	return ecdsa.Ed448().GenerateKey(read)
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with

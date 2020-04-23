@@ -17,6 +17,7 @@
 package core
 
 import (
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
@@ -100,7 +101,7 @@ func init() {
 	ringKeys[0] = benchRootKey
 	ringAddrs[0] = benchRootAddr
 	for i := 1; i < len(ringKeys); i++ {
-		ringKeys[i], _ = crypto.GenerateKey()
+		ringKeys[i], _ = crypto.GenerateKey(rand.Reader)
 		ringAddrs[i] = crypto.PubkeyToAddress(ringKeys[i].PublicKey)
 	}
 }

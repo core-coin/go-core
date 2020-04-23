@@ -288,7 +288,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -343,7 +343,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -389,7 +389,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -447,7 +447,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -495,7 +495,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -590,7 +590,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -640,7 +640,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -715,7 +715,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -809,7 +809,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -999,7 +999,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -1134,7 +1134,7 @@ var bindTests = []struct {
 		`,
 
 		`
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -1276,7 +1276,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
@@ -1342,7 +1342,7 @@ var bindTests = []struct {
 		`,
 		`
 		// Initialize test accounts
-		key, _ := crypto.GenerateKey()
+		key, _ := crypto.GenerateKey(rand.Reader)
 		auth := bind.NewKeyedTransactor(key)
 		sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
 		defer sim.Close()
@@ -1430,7 +1430,7 @@ var bindTests = []struct {
 		`,
 		`
 		// Initialize test accounts
-		key, _ := crypto.GenerateKey()
+		key, _ := crypto.GenerateKey(rand.Reader)
 		addr := crypto.PubkeyToAddress(key.PublicKey)
 
 		// Deploy registrar contract
@@ -1492,7 +1492,7 @@ var bindTests = []struct {
 		"github.com/core-coin/go-core/core"
         `,
 		`
-		key, _ := crypto.GenerateKey()
+		key, _ := crypto.GenerateKey(rand.Reader)
 		addr := crypto.PubkeyToAddress(key.PublicKey)
 
 		// Deploy registrar contract
@@ -1555,7 +1555,7 @@ var bindTests = []struct {
 		`,
 		`
 			// Generate a new random account and a funded simulator
-			key, _ := crypto.GenerateKey()
+			key, _ := crypto.GenerateKey(rand.Reader)
 			auth := bind.NewKeyedTransactor(key)
 
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)

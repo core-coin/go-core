@@ -18,6 +18,7 @@
 package main
 
 import (
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
@@ -63,7 +64,7 @@ func main() {
 	}
 	switch {
 	case *genKey != "":
-		nodeKey, err = crypto.GenerateKey()
+		nodeKey, err = crypto.GenerateKey(rand.Reader)
 		if err != nil {
 			utils.Fatalf("could not generate key: %v", err)
 		}

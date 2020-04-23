@@ -17,6 +17,7 @@
 package node
 
 import (
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
@@ -363,7 +364,7 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	}
 	// Generate ephemeral key if no datadir is being used.
 	if c.DataDir == "" {
-		key, err := crypto.GenerateKey()
+		key, err := crypto.GenerateKey(rand.Reader)
 		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
 		}
@@ -375,7 +376,7 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 		return key
 	}
 	// No persistent key found, generate and store a new one.
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
 	}

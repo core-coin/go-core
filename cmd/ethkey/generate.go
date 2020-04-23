@@ -17,6 +17,7 @@
 package main
 
 import (
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
@@ -79,7 +80,7 @@ If you want to encrypt an existing private key, it can be specified by setting
 			}
 		} else {
 			// If not loaded, generate random.
-			privateKey, err = crypto.GenerateKey()
+			privateKey, err = crypto.GenerateKey(rand.Reader)
 			if err != nil {
 				utils.Fatalf("Failed to generate random private key: %v", err)
 			}

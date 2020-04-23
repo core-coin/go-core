@@ -18,6 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
+	"crypto/rand"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
@@ -57,7 +58,7 @@ func Fuzz(input []byte) int {
 	text := make([]byte, 0, 512)
 	text = append(text, params.Payload...)
 	params.Topic = paramsDecoded.Topic
-	params.Src, err = crypto.GenerateKey()
+	params.Src, err = crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		return 0
 	}
