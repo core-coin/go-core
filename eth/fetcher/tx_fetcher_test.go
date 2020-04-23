@@ -226,7 +226,7 @@ func TestTransactionFetcherSkipWaiting(t *testing.T) {
 }
 
 // Tests that only a single transaction request gets scheduled to a peer
-// and subsequent announces block or get allotted to someone else.
+// and subsequent announces block or get allotted to someone else. 
 func TestTransactionFetcherSingletonRequesting(t *testing.T) {
 	testTransactionFetcherParallel(t, txFetcherTest{
 		init: func() *TxFetcher {
