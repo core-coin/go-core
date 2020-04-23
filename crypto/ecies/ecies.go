@@ -40,7 +40,6 @@ import (
 	"hash"
 	"io"
 	"math/big"
-	crand "crypto/rand"
 )
 
 var (
@@ -95,7 +94,7 @@ func ImportECDSA(prv *ecdsa.PrivateKey) *PrivateKey {
 // Generate an elliptic curve public / private keypair. If params is nil,
 // the recommended default parameters for the key will be chosen.
 func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv *PrivateKey, err error) {
-	pb, err := crypto.GenerateKey(crand.Reader)
+	pb, err := crypto.GenerateKey(rand)
 	if err != nil {
 		return
 	}
