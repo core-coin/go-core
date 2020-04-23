@@ -90,8 +90,8 @@ func TestParseEntry(t *testing.T) {
 		},
 		// Links
 		{
-			input: "enrtree://UDSIY7IH4SLYBLQYPHZI5JAB6DTFDCXY2OA452WZLCMH5V4V46BRFBUPWISIKBOOIPVCZRCPLUZFWXEJLQSSRSAP3I@nodes.example.org",
-			e:     &linkEntry{"UDSIY7IH4SLYBLQYPHZI5JAB6DTFDCXY2OA452WZLCMH5V4V46BRFBUPWISIKBOOIPVCZRCPLUZFWXEJLQSSRSAP3I@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
+			input: "enrtree://ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org",
+			e:     &linkEntry{"ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
 		},
 		{
 			input: "enrtree://nodes.example.org",
@@ -107,7 +107,7 @@ func TestParseEntry(t *testing.T) {
 		},
 		// ENRs
 		{
-			input: "enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw",
+			input: "enr:-PW4qAA3JXxwfsfrJtvzIxaUlKaNhB1y1sV7TmmMl3FuPSCNoHt4iFtvJygldtB3xudmCjQ5UDdEXlPY8mEi6om6ejaiKFHpSTKdjGj-mMQePmVTJ4lv4Pks3UtXP49IoQJAH2vnGuAMTnUz4KXUhocXmxhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGICCaWSCdjSJc2VjcDI1NmsxuDhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGA",
 			e:     &enrEntry{node: testNode(nodesSeed1)},
 		},
 		{
