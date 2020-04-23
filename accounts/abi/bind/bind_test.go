@@ -280,6 +280,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"transactString","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":true,"inputs":[],"name":"deployString","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":false,"inputs":[{"name":"str","type":"string"}],"name":"transact","outputs":[],"type":"function"},{"inputs":[{"name":"str","type":"string"}],"type":"constructor"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -335,6 +336,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"getter","outputs":[{"name":"","type":"string"},{"name":"","type":"int256"},{"name":"","type":"bytes32"}],"type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -381,6 +383,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"tuple","outputs":[{"name":"a","type":"string"},{"name":"b","type":"int256"},{"name":"c","type":"bytes32"}],"type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -438,6 +441,7 @@ var bindTests = []struct {
 		`
 			"math/big"
 			"reflect"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -487,6 +491,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"caller","outputs":[{"name":"","type":"address"}],"type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -582,6 +587,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":false,"inputs":[{"name":"value","type":"string"}],"name":"SetField","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"field","outputs":[{"name":"","type":"string"}],"type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -631,6 +637,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"callFrom","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -707,6 +714,7 @@ var bindTests = []struct {
 		`
 			"fmt"
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -800,6 +808,7 @@ var bindTests = []struct {
 		`
 			"math/big"
 			"time"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -991,6 +1000,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":false,"inputs":[{"name":"arr","type":"uint64[3][4][5]"}],"name":"storeDeepUintArray","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"retrieveDeepArray","outputs":[{"name":"","type":"uint64[3][4][5]"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"uint256"}],"name":"deepUint64Array","outputs":[{"name":"","type":"uint64"}],"payable":false,"stateMutability":"view","type":"function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1126,6 +1136,7 @@ var bindTests = []struct {
 		`
 			"math/big"
 			"reflect"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1268,6 +1279,7 @@ var bindTests = []struct {
 		},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1334,6 +1346,7 @@ var bindTests = []struct {
 		`
 		"math/big"
 		"time"
+		"crypto/rand"
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1422,6 +1435,7 @@ var bindTests = []struct {
 		[]string{`[{"constant":true,"inputs":[],"name":"MyVar","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_myVar","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]`},
 		`
 		"math/big"
+		"crypto/rand"
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1484,7 +1498,8 @@ var bindTests = []struct {
 			`[]`,
 		},
 		`
-		"math/big"
+		"math/big"		
+		"crypto/rand"
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
@@ -1547,6 +1562,7 @@ var bindTests = []struct {
 		[]string{`[{"inputs": [],"name": "PureFunc","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "pure","type": "function"},{"inputs": [],"name": "ViewFunc","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"}]`},
 		`
 			"math/big"
+			"crypto/rand"
 
 			"github.com/core-coin/go-core/accounts/abi/bind"
 			"github.com/core-coin/go-core/accounts/abi/bind/backends"
