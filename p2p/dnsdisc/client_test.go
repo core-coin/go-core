@@ -20,6 +20,7 @@ import (
 	"context"
 	ecdsa "github.com/core-coin/eddsa"
 	"errors"
+	"math/rand"
 	"reflect"
 	"testing"
 	"time"
@@ -48,24 +49,11 @@ func TestClientSyncTree(t *testing.T) {
 		"E7PBDEEWGHDQWTPEYJQGHG2IZMMLB2QGZWRQ74F5TCJQAIWOP55A.n": "enr:-PW4qOXkhYyKDKlP75YQaygFo9H8nhQlUK94lgAq95sGUQcf5wI1gpq59A-c3duqO1IsTkub-moxM7z7TrKpuT_P-a1O9kUGZJhteLO2CcQlUIW6_p1hWqEGl5F__TT0szQRJW9SEK9qLTMgvZbgwj3YNwFPQlXjESdidAEy1c5JZyieIIX_MgMNwBmg4WHf_2cfl-ghWI9rdRj046RIoenZUGXQMv5J6VaA-ICCaWSCdjSJc2VjcDI1NmsxuDhPQlXjESdidAEy1c5JZyieIIX_MgMNwBmg4WHf_2cfl-ghWI9rdRj046RIoenZUGXQMv5J6VaA-A",
 		"L7DSSOSZVTZX6NPZFM7HF6MEAKR7GTKYJPCEMBCSBA46YRJCRJBA.n": "enr:-PW4qGycmnYGPAoGx9AQFbWeroLx46HCSGjU4MJiwEeOH6PZb8GmS3qGKPvKr4W0dEElS7RmGv--ocky5L7REhEI6V4o3_zQ9Gr_l3vUmKcTNBMVmVHGsTVjzvTfJJqHlDAEeOWuV6pOMXviVK7brFRt9hyKz9eoXeUr-A16r771L4lr4x_SBDDTu-sXBYFzqzcB8Ef0exKieR2Li7FAqN_mysAR-6QqbNkwugGCaWSCdjSJc2VjcDI1NmsxuDiKz9eoXeUr-A16r771L4lr4x_SBDDTu-sXBYFzqzcB8Ef0exKieR2Li7FAqN_mysAR-6QqbNkwug",
 	}
-
 	var (
 		wantNodes = make([]*enode.Node, 3)
 		wantLinks = []string{"enrtree://MJKQMAHXTDNOWVILXACK25P54GVTLUJHRXUEPWAYXCFOITYOMYUO7746ZHHWZYPEFXKNFBV4QDCC4S7POQMCBGVLJM@morenodes.example.org"}
 		wantSeq   = uint(1)
 	)
-	nodesString := []string{
-		"enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw",
-		"enr:-PW4qOXkhYyKDKlP75YQaygFo9H8nhQlUK94lgAq95sGUQcf5wI1gpq59A-c3duqO1IsTkub-moxM7z7TrKpuT_P-a1O9kUGZJhteLO2CcQlUIW6_p1hWqEGl5F__TT0szQRJW9SEK9qLTMgvZbgwj3YNwFPQlXjESdidAEy1c5JZyieIIX_MgMNwBmg4WHf_2cfl-ghWI9rdRj046RIoenZUGXQMv5J6VaA-ICCaWSCdjSJc2VjcDI1NmsxuDhPQlXjESdidAEy1c5JZyieIIX_MgMNwBmg4WHf_2cfl-ghWI9rdRj046RIoenZUGXQMv5J6VaA-A",
-		"enr:-PW4qGycmnYGPAoGx9AQFbWeroLx46HCSGjU4MJiwEeOH6PZb8GmS3qGKPvKr4W0dEElS7RmGv--ocky5L7REhEI6V4o3_zQ9Gr_l3vUmKcTNBMVmVHGsTVjzvTfJJqHlDAEeOWuV6pOMXviVK7brFRt9hyKz9eoXeUr-A16r771L4lr4x_SBDDTu-sXBYFzqzcB8Ef0exKieR2Li7FAqN_mysAR-6QqbNkwugGCaWSCdjSJc2VjcDI1NmsxuDiKz9eoXeUr-A16r771L4lr4x_SBDDTu-sXBYFzqzcB8Ef0exKieR2Li7FAqN_mysAR-6QqbNkwug",
-	}
-	var ValidSchemes = enr.SchemeMap{
-		"v4": enode.V4ID{},
-	}
-	for i, node := range nodesString{
-		n, _ := enode.Parse(ValidSchemes, node)
-		wantNodes[i] = n
-	}
 
 	c := NewClient(Config{Resolver: r, Logger: testlog.Logger(t, log.LvlTrace)})
 	stree, err := c.SyncTree("enrtree://MHM7YC3ZZP5DZQTIZBLDXLBWW3YJF57DMYKOLEUWR3HRG377OD3SLRRWQUDJLT4TPFQEFZJEGGD5UFNTHQUHWNGLBA@n")
@@ -171,7 +159,6 @@ func TestIteratorLinks(t *testing.T) {
 // This test verifies that randomIterator re-checks the root of the tree to catch
 // updates to nodes.
 func TestIteratorNodeUpdates(t *testing.T) {
-	t.Skip()
 	var (
 		clock    = new(mclock.Simulated)
 		nodes    = testNodes(nodesSeed1, 30)
@@ -209,7 +196,6 @@ func TestIteratorNodeUpdates(t *testing.T) {
 // requests have failed. The test is just like TestIteratorNodeUpdates, but
 // without advancing the clock by recheckInterval after the tree update.
 func TestIteratorRootRecheckOnFail(t *testing.T) {
-	t.Skip()
 	var (
 		clock    = new(mclock.Simulated)
 		nodes    = testNodes(nodesSeed1, 30)
@@ -261,7 +247,6 @@ func updateSomeNodes(keySeed int64, nodes []*enode.Node) {
 // This test verifies that randomIterator re-checks the root of the tree to catch
 // updates to links.
 func TestIteratorLinkUpdates(t *testing.T) {
-	t.Skip()
 	var (
 		clock    = new(mclock.Simulated)
 		nodes    = testNodes(nodesSeed1, 30)
@@ -346,10 +331,10 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 
 // testKeys creates deterministic private keys for testing.
 func testKeys(seed int64, n int) []*ecdsa.PrivateKey {
-	_ = seed
+	randSeed := rand.New(rand.NewSource(seed))
 	keys := make([]*ecdsa.PrivateKey, n)
 	for i := 0; i < n; i++ {
-		key, err := crypto.GenerateKey()
+		key, err := crypto.GenerateKey(randSeed)
 		if err != nil {
 			panic("can't generate key: " + err.Error())
 		}

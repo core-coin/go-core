@@ -23,8 +23,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
 )
 
 func TestParseRoot(t *testing.T) {
@@ -63,11 +61,7 @@ func TestParseRoot(t *testing.T) {
 }
 
 func TestParseEntry(t *testing.T) {
-	testkey, _ := crypto.HexToECDSA("2796d9027a01fc620ff9cfd1bca479d03b8cd24a5e847510d20f5bbcd7ae1b9603f0d1976852615ed2603291f7c197b4b361db6bcbdf661fa0e48c7d07e49780ae1879f28ea401f0e6518af8d381ceead958987ed795e78312868fb2248505ce43ea2cc44f5d325b5c895c2528c80fda8205105f86c755e7d40301ff215f473e1b1bc4a104048d26d0ffff1ddc3b918a")
-	testNode, _ := enode.Parse(enr.SchemeMap{
-		"v4": enode.V4ID{},
-	}, "enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw")
-
+	testkey := testKey(signingKeySeed)
 	tests := []struct {
 		input string
 		e     entry
@@ -114,7 +108,7 @@ func TestParseEntry(t *testing.T) {
 		// ENRs
 		{
 			input: "enr:-PW4qLeDADEGnzGAHXRrsdk5QQBIGAZenfc6HgdlgdS2GyIhRfv5qeh6101CmYewviF_5lfKDbFQcS6BJpwBoEJXFKhJLZ-SSZldEMXf2yAsPOpi84joYs0EMmS41UfexN7en4rVhNwILq2k9exvAKZkEDuSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLwKCaWSCdjSJc2VjcDI1NmsxuDiSRl1Q0FfSDeyQuB8cxR9ziMO_Hk5RvghjksNgIG8TksIaMYYRMmMgAmnHcoZMAcFVB_U3IoaWLw",
-			e:     &enrEntry{node: testNode},
+			e:     &enrEntry{node: testNode(nodesSeed1)},
 		},
 		{
 			input: "enr:-HW4QLZHjM4vZXkbp-5xJoHsKSbE7W39FPC8283X-y8oHcHPTnDDlIlzL5ArvDUlHZVDPgmFASrh7cWgLOLxj4wprRkHgmlkgnY0iXNlY3AyNTZrMaEC3t2jLMhDpCDX5mbSEwDn4L3iUfyXzoO8G28XvjGRkrAg=",
