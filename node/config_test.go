@@ -18,6 +18,7 @@ package node
 
 import (
 	"bytes"
+	"crypto/rand"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -118,7 +119,7 @@ func TestNodeKeyPersistency(t *testing.T) {
 	keyfile := filepath.Join(dir, "unit-test", datadirPrivateKey)
 
 	// Configure a node with a preset key and ensure it's not persisted
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate one-shot node key: %v", err)
 	}

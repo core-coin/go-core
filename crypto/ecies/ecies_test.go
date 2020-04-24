@@ -36,7 +36,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -72,7 +71,7 @@ func TestSharedKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	skLen := MaxSharedKeyLength(&prv1.PublicKey) / 2
+	skLen := 16
 
 	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
 	if err != nil {
@@ -96,24 +95,15 @@ func TestSharedKey(t *testing.T) {
 
 func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
-	prv0 := hexKey("1adf5c18167d96a1f9a0b1ef63be8aa27eaf6032c233b2b38f7850cf5b859fd9")
-	prv1 := hexKey("0097a076fc7fcd9208240668e31c9abee952cbb6e375d1b8febc7499d6e16f1a")
-	x0, _ := new(big.Int).SetString("1a8ed022ff7aec59dc1b440446bdda5ff6bcb3509a8b109077282b361efffbd8", 16)
-	x1, _ := new(big.Int).SetString("6ab3ac374251f638d0abb3ef596d1dc67955b507c104e5f2009724812dc027b8", 16)
-	y0, _ := new(big.Int).SetString("e040bd480b1deccc3bc40bd5b1fdcb7bfd352500b477cb9471366dbd4493f923", 16)
-	y1, _ := new(big.Int).SetString("8ad915f2b503a8be6facab6588731fefeb584fd2dfa9a77a5e0bba1ec439e4fa", 16)
-
-	if prv0.PublicKey.X.Cmp(x0) != 0 {
-		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X.Bytes(), x0.Bytes())
+	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
+	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
+	pub0 := hexPub("919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1")
+	pub1 := hexPub("68f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13b")
+	if !bytes.Equal(prv0.PublicKey.X, pub0) {
+		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X, pub0)
 	}
-	if prv0.PublicKey.Y.Cmp(y0) != 0 {
-		t.Errorf("mismatched prv0.Y:\nhave: %x\nwant: %x\n", prv0.PublicKey.Y.Bytes(), y0.Bytes())
-	}
-	if prv1.PublicKey.X.Cmp(x1) != 0 {
-		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1.PublicKey.X.Bytes(), x1.Bytes())
-	}
-	if prv1.PublicKey.Y.Cmp(y1) != 0 {
-		t.Errorf("mismatched prv1.Y:\nhave: %x\nwant: %x\n", prv1.PublicKey.Y.Bytes(), y1.Bytes())
+	if !bytes.Equal(prv1.PublicKey.X, pub1) {
+		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1.PublicKey.X, pub1)
 	}
 
 	// test shared secret generation
@@ -129,54 +119,6 @@ func TestSharedKeyPadding(t *testing.T) {
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys.Error())
-	}
-}
-
-// Verify that the key generation code fails when too much key data is
-// requested.
-func TestTooBigSharedKey(t *testing.T) {
-	prv1, err := GenerateKey(rand.Reader, DefaultCurve, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = prv1.GenerateShared(&prv2.PublicKey, 32, 32)
-	if err != ErrSharedKeyTooBig {
-		t.Fatal("ecdh: shared key should be too large for curve")
-	}
-
-	_, err = prv2.GenerateShared(&prv1.PublicKey, 32, 32)
-	if err != ErrSharedKeyTooBig {
-		t.Fatal("ecdh: shared key should be too large for curve")
-	}
-}
-
-// Benchmark the generation of P256 keys.
-func BenchmarkGenerateKeyP256(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		if _, err := GenerateKey(rand.Reader, elliptic.P256(), nil); err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-// Benchmark the generation of P256 shared keys.
-func BenchmarkGenSharedKeyP256(b *testing.B) {
-	prv, err := GenerateKey(rand.Reader, elliptic.P256(), nil)
-	if err != nil {
-		b.Fatal(err)
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := prv.GenerateShared(&prv.PublicKey, 16, 16)
-		if err != nil {
-			b.Fatal(err)
-		}
 	}
 }
 
@@ -266,19 +208,9 @@ type testCase struct {
 
 var testCases = []testCase{
 	{
-		Curve:    elliptic.P256(),
-		Name:     "P256",
+		Curve:    crypto.S256(),
+		Name:     "S256",
 		Expected: ECIES_AES128_SHA256,
-	},
-	{
-		Curve:    elliptic.P384(),
-		Name:     "P384",
-		Expected: ECIES_AES256_SHA384,
-	},
-	{
-		Curve:    elliptic.P521(),
-		Name:     "P521",
-		Expected: ECIES_AES256_SHA512,
 	},
 }
 
@@ -331,34 +263,9 @@ func testParamSelection(t *testing.T, c testCase) {
 
 }
 
-// Ensure that the basic public key validation in the decryption operation
-// works.
-func TestBasicKeyValidation(t *testing.T) {
-	badBytes := []byte{0, 1, 5, 6, 7, 8, 9}
-
-	prv, err := GenerateKey(rand.Reader, DefaultCurve, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, &prv.PublicKey, message, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, b := range badBytes {
-		ct[0] = b
-		_, err := prv.Decrypt(ct, nil, nil)
-		if err != ErrInvalidPublicKey {
-			t.Fatal("ecies: validated an invalid key")
-		}
-	}
-}
-
 func TestBox(t *testing.T) {
-	prv1 := hexKey("4b50fa71f5c3eeb8fdc452224b2395af2fcc3d125e06c32c82e048c0559db03f")
-	prv2 := hexKey("d0b043b4c5d657670778242d82d68a29d25d7d711127d17b8e299f156dad361a")
+	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
+	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
 	pub2 := &prv2.PublicKey
 
 	message := []byte("Hello, world.")
@@ -382,10 +289,10 @@ func TestBox(t *testing.T) {
 // Verify GenerateShared against static values - useful when
 // debugging changes in underlying libs
 func TestSharedKeyStatic(t *testing.T) {
-	prv1 := hexKey("7ebbc6a8358bc76dd73ebc557056702c8cfc34e5cfcd90eb83af0347575fd2ad")
-	prv2 := hexKey("6a3d6396903245bba5837752b9e0348874e72db0c4e11e9c485a81b4ea4353b9")
+	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
+	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
 
-	skLen := MaxSharedKeyLength(&prv1.PublicKey) / 2
+	skLen := 16
 
 	sk1, err := prv1.GenerateShared(&prv2.PublicKey, skLen, skLen)
 	if err != nil {
@@ -401,7 +308,7 @@ func TestSharedKeyStatic(t *testing.T) {
 		t.Fatal(ErrBadSharedKeys)
 	}
 
-	sk, _ := hex.DecodeString("167ccc13ac5e8a26b131c3446030c60fbfac6aa8e31149d0869f93626a4cdf62")
+	sk, _ := hex.DecodeString("ecdba3fbaadf7769d0846084d39efd53de415fea7247feacc85c1ffcb312a6b796205337ae282b2278b3f44ad53be8b65372b0f22470d722279e440debd46b69")
 	if !bytes.Equal(sk1, sk) {
 		t.Fatalf("shared secret mismatch: want: %x have: %x", sk, sk1)
 	}
@@ -414,3 +321,17 @@ func hexKey(prv string) *PrivateKey {
 	}
 	return ImportECDSA(key)
 }
+
+func hexPub(key string) []byte {
+	b, err := hex.DecodeString(key)
+	if err != nil {
+		panic(err)
+	}
+
+	pub, err := crypto.UnmarshalPubkey(b)
+	if err != nil {
+		panic(err)
+	}
+	return pub.X
+}
+

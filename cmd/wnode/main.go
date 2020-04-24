@@ -21,7 +21,7 @@ package main
 
 import (
 	"bufio"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
@@ -180,7 +180,7 @@ func initialize() {
 	var err error
 
 	if *generateKey {
-		key, err := crypto.GenerateKey()
+		key, err := crypto.GenerateKey(crand.Reader)
 		if err != nil {
 			utils.Fatalf("Failed to generate private key: %s", err)
 		}

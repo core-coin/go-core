@@ -18,7 +18,7 @@ package mailserver
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/binary"
 	"io/ioutil"
 	"math/rand"

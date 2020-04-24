@@ -20,7 +20,7 @@
 package main
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -52,7 +52,7 @@ func main() {
 	// Generate a batch of accounts to seal and fund with
 	faucets := make([]*ecdsa.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
-		faucets[i], _ = crypto.GenerateKey()
+		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 	// Pre-generate the ethash mining DAG so we don't race
 	ethash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".ethash"))

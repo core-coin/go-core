@@ -50,12 +50,12 @@ import (
 )
 
 var (
-	bankKey, _ = crypto.GenerateKey()
+	bankKey, _ = crypto.GenerateKey(rand.Reader)
 	bankAddr   = crypto.PubkeyToAddress(bankKey.PublicKey)
 	bankFunds  = big.NewInt(1000000000000000000)
 
-	userKey1, _ = crypto.GenerateKey()
-	userKey2, _ = crypto.GenerateKey()
+	userKey1, _ = crypto.GenerateKey(rand.Reader)
+	userKey2, _ = crypto.GenerateKey(rand.Reader)
 	userAddr1   = crypto.PubkeyToAddress(userKey1.PublicKey)
 	userAddr2   = crypto.PubkeyToAddress(userKey2.PublicKey)
 
@@ -68,7 +68,7 @@ var (
 
 	// Checkpoint registrar relative
 	registrarAddr common.Address
-	signerKey, _  = crypto.GenerateKey()
+	signerKey, _  = crypto.GenerateKey(rand.Reader)
 	signerAddr    = crypto.PubkeyToAddress(signerKey.PublicKey)
 )
 

@@ -17,6 +17,7 @@
 package whisperv6
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"testing"
 
@@ -56,7 +57,7 @@ func BenchmarkEncryptionAsym(b *testing.B) {
 	if err != nil {
 		b.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -123,7 +124,7 @@ func BenchmarkDecryptionAsymValid(b *testing.B) {
 	if err != nil {
 		b.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -151,7 +152,7 @@ func BenchmarkDecryptionAsymInvalid(b *testing.B) {
 	if err != nil {
 		b.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -163,7 +164,7 @@ func BenchmarkDecryptionAsymInvalid(b *testing.B) {
 		b.Fatalf("failed Wrap with seed %d: %s.", seed, err)
 	}
 
-	key, err = crypto.GenerateKey()
+	key, err = crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}

@@ -17,7 +17,7 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 	"math"
@@ -680,7 +680,7 @@ const (
 // poolEntry represents a server node and stores its current state and statistics.
 type poolEntry struct {
 	peer                  *serverPeer
-	pubkey                [64]byte // secp256k1 key of the node
+	pubkey                [56]byte // ed448 key of the node
 	addr                  map[string]*poolEntryAddress
 	node                  *enode.Node
 	lastConnected, dialed *poolEntryAddress
@@ -747,11 +747,11 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 }
 
 func encodePubkey64(pub *ecdsa.PublicKey) []byte {
-	return crypto.FromECDSAPub(pub)[1:]
+	return crypto.FromECDSAPub(pub)
 }
 
 func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
-	return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
+	return crypto.UnmarshalPubkey(b)
 }
 
 // discoveredEntry implements wrsItem

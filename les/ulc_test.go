@@ -127,7 +127,7 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 // newTestServerPeer creates server peer.
 func newTestServerPeer(t *testing.T, blocks int, protocol int) (*testServer, *enode.Node, func()) {
 	s, teardown := newServerEnv(t, blocks, protocol, nil, false, false, 0)
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal("generate key err:", err)
 	}

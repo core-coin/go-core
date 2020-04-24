@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	crand "crypto/rand"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -55,11 +56,11 @@ var (
 	cliqueChainConfig *params.ChainConfig
 
 	// Test accounts
-	testBankKey, _  = crypto.GenerateKey()
+	testBankKey, _  = crypto.GenerateKey(crand.Reader)
 	testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
 	testBankFunds   = big.NewInt(1000000000000000000)
 
-	testUserKey, _  = crypto.GenerateKey()
+	testUserKey, _  = crypto.GenerateKey(crand.Reader)
 	testUserAddress = crypto.PubkeyToAddress(testUserKey.PublicKey)
 
 	// Test transactions

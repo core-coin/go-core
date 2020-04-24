@@ -17,9 +17,10 @@
 package whisperv6
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"sync"
+	"bytes"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
@@ -258,5 +259,5 @@ func IsPubKeyEqual(a, b *ecdsa.PublicKey) bool {
 		return false
 	}
 	// the curve is always the same, just compare the points
-	return a.X.Cmp(b.X) == 0 && a.Y.Cmp(b.Y) == 0
+	return bytes.Compare(a.X, b.X) == 0
 }

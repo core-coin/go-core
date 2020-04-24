@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	mrand "math/rand"
 	"testing"
 
@@ -46,7 +47,7 @@ func generateMessageParams() (*MessageParams, error) {
 	p.Topic = BytesToTopic(buf)
 
 	var err error
-	p.Src, err = crypto.GenerateKey()
+	p.Src, err = crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func singleMessageTest(t *testing.T, symmetric bool) {
 		t.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
 
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -221,7 +222,7 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 		t.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
 
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -426,7 +427,7 @@ func TestPaddingAppendedToSymMessagesWithSignature(t *testing.T) {
 		KeySym:  make([]byte, aesKeyLength),
 	}
 
-	pSrc, err := crypto.GenerateKey()
+	pSrc, err := crypto.GenerateKey(rand.Reader)
 
 	if err != nil {
 		t.Fatalf("Error creating the signature key %v", err)

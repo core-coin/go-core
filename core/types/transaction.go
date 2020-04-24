@@ -25,14 +25,14 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/crypto"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
 
 var (
-	ErrInvalidSig = errors.New("invalid transaction v, r, s values")
+	ErrInvalidSig = errors.New("invalid signature values")
 )
 
 type Transaction struct {
@@ -55,6 +55,8 @@ type txdata struct {
 	V *big.Int `json:"v" gencodec:"required"`
 	R *big.Int `json:"r" gencodec:"required"`
 	S *big.Int `json:"s" gencodec:"required"`
+
+	Spender    common.Address `json:"from"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -93,6 +95,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		V:            new(big.Int),
 		R:            new(big.Int),
 		S:            new(big.Int),
+		Spender:      common.Address{},
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -163,10 +166,11 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 		} else {
 			V = byte(dec.V.Uint64() - 27)
 		}
-		if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
+		if !crypto.ValidateSignatureValues(V) {
 			return ErrInvalidSig
 		}
 	}
+
 
 	*tx = Transaction{data: dec}
 	return nil
@@ -225,23 +229,35 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 		to:         tx.data.Recipient,
 		amount:     tx.data.Amount,
 		data:       tx.data.Payload,
+		from:       tx.data.Spender,
 		checkNonce: true,
 	}
-
-	var err error
-	msg.from, err = Sender(s, tx)
-	return msg, err
+	return msg, nil
 }
 
 // WithSignature returns a new transaction with the given signature.
 // This signature needs to be in the [R || S || V] format where V is 0 or 1.
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
+	hash := signer.Hash(tx)
+
 	r, s, v, err := signer.SignatureValues(tx, sig)
 	if err != nil {
 		return nil, err
 	}
 	cpy := &Transaction{data: tx.data}
 	cpy.data.R, cpy.data.S, cpy.data.V = r, s, v
+
+	pubk, err := crypto.SigToPub(nil, sig)
+	if err != nil {
+		return nil, err
+	}
+
+	if !crypto.VerifySignature(pubk.X, hash[:], sig) {
+		return nil, ErrInvalidSig
+	}
+
+	from := crypto.PubkeyToAddress(*pubk)
+	copy(cpy.data.Spender[:], from[:])
 	return cpy, nil
 }
 

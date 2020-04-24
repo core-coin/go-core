@@ -17,7 +17,7 @@
 package whisperv6
 
 import (
-	"math/big"
+	"crypto/rand"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -55,7 +55,7 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 		f.Topics[i][0] = 0x01
 	}
 
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("generateFilter 1 failed with seed %d.", seed)
 		return nil, err
@@ -67,7 +67,7 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 		mrand.Read(f.KeySym)
 		f.SymKeyHash = crypto.Keccak256Hash(f.KeySym)
 	} else {
-		f.KeyAsym, err = crypto.GenerateKey()
+		f.KeyAsym, err = crypto.GenerateKey(rand.Reader)
 		if err != nil {
 			t.Fatalf("generateFilter 2 failed with seed %d.", seed)
 			return nil, err
@@ -231,7 +231,7 @@ func TestInstallFilterWithSymAndAsymKeys(t *testing.T) {
 	filters := NewFilters(w)
 	filter1, _ := generateFilter(t, true)
 
-	asymKey, err := crypto.GenerateKey()
+	asymKey, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("Unable to create asymetric keys: %v", err)
 	}
@@ -257,11 +257,11 @@ func TestInstallFilterWithSymAndAsymKeys(t *testing.T) {
 func TestComparePubKey(t *testing.T) {
 	InitSingleTest()
 
-	key1, err := crypto.GenerateKey()
+	key1, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate first key with seed %d: %s.", seed, err)
 	}
-	key2, err := crypto.GenerateKey()
+	key2, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate second key with seed %d: %s.", seed, err)
 	}
@@ -271,7 +271,7 @@ func TestComparePubKey(t *testing.T) {
 
 	// generate key3 == key1
 	mrand.Seed(seed)
-	key3, err := crypto.GenerateKey()
+	key3, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate third key with seed %d: %s.", seed, err)
 	}
@@ -351,7 +351,7 @@ func TestMatchEnvelope(t *testing.T) {
 	fsym.Topics = prevTopics
 
 	// encrypt asymmetrically
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -453,8 +453,7 @@ func TestMatchMessageSym(t *testing.T) {
 	}
 
 	// Src: match
-	*f.Src.X = *params.Src.PublicKey.X
-	*f.Src.Y = *params.Src.PublicKey.Y
+	copy(f.Src.X, params.Src.PublicKey.X[:])
 	if !f.MatchMessage(msg) {
 		t.Fatalf("failed MatchEnvelope(src match) with seed %d.", seed)
 	}
@@ -505,7 +504,7 @@ func TestMatchMessageSym(t *testing.T) {
 
 	// encryption method mismatch
 	f.KeySym = nil
-	f.KeyAsym, err = crypto.GenerateKey()
+	f.KeyAsym, err = crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -547,8 +546,7 @@ func TestMatchMessageAsym(t *testing.T) {
 	}
 
 	// Src: match
-	*f.Src.X = *params.Src.PublicKey.X
-	*f.Src.Y = *params.Src.PublicKey.Y
+	copy(f.Src.X, params.Src.PublicKey.X[:])
 	if !f.MatchMessage(msg) {
 		t.Fatalf("failed MatchMessage(src match) with seed %d.", seed)
 	}
@@ -574,14 +572,13 @@ func TestMatchMessageAsym(t *testing.T) {
 	f.Topics[index][0]--
 
 	// key mismatch
-	prev := *f.KeyAsym.PublicKey.X
-	zero := *big.NewInt(0)
-	*f.KeyAsym.PublicKey.X = zero
+	var prev [56]byte
+	copy(prev[:], f.KeyAsym.PublicKey.X[:])
+	f.KeyAsym.PublicKey.X = f.KeyAsym.PublicKey.X[:0]
 	if f.MatchMessage(msg) {
 		t.Fatalf("failed MatchEnvelope(key mismatch) with seed %d.", seed)
 	}
-	*f.KeyAsym.PublicKey.X = prev
-
+	f.KeyAsym.PublicKey.X = prev[:]
 	// Src absent: match
 	f.Src = nil
 	if !f.MatchMessage(msg) {

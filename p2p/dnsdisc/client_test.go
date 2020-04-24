@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"errors"
 	"math/rand"
 	"reflect"
@@ -42,21 +42,21 @@ const (
 
 func TestClientSyncTree(t *testing.T) {
 	r := mapResolver{
-		"n":                            "enrtree-root:v1 e=JWXYDBPXYWG6FX3GMDIBFA6CJ4 l=C7HRFPF3BLGF3YR4DY5KX3SMBE seq=1 sig=o908WmNp7LibOfPsr4btQwatZJ5URBr2ZAuxvK4UWHlsB9sUOTJQaGAlLPVAhM__XJesCHxLISo94z5Z2a463gA",
-		"C7HRFPF3BLGF3YR4DY5KX3SMBE.n": "enrtree://AM5FCQLWIZX2QFPNJAP7VUERCCRNGRHWZG3YYHIUV7BVDQ5FDPRT2@morenodes.example.org",
-		"JWXYDBPXYWG6FX3GMDIBFA6CJ4.n": "enrtree-branch:2XS2367YHAXJFGLZHVAWLQD4ZY,H4FHT4B454P6UXFD7JCYQ5PWDY,MHTDO6TMUBRIA2XWG5LUDACK24",
-		"2XS2367YHAXJFGLZHVAWLQD4ZY.n": "enr:-HW4QOFzoVLaFJnNhbgMoDXPnOvcdVuj7pDpqRvh6BRDO68aVi5ZcjB3vzQRZH2IcLBGHzo8uUN3snqmgTiE56CH3AMBgmlkgnY0iXNlY3AyNTZrMaECC2_24YYkYHEgdzxlSNKQEnHhuNAbNlMlWJxrJxbAFvA",
-		"H4FHT4B454P6UXFD7JCYQ5PWDY.n": "enr:-HW4QAggRauloj2SDLtIHN1XBkvhFZ1vtf1raYQp9TBW2RD5EEawDzbtSmlXUfnaHcvwOizhVYLtr7e6vw7NAf6mTuoCgmlkgnY0iXNlY3AyNTZrMaECjrXI8TLNXU0f8cthpAMxEshUyQlK-AM0PW2wfrnacNI",
-		"MHTDO6TMUBRIA2XWG5LUDACK24.n": "enr:-HW4QLAYqmrwllBEnzWWs7I5Ev2IAs7x_dZlbYdRdMUx5EyKHDXp7AV5CkuPGUPdvbv1_Ms1CPfhcGCvSElSosZmyoqAgmlkgnY0iXNlY3AyNTZrMaECriawHKWdDRk2xeZkrOXBQ0dfMFLHY4eENZwdufn1S1o",
+		"n": "enrtree-root:v1 e=U5ZPHWK26EOR7M3ROBBKLUJHINWGVKUW4CHJ5K63ZLCK65D4FUIQ l=OPRDFOL6SMXNEZ6G5SIFSBY7VGQEXW4ARSGHPPGC2F2HTRWGUHIA seq=1 sig=8xHk9rXz1DAfeqK7aRXo-8px1Rd2t_eMJz4gq6Am5dw--VVXdXWyD_jxC4v-n3gJSoIP-L7k7j5xV4i3Eb4e3GTQCCMWWMXYZrucAjWk95g3JNvkVZHgqUCdc-QPiFTeEXXdGA2abfyfa1kBEd7jGWHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
+		"OPRDFOL6SMXNEZ6G5SIFSBY7VGQEXW4ARSGHPPGC2F2HTRWGUHIA.n": "enrtree://MJKQMAHXTDNOWVILXACK25P54GVTLUJHRXUEPWAYXCFOITYOMYUO7746ZHHWZYPEFXKNFBV4QDCC4S7POQMCBGVLJM@morenodes.example.org",
+		"U5ZPHWK26EOR7M3ROBBKLUJHINWGVKUW4CHJ5K63ZLCK65D4FUIQ.n": "enrtree-branch:4HGOGIID43Y3NXZSAEBXGLBGJJRDG7IW7YEVR5WAG4G4UMHRKCZQ,OCCLXVELDHAF23J7CNW5MWLZTWKG5JKWJ5JN47CIWWFEZU4UZQRA,3FRQX5HWNBC4S3UKBSEOZ5Y43N5QYJQ6SFZ2LTITWK5P3CV526VQ",
+		"4HGOGIID43Y3NXZSAEBXGLBGJJRDG7IW7YEVR5WAG4G4UMHRKCZQ.n": "enr:-PW4qNz-Pu3XwQYNruTKZKsZ2pGeqMzehvwS9pkOfptGYcEUW-0JCH3T64apX3pT6iw_bLIMMtUkDjVH_aSJGt34-tLYysAQtL4VuUrgJ9WX2_-mIEvoR5Hr5J6eov8YUlYD8C_CUWmJFhphY72G3f0GkhaaamYHL_OyITW9e9ZTdgkHXtR2veUQlvyitbRQlz5vHtZm8aS_yDrq_ogFuoq7SIRVFYs2S1u9woCCaWSCdjSJc2VjcDI1NmsxuDiaamYHL_OyITW9e9ZTdgkHXtR2veUQlvyitbRQlz5vHtZm8aS_yDrq_ogFuoq7SIRVFYs2S1u9wg",
+		"OCCLXVELDHAF23J7CNW5MWLZTWKG5JKWJ5JN47CIWWFEZU4UZQRA.n": "enr:-PW4qNaOFk1hJA9Nrq94OfNlk6-i3N4yuyiMpsW-JPNKrLgB1cStl_liIEQLz4m7AcKwGjFcsuKZ8A5Tr2wYezHlrw4AfPQ_OnVUbqM169OA_qtSYZ27XboaX8J-wWwkYkJEDej21S5HekcEbGHgPiD1uioks9qDJBkuBBOLuNImIkAsjXsEjtqHBIhEGGbaplqRMXQooVX3XHw2R3AYic0QJn_nQHrwWxSLGAGCaWSCdjSJc2VjcDI1NmsxuDgks9qDJBkuBBOLuNImIkAsjXsEjtqHBIhEGGbaplqRMXQooVX3XHw2R3AYic0QJn_nQHrwWxSLGA",
+		"3FRQX5HWNBC4S3UKBSEOZ5Y43N5QYJQ6SFZ2LTITWK5P3CV526VQ.n": "enr:-PW4qJhHcjH0mpvjU3tuOYiOy1sEcAfj-dCeSG0Ax7twaxq461j-il-llj1BRgGlI1ATeuXSuikt1lSfeRsUa6_S2wo5-jjYhEdPbLj2ReLhz8aEw2Bx0BPKKstWlACSvxpLkfkBaGKiwkZyZ6pWvttVyhtTllePNBLFhpJeOasP8Uv90XspWoW40v4X3u_sxtFNZQDTbUlXIIMO5_jkgtyzpHU69uHGttB6EAKCaWSCdjSJc2VjcDI1NmsxuDhTllePNBLFhpJeOasP8Uv90XspWoW40v4X3u_sxtFNZQDTbUlXIIMO5_jkgtyzpHU69uHGttB6EA",
 	}
 	var (
 		wantNodes = testNodes(0x29452, 3)
-		wantLinks = []string{"enrtree://AM5FCQLWIZX2QFPNJAP7VUERCCRNGRHWZG3YYHIUV7BVDQ5FDPRT2@morenodes.example.org"}
+		wantLinks = []string{"enrtree://MJKQMAHXTDNOWVILXACK25P54GVTLUJHRXUEPWAYXCFOITYOMYUO7746ZHHWZYPEFXKNFBV4QDCC4S7POQMCBGVLJM@morenodes.example.org"}
 		wantSeq   = uint(1)
 	)
 
 	c := NewClient(Config{Resolver: r, Logger: testlog.Logger(t, log.LvlTrace)})
-	stree, err := c.SyncTree("enrtree://AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@n")
+	stree, err := c.SyncTree("enrtree://MHM7YC3ZZP5DZQTIZBLDXLBWW3YJF57DMYKOLEUWR3HRG377OD3SLRRWQUDJLT4TPFQEFZJEGGD5UFNTHQUHWNGLBA@n")
 	if err != nil {
 		t.Fatal("sync error:", err)
 	}
@@ -85,12 +85,12 @@ func TestClientSyncTreeBadNode(t *testing.T) {
 	// fmt.Printf("%#v\n", tree.ToTXT("n"))
 
 	r := mapResolver{
-		"n":                            "enrtree-root:v1 e=INDMVBZEEQ4ESVYAKGIYU74EAA l=C7HRFPF3BLGF3YR4DY5KX3SMBE seq=3 sig=Vl3AmunLur0JZ3sIyJPSH6A3Vvdp4F40jWQeCmkIhmcgwE4VC5U9wpK8C_uL_CMY29fd6FAhspRvq2z_VysTLAA",
-		"C7HRFPF3BLGF3YR4DY5KX3SMBE.n": "enrtree://AM5FCQLWIZX2QFPNJAP7VUERCCRNGRHWZG3YYHIUV7BVDQ5FDPRT2@morenodes.example.org",
+		"n":                            "enrtree-root:v1 e=INDMVBZEEQ4ESVYAKGIYU74EAA l=OPRDFOL6SMXNEZ6G5SIFSBY7VGQEXW4ARSGHPPGC2F2HTRWGUHIA seq=3 sig=VZdbTTZmkWqwk7uHbiCg1sv_-e8SEP_p7rZv19nm72nFbhsGEXckSRIe1ABarwarZ6cE6P9JAbJaOB96M4hlOkcGtkLsiMBtfC7kPXRAlIyVSTeyzosyKmAhI0QFX3WFGskoHecfqsPRhg40nmS6BGHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
+		"OPRDFOL6SMXNEZ6G5SIFSBY7VGQEXW4ARSGHPPGC2F2HTRWGUHIA.n": "enrtree://MJKQMAHXTDNOWVILXACK25P54GVTLUJHRXUEPWAYXCFOITYOMYUO7746ZHHWZYPEFXKNFBV4QDCC4S7POQMCBGVLJM@morenodes.example.org",
 		"INDMVBZEEQ4ESVYAKGIYU74EAA.n": "enr:-----",
 	}
 	c := NewClient(Config{Resolver: r, Logger: testlog.Logger(t, log.LvlTrace)})
-	_, err := c.SyncTree("enrtree://AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@n")
+	_, err := c.SyncTree("enrtree://MHM7YC3ZZP5DZQTIZBLDXLBWW3YJF57DMYKOLEUWR3HRG377OD3SLRRWQUDJLT4TPFQEFZJEGGD5UFNTHQUHWNGLBA@n")
 	wantErr := nameError{name: "INDMVBZEEQ4ESVYAKGIYU74EAA.n", err: entryError{typ: "enr", err: errInvalidENR}}
 	if err != wantErr {
 		t.Fatalf("expected sync error %q, got %q", wantErr, err)
@@ -146,7 +146,7 @@ func TestIteratorLinks(t *testing.T) {
 	c := NewClient(Config{
 		Resolver:  newMapResolver(tree1.ToTXT("t1"), tree2.ToTXT("t2")),
 		Logger:    testlog.Logger(t, log.LvlTrace),
-		RateLimit: 500,
+		RateLimit: 5,
 	})
 	it, err := c.NewIterator(url2)
 	if err != nil {
@@ -166,8 +166,8 @@ func TestIteratorNodeUpdates(t *testing.T) {
 		c        = NewClient(Config{
 			Resolver:        resolver,
 			Logger:          testlog.Logger(t, log.LvlTrace),
-			RecheckInterval: 20 * time.Minute,
-			RateLimit:       500,
+			RecheckInterval: 1 * time.Minute,
+			RateLimit:       5,
 		})
 	)
 	c.clock = clock
@@ -331,10 +331,10 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 
 // testKeys creates deterministic private keys for testing.
 func testKeys(seed int64, n int) []*ecdsa.PrivateKey {
-	rand := rand.New(rand.NewSource(seed))
+	randSeed := rand.New(rand.NewSource(seed))
 	keys := make([]*ecdsa.PrivateKey, n)
 	for i := 0; i < n; i++ {
-		key, err := ecdsa.GenerateKey(crypto.S256(), rand)
+		key, err := crypto.GenerateKey(randSeed)
 		if err != nil {
 			panic("can't generate key: " + err.Error())
 		}

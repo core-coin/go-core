@@ -19,7 +19,7 @@
 package crypto
 
 import (
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"crypto/elliptic"
 	"errors"
 	"fmt"
@@ -42,8 +42,8 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	// Convert to btcec input format with 'recovery id' v at the beginning.
 	btcsig := make([]byte, SignatureLength)
-	btcsig[0] = sig[64] + 27
-	copy(btcsig[1:], sig)
+	//btcsig[0] = sig[64] + 27
+	copy(btcsig, sig)
 
 	pub, _, err := btcec.RecoverCompact(btcec.S256(), btcsig, hash)
 	return (*ecdsa.PublicKey)(pub), err
@@ -69,14 +69,14 @@ func Sign(hash []byte, prv *ecdsa.PrivateKey) ([]byte, error) {
 		return nil, err
 	}
 	// Convert to Ethereum signature format with 'recovery id' v at the end.
-	v := sig[0] - 27
-	copy(sig, sig[1:])
-	sig[64] = v
+	//v := sig[0] - 27
+	//copy(sig, sig[1:])
+	//sig[64] = v
 	return sig, nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.
-// The public key should be in compressed (33 bytes) or uncompressed (65 bytes) format.
+// The public key should be in compressed (33 bytes) or uncompressed (112 + 56 bytes) format.
 // The signature should have the 64 byte [R || S] format.
 func VerifySignature(pubkey, hash, signature []byte) bool {
 	if len(signature) != 64 {

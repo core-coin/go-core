@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	ecdsa "github.com/core-coin/eddsa"
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
@@ -246,9 +246,8 @@ func (e *rootEntry) sigHash() []byte {
 }
 
 func (e *rootEntry) verifySignature(pubkey *ecdsa.PublicKey) bool {
-	sig := e.sig[:crypto.RecoveryIDOffset] // remove recovery id
 	enckey := crypto.FromECDSAPub(pubkey)
-	return crypto.VerifySignature(enckey, e.sigHash(), sig)
+	return crypto.VerifySignature(enckey, e.sigHash(), e.sig)
 }
 
 func (e *branchEntry) String() string {
