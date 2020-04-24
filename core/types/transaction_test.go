@@ -18,6 +18,7 @@ package types
 
 import (
 	"bytes"
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"encoding/json"
 	"math/big"
@@ -125,7 +126,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of accounts to start with
 	keys := make([]*ecdsa.PrivateKey, 25)
 	for i := 0; i < len(keys); i++ {
-		keys[i], _ = crypto.GenerateKey()
+		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 
 	signer := HomesteadSigner{}
@@ -174,8 +175,8 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 
 // TestTransactionJSON tests serializing/de-serializing to/from JSON.
 func TestTransactionJSON(t *testing.T) {
-	t.Skip()
-	key, err := crypto.GenerateKey()
+  t.Skip();
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
 	}

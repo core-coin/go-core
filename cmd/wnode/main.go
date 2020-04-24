@@ -180,7 +180,7 @@ func initialize() {
 	var err error
 
 	if *generateKey {
-		key, err := crypto.GenerateKey()
+		key, err := crypto.GenerateKey(crand.Reader)
 		if err != nil {
 			utils.Fatalf("Failed to generate private key: %s", err)
 		}

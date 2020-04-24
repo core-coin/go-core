@@ -18,6 +18,7 @@ package core
 
 import (
 	"math/rand"
+	crand "crypto/rand"
 	"testing"
 
 	"github.com/core-coin/go-core/core/types"
@@ -28,7 +29,7 @@ import (
 // nonce boundaries are correctly maintained.
 func TestStrictTxListAdd(t *testing.T) {
 	// Generate a list of transactions to insert
-	key, _ := crypto.GenerateKey()
+	key, _ := crypto.GenerateKey(crand.Reader)
 
 	txs := make(types.Transactions, 1024)
 	for i := 0; i < len(txs); i++ {

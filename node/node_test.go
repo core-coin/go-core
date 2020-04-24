@@ -17,6 +17,7 @@
 package node
 
 import (
+	"crypto/rand"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -30,7 +31,7 @@ import (
 )
 
 var (
-	testNodeKey, _ = crypto.GenerateKey()
+	testNodeKey, _ = crypto.GenerateKey(rand.Reader)
 )
 
 func testNodeConfig() *Config {

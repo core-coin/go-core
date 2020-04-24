@@ -20,6 +20,7 @@ import (
 	ecdsa "github.com/core-coin/eddsa"
 	"fmt"
 	"math/rand"
+	crand "crypto/rand"
 
 	"net"
 	"reflect"
@@ -230,7 +231,7 @@ func gen(typ interface{}, rand *rand.Rand) interface{} {
 }
 
 func newkey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}

@@ -19,6 +19,7 @@
 package whisperv6
 
 import (
+	"crypto/rand"
 	mrand "math/rand"
 	"testing"
 
@@ -56,7 +57,7 @@ func TestEnvelopeOpenAcceptsOnlyOneKeyTypeInFilter(t *testing.T) {
 	symKey := make([]byte, aesKeyLength)
 	mrand.Read(symKey)
 
-	asymKey, err := crypto.GenerateKey()
+	asymKey, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}

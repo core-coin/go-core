@@ -17,6 +17,7 @@
 package adapters
 
 import (
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
@@ -191,7 +192,7 @@ func (n *NodeConfig) Node() *enode.Node {
 // RandomNodeConfig returns node configuration with a randomly generated ID and
 // PrivateKey
 func RandomNodeConfig() *NodeConfig {
-	prvkey, err := crypto.GenerateKey()
+	prvkey, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		panic("unable to generate key")
 	}

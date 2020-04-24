@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	crand "crypto/rand"
 	"sync"
 	"time"
 
@@ -172,7 +173,7 @@ type benchmarkTxSend struct {
 }
 
 func (b *benchmarkTxSend) init(h *serverHandler, count int) error {
-	key, _ := crypto.GenerateKey()
+	key, _ := crypto.GenerateKey(crand.Reader)
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	signer := types.NewEIP155Signer(big.NewInt(18))
 	b.txs = make(types.Transactions, count)

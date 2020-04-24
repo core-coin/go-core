@@ -17,6 +17,7 @@
 package whisperv6
 
 import (
+	"crypto/rand"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -54,7 +55,7 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 		f.Topics[i][0] = 0x01
 	}
 
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("generateFilter 1 failed with seed %d.", seed)
 		return nil, err
@@ -66,7 +67,7 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 		mrand.Read(f.KeySym)
 		f.SymKeyHash = crypto.Keccak256Hash(f.KeySym)
 	} else {
-		f.KeyAsym, err = crypto.GenerateKey()
+		f.KeyAsym, err = crypto.GenerateKey(rand.Reader)
 		if err != nil {
 			t.Fatalf("generateFilter 2 failed with seed %d.", seed)
 			return nil, err
@@ -230,7 +231,7 @@ func TestInstallFilterWithSymAndAsymKeys(t *testing.T) {
 	filters := NewFilters(w)
 	filter1, _ := generateFilter(t, true)
 
-	asymKey, err := crypto.GenerateKey()
+	asymKey, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("Unable to create asymetric keys: %v", err)
 	}
@@ -256,11 +257,11 @@ func TestInstallFilterWithSymAndAsymKeys(t *testing.T) {
 func TestComparePubKey(t *testing.T) {
 	InitSingleTest()
 
-	key1, err := crypto.GenerateKey()
+	key1, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate first key with seed %d: %s.", seed, err)
 	}
-	key2, err := crypto.GenerateKey()
+	key2, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate second key with seed %d: %s.", seed, err)
 	}
@@ -270,7 +271,7 @@ func TestComparePubKey(t *testing.T) {
 
 	// generate key3 == key1
 	mrand.Seed(seed)
-	key3, err := crypto.GenerateKey()
+	key3, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate third key with seed %d: %s.", seed, err)
 	}
@@ -350,7 +351,7 @@ func TestMatchEnvelope(t *testing.T) {
 	fsym.Topics = prevTopics
 
 	// encrypt asymmetrically
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
@@ -503,7 +504,7 @@ func TestMatchMessageSym(t *testing.T) {
 
 	// encryption method mismatch
 	f.KeySym = nil
-	f.KeyAsym, err = crypto.GenerateKey()
+	f.KeyAsym, err = crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}

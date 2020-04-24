@@ -18,6 +18,7 @@ package checkpointoracle
 
 import (
 	"bytes"
+	"crypto/rand"
 	ecdsa "github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
@@ -169,7 +170,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Initialize test accounts
 	var accounts Accounts
 	for i := 0; i < 3; i++ {
-		key, _ := crypto.GenerateKey()
+		key, _ := crypto.GenerateKey(rand.Reader)
 		addr := crypto.PubkeyToAddress(key.PublicKey)
 		accounts = append(accounts, Account{key: key, addr: addr})
 	}
@@ -256,7 +257,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test unauthorized signature checking
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		u, _ := crypto.GenerateKey()
+		u, _ := crypto.GenerateKey(rand.Reader)
 		v, r, s := collectSig(0, checkpoint0.Hash(), 2, u)
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint0.Hash(), 0, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {

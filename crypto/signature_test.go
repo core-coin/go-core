@@ -18,6 +18,7 @@ package crypto
 
 import (
 	"bytes"
+	"crypto/rand"
 	"github.com/core-coin/go-core/common"
 	"reflect"
 	"testing"
@@ -83,7 +84,7 @@ func TestPubkeyRandom(t *testing.T) {
 	const runs = 200
 
 	for i := 0; i < runs; i++ {
-		key, err := GenerateKey()
+		key, err := GenerateKey(rand.Reader)
 		if err != nil {
 			t.Fatalf("iteration %d: %v", i, err)
 		}
