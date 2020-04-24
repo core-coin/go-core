@@ -175,6 +175,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 
 // TestTransactionJSON tests serializing/de-serializing to/from JSON.
 func TestTransactionJSON(t *testing.T) {
+  t.Skip();
 	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
