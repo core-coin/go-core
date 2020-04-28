@@ -24,7 +24,6 @@ import (
 	"runtime"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus"
@@ -33,6 +32,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	mapset "github.com/deckarep/golang-set"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -393,11 +393,11 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *type
 
 		// the exponential factor, commonly referred to as "the bomb"
 		// diff = diff + 2^(periodCount - 2)
-		if periodCount.Cmp(big1) > 0 {
+		/*if periodCount.Cmp(big1) > 0 {    *commented to remove difficulty bomb*
 			y.Sub(periodCount, big2)
 			y.Exp(big2, y, nil)
 			x.Add(x, y)
-		}
+		}*/
 		return x
 	}
 }
