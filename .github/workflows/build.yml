@@ -1,10 +1,8 @@
 name: go-core build
-on: [push, pull_request]
+on: [push]
 jobs:
   build:
     name: Build
-    env:
-      GOPATH: '${{ github.workspace }}/../'
     strategy:
       matrix:
         platform: [ubuntu-latest]
@@ -13,13 +11,11 @@ jobs:
     - name: Setup
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13
+        go-version: 1.14.x
       id: go
     - name: Checkout
       uses: actions/checkout@v1
-      with:
-        path: 'src/github.com/core-coin/go-core'
     - name: Build
       run: go run build/ci.go install
     - name: Test
-      run: go run build/ci.go test -coverage
+      run: go run build/ci.go test
