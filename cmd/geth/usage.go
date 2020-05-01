@@ -104,14 +104,14 @@ var AppHelpFlagGroups = []flagGroup{
 		},
 	},
 	{
-		Name: "ETHASH",
+		Name: "CRYPTORE",
 		Flags: []cli.Flag{
-			utils.EthashCacheDirFlag,
-			utils.EthashCachesInMemoryFlag,
-			utils.EthashCachesOnDiskFlag,
-			utils.EthashDatasetDirFlag,
-			utils.EthashDatasetsInMemoryFlag,
-			utils.EthashDatasetsOnDiskFlag,
+			utils.CryptoreCacheDirFlag,
+			utils.CryptoreCachesInMemoryFlag,
+			utils.CryptoreCachesOnDiskFlag,
+			utils.CryptoreDatasetDirFlag,
+			utils.CryptoreDatasetsInMemoryFlag,
+			utils.CryptoreDatasetsOnDiskFlag,
 		},
 	},
 	{
