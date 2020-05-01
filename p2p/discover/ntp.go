@@ -20,6 +20,7 @@
 package discover
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"sort"
@@ -29,8 +30,7 @@ import (
 )
 
 const (
-	ntpPool   = "pool.ntp.org" // ntpPool is the NTP server to query for the current time
-	ntpChecks = 3              // Number of measurements to do against the NTP server
+	ntpChecks = 3 // Number of measurements to do against the NTP server
 )
 
 // durationSlice attaches the methods of sort.Interface to []time.Duration,
@@ -64,7 +64,9 @@ func checkClockDrift() {
 // ones to be able to discard the two extremes as outliers.
 func sntpDrift(measurements int) (time.Duration, error) {
 	// Resolve the address of the NTP server
-	addr, err := net.ResolveUDPAddr("udp", ntpPool+":123")
+	var ntpPool = flag.String("ntp", "pool.ntp.org:123", "NTP server and port for time synchronisation")
+	flag.Parse()
+	addr, err := net.ResolveUDPAddr("udp", *ntpPool)
 	if err != nil {
 		return 0, err
 	}
