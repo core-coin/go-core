@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethash implements the ethash proof-of-work consensus engine.
-package ethash
+// Package cryptore implements the cryptore proof-of-work consensus engine.
+package cryptore
 
 import (
 	"errors"
@@ -47,8 +47,8 @@ var (
 	// two256 is a big integer representing 2^256
 	two256 = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
 
-	// sharedEthash is a full instance that can be shared between multiple users.
-	sharedEthash = New(Config{"", 3, 0, "", 1, 0, ModeNormal, nil}, nil, false)
+	// sharedCryptore is a full instance that can be shared between multiple users.
+	sharedCryptore = New(Config{"", 3, 0, "", 1, 0, ModeNormal, nil}, nil, false)
 
 	// algorithmRevision is the data structure version used for file naming.
 	algorithmRevision = 23
@@ -164,7 +164,7 @@ func newlru(what string, maxItems int, new func(epoch uint64) interface{}) *lru 
 		maxItems = 1
 	}
 	cache, _ := simplelru.NewLRU(maxItems, func(key, value interface{}) {
-		log.Trace("Evicted ethash "+what, "epoch", key)
+		log.Trace("Evicted cryptore "+what, "epoch", key)
 	})
 	return &lru{what: what, new: new, cache: cache}
 }
@@ -182,14 +182,14 @@ func (lru *lru) get(epoch uint64) (item, future interface{}) {
 		if lru.future > 0 && lru.future == epoch {
 			item = lru.futureItem
 		} else {
-			log.Trace("Requiring new ethash "+lru.what, "epoch", epoch)
+			log.Trace("Requiring new cryptore "+lru.what, "epoch", epoch)
 			item = lru.new(epoch)
 		}
 		lru.cache.Add(epoch, item)
 	}
 	// Update the 'future item' if epoch is larger than previously seen.
 	if epoch < maxEpoch-1 && lru.future < epoch+1 {
-		log.Trace("Requiring new future ethash "+lru.what, "epoch", epoch+1)
+		log.Trace("Requiring new future cryptore "+lru.what, "epoch", epoch+1)
 		future = lru.new(epoch + 1)
 		lru.future = epoch + 1
 		lru.futureItem = future
@@ -197,7 +197,7 @@ func (lru *lru) get(epoch uint64) (item, future interface{}) {
 	return item, future
 }
 
-// cache wraps an ethash cache with some metadata to allow easier concurrent use.
+// cache wraps an cryptore cache with some metadata to allow easier concurrent use.
 type cache struct {
 	epoch uint64    // Epoch for which this cache is relevant
 	dump  *os.File  // File descriptor of the memory mapped cache
@@ -206,7 +206,7 @@ type cache struct {
 	once  sync.Once // Ensures the cache is generated only once
 }
 
-// newCache creates a new ethash verification cache and returns it as a plain Go
+// newCache creates a new cryptore verification cache and returns it as a plain Go
 // interface to be usable in an LRU cache.
 func newCache(epoch uint64) interface{} {
 	return &cache{epoch: epoch}
@@ -242,15 +242,15 @@ func (c *cache) generate(dir string, limit int, test bool) {
 		var err error
 		c.dump, c.mmap, c.cache, err = memoryMap(path)
 		if err == nil {
-			logger.Debug("Loaded old ethash cache from disk")
+			logger.Debug("Loaded old cryptore cache from disk")
 			return
 		}
-		logger.Debug("Failed to load old ethash cache", "err", err)
+		logger.Debug("Failed to load old cryptore cache", "err", err)
 
 		// No previous cache available, create a new cache file to fill
 		c.dump, c.mmap, c.cache, err = memoryMapAndGenerate(path, size, func(buffer []uint32) { generateCache(buffer, c.epoch, seed) })
 		if err != nil {
-			logger.Error("Failed to generate mapped ethash cache", "err", err)
+			logger.Error("Failed to generate mapped cryptore cache", "err", err)
 
 			c.cache = make([]uint32, size/4)
 			generateCache(c.cache, c.epoch, seed)
@@ -273,7 +273,7 @@ func (c *cache) finalizer() {
 	}
 }
 
-// dataset wraps an ethash dataset with some metadata to allow easier concurrent use.
+// dataset wraps an cryptore dataset with some metadata to allow easier concurrent use.
 type dataset struct {
 	epoch   uint64    // Epoch for which this cache is relevant
 	dump    *os.File  // File descriptor of the memory mapped cache
@@ -283,7 +283,7 @@ type dataset struct {
 	done    uint32    // Atomic flag to determine generation status
 }
 
-// newDataset creates a new ethash mining dataset and returns it as a plain Go
+// newDataset creates a new cryptore mining dataset and returns it as a plain Go
 // interface to be usable in an LRU cache.
 func newDataset(epoch uint64) interface{} {
 	return &dataset{epoch: epoch}
@@ -328,10 +328,10 @@ func (d *dataset) generate(dir string, limit int, test bool) {
 		var err error
 		d.dump, d.mmap, d.dataset, err = memoryMap(path)
 		if err == nil {
-			logger.Debug("Loaded old ethash dataset from disk")
+			logger.Debug("Loaded old cryptore dataset from disk")
 			return
 		}
-		logger.Debug("Failed to load old ethash dataset", "err", err)
+		logger.Debug("Failed to load old cryptore dataset", "err", err)
 
 		// No previous dataset available, create a new dataset file to fill
 		cache := make([]uint32, csize/4)
@@ -339,7 +339,7 @@ func (d *dataset) generate(dir string, limit int, test bool) {
 
 		d.dump, d.mmap, d.dataset, err = memoryMapAndGenerate(path, dsize, func(buffer []uint32) { generateDataset(buffer, d.epoch, cache) })
 		if err != nil {
-			logger.Error("Failed to generate mapped ethash dataset", "err", err)
+			logger.Error("Failed to generate mapped cryptore dataset", "err", err)
 
 			d.dataset = make([]uint32, dsize/2)
 			generateDataset(d.dataset, d.epoch, cache)
@@ -369,19 +369,19 @@ func (d *dataset) finalizer() {
 	}
 }
 
-// MakeCache generates a new ethash cache and optionally stores it to disk.
+// MakeCache generates a new cryptore cache and optionally stores it to disk.
 func MakeCache(block uint64, dir string) {
 	c := cache{epoch: block / epochLength}
 	c.generate(dir, math.MaxInt32, false)
 }
 
-// MakeDataset generates a new ethash dataset and optionally stores it to disk.
+// MakeDataset generates a new cryptore dataset and optionally stores it to disk.
 func MakeDataset(block uint64, dir string) {
 	d := dataset{epoch: block / epochLength}
 	d.generate(dir, math.MaxInt32, false)
 }
 
-// Mode defines the type and amount of PoW verification an ethash engine makes.
+// Mode defines the type and amount of PoW verification an cryptore engine makes.
 type Mode uint
 
 const (
@@ -392,7 +392,7 @@ const (
 	ModeFullFake
 )
 
-// Config are the configuration parameters of the ethash.
+// Config are the configuration parameters of the cryptore.
 type Config struct {
 	CacheDir       string
 	CachesInMem    int
@@ -405,9 +405,9 @@ type Config struct {
 	Log log.Logger `toml:"-"`
 }
 
-// Ethash is a consensus engine based on proof-of-work implementing the ethash
+// Cryptore is a consensus engine based on proof-of-work implementing the cryptore
 // algorithm.
-type Ethash struct {
+type Cryptore struct {
 	config Config
 
 	caches   *lru // In memory caches to avoid regenerating too often
@@ -421,7 +421,7 @@ type Ethash struct {
 	remote   *remoteSealer
 
 	// The fields below are hooks for testing
-	shared    *Ethash       // Shared PoW verifier to avoid cache regeneration
+	shared    *Cryptore       // Shared PoW verifier to avoid cache regeneration
 	fakeFail  uint64        // Block number which fails PoW check even in fake mode
 	fakeDelay time.Duration // Time delay to sleep for before returning from verify
 
@@ -429,53 +429,53 @@ type Ethash struct {
 	closeOnce sync.Once  // Ensures exit channel will not be closed twice.
 }
 
-// New creates a full sized ethash PoW scheme and starts a background thread for
+// New creates a full sized cryptore PoW scheme and starts a background thread for
 // remote mining, also optionally notifying a batch of remote services of new work
 // packages.
-func New(config Config, notify []string, noverify bool) *Ethash {
+func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
 	if config.CachesInMem <= 0 {
-		config.Log.Warn("One ethash cache must always be in memory", "requested", config.CachesInMem)
+		config.Log.Warn("One cryptore cache must always be in memory", "requested", config.CachesInMem)
 		config.CachesInMem = 1
 	}
 	if config.CacheDir != "" && config.CachesOnDisk > 0 {
-		config.Log.Info("Disk storage enabled for ethash caches", "dir", config.CacheDir, "count", config.CachesOnDisk)
+		config.Log.Info("Disk storage enabled for cryptore caches", "dir", config.CacheDir, "count", config.CachesOnDisk)
 	}
 	if config.DatasetDir != "" && config.DatasetsOnDisk > 0 {
-		config.Log.Info("Disk storage enabled for ethash DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
+		config.Log.Info("Disk storage enabled for cryptore DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
 	}
-	ethash := &Ethash{
+	cryptore := &Cryptore{
 		config:   config,
 		caches:   newlru("cache", config.CachesInMem, newCache),
 		datasets: newlru("dataset", config.DatasetsInMem, newDataset),
 		update:   make(chan struct{}),
 		hashrate: metrics.NewMeterForced(),
 	}
-	ethash.remote = startRemoteSealer(ethash, notify, noverify)
-	return ethash
+	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
+	return cryptore
 }
 
-// NewTester creates a small sized ethash PoW scheme useful only for testing
+// NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
-func NewTester(notify []string, noverify bool) *Ethash {
-	ethash := &Ethash{
+func NewTester(notify []string, noverify bool) *Cryptore {
+	cryptore := &Cryptore{
 		config:   Config{PowMode: ModeTest, Log: log.Root()},
 		caches:   newlru("cache", 1, newCache),
 		datasets: newlru("dataset", 1, newDataset),
 		update:   make(chan struct{}),
 		hashrate: metrics.NewMeterForced(),
 	}
-	ethash.remote = startRemoteSealer(ethash, notify, noverify)
-	return ethash
+	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
+	return cryptore
 }
 
-// NewFaker creates a ethash consensus engine with a fake PoW scheme that accepts
+// NewFaker creates a cryptore consensus engine with a fake PoW scheme that accepts
 // all blocks' seal as valid, though they still have to conform to the Ethereum
 // consensus rules.
-func NewFaker() *Ethash {
-	return &Ethash{
+func NewFaker() *Cryptore {
+	return &Cryptore{
 		config: Config{
 			PowMode: ModeFake,
 			Log:     log.Root(),
@@ -483,11 +483,11 @@ func NewFaker() *Ethash {
 	}
 }
 
-// NewFakeFailer creates a ethash consensus engine with a fake PoW scheme that
+// NewFakeFailer creates a cryptore consensus engine with a fake PoW scheme that
 // accepts all blocks as valid apart from the single one specified, though they
 // still have to conform to the Ethereum consensus rules.
-func NewFakeFailer(fail uint64) *Ethash {
-	return &Ethash{
+func NewFakeFailer(fail uint64) *Cryptore {
+	return &Cryptore{
 		config: Config{
 			PowMode: ModeFake,
 			Log:     log.Root(),
@@ -496,11 +496,11 @@ func NewFakeFailer(fail uint64) *Ethash {
 	}
 }
 
-// NewFakeDelayer creates a ethash consensus engine with a fake PoW scheme that
+// NewFakeDelayer creates a cryptore consensus engine with a fake PoW scheme that
 // accepts all blocks as valid, but delays verifications by some time, though
 // they still have to conform to the Ethereum consensus rules.
-func NewFakeDelayer(delay time.Duration) *Ethash {
-	return &Ethash{
+func NewFakeDelayer(delay time.Duration) *Cryptore {
+	return &Cryptore{
 		config: Config{
 			PowMode: ModeFake,
 			Log:     log.Root(),
@@ -509,10 +509,10 @@ func NewFakeDelayer(delay time.Duration) *Ethash {
 	}
 }
 
-// NewFullFaker creates an ethash consensus engine with a full fake scheme that
+// NewFullFaker creates an cryptore consensus engine with a full fake scheme that
 // accepts all blocks as valid, without checking any consensus rules whatsoever.
-func NewFullFaker() *Ethash {
-	return &Ethash{
+func NewFullFaker() *Cryptore {
+	return &Cryptore{
 		config: Config{
 			PowMode: ModeFullFake,
 			Log:     log.Root(),
@@ -520,22 +520,22 @@ func NewFullFaker() *Ethash {
 	}
 }
 
-// NewShared creates a full sized ethash PoW shared between all requesters running
+// NewShared creates a full sized cryptore PoW shared between all requesters running
 // in the same process.
-func NewShared() *Ethash {
-	return &Ethash{shared: sharedEthash}
+func NewShared() *Cryptore {
+	return &Cryptore{shared: sharedCryptore}
 }
 
 // Close closes the exit channel to notify all backend threads exiting.
-func (ethash *Ethash) Close() error {
+func (cryptore *Cryptore) Close() error {
 	var err error
-	ethash.closeOnce.Do(func() {
+	cryptore.closeOnce.Do(func() {
 		// Short circuit if the exit channel is not allocated.
-		if ethash.remote == nil {
+		if cryptore.remote == nil {
 			return
 		}
-		close(ethash.remote.requestExit)
-		<-ethash.remote.exitCh
+		close(cryptore.remote.requestExit)
+		<-cryptore.remote.exitCh
 	})
 	return err
 }
@@ -543,18 +543,18 @@ func (ethash *Ethash) Close() error {
 // cache tries to retrieve a verification cache for the specified block number
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) cache(block uint64) *cache {
+func (cryptore *Cryptore) cache(block uint64) *cache {
 	epoch := block / epochLength
-	currentI, futureI := ethash.caches.get(epoch)
+	currentI, futureI := cryptore.caches.get(epoch)
 	current := currentI.(*cache)
 
 	// Wait for generation finish.
-	current.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+	current.generate(cryptore.config.CacheDir, cryptore.config.CachesOnDisk, cryptore.config.PowMode == ModeTest)
 
 	// If we need a new future cache, now's a good time to regenerate it.
 	if futureI != nil {
 		future := futureI.(*cache)
-		go future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+		go future.generate(cryptore.config.CacheDir, cryptore.config.CachesOnDisk, cryptore.config.PowMode == ModeTest)
 	}
 	return current
 }
@@ -565,29 +565,29 @@ func (ethash *Ethash) cache(block uint64) *cache {
 //
 // If async is specified, not only the future but the current DAG is also
 // generates on a background thread.
-func (ethash *Ethash) dataset(block uint64, async bool) *dataset {
-	// Retrieve the requested ethash dataset
+func (cryptore *Cryptore) dataset(block uint64, async bool) *dataset {
+	// Retrieve the requested cryptore dataset
 	epoch := block / epochLength
-	currentI, futureI := ethash.datasets.get(epoch)
+	currentI, futureI := cryptore.datasets.get(epoch)
 	current := currentI.(*dataset)
 
 	// If async is specified, generate everything in a background thread
 	if async && !current.generated() {
 		go func() {
-			current.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+			current.generate(cryptore.config.DatasetDir, cryptore.config.DatasetsOnDisk, cryptore.config.PowMode == ModeTest)
 
 			if futureI != nil {
 				future := futureI.(*dataset)
-				future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+				future.generate(cryptore.config.DatasetDir, cryptore.config.DatasetsOnDisk, cryptore.config.PowMode == ModeTest)
 			}
 		}()
 	} else {
 		// Either blocking generation was requested, or already done
-		current.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+		current.generate(cryptore.config.DatasetDir, cryptore.config.DatasetsOnDisk, cryptore.config.PowMode == ModeTest)
 
 		if futureI != nil {
 			future := futureI.(*dataset)
-			go future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+			go future.generate(cryptore.config.DatasetDir, cryptore.config.DatasetsOnDisk, cryptore.config.PowMode == ModeTest)
 		}
 	}
 	return current
@@ -595,11 +595,11 @@ func (ethash *Ethash) dataset(block uint64, async bool) *dataset {
 
 // Threads returns the number of mining threads currently enabled. This doesn't
 // necessarily mean that mining is running!
-func (ethash *Ethash) Threads() int {
-	ethash.lock.Lock()
-	defer ethash.lock.Unlock()
+func (cryptore *Cryptore) Threads() int {
+	cryptore.lock.Lock()
+	defer cryptore.lock.Unlock()
 
-	return ethash.threads
+	return cryptore.threads
 }
 
 // SetThreads updates the number of mining threads currently enabled. Calling
@@ -607,19 +607,19 @@ func (ethash *Ethash) Threads() int {
 // specified, the miner will use all cores of the machine. Setting a thread
 // count below zero is allowed and will cause the miner to idle, without any
 // work being done.
-func (ethash *Ethash) SetThreads(threads int) {
-	ethash.lock.Lock()
-	defer ethash.lock.Unlock()
+func (cryptore *Cryptore) SetThreads(threads int) {
+	cryptore.lock.Lock()
+	defer cryptore.lock.Unlock()
 
 	// If we're running a shared PoW, set the thread count on that instead
-	if ethash.shared != nil {
-		ethash.shared.SetThreads(threads)
+	if cryptore.shared != nil {
+		cryptore.shared.SetThreads(threads)
 		return
 	}
 	// Update the threads and ping any running seal to pull in any changes
-	ethash.threads = threads
+	cryptore.threads = threads
 	select {
-	case ethash.update <- struct{}{}:
+	case cryptore.update <- struct{}{}:
 	default:
 	}
 }
@@ -628,39 +628,39 @@ func (ethash *Ethash) SetThreads(threads int) {
 // per second over the last minute.
 // Note the returned hashrate includes local hashrate, but also includes the total
 // hashrate of all remote miner.
-func (ethash *Ethash) Hashrate() float64 {
-	// Short circuit if we are run the ethash in normal/test mode.
-	if ethash.config.PowMode != ModeNormal && ethash.config.PowMode != ModeTest {
-		return ethash.hashrate.Rate1()
+func (cryptore *Cryptore) Hashrate() float64 {
+	// Short circuit if we are run the cryptore in normal/test mode.
+	if cryptore.config.PowMode != ModeNormal && cryptore.config.PowMode != ModeTest {
+		return cryptore.hashrate.Rate1()
 	}
 	var res = make(chan uint64, 1)
 
 	select {
-	case ethash.remote.fetchRateCh <- res:
-	case <-ethash.remote.exitCh:
-		// Return local hashrate only if ethash is stopped.
-		return ethash.hashrate.Rate1()
+	case cryptore.remote.fetchRateCh <- res:
+	case <-cryptore.remote.exitCh:
+		// Return local hashrate only if cryptore is stopped.
+		return cryptore.hashrate.Rate1()
 	}
 
 	// Gather total submitted hash rate of remote sealers.
-	return ethash.hashrate.Rate1() + float64(<-res)
+	return cryptore.hashrate.Rate1() + float64(<-res)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs.
-func (ethash *Ethash) APIs(chain consensus.ChainReader) []rpc.API {
-	// In order to ensure backward compatibility, we exposes ethash RPC APIs
-	// to both eth and ethash namespaces.
+func (cryptore *Cryptore) APIs(chain consensus.ChainReader) []rpc.API {
+	// In order to ensure backward compatibility, we exposes cryptore RPC APIs
+	// to both eth and cryptore namespaces.
 	return []rpc.API{
 		{
 			Namespace: "eth",
 			Version:   "1.0",
-			Service:   &API{ethash},
+			Service:   &API{cryptore},
 			Public:    true,
 		},
 		{
-			Namespace: "ethash",
+			Namespace: "cryptore",
 			Version:   "1.0",
-			Service:   &API{ethash},
+			Service:   &API{cryptore},
 			Public:    true,
 		},
 	}

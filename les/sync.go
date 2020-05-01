@@ -164,7 +164,7 @@ func (h *clientHandler) synchronise(peer *serverPeer) {
 
 		// Fetch the start point block header.
 		//
-		// For the ethash consensus engine, the start header is the block header
+		// For the cryptore consensus engine, the start header is the block header
 		// of the checkpoint.
 		//
 		// For the clique consensus engine, the start header is the block header

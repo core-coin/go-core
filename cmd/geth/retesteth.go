@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/consensus/misc"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -384,10 +384,10 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	var inner consensus.Engine
 	switch chainParams.SealEngine {
 	case "NoProof", "NoReward":
-		inner = ethash.NewFaker()
-	case "Ethash":
-		inner = ethash.New(ethash.Config{
-			CacheDir:       "ethash",
+		inner = cryptore.NewFaker()
+	case "Cryptore":
+		inner = cryptore.New(cryptore.Config{
+			CacheDir:       "cryptore",
 			CachesInMem:    2,
 			CachesOnDisk:   3,
 			DatasetsInMem:  1,

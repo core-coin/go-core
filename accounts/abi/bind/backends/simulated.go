@@ -28,7 +28,7 @@ import (
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -73,9 +73,9 @@ type SimulatedBackend struct {
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
 func NewSimulatedBackendWithDatabase(database ethdb.Database, alloc core.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.AllEthashProtocolChanges, GasLimit: gasLimit, Alloc: alloc}
+	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, GasLimit: gasLimit, Alloc: alloc}
 	genesis.MustCommit(database)
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, nil)
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil)
 
 	backend := &SimulatedBackend{
 		database:   database,
@@ -120,7 +120,7 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
@@ -471,7 +471,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 		panic(fmt.Errorf("invalid transaction nonce: got %d, want %d", tx.Nonce(), nonce))
 	}
 
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
@@ -584,7 +584,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTx(tx)
 		}

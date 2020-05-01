@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -148,7 +148,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, chainConfig, &config.Ethash, config.Miner.Notify, config.Miner.Noverify, chainDb),
+		engine:         CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.Miner.GasPrice,
@@ -248,24 +248,24 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
-func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
+func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *cryptore.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
 	}
 	// Otherwise assume proof-of-work
 	switch config.PowMode {
-	case ethash.ModeFake:
-		log.Warn("Ethash used in fake mode")
-		return ethash.NewFaker()
-	case ethash.ModeTest:
-		log.Warn("Ethash used in test mode")
-		return ethash.NewTester(nil, noverify)
-	case ethash.ModeShared:
-		log.Warn("Ethash used in shared mode")
-		return ethash.NewShared()
+	case cryptore.ModeFake:
+		log.Warn("Cryptore used in fake mode")
+		return cryptore.NewFaker()
+	case cryptore.ModeTest:
+		log.Warn("Cryptore used in test mode")
+		return cryptore.NewTester(nil, noverify)
+	case cryptore.ModeShared:
+		log.Warn("Cryptore used in shared mode")
+		return cryptore.NewShared()
 	default:
-		engine := ethash.New(ethash.Config{
+		engine := cryptore.New(cryptore.Config{
 			CacheDir:       ctx.ResolvePath(config.CacheDir),
 			CachesInMem:    config.CachesInMem,
 			CachesOnDisk:   config.CachesOnDisk,

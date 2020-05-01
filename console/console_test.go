@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/internal/jsre"
@@ -101,8 +101,8 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		Miner: miner.Config{
 			Etherbase: common.HexToAddress(testAddress),
 		},
-		Ethash: ethash.Config{
-			PowMode: ethash.ModeTest,
+		Cryptore: cryptore.Config{
+			PowMode: cryptore.ModeTest,
 		},
 	}
 	if confOverride != nil {

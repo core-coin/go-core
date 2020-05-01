@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/gasprice"
@@ -36,8 +36,8 @@ import (
 // DefaultConfig contains default settings for use on the Ethereum main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: ethash.Config{
-		CacheDir:       "ethash",
+	Cryptore: cryptore.Config{
+		CacheDir:       "cryptore",
 		CachesInMem:    2,
 		CachesOnDisk:   3,
 		DatasetsInMem:  1,
@@ -71,16 +71,16 @@ func init() {
 		}
 	}
 	if runtime.GOOS == "darwin" {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
+		DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, "Library", "Cryptore")
 	} else if runtime.GOOS == "windows" {
 		localappdata := os.Getenv("LOCALAPPDATA")
 		if localappdata != "" {
-			DefaultConfig.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
+			DefaultConfig.Cryptore.DatasetDir = filepath.Join(localappdata, "Cryptore")
 		} else {
-			DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
+			DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, "AppData", "Local", "Cryptore")
 		}
 	} else {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+		DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, ".cryptore")
 	}
 }
 
@@ -132,8 +132,8 @@ type Config struct {
 	// Mining options
 	Miner miner.Config
 
-	// Ethash options
-	Ethash ethash.Config
+	// Cryptore options
+	Cryptore cryptore.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig

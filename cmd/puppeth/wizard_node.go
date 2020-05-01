@@ -67,14 +67,14 @@ func (w *wizard) deployNode(boot bool) {
 		fmt.Printf("Where should data be stored on the remote machine? (default = %s)\n", infos.datadir)
 		infos.datadir = w.readDefaultString(infos.datadir)
 	}
-	if w.conf.Genesis.Config.Ethash != nil && !boot {
+	if w.conf.Genesis.Config.Cryptore != nil && !boot {
 		fmt.Println()
-		if infos.ethashdir == "" {
-			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine?\n")
-			infos.ethashdir = w.readString()
+		if infos.cryptoredir == "" {
+			fmt.Printf("Where should the cryptore mining DAGs be stored on the remote machine?\n")
+			infos.cryptoredir = w.readString()
 		} else {
-			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine? (default = %s)\n", infos.ethashdir)
-			infos.ethashdir = w.readDefaultString(infos.ethashdir)
+			fmt.Printf("Where should the cryptore mining DAGs be stored on the remote machine? (default = %s)\n", infos.cryptoredir)
+			infos.cryptoredir = w.readDefaultString(infos.cryptoredir)
 		}
 	}
 	// Figure out which port to listen on
@@ -103,8 +103,8 @@ func (w *wizard) deployNode(boot bool) {
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
-		if w.conf.Genesis.Config.Ethash != nil {
-			// Ethash based miners only need an etherbase to mine against
+		if w.conf.Genesis.Config.Cryptore != nil {
+			// Cryptore based miners only need an etherbase to mine against
 			fmt.Println()
 			if infos.etherbase == "" {
 				fmt.Printf("What address should the miner use?\n")

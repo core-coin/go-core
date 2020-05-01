@@ -27,7 +27,7 @@ import (
 
 	ethereum "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -165,7 +165,7 @@ func TestBlockSubscription(t *testing.T) {
 		backend     = &testBackend{db: db}
 		api         = NewPublicFilterAPI(backend, false)
 		genesis     = new(core.Genesis).MustCommit(db)
-		chain, _    = core.GenerateChain(params.TestChainConfig, genesis, ethash.NewFaker(), db, 10, func(i int, gen *core.BlockGen) {})
+		chain, _    = core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), db, 10, func(i int, gen *core.BlockGen) {})
 		chainEvents = []core.ChainEvent{}
 	)
 

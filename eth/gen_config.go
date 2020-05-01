@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/gasprice"
@@ -40,7 +40,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		TrieDirtyCache          int
 		TrieTimeout             time.Duration
 		Miner                   miner.Config
-		Ethash                  ethash.Config
+		Cryptore                  cryptore.Config
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
@@ -76,7 +76,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TrieDirtyCache = c.TrieDirtyCache
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Miner = c.Miner
-	enc.Ethash = c.Ethash
+	enc.Cryptore = c.Cryptore
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
@@ -116,7 +116,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		TrieDirtyCache          *int
 		TrieTimeout             *time.Duration
 		Miner                   *miner.Config
-		Ethash                  *ethash.Config
+		Cryptore                  *cryptore.Config
 		TxPool                  *core.TxPoolConfig
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
@@ -199,8 +199,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.Miner != nil {
 		c.Miner = *dec.Miner
 	}
-	if dec.Ethash != nil {
-		c.Ethash = *dec.Ethash
+	if dec.Cryptore != nil {
+		c.Cryptore = *dec.Cryptore
 	}
 	if dec.TxPool != nil {
 		c.TxPool = *dec.TxPool

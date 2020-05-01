@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
@@ -1718,7 +1718,7 @@ func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string,
 	if block == nil {
 		return "", fmt.Errorf("block #%d not found", number)
 	}
-	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
+	return fmt.Sprintf("0x%x", cryptore.SeedHash(number)), nil
 }
 
 // PrivateDebugAPI is the collection of Ethereum APIs exposed over the private

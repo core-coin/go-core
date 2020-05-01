@@ -30,7 +30,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/les/flowcontrol"
@@ -495,7 +495,7 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 func newLesClientService(ctx *adapters.ServiceContext) (node.Service, error) {
 	config := eth.DefaultConfig
 	config.SyncMode = downloader.LightSync
-	config.Ethash.PowMode = ethash.ModeFake
+	config.Cryptore.PowMode = cryptore.ModeFake
 	return New(ctx.NodeContext, &config)
 }
 

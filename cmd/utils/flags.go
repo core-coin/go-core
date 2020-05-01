@@ -38,7 +38,7 @@ import (
 	"github.com/core-coin/go-core/common/fdlimit"
 	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
@@ -286,35 +286,35 @@ var (
 		Name:  "ulc.onlyannounce",
 		Usage: "Ultra light server sends announcements only",
 	}
-	// Ethash settings
-	EthashCacheDirFlag = DirectoryFlag{
-		Name:  "ethash.cachedir",
-		Usage: "Directory to store the ethash verification caches (default = inside the datadir)",
+	// Cryptore settings
+	CryptoreCacheDirFlag = DirectoryFlag{
+		Name:  "cryptore.cachedir",
+		Usage: "Directory to store the cryptore verification caches (default = inside the datadir)",
 	}
-	EthashCachesInMemoryFlag = cli.IntFlag{
-		Name:  "ethash.cachesinmem",
-		Usage: "Number of recent ethash caches to keep in memory (16MB each)",
-		Value: eth.DefaultConfig.Ethash.CachesInMem,
+	CryptoreCachesInMemoryFlag = cli.IntFlag{
+		Name:  "cryptore.cachesinmem",
+		Usage: "Number of recent cryptore caches to keep in memory (16MB each)",
+		Value: eth.DefaultConfig.Cryptore.CachesInMem,
 	}
-	EthashCachesOnDiskFlag = cli.IntFlag{
-		Name:  "ethash.cachesondisk",
-		Usage: "Number of recent ethash caches to keep on disk (16MB each)",
-		Value: eth.DefaultConfig.Ethash.CachesOnDisk,
+	CryptoreCachesOnDiskFlag = cli.IntFlag{
+		Name:  "cryptore.cachesondisk",
+		Usage: "Number of recent cryptore caches to keep on disk (16MB each)",
+		Value: eth.DefaultConfig.Cryptore.CachesOnDisk,
 	}
-	EthashDatasetDirFlag = DirectoryFlag{
-		Name:  "ethash.dagdir",
-		Usage: "Directory to store the ethash mining DAGs",
-		Value: DirectoryString(eth.DefaultConfig.Ethash.DatasetDir),
+	CryptoreDatasetDirFlag = DirectoryFlag{
+		Name:  "cryptore.dagdir",
+		Usage: "Directory to store the cryptore mining DAGs",
+		Value: DirectoryString(eth.DefaultConfig.Cryptore.DatasetDir),
 	}
-	EthashDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "ethash.dagsinmem",
-		Usage: "Number of recent ethash mining DAGs to keep in memory (1+GB each)",
-		Value: eth.DefaultConfig.Ethash.DatasetsInMem,
+	CryptoreDatasetsInMemoryFlag = cli.IntFlag{
+		Name:  "cryptore.dagsinmem",
+		Usage: "Number of recent cryptore mining DAGs to keep in memory (1+GB each)",
+		Value: eth.DefaultConfig.Cryptore.DatasetsInMem,
 	}
-	EthashDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "ethash.dagsondisk",
-		Usage: "Number of recent ethash mining DAGs to keep on disk (1+GB each)",
-		Value: eth.DefaultConfig.Ethash.DatasetsOnDisk,
+	CryptoreDatasetsOnDiskFlag = cli.IntFlag{
+		Name:  "cryptore.dagsondisk",
+		Usage: "Number of recent cryptore mining DAGs to keep on disk (1+GB each)",
+		Value: eth.DefaultConfig.Cryptore.DatasetsOnDisk,
 	}
 	// Transaction pool settings
 	TxPoolLocalsFlag = cli.StringFlag{
@@ -1289,24 +1289,24 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *eth.Config) {
-	if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
-		cfg.Ethash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
+func setCryptore(ctx *cli.Context, cfg *eth.Config) {
+	if ctx.GlobalIsSet(CryptoreCacheDirFlag.Name) {
+		cfg.Cryptore.CacheDir = ctx.GlobalString(CryptoreCacheDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetDirFlag.Name) {
-		cfg.Ethash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
+	if ctx.GlobalIsSet(CryptoreDatasetDirFlag.Name) {
+		cfg.Cryptore.DatasetDir = ctx.GlobalString(CryptoreDatasetDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashCachesInMemoryFlag.Name) {
-		cfg.Ethash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
+	if ctx.GlobalIsSet(CryptoreCachesInMemoryFlag.Name) {
+		cfg.Cryptore.CachesInMem = ctx.GlobalInt(CryptoreCachesInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashCachesOnDiskFlag.Name) {
-		cfg.Ethash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
+	if ctx.GlobalIsSet(CryptoreCachesOnDiskFlag.Name) {
+		cfg.Cryptore.CachesOnDisk = ctx.GlobalInt(CryptoreCachesOnDiskFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetsInMemoryFlag.Name) {
-		cfg.Ethash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
+	if ctx.GlobalIsSet(CryptoreDatasetsInMemoryFlag.Name) {
+		cfg.Cryptore.DatasetsInMem = ctx.GlobalInt(CryptoreDatasetsInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetsOnDiskFlag.Name) {
-		cfg.Ethash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
+	if ctx.GlobalIsSet(CryptoreDatasetsOnDiskFlag.Name) {
+		cfg.Cryptore.DatasetsOnDisk = ctx.GlobalInt(CryptoreDatasetsOnDiskFlag.Name)
 	}
 }
 
@@ -1434,7 +1434,7 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	setEtherbase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
-	setEthash(ctx, cfg)
+	setCryptore(ctx, cfg)
 	setMiner(ctx, &cfg.Miner)
 	setWhitelist(ctx, cfg)
 	setLes(ctx, cfg)
@@ -1711,15 +1711,15 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	if config.Clique != nil {
 		engine = clique.New(config.Clique, chainDb)
 	} else {
-		engine = ethash.NewFaker()
+		engine = cryptore.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = ethash.New(ethash.Config{
-				CacheDir:       stack.ResolvePath(eth.DefaultConfig.Ethash.CacheDir),
-				CachesInMem:    eth.DefaultConfig.Ethash.CachesInMem,
-				CachesOnDisk:   eth.DefaultConfig.Ethash.CachesOnDisk,
-				DatasetDir:     stack.ResolvePath(eth.DefaultConfig.Ethash.DatasetDir),
-				DatasetsInMem:  eth.DefaultConfig.Ethash.DatasetsInMem,
-				DatasetsOnDisk: eth.DefaultConfig.Ethash.DatasetsOnDisk,
+			engine = cryptore.New(cryptore.Config{
+				CacheDir:       stack.ResolvePath(eth.DefaultConfig.Cryptore.CacheDir),
+				CachesInMem:    eth.DefaultConfig.Cryptore.CachesInMem,
+				CachesOnDisk:   eth.DefaultConfig.Cryptore.CachesOnDisk,
+				DatasetDir:     stack.ResolvePath(eth.DefaultConfig.Cryptore.DatasetDir),
+				DatasetsInMem:  eth.DefaultConfig.Cryptore.DatasetsInMem,
+				DatasetsOnDisk: eth.DefaultConfig.Cryptore.DatasetsOnDisk,
 			}, nil, false)
 		}
 	}

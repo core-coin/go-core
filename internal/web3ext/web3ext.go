@@ -22,7 +22,7 @@ var Modules = map[string]string{
 	"admin":      AdminJs,
 	"chequebook": ChequebookJs,
 	"clique":     CliqueJs,
-	"ethash":     EthashJs,
+	"cryptore":     CryptoreJs,
 	"debug":      DebugJs,
 	"eth":        EthJs,
 	"miner":      MinerJs,
@@ -117,28 +117,28 @@ web3._extend({
 });
 `
 
-const EthashJs = `
+const CryptoreJs = `
 web3._extend({
-	property: 'ethash',
+	property: 'cryptore',
 	methods: [
 		new web3._extend.Method({
 			name: 'getWork',
-			call: 'ethash_getWork',
+			call: 'cryptore_getWork',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'getHashrate',
-			call: 'ethash_getHashrate',
+			call: 'cryptore_getHashrate',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'submitWork',
-			call: 'ethash_submitWork',
+			call: 'cryptore_submitWork',
 			params: 3,
 		}),
 		new web3._extend.Method({
 			name: 'submitHashRate',
-			call: 'ethash_submitHashRate',
+			call: 'cryptore_submitHashRate',
 			params: 2,
 		}),
 	]

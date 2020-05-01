@@ -60,8 +60,8 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/.ethereum{{if .Ethashdir}}
-      - {{.Ethashdir}}:/root/.ethash{{end}}
+      - {{.Datadir}}:/root/.ethereum{{if .Cryptoredir}}
+      - {{.Cryptoredir}}:/root/.cryptore{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
@@ -117,7 +117,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
 		"Type":       kind,
 		"Datadir":    config.datadir,
-		"Ethashdir":  config.ethashdir,
+		"Cryptoredir":  config.cryptoredir,
 		"Network":    network,
 		"Port":       config.port,
 		"TotalPeers": config.peersTotal,
@@ -155,7 +155,7 @@ type nodeInfos struct {
 	genesis    []byte
 	network    int64
 	datadir    string
-	ethashdir  string
+	cryptoredir  string
 	ethstats   string
 	port       int
 	enode      string
@@ -186,8 +186,8 @@ func (info *nodeInfos) Report() map[string]string {
 		report["Gas ceil  (target maximum)"] = fmt.Sprintf("%0.3f MGas", info.gasLimit)
 
 		if info.etherbase != "" {
-			// Ethash proof-of-work miner
-			report["Ethash directory"] = info.ethashdir
+			// Cryptore proof-of-work miner
+			report["Cryptore directory"] = info.cryptoredir
 			report["Miner account"] = info.etherbase
 		}
 		if info.keyJSON != "" {
@@ -255,7 +255,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	stats := &nodeInfos{
 		genesis:    genesis,
 		datadir:    infos.volumes["/root/.ethereum"],
-		ethashdir:  infos.volumes["/root/.ethash"],
+		cryptoredir:  infos.volumes["/root/.cryptore"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,

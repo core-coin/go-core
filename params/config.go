@@ -67,7 +67,7 @@ var (
 		PetersburgBlock:     big.NewInt(7280000),
 		IstanbulBlock:       big.NewInt(9069000),
 		MuirGlacierBlock:    big.NewInt(9200000),
-		Ethash:              new(EthashConfig),
+		Cryptore:              new(CryptoreConfig),
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -106,7 +106,7 @@ var (
 		PetersburgBlock:     big.NewInt(4939394),
 		IstanbulBlock:       big.NewInt(6485846),
 		MuirGlacierBlock:    big.NewInt(7117117),
-		Ethash:              new(EthashConfig),
+		Cryptore:              new(CryptoreConfig),
 	}
 
 	// TestnetTrustedCheckpoint contains the light client trusted checkpoint for the Ropsten test network.
@@ -210,12 +210,12 @@ var (
 		Threshold: 2,
 	}
 
-	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
-	// and accepted by the Ethereum core developers into the Ethash consensus.
+	// AllCryptoreProtocolChanges contains every protocol change (EIPs) introduced
+	// and accepted by the Ethereum core developers into the Cryptore consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, new(EthashConfig), nil}
+	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, new(CryptoreConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
@@ -224,7 +224,7 @@ var (
 	// adding flags to the config to also have to set these fields.
 	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, new(EthashConfig), nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, new(CryptoreConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -298,16 +298,16 @@ type ChainConfig struct {
 	EWASMBlock          *big.Int `json:"ewasmBlock,omitempty"`          // EWASM switch block (nil = no fork, 0 = already activated)
 
 	// Various consensus engines
-	Ethash *EthashConfig `json:"ethash,omitempty"`
+	Cryptore *CryptoreConfig `json:"cryptore,omitempty"`
 	Clique *CliqueConfig `json:"clique,omitempty"`
 }
 
-// EthashConfig is the consensus engine configs for proof-of-work based sealing.
-type EthashConfig struct{}
+// CryptoreConfig is the consensus engine configs for proof-of-work based sealing.
+type CryptoreConfig struct{}
 
 // String implements the stringer interface, returning the consensus engine details.
-func (c *EthashConfig) String() string {
-	return "ethash"
+func (c *CryptoreConfig) String() string {
+	return "cryptore"
 }
 
 // CliqueConfig is the consensus engine configs for proof-of-authority based sealing.
@@ -325,8 +325,8 @@ func (c *CliqueConfig) String() string {
 func (c *ChainConfig) String() string {
 	var engine interface{}
 	switch {
-	case c.Ethash != nil:
-		engine = c.Ethash
+	case c.Cryptore != nil:
+		engine = c.Cryptore
 	case c.Clique != nil:
 		engine = c.Clique
 	default:
