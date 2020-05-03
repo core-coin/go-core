@@ -93,8 +93,7 @@ var (
 	errMissingVanity = errors.New("extra-data 32 byte vanity prefix missing")
 
 	// errMissingSignature is returned if a block's extra-data section doesn't seem
-	// to contain a 112 + 56 byte signature.
-	errMissingSignature = errors.New("extra-data 112 + 56 byte signature suffix missing")
+	errMissingSignature = errors.New("extra-data signature suffix missing")
 
 	// errExtraSigners is returned if non-checkpoint block contain signer data in
 	// their extra-data fields.
@@ -706,12 +705,9 @@ func SealHash(header *types.Header) (hash common.Hash) {
 }
 
 // CliqueRLP returns the rlp bytes which needs to be signed for the proof-of-authority
-// sealing. The RLP to sign consists of the entire header apart from the 112 + 56 byte signature
+// sealing. The RLP to sign consists of the entire header apart from the signature
 // contained at the end of the extra data.
 //
-// Note, the method requires the extra data to be at least 112 + 56 bytes, otherwise it
-// panics. This is done to avoid accidentally using both forms (signature present
-// or not), which could be abused to produce different hashes for the same header.
 func CliqueRLP(header *types.Header) []byte {
 	b := new(bytes.Buffer)
 	encodeSigHeader(b, header)

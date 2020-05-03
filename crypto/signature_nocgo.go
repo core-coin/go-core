@@ -68,16 +68,10 @@ func Sign(hash []byte, prv *ecdsa.PrivateKey) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Convert to Ethereum signature format with 'recovery id' v at the end.
-	//v := sig[0] - 27
-	//copy(sig, sig[1:])
-	//sig[64] = v
 	return sig, nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.
-// The public key should be in compressed (33 bytes) or uncompressed (112 + 56 bytes) format.
-// The signature should have the 64 byte [R || S] format.
 func VerifySignature(pubkey, hash, signature []byte) bool {
 	if len(signature) != 64 {
 		return false

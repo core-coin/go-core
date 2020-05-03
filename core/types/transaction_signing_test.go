@@ -45,38 +45,6 @@ func TestEIP155Signing(t *testing.T) {
 	}
 }
 
-func TestEIP155ChainId(t *testing.T) {
-	key, _ := crypto.GenerateKey(rand.Reader)
-	addr := crypto.PubkeyToAddress(key.PublicKey)
-
-	signer := NewEIP155Signer(big.NewInt(18))
-	tx, err := SignTx(NewTransaction(0, addr, new(big.Int), 0, new(big.Int), nil), signer, key)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !tx.Protected() {
-		t.Fatal("expected tx to be protected")
-	}
-
-	if tx.ChainId().Cmp(signer.chainId) != 0 {
-		t.Error("expected chainId to be", signer.chainId, "got", tx.ChainId())
-	}
-
-	tx = NewTransaction(0, addr, new(big.Int), 0, new(big.Int), nil)
-	tx, err = SignTx(tx, HomesteadSigner{}, key)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if tx.Protected() {
-		t.Error("didn't expect tx to be protected")
-	}
-
-	if tx.ChainId().Sign() != 0 {
-		t.Error("expected chain id to be 0 got", tx.ChainId())
-	}
-}
-
 func TestEIP155SigningVitalik(t *testing.T) {
 	// Test vectors come from http://vitalik.ca/files/eip155_testvec.txt
 	for i, test := range []struct {
@@ -125,11 +93,6 @@ func TestChainId(t *testing.T) {
 	tx, err = SignTx(tx, NewEIP155Signer(big.NewInt(1)), key)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	_, err = Sender(NewEIP155Signer(big.NewInt(2)), tx)
-	if err != ErrInvalidChainId {
-		t.Error("expected error:", ErrInvalidChainId)
 	}
 
 	_, err = Sender(NewEIP155Signer(big.NewInt(1)), tx)
