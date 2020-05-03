@@ -54,9 +54,6 @@ func TestEIP155ChainId(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !tx.Protected() {
-		t.Fatal("expected tx to be protected")
-	}
 
 	if tx.ChainId().Cmp(signer.chainId) != 0 {
 		t.Error("expected chainId to be", signer.chainId, "got", tx.ChainId())
@@ -66,10 +63,6 @@ func TestEIP155ChainId(t *testing.T) {
 	tx, err = SignTx(tx, HomesteadSigner{}, key)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if tx.Protected() {
-		t.Error("didn't expect tx to be protected")
 	}
 
 	if tx.ChainId().Sign() != 0 {

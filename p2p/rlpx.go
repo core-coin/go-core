@@ -48,7 +48,7 @@ const (
 	maxUint24 = ^uint32(0) >> 8
 
 	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
-	sigLen = 112 + 56
+	sigLen = crypto.SignatureLength
 	pubLen = 56
 	shaLen = sha512.Size
 

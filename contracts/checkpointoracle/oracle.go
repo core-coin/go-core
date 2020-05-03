@@ -25,6 +25,7 @@ import (
 
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
 	"github.com/core-coin/go-core/core/types"
 )
@@ -77,20 +78,12 @@ func (oracle *CheckpointOracle) LookupCheckpointEvents(blockLogs [][]*types.Log,
 // that are collected off-chain and sorted by lexicographical order.
 //
 // Notably all signatures given should be transformed to "ethereum style" which transforms
-// v from 0/1 to 27/28 according to the yellow paper.
 func (oracle *CheckpointOracle) RegisterCheckpoint(opts *bind.TransactOpts, index uint64, hash []byte, rnum *big.Int, rhash [32]byte, sigs [][]byte) (*types.Transaction, error) {
-	var (
-		r [][32]byte
-		s [][32]byte
-		v []uint8
-	)
 	for i := 0; i < len(sigs); i++ {
-		if len(sigs[i]) != 112 + 56 {
+		if len(sigs[i]) != crypto.SignatureLength {
 			return nil, errors.New("invalid signature")
 		}
-		//r = append(r, common.BytesToHash(sigs[i][:32]))
-		//s = append(s, common.BytesToHash(sigs[i][32:64]))
-		//v = append(v, sigs[i][64])
 	}
-	return oracle.contract.SetCheckpoint(opts, rnum, rhash, common.BytesToHash(hash), index, v, r, s)
+	//return oracle.contract.SetCheckpoint(opts, rnum, rhash, common.BytesToHash(hash), index, r, s, v)
+	return nil, errors.New("reimplement CheckpointOralce with ed448")
 }

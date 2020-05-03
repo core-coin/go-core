@@ -64,8 +64,6 @@ func Sign(hash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 }
 
 // VerifySignature checks that the given public key created signature over hash.
-// The public key should be in compressed (33 bytes) or uncompressed (112 + 56 bytes) format.
-// The signature should have the 64 byte [R || S] format.
 func VerifySignature(pub, hash, signature []byte) bool {
 	pubkey, err := ecdsa.Ed448().UnmarshalPub(pub)
 	if err != nil {

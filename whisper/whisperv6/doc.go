@@ -34,6 +34,7 @@ package whisperv6
 
 import (
 	"time"
+	"github.com/core-coin/go-core/crypto"
 )
 
 // Whisper protocol parameters
@@ -55,7 +56,7 @@ const (
 	signatureFlag = byte(4)
 
 	TopicLength     = 4  // in bytes
-	signatureLength = 112 + 56 // in bytes
+	signatureLength = crypto.SignatureLength // in bytes
 	aesKeyLength    = 32 // in bytes
 	aesNonceLength  = 12 // in bytes; for more info please see cipher.gcmStandardNonceSize & aesgcm.NonceSize()
 	keyIDSize       = 32 // in bytes

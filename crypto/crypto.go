@@ -29,23 +29,13 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-//SignatureLength indicates the byte length required to carry a signature with recovery id.
 const SignatureLength = 112 + 56
-
-// RecoveryIDOffset points to the byte offset within the signature that contains the recovery id.
-// const RecoveryIDOffset = 64
-
-// DigestLength sets the signature digest exact length
 const DigestLength = 32
-
 const PubkeyLength = 56
-
 const PrivkeyLength = 144
 
 var errInvalidPubkey = errors.New("invalid public key")
-
 var errInvalidPrivkey = errors.New("invalid private key")
-
 var errInvalidSignature = errors.New("invalid signature")
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
