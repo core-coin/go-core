@@ -22,11 +22,8 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
-		V            *hexutil.Big    `json:"v" gencodec:"required"`
-		R            *hexutil.Big    `json:"r" gencodec:"required"`
-		S            *hexutil.Big    `json:"s" gencodec:"required"`
 		Spender      common.Address  `json:"from"`
-		Hash         *common.Hash    `json:"hash" rlp:"-"`
+		Hash         *common.Hash    `json:"hash"     rlp:"-"`
 	}
 	var enc txdata
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
@@ -35,9 +32,6 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
-	enc.V = (*hexutil.Big)(t.V)
-	enc.R = (*hexutil.Big)(t.R)
-	enc.S = (*hexutil.Big)(t.S)
 	enc.Spender = t.Spender
 	enc.Hash = t.Hash
 	return json.Marshal(&enc)
@@ -52,11 +46,8 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
-		V            *hexutil.Big    `json:"v" gencodec:"required"`
-		R            *hexutil.Big    `json:"r" gencodec:"required"`
-		S            *hexutil.Big    `json:"s" gencodec:"required"`
 		Spender      *common.Address `json:"from"`
-		Hash         *common.Hash    `json:"hash" rlp:"-"`
+		Hash         *common.Hash    `json:"hash"     rlp:"-"`
 	}
 	var dec txdata
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -85,18 +76,6 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'input' for txdata")
 	}
 	t.Payload = *dec.Payload
-	if dec.V == nil {
-		return errors.New("missing required field 'v' for txdata")
-	}
-	t.V = (*big.Int)(dec.V)
-	if dec.R == nil {
-		return errors.New("missing required field 'r' for txdata")
-	}
-	t.R = (*big.Int)(dec.R)
-	if dec.S == nil {
-		return errors.New("missing required field 's' for txdata")
-	}
-	t.S = (*big.Int)(dec.S)
 	if dec.Spender != nil {
 		t.Spender = *dec.Spender
 	}

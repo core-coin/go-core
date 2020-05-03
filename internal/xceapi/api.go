@@ -407,9 +407,6 @@ func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs
 // Sign calculates an Core EDDSA signature for:
 // keccack256("\x19Core Signed Message:\n" + len(message) + message))
 //
-// Note, the produced signature conforms to the secp256k1 curve R, S and V values,
-// where the V value will be 27 or 28 for legacy reasons.
-//
 // The key used to calculate the signature is decrypted with the given password.
 //
 // https://developer.coreblockchain.cc/Management-APIs#personal_sign
@@ -427,7 +424,6 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 		log.Warn("Failed data sign attempt", "address", addr, "err", err)
 		return nil, err
 	}
-	//signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	return signature, nil
 }
 
@@ -437,20 +433,8 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 // hash = keccak256("\x19Core Signed Message:\n"${message length}${message})
 // addr = ecrecover(hash, signature)
 //
-// Note, the signature must conform to the secp256k1 curve R, S and V values, where
-// the V value must be 27 or 28 for legacy reasons.
-//
 // https://developer.coreblockchain.cc/Management-APIs#personal_ecRecover
 func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (common.Address, error) {
-	if len(sig) != 112 + 56 {
-		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
-	}
-
-	//if sig[crypto.RecoveryIDOffset] != 27 && sig[crypto.RecoveryIDOffset] != 28 {
-	//	return common.Address{}, fmt.Errorf("invalid Core signature (V is not 27 or 28)")
-	//}
-	//sig[crypto.RecoveryIDOffset] -= 27 // Transform yellow paper V from 27/28 to 0/1
-
 	rpk, err := crypto.SigToPub(accounts.TextHash(data), sig)
 	if err != nil {
 		return common.Address{}, err
@@ -1096,20 +1080,13 @@ type RPCTransaction struct {
 	To               *common.Address `json:"to"`
 	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
 	Value            *hexutil.Big    `json:"value"`
-	V                *hexutil.Big    `json:"v"`
-	R                *hexutil.Big    `json:"r"`
-	S                *hexutil.Big    `json:"s"`
 }
 
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
 	var signer types.Signer = types.FrontierSigner{}
-	if tx.Protected() {
-		signer = types.NewCIP155Signer(tx.ChainId())
-	}
 	from, _ := types.Sender(signer, tx)
-	v, r, s := tx.RawSignatureValues()
 
 	result := &RPCTransaction{
 		From:     from,
@@ -1120,9 +1097,6 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		Nonce:    hexutil.Uint64(tx.Nonce()),
 		To:       tx.To(),
 		Value:    (*hexutil.Big)(tx.Value()),
-		V:        (*hexutil.Big)(v),
-		R:        (*hexutil.Big)(r),
-		S:        (*hexutil.Big)(s),
 	}
 	if blockHash != (common.Hash{}) {
 		result.BlockHash = &blockHash
@@ -1298,9 +1272,6 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	receipt := receipts[index]
 
 	var signer types.Signer = types.FrontierSigner{}
-	if tx.Protected() {
-		signer = types.NewCIP155Signer(tx.ChainId())
-	}
 	from, _ := types.Sender(signer, tx)
 
 	fields := map[string]interface{}{
@@ -1584,9 +1555,6 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	transactions := make([]*RPCTransaction, 0, len(pending))
 	for _, tx := range pending {
 		var signer types.Signer = types.HomesteadSigner{}
-		if tx.Protected() {
-			signer = types.NewCIP155Signer(tx.ChainId())
-		}
 		from, _ := types.Sender(signer, tx)
 		if _, exists := accounts[from]; exists {
 			transactions = append(transactions, newRPCPendingTransaction(tx))
@@ -1612,9 +1580,6 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 
 	for _, p := range pending {
 		var signer types.Signer = types.HomesteadSigner{}
-		if p.Protected() {
-			signer = types.NewCIP155Signer(p.ChainId())
-		}
 		wantSigHash := signer.Hash(matchTx)
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {
@@ -1675,7 +1640,7 @@ func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address comm
 		return common.Address{}, fmt.Errorf("block #%d not found", number)
 	}
 	header := block.Header()
-	header.Extra = make([]byte, 32+ 112 + 56)
+	header.Extra = make([]byte, 32 + crypto.SignatureLength)
 	encoded := clique.CliqueRLP(header)
 
 	// Look up the wallet containing the requested signer

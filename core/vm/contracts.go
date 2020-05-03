@@ -94,14 +94,11 @@ func (c *ecrecover) RequiredEnergy(input []byte) uint64 {
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = 112 + 56
+	const ecRecoverInputLength = crypto.SignatureLength
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
-	// "input" is (hash, signarure)
 
 	/*
-	v := input[63] - 27
-
 	// tighter sig s values input homestead only apply to tx sigs
 	if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
 		return nil, nil
