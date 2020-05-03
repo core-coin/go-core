@@ -23,7 +23,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 )
 
-// Tests whether the hashimoto lookup works for both light as well as the full
+// Tests whether the cryptonight lookup works for both light as well as the full
 // datasets.
 func TestCryptonight(t *testing.T) {
 	// Create a block to verify
