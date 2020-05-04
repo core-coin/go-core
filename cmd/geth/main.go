@@ -210,9 +210,6 @@ func init() {
 		consoleCommand,
 		attachCommand,
 		javascriptCommand,
-		// See misccmd.go:
-		versionCommand,
-		licenseCommand,
 		// See config.go
 		dumpConfigCommand,
 		// See retesteth.go
