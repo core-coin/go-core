@@ -20,8 +20,6 @@ import (
 	"math/big"
 	"os"
 	"os/user"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/core-coin/go-core/common"
@@ -36,13 +34,7 @@ import (
 // DefaultConfig contains default settings for use on the Ethereum main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Cryptore: cryptore.Config{
-		CacheDir:       "cryptore",
-		CachesInMem:    2,
-		CachesOnDisk:   3,
-		DatasetsInMem:  1,
-		DatasetsOnDisk: 2,
-	},
+	Cryptore: cryptore.Config{},
 	NetworkId:          1,
 	LightPeers:         100,
 	UltraLightFraction: 75,
@@ -69,18 +61,6 @@ func init() {
 		if user, err := user.Current(); err == nil {
 			home = user.HomeDir
 		}
-	}
-	if runtime.GOOS == "darwin" {
-		DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, "Library", "Cryptore")
-	} else if runtime.GOOS == "windows" {
-		localappdata := os.Getenv("LOCALAPPDATA")
-		if localappdata != "" {
-			DefaultConfig.Cryptore.DatasetDir = filepath.Join(localappdata, "Cryptore")
-		} else {
-			DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, "AppData", "Local", "Cryptore")
-		}
-	} else {
-		DefaultConfig.Cryptore.DatasetDir = filepath.Join(home, ".cryptore")
 	}
 }
 

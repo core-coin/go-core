@@ -265,14 +265,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainCo
 		log.Warn("Cryptore used in shared mode")
 		return cryptore.NewShared()
 	default:
-		engine := cryptore.New(cryptore.Config{
-			CacheDir:       ctx.ResolvePath(config.CacheDir),
-			CachesInMem:    config.CachesInMem,
-			CachesOnDisk:   config.CachesOnDisk,
-			DatasetDir:     config.DatasetDir,
-			DatasetsInMem:  config.DatasetsInMem,
-			DatasetsOnDisk: config.DatasetsOnDisk,
-		}, notify, noverify)
+		engine := cryptore.New(cryptore.Config{}, notify, noverify)
 		engine.SetThreads(-1) // Disable CPU mining
 		return engine
 	}

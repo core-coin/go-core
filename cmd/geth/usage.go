@@ -104,17 +104,6 @@ var AppHelpFlagGroups = []flagGroup{
 		},
 	},
 	{
-		Name: "CRYPTORE",
-		Flags: []cli.Flag{
-			utils.CryptoreCacheDirFlag,
-			utils.CryptoreCachesInMemoryFlag,
-			utils.CryptoreCachesOnDiskFlag,
-			utils.CryptoreDatasetDirFlag,
-			utils.CryptoreDatasetsInMemoryFlag,
-			utils.CryptoreDatasetsOnDiskFlag,
-		},
-	},
-	{
 		Name: "TRANSACTION POOL",
 		Flags: []cli.Flag{
 			utils.TxPoolLocalsFlag,

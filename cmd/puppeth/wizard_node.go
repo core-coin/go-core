@@ -67,16 +67,6 @@ func (w *wizard) deployNode(boot bool) {
 		fmt.Printf("Where should data be stored on the remote machine? (default = %s)\n", infos.datadir)
 		infos.datadir = w.readDefaultString(infos.datadir)
 	}
-	if w.conf.Genesis.Config.Cryptore != nil && !boot {
-		fmt.Println()
-		if infos.cryptoredir == "" {
-			fmt.Printf("Where should the cryptore mining DAGs be stored on the remote machine?\n")
-			infos.cryptoredir = w.readString()
-		} else {
-			fmt.Printf("Where should the cryptore mining DAGs be stored on the remote machine? (default = %s)\n", infos.cryptoredir)
-			infos.cryptoredir = w.readDefaultString(infos.cryptoredir)
-		}
-	}
 	// Figure out which port to listen on
 	fmt.Println()
 	fmt.Printf("Which TCP/UDP port to listen on? (default = %d)\n", infos.port)

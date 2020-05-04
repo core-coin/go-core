@@ -471,13 +471,11 @@ func calcDifficultyFrontier(time uint64, parent *types.Header) *big.Int {
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
 func (cryptore *Cryptore) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
-	return cryptore.verifySeal(chain, header, false)
+	return cryptore.verifySeal(chain, header)
 }
 
-// verifySeal checks whether a block satisfies the PoW difficulty requirements,
-// either using the usual cryptore cache for it, or alternatively using a full DAG
-// to make remote mining fast.
-func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.Header, fulldag bool) error {
+// verifySeal checks whether a block satisfies the PoW difficulty requirements.
+func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.Header) error {
 	// If we're running a fake PoW, accept any seal as valid
 	if cryptore.config.PowMode == ModeFake || cryptore.config.PowMode == ModeFullFake {
 		time.Sleep(cryptore.fakeDelay)
@@ -488,7 +486,7 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 	}
 	// If we're running a shared PoW, delegate verification to it
 	if cryptore.shared != nil {
-		return cryptore.shared.verifySeal(chain, header, fulldag)
+		return cryptore.shared.verifySeal(chain, header)
 	}
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {

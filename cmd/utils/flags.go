@@ -286,36 +286,6 @@ var (
 		Name:  "ulc.onlyannounce",
 		Usage: "Ultra light server sends announcements only",
 	}
-	// Cryptore settings
-	CryptoreCacheDirFlag = DirectoryFlag{
-		Name:  "cryptore.cachedir",
-		Usage: "Directory to store the cryptore verification caches (default = inside the datadir)",
-	}
-	CryptoreCachesInMemoryFlag = cli.IntFlag{
-		Name:  "cryptore.cachesinmem",
-		Usage: "Number of recent cryptore caches to keep in memory (16MB each)",
-		Value: eth.DefaultConfig.Cryptore.CachesInMem,
-	}
-	CryptoreCachesOnDiskFlag = cli.IntFlag{
-		Name:  "cryptore.cachesondisk",
-		Usage: "Number of recent cryptore caches to keep on disk (16MB each)",
-		Value: eth.DefaultConfig.Cryptore.CachesOnDisk,
-	}
-	CryptoreDatasetDirFlag = DirectoryFlag{
-		Name:  "cryptore.dagdir",
-		Usage: "Directory to store the cryptore mining DAGs",
-		Value: DirectoryString(eth.DefaultConfig.Cryptore.DatasetDir),
-	}
-	CryptoreDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "cryptore.dagsinmem",
-		Usage: "Number of recent cryptore mining DAGs to keep in memory (1+GB each)",
-		Value: eth.DefaultConfig.Cryptore.DatasetsInMem,
-	}
-	CryptoreDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "cryptore.dagsondisk",
-		Usage: "Number of recent cryptore mining DAGs to keep on disk (1+GB each)",
-		Value: eth.DefaultConfig.Cryptore.DatasetsOnDisk,
-	}
 	// Transaction pool settings
 	TxPoolLocalsFlag = cli.StringFlag{
 		Name:  "txpool.locals",
@@ -1289,27 +1259,6 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setCryptore(ctx *cli.Context, cfg *eth.Config) {
-	if ctx.GlobalIsSet(CryptoreCacheDirFlag.Name) {
-		cfg.Cryptore.CacheDir = ctx.GlobalString(CryptoreCacheDirFlag.Name)
-	}
-	if ctx.GlobalIsSet(CryptoreDatasetDirFlag.Name) {
-		cfg.Cryptore.DatasetDir = ctx.GlobalString(CryptoreDatasetDirFlag.Name)
-	}
-	if ctx.GlobalIsSet(CryptoreCachesInMemoryFlag.Name) {
-		cfg.Cryptore.CachesInMem = ctx.GlobalInt(CryptoreCachesInMemoryFlag.Name)
-	}
-	if ctx.GlobalIsSet(CryptoreCachesOnDiskFlag.Name) {
-		cfg.Cryptore.CachesOnDisk = ctx.GlobalInt(CryptoreCachesOnDiskFlag.Name)
-	}
-	if ctx.GlobalIsSet(CryptoreDatasetsInMemoryFlag.Name) {
-		cfg.Cryptore.DatasetsInMem = ctx.GlobalInt(CryptoreDatasetsInMemoryFlag.Name)
-	}
-	if ctx.GlobalIsSet(CryptoreDatasetsOnDiskFlag.Name) {
-		cfg.Cryptore.DatasetsOnDisk = ctx.GlobalInt(CryptoreDatasetsOnDiskFlag.Name)
-	}
-}
-
 func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	if ctx.GlobalIsSet(MinerNotifyFlag.Name) {
 		cfg.Notify = strings.Split(ctx.GlobalString(MinerNotifyFlag.Name), ",")
@@ -1434,7 +1383,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	setEtherbase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
-	setCryptore(ctx, cfg)
 	setMiner(ctx, &cfg.Miner)
 	setWhitelist(ctx, cfg)
 	setLes(ctx, cfg)
@@ -1713,14 +1661,7 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	} else {
 		engine = cryptore.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = cryptore.New(cryptore.Config{
-				CacheDir:       stack.ResolvePath(eth.DefaultConfig.Cryptore.CacheDir),
-				CachesInMem:    eth.DefaultConfig.Cryptore.CachesInMem,
-				CachesOnDisk:   eth.DefaultConfig.Cryptore.CachesOnDisk,
-				DatasetDir:     stack.ResolvePath(eth.DefaultConfig.Cryptore.DatasetDir),
-				DatasetsInMem:  eth.DefaultConfig.Cryptore.DatasetsInMem,
-				DatasetsOnDisk: eth.DefaultConfig.Cryptore.DatasetsOnDisk,
-			}, nil, false)
+			engine = cryptore.New(cryptore.Config{}, nil, false)
 		}
 	}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {

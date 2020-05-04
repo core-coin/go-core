@@ -25,13 +25,11 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
@@ -54,9 +52,6 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Pre-generate the cryptore mining DAG so we don't race
-	cryptore.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".cryptore"))
-
 	// Create an Cryptore network based off of the Ropsten config
 	genesis := makeGenesis(faucets)
 

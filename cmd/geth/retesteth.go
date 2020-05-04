@@ -386,13 +386,7 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	case "NoProof", "NoReward":
 		inner = cryptore.NewFaker()
 	case "Cryptore":
-		inner = cryptore.New(cryptore.Config{
-			CacheDir:       "cryptore",
-			CachesInMem:    2,
-			CachesOnDisk:   3,
-			DatasetsInMem:  1,
-			DatasetsOnDisk: 2,
-		}, nil, false)
+		inner = cryptore.New(cryptore.Config{}, nil, false)
 	default:
 		return false, fmt.Errorf("unrecognised seal engine: %s", chainParams.SealEngine)
 	}

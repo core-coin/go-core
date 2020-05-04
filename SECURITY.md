@@ -1,120 +1,74 @@
-# Security Policy
+## Introduction
 
-## Supported Versions
+We in Core Blockchain wants to engage with responsible security researchers around the globe to further secure the Blockchain environment.
+We developed a program to make it easier to report vulnerabilities to Core team and to recognise you for your efforts to make the Blockchain a secure and reliable technology.
 
-Please see Releases. We recommend to use the most recent released version.  
+## Responsible Disclosure
 
-## Audit reports
+Core development team has up to 90 days to implement a fix based on the severity of the report. Please allow for this process to fully complete before you publicly disclose the vulnerability.
 
-Audit reports are published in the `docs` folder: https://github.com/ethereum/go-ethereum/tree/master/docs/audits 
+## Rewards
 
+We are rewarding researchers that find bugs with a bounty of our digital currency, Cores (XCE). The amount of the award depends on the degree of severity of the vulnerability reported.
 
-| Scope | Date | Report Link |
-| ------- | ------- | ----------- |
-| `geth` | 20170425 | [pdf](https://github.com/ethereum/go-ethereum/blob/master/docs/audits/2017-04-25_Geth-audit_Truesec.pdf) |
-| `clef` | 20180914 | [pdf](https://github.com/ethereum/go-ethereum/blob/master/docs/audits/2018-09-14_Clef-audit_NCC.pdf) |
+We calculate rewards regards to according to the [OWASP](https://www.owasp.org/index.php/OWASP_Risk_Rating_Methodology) risk rating model based on Impact and Likelihood.
 
+| **Impact**   | **Severity**   | **Severity**   | **Severity**   |
+|--------------|----------------|----------------|----------------|
+| **High**     | Moderate       | High           | Critical       |
+| **Moderate** | Low            | Moderate       | High           |
+| **Low**      | Note           | Low            | Moderate       |
+|              | **Low**        | **Medium**     | **High**       |
+|              | **Likelihood** | **Likelihood** | **Likelihood** |
 
+1 point currently corresponds to 1 EUR (payable in Cores (XCE)), something which may change without prior notice.
 
-## Reporting a Vulnerability
+## Eligibility
 
-**Please do not file a public ticket** mentioning the vulnerability.
+Any bug that poses a significant vulnerability to the security or integrity of the Core Network could be eligible for reward. However, it’s entirely at our discretion to decide whether a bug is significant enough to be eligible for reward.
 
-To find out how to disclose a vulnerability in Ethereum visit [https://bounty.ethereum.org](https://bounty.ethereum.org) or email bounty@ethereum.org.
+- You must be the first person to responsibly disclose an unknown issue.
+- You must report bug against latest version of software.
+- Bug shouldn't be already discovered. Please, check [published security advisories](https://github.com/core-coin/go-core/security/advisories?state=published).
 
-The following key may be used to communicate sensitive information to developers.
+In general, the following would not meet the threshold for severity:
 
-Fingerprint: `AE96 ED96 9E47 9B00 84F3 E17F E88D 3334 FA5F 6A0A`
+- Recently disclosed 0-day vulnerabilities
+- Vulnerabilities on sites hosted by third parties unless they lead to a vulnerability on the main website
+- Vulnerabilities contingent on physical attack, social engineering, spamming, DDOS attack, etc
+- Vulnerabilities affecting outdated or unpatched browsers
+- Vulnerabilities in third party applications that make use of Stellar’s API
+- Bugs that have not been responsibly investigated and reported
+- Bugs already known to us, or already reported by someone else (reward goes to first reporter)
+- Issues that aren’t reproducible
+- Issues that we can’t reasonably be expected to do anything about
 
+## Severity
 
-```
------BEGIN PGP PUBLIC KEY BLOCK-----
-Version: GnuPG v1
+The severity of a bug, is taken into consideration when deciding the bounty payout amount. We considering, how many people are affected as well if is affected the core or additional modules.
 
-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
-=r6KK
------END PGP PUBLIC KEY BLOCK-----
-```
+## Scope
+
+Open source projects:
+
+- Go-core client
+
+## Best Practices
+
+- Please use your local instance of Go-core and a separate network (not test/public network) when searching for security bugs. Remember that blockchains are public and someone may see your findings and report a bug before you.
+- Step by step report (or an exploit script) is more than welcomed. It will allow us to understand and fix the issue faster and you will get your rewards more quickly.
+
+## Legal
+
+You may not participate in this program if you are a resident or individual located within a country appearing on any EU 🇪🇺 sanctions lists.
+You are responsible for any tax implications or additional restrictions depending on your country and local law.
+We may modify the terms of this program or terminate this program at any time, but we won’t apply any changes we make to these program terms retroactively.
+
+## Report Vulnerability
+
+* Try to include as much information in your report as you can, including a description of the bug, its potential impact, and steps for reproducing it or proof of concept.
+* Compose your message in English language.
+* Include your Core wallet for payment.
+* Please allow 3 business days for us to respond before sending another email.
+
+### [Report Vulnerability](https://developer.coreblockchain.cc/report-vulnerability)

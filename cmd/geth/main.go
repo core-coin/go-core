@@ -71,12 +71,6 @@ var (
 		utils.SmartCardDaemonPathFlag,
 		utils.OverrideIstanbulFlag,
 		utils.OverrideMuirGlacierFlag,
-		utils.CryptoreCacheDirFlag,
-		utils.CryptoreCachesInMemoryFlag,
-		utils.CryptoreCachesOnDiskFlag,
-		utils.CryptoreDatasetDirFlag,
-		utils.CryptoreDatasetsInMemoryFlag,
-		utils.CryptoreDatasetsOnDiskFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,
@@ -216,11 +210,6 @@ func init() {
 		consoleCommand,
 		attachCommand,
 		javascriptCommand,
-		// See misccmd.go:
-		makecacheCommand,
-		makedagCommand,
-		versionCommand,
-		licenseCommand,
 		// See config.go
 		dumpConfigCommand,
 		// See retesteth.go

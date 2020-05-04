@@ -334,7 +334,6 @@ func (s *remoteSealer) loop() {
 //
 // The work package consists of 3 strings:
 //   result[0], 32 bytes hex encoded current block header pow-hash
-//   result[1], 32 bytes hex encoded seed hash used for DAG
 //   result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
 //   result[3], hex encoded block number
 func (s *remoteSealer) makeWork(block *types.Block) {
@@ -403,7 +402,7 @@ func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash,
 
 	start := time.Now()
 	if !s.noverify {
-		if err := s.cryptore.verifySeal(nil, header, true); err != nil {
+		if err := s.cryptore.verifySeal(nil, header); err != nil {
 			s.cryptore.config.Log.Warn("Invalid proof-of-work submitted", "sealhash", sealhash, "elapsed", common.PrettyDuration(time.Since(start)), "err", err)
 			return false
 		}
