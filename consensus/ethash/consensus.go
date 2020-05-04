@@ -471,13 +471,11 @@ func calcDifficultyFrontier(time uint64, parent *types.Header) *big.Int {
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
 func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
-	return ethash.verifySeal(chain, header, false)
+	return ethash.verifySeal(chain, header)
 }
 
-// verifySeal checks whether a block satisfies the PoW difficulty requirements,
-// either using the usual ethash cache for it, or alternatively using a full DAG
-// to make remote mining fast.
-func (ethash *Ethash) verifySeal(chain consensus.ChainReader, header *types.Header, fulldag bool) error {
+// verifySeal checks whether a block satisfies the PoW difficulty requirements.
+func (ethash *Ethash) verifySeal(chain consensus.ChainReader, header *types.Header) error {
 	// If we're running a fake PoW, accept any seal as valid
 	if ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake {
 		time.Sleep(ethash.fakeDelay)
@@ -488,7 +486,7 @@ func (ethash *Ethash) verifySeal(chain consensus.ChainReader, header *types.Head
 	}
 	// If we're running a shared PoW, delegate verification to it
 	if ethash.shared != nil {
-		return ethash.shared.verifySeal(chain, header, fulldag)
+		return ethash.shared.verifySeal(chain, header)
 	}
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
