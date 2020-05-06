@@ -26,7 +26,7 @@ var MainnetBootnodes = []string{
 }
 
 // TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Ropsten test network.
+// Testnet test network.
 var TestnetBootnodes = []string{
 	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
 }
@@ -37,9 +37,9 @@ var RinkebyBootnodes = []string{
 	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
 }
 
-// GoerliBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Görli test network.
-var GoerliBootnodes = []string{
+// KolibaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// Koliba test network.
+var KolibaBootnodes = []string{
 	// Upstream bootnodes
 	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
 }
@@ -55,7 +55,7 @@ const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUD
 // See https://github.com/ethereum/discv4-dns-lists for more information.
 var KnownDNSNetworks = map[common.Hash]string{
 	MainnetGenesisHash: dnsPrefix + "all.mainnet.ethdisco.net",
-	TestnetGenesisHash: dnsPrefix + "all.ropsten.ethdisco.net",
+	TestnetGenesisHash: dnsPrefix + "all.testnet.ethdisco.net",
 	RinkebyGenesisHash: dnsPrefix + "all.rinkeby.ethdisco.net",
-	GoerliGenesisHash:  dnsPrefix + "all.goerli.ethdisco.net",
+	KolibaGenesisHash:  dnsPrefix + "all.koliba.ethdisco.net",
 }

@@ -63,7 +63,7 @@ func TestCreation(t *testing.T) {
 				{10000000, ID{Hash: checksumToBytes(0xe029e991), Next: 0}},      // Future Muir Glacier block
 			},
 		},
-		// Ropsten test cases
+		// Testnet test cases
 		{
 			params.TestnetChainConfig,
 			params.TestnetGenesisHash,
@@ -104,10 +104,10 @@ func TestCreation(t *testing.T) {
 				{6000000, ID{Hash: checksumToBytes(0xcbdb8838), Next: 0}},       // Future Istanbul block
 			},
 		},
-		// Goerli test cases
+		// Koliba test cases
 		{
-			params.GoerliChainConfig,
-			params.GoerliGenesisHash,
+			params.KolibaChainConfig,
+			params.KolibaGenesisHash,
 			[]testcase{
 				{0, ID{Hash: checksumToBytes(0xa3f5ab08), Next: 1561651}},       // Unsynced, last Frontier, Homestead, Tangerine, Spurious, Byzantium, Constantinople and first Petersburg block
 				{1561650, ID{Hash: checksumToBytes(0xa3f5ab08), Next: 1561651}}, // Last Petersburg block
@@ -188,7 +188,7 @@ func TestValidation(t *testing.T) {
 		// Local is mainnet Muir Glacier, far in the future. Remote announces Gopherium (non existing fork)
 		// at some future block 88888888, for itself, but past block for local. Local is incompatible.
 		//
-		// This case detects non-upgraded nodes with majority hash power (typical Ropsten mess).
+		// This case detects non-upgraded nodes with majority hash power (typical Testnet mess).
 		{88888888, ID{Hash: checksumToBytes(0xe029e991), Next: 88888888}, ErrLocalIncompatibleOrStale},
 
 		// Local is mainnet Byzantium. Remote is also in Byzantium, but announces Gopherium (non existing

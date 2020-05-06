@@ -52,7 +52,7 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Create an Ethash network based off of the Ropsten config
+	// Create an Ethash network based off of the Testnet config
 	genesis := makeGenesis(faucets)
 
 	var (
