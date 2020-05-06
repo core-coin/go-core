@@ -55,7 +55,7 @@ func TestDifficulty(t *testing.T) {
 	dt.skipLoad("difficultyMorden\\.json")
 	dt.skipLoad("difficultyOlimpic\\.json")
 
-	dt.config("Ropsten", *params.TestnetChainConfig)
+	dt.config("Testnet", *params.TestnetChainConfig)
 	dt.config("Morden", *params.TestnetChainConfig)
 	dt.config("Frontier", params.ChainConfig{})
 
