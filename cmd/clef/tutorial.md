@@ -332,9 +332,9 @@ Lastly, when we requested a transaction to be sent, Clef prompted us in the orig
 --------- Transaction request-------------
 to:       0xD9C9Cd5f6779558b6e0eD4e6Acf6b1947E7fA1F3
 from:     0xD9C9Cd5f6779558b6e0eD4e6Acf6b1947E7fA1F3 [chksum ok]
-value:    0 wei
+value:    0 ore
 gas:      0x5208 (21000)
-gasprice: 1000000000 wei
+gasprice: 1000000000 ore
 nonce:    0x2366 (9062)
 
 Request context:

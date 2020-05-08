@@ -122,7 +122,7 @@ func (w *wizard) makeGenesis() {
 		break
 	}
 	fmt.Println()
-	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 wei? (advisable yes)")
+	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 ore? (advisable yes)")
 	if w.readDefaultYesNo(true) {
 		// Add a batch of precompile balances to avoid them getting deleted
 		for i := int64(0); i < 256; i++ {

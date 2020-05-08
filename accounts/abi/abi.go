@@ -169,9 +169,14 @@ func (abi *ABI) MethodById(sigdata []byte) (*Method, error) {
 		return nil, fmt.Errorf("data too short (%d bytes) for abi method lookup", len(sigdata))
 	}
 	for _, method := range abi.Methods {
+		if method.Name == "oreToReceive()"{
+			fmt.Println(common.Bytes2Hex(method.ID()))
+		}
 		if bytes.Equal(method.ID(), sigdata[:4]) {
 			return &method, nil
 		}
+		fmt.Println(common.Bytes2Hex(method.ID()))
+
 	}
 	return nil, fmt.Errorf("no method with id: %#x", sigdata[:4])
 }

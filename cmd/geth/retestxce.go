@@ -56,18 +56,18 @@ var (
 		Usage: "HTTP-RPC server listening port",
 		Value: node.DefaultHTTPPort,
 	}
-	retestethCommand = cli.Command{
-		Action:      utils.MigrateFlags(retesteth),
-		Name:        "retesteth",
-		Usage:       "Launches geth in retesteth mode",
+	retestxceCommand = cli.Command{
+		Action:      utils.MigrateFlags(retestxce),
+		Name:        "retestxce",
+		Usage:       "Launches geth in retestxce mode",
 		ArgsUsage:   "",
 		Flags:       []cli.Flag{rpcPortFlag},
 		Category:    "MISCELLANEOUS COMMANDS",
-		Description: `Launches geth in retesteth mode (no database, no network, only retesteth RPC interface)`,
+		Description: `Launches geth in retestxce mode (no database, no network, only retestxce RPC interface)`,
 	}
 )
 
-type RetestethTestAPI interface {
+type RetestxceTestAPI interface {
 	SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error)
 	MineBlocks(ctx context.Context, number uint64) (bool, error)
 	ModifyTimestamp(ctx context.Context, interval uint64) (bool, error)
@@ -76,7 +76,7 @@ type RetestethTestAPI interface {
 	GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error)
 }
 
-type RetestethEthAPI interface {
+type RetestxceEthAPI interface {
 	SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error)
@@ -86,7 +86,7 @@ type RetestethEthAPI interface {
 	GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error)
 }
 
-type RetestethDebugAPI interface {
+type RetestxceDebugAPI interface {
 	AccountRange(ctx context.Context,
 		blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 		addressHash *math.HexOrDecimal256, maxResults uint64,
@@ -102,7 +102,7 @@ type RetestWeb3API interface {
 	ClientVersion(ctx context.Context) (string, error)
 }
 
-type RetestethAPI struct {
+type RetestxceAPI struct {
 	ethDb         ethdb.Database
 	db            state.Database
 	chainConfig   *params.ChainConfig
@@ -272,7 +272,7 @@ func (e *NoRewardEngine) Close() error {
 	return e.inner.Close()
 }
 
-func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error) {
+func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error) {
 	// Clean up
 	if api.blockchain != nil {
 		api.blockchain.Stop()
@@ -411,7 +411,7 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	return true, nil
 }
 
-func (api *RetestethAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error) {
+func (api *RetestxceAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error) {
 	tx := new(types.Transaction)
 	if err := rlp.DecodeBytes(rawTx, tx); err != nil {
 		// Return nil is not by mistake - some tests include sending transaction where gasLimit overflows uint64
@@ -433,7 +433,7 @@ func (api *RetestethAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 	return tx.Hash(), nil
 }
 
-func (api *RetestethAPI) MineBlocks(ctx context.Context, number uint64) (bool, error) {
+func (api *RetestxceAPI) MineBlocks(ctx context.Context, number uint64) (bool, error) {
 	for i := 0; i < int(number); i++ {
 		if err := api.mineBlock(); err != nil {
 			return false, err
@@ -443,14 +443,14 @@ func (api *RetestethAPI) MineBlocks(ctx context.Context, number uint64) (bool, e
 	return true, nil
 }
 
-func (api *RetestethAPI) currentNumber() uint64 {
+func (api *RetestxceAPI) currentNumber() uint64 {
 	if current := api.blockchain.CurrentBlock(); current != nil {
 		return current.NumberU64()
 	}
 	return 0
 }
 
-func (api *RetestethAPI) mineBlock() error {
+func (api *RetestxceAPI) mineBlock() error {
 	number := api.currentNumber()
 	parentHash := rawdb.ReadCanonicalHash(api.ethDb, number)
 	parent := rawdb.ReadBlock(api.ethDb, parentHash, number)
@@ -545,7 +545,7 @@ func (api *RetestethAPI) mineBlock() error {
 	return api.importBlock(block)
 }
 
-func (api *RetestethAPI) importBlock(block *types.Block) error {
+func (api *RetestxceAPI) importBlock(block *types.Block) error {
 	if _, err := api.blockchain.InsertChain([]*types.Block{block}); err != nil {
 		return err
 	}
@@ -553,12 +553,12 @@ func (api *RetestethAPI) importBlock(block *types.Block) error {
 	return nil
 }
 
-func (api *RetestethAPI) ModifyTimestamp(ctx context.Context, interval uint64) (bool, error) {
+func (api *RetestxceAPI) ModifyTimestamp(ctx context.Context, interval uint64) (bool, error) {
 	api.blockInterval = interval
 	return true, nil
 }
 
-func (api *RetestethAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.Bytes) (common.Hash, error) {
+func (api *RetestxceAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.Bytes) (common.Hash, error) {
 	block := new(types.Block)
 	if err := rlp.DecodeBytes(rawBlock, block); err != nil {
 		return common.Hash{}, err
@@ -570,7 +570,7 @@ func (api *RetestethAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.By
 	return block.Hash(), nil
 }
 
-func (api *RetestethAPI) RewindToBlock(ctx context.Context, newHead uint64) (bool, error) {
+func (api *RetestxceAPI) RewindToBlock(ctx context.Context, newHead uint64) (bool, error) {
 	if err := api.blockchain.SetHead(newHead); err != nil {
 		return false, err
 	}
@@ -582,7 +582,7 @@ func (api *RetestethAPI) RewindToBlock(ctx context.Context, newHead uint64) (boo
 
 var emptyListHash common.Hash = common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347")
 
-func (api *RetestethAPI) GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error) {
+func (api *RetestxceAPI) GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error) {
 	receipt, _, _, _ := rawdb.ReadReceipt(api.ethDb, txHash, api.chainConfig)
 	if receipt == nil {
 		return emptyListHash, nil
@@ -595,11 +595,11 @@ func (api *RetestethAPI) GetLogHash(ctx context.Context, txHash common.Hash) (co
 	}
 }
 
-func (api *RetestethAPI) BlockNumber(ctx context.Context) (uint64, error) {
+func (api *RetestxceAPI) BlockNumber(ctx context.Context) (uint64, error) {
 	return api.currentNumber(), nil
 }
 
-func (api *RetestethAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error) {
+func (api *RetestxceAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error) {
 	block := api.blockchain.GetBlockByNumber(uint64(blockNr))
 	if block != nil {
 		response, err := RPCMarshalBlock(block, true, fullTx)
@@ -613,7 +613,7 @@ func (api *RetestethAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexO
 	return nil, fmt.Errorf("block %d not found", blockNr)
 }
 
-func (api *RetestethAPI) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
+func (api *RetestxceAPI) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
 	block := api.blockchain.GetBlockByHash(blockHash)
 	if block != nil {
 		response, err := RPCMarshalBlock(block, true, fullTx)
@@ -627,7 +627,7 @@ func (api *RetestethAPI) GetBlockByHash(ctx context.Context, blockHash common.Ha
 	return nil, fmt.Errorf("block 0x%x not found", blockHash)
 }
 
-func (api *RetestethAPI) AccountRange(ctx context.Context,
+func (api *RetestxceAPI) AccountRange(ctx context.Context,
 	blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 	addressHash *math.HexOrDecimal256, maxResults uint64,
 ) (AccountRangeResult, error) {
@@ -706,7 +706,7 @@ func (api *RetestethAPI) AccountRange(ctx context.Context,
 	return result, nil
 }
 
-func (api *RetestethAPI) GetBalance(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (*math.HexOrDecimal256, error) {
+func (api *RetestxceAPI) GetBalance(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (*math.HexOrDecimal256, error) {
 	//fmt.Printf("GetBalance %x, block %d\n", address, blockNr)
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
@@ -716,7 +716,7 @@ func (api *RetestethAPI) GetBalance(ctx context.Context, address common.Address,
 	return (*math.HexOrDecimal256)(statedb.GetBalance(address)), nil
 }
 
-func (api *RetestethAPI) GetCode(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (hexutil.Bytes, error) {
+func (api *RetestxceAPI) GetCode(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (hexutil.Bytes, error) {
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
 	if err != nil {
@@ -725,7 +725,7 @@ func (api *RetestethAPI) GetCode(ctx context.Context, address common.Address, bl
 	return statedb.GetCode(address), nil
 }
 
-func (api *RetestethAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error) {
+func (api *RetestxceAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error) {
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
 	if err != nil {
@@ -734,7 +734,7 @@ func (api *RetestethAPI) GetTransactionCount(ctx context.Context, address common
 	return statedb.GetNonce(address), nil
 }
 
-func (api *RetestethAPI) StorageRangeAt(ctx context.Context,
+func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 	blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 	address common.Address,
 	begin *math.HexOrDecimal256, maxResults uint64,
@@ -828,7 +828,7 @@ func (api *RetestethAPI) StorageRangeAt(ctx context.Context,
 	return result, nil
 }
 
-func (api *RetestethAPI) ClientVersion(ctx context.Context) (string, error) {
+func (api *RetestxceAPI) ClientVersion(ctx context.Context) (string, error) {
 	return "Geth-" + params.VersionWithCommit(gitCommit, gitDate), nil
 }
 
@@ -842,16 +842,16 @@ func splitAndTrim(input string) []string {
 	return result
 }
 
-func retesteth(ctx *cli.Context) error {
-	log.Info("Welcome to retesteth!")
+func retestxce(ctx *cli.Context) error {
+	log.Info("Welcome to retestxce!")
 	// register signer API with server
 	var (
 		extapiURL string
 	)
-	apiImpl := &RetestethAPI{}
-	var testApi RetestethTestAPI = apiImpl
-	var ethApi RetestethEthAPI = apiImpl
-	var debugApi RetestethDebugAPI = apiImpl
+	apiImpl := &RetestxceAPI{}
+	var testApi RetestxceTestAPI = apiImpl
+	var ethApi RetestxceEthAPI = apiImpl
+	var debugApi RetestxceDebugAPI = apiImpl
 	var web3Api RetestWeb3API = apiImpl
 	rpcAPI := []rpc.API{
 		{
@@ -883,13 +883,13 @@ func retesteth(ctx *cli.Context) error {
 	cors := splitAndTrim(ctx.GlobalString(utils.RPCCORSDomainFlag.Name))
 
 	// start http server
-	var RetestethHTTPTimeouts = rpc.HTTPTimeouts{
+	var RetestxceHTTPTimeouts = rpc.HTTPTimeouts{
 		ReadTimeout:  120 * time.Second,
 		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.RPCListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
-	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "eth", "debug", "web3"}, cors, vhosts, RetestethHTTPTimeouts)
+	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "eth", "debug", "web3"}, cors, vhosts, RetestxceHTTPTimeouts)
 	if err != nil {
 		utils.Fatalf("Could not start RPC api: %v", err)
 	}

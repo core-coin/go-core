@@ -210,7 +210,7 @@ aware of and agree upon. This consists of a small JSON file (e.g. call it `genes
 ```json
 {
   "config": {
-    "chainId": <arbitrary positive integer>,
+    "chainId": "<arbitrary positive integer>",
     "homesteadBlock": 0,
     "eip150Block": 0,
     "eip155Block": 0,
@@ -237,6 +237,7 @@ to connect to you. If you'd like to pre-fund some accounts for easier testing, c
 the accounts and populate the `alloc` field with their addresses.
 
 ```json
+{
 "alloc": {
   "0x0000000000000000000000000000000000000001": {
     "balance": "111111111"
@@ -244,6 +245,7 @@ the accounts and populate the `alloc` field with their addresses.
   "0x0000000000000000000000000000000000000002": {
     "balance": "222222222"
   }
+}
 }
 ```
 
@@ -308,7 +310,7 @@ $ geth <usual-flags> --mine --miner.threads=1 --etherbase=0x00000000000000000000
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all
 proceedings to the account specified by `--etherbase`. You can further tune the mining
-by changing the default gas limit blocks converge to (`--targetgaslimit`) and the price
+by changing the default gas limit blocks converge to (`--targetenergylimit`) and the price
 transactions are accepted at (`--gasprice`).
 
 ## Contribution

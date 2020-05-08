@@ -212,8 +212,8 @@ func init() {
 		javascriptCommand,
 		// See config.go
 		dumpConfigCommand,
-		// See retesteth.go
-		retestethCommand,
+		// See retestxce.go
+		retestxceCommand,
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
 

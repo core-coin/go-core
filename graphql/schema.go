@@ -40,7 +40,7 @@ const schema string = `
     type Account {
         # Address is the address owning the account.
         address: Address!
-        # Balance is the balance of the account, in wei.
+        # Balance is the balance of the account, in ore.
         balance: BigInt!
         # TransactionCount is the number of transactions sent from this account,
         # or in the case of a contract, the number of contracts created. Otherwise
@@ -84,9 +84,9 @@ const schema string = `
         # To is the account the transaction was sent to. This is null for
         # contract-creating transactions.
         to(block: Long): Account
-        # Value is the value, in wei, sent along with this transaction.
+        # Value is the value, in ore, sent along with this transaction.
         value: BigInt!
-        # GasPrice is the price offered to miners for gas, in wei per unit.
+        # GasPrice is the price offered to miners for gas, in ore per unit.
         gasPrice: BigInt!
         # Gas is the maximum amount of gas this transaction can consume.
         gas: Long!
@@ -220,9 +220,9 @@ const schema string = `
         to: Address
         # Gas is the amount of gas sent with the call.
         gas: Long
-        # GasPrice is the price, in wei, offered for each unit of gas.
+        # GasPrice is the price, in ore, offered for each unit of gas.
         gasPrice: BigInt
-        # Value is the value, in wei, sent along with the call.
+        # Value is the value, in ore, sent along with the call.
         value: BigInt
         # Data is the data sent to the callee.
         data: Bytes
