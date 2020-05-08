@@ -188,14 +188,14 @@ func runCmd(ctx *cli.Context) error {
 		}
 		code = common.Hex2Bytes(bin)
 	}
-	initialGas := ctx.GlobalUint64(GasFlag.Name)
+	initialEnergy := ctx.GlobalUint64(GasFlag.Name)
 	if genesisConfig.GasLimit != 0 {
-		initialGas = genesisConfig.GasLimit
+		initialEnergy = genesisConfig.GasLimit
 	}
 	runtimeConfig := runtime.Config{
 		Origin:      sender,
 		State:       statedb,
-		GasLimit:    initialGas,
+		GasLimit:    initialEnergy,
 		GasPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
 		Value:       utils.GlobalBig(ctx, ValueFlag.Name),
 		Difficulty:  genesisConfig.Difficulty,
@@ -296,7 +296,7 @@ total allocations:  %d
 GC calls:           %d
 Gas used:           %d
 
-`, execTime, mem.HeapObjects, mem.Alloc, mem.TotalAlloc, mem.NumGC, initialGas-leftOverGas)
+`, execTime, mem.HeapObjects, mem.Alloc, mem.TotalAlloc, mem.NumGC, initialEnergy-leftOverGas)
 	}
 	if tracer == nil {
 		fmt.Printf("0x%x\n", output)

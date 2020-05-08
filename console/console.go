@@ -227,19 +227,19 @@ func (c *Console) initAdmin(vm *goja.Runtime, bridge *bridge) {
 //
 // If the console is in interactive mode and the 'personal' API is available, override
 // the openWallet, unlockAccount, newAccount and sign methods since these require user
-// interaction. The original web3 callbacks are stored in 'jeth'. These will be called
+// interaction. The original web3 callbacks are stored in 'jcore'. These will be called
 // by the bridge after the prompt and send the original web3 request to the backend.
 func (c *Console) initPersonal(vm *goja.Runtime, bridge *bridge) {
 	personal := getObject(vm, "personal")
 	if personal == nil || c.prompter == nil {
 		return
 	}
-	jeth := vm.NewObject()
-	vm.Set("jeth", jeth)
-	jeth.Set("openWallet", personal.Get("openWallet"))
-	jeth.Set("unlockAccount", personal.Get("unlockAccount"))
-	jeth.Set("newAccount", personal.Get("newAccount"))
-	jeth.Set("sign", personal.Get("sign"))
+	jcore := vm.NewObject()
+	vm.Set("jcore", jcore)
+	jcore.Set("openWallet", personal.Get("openWallet"))
+	jcore.Set("unlockAccount", personal.Get("unlockAccount"))
+	jcore.Set("newAccount", personal.Get("newAccount"))
+	jcore.Set("sign", personal.Get("sign"))
 	personal.Set("openWallet", jsre.MakeCallback(vm, bridge.OpenWallet))
 	personal.Set("unlockAccount", jsre.MakeCallback(vm, bridge.UnlockAccount))
 	personal.Set("newAccount", jsre.MakeCallback(vm, bridge.NewAccount))

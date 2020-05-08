@@ -53,7 +53,7 @@ type StateTransition struct {
 	msg        Message
 	gas        uint64
 	gasPrice   *big.Int
-	initialGas uint64
+	initialEnergy uint64
 	value      *big.Int
 	data       []byte
 	state      vm.StateDB
@@ -163,7 +163,7 @@ func (st *StateTransition) buyGas() error {
 	}
 	st.gas += st.msg.Gas()
 
-	st.initialGas = st.msg.Gas()
+	st.initialEnergy = st.msg.Gas()
 	st.state.SubBalance(st.msg.From(), mgval)
 	return nil
 }
@@ -251,5 +251,5 @@ func (st *StateTransition) refundGas() {
 
 // gasUsed returns the amount of gas used up by the state transition.
 func (st *StateTransition) gasUsed() uint64 {
-	return st.initialGas - st.gas
+	return st.initialEnergy - st.gas
 }

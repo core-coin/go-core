@@ -612,7 +612,7 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	// Note, the signature must conform to the secp256k1 curve R, S and V values, where
 	// the V value must be be 27 or 28 for legacy reasons.
 	//
-	// https://github.com/core-coin/go-core/wiki/Management-APIs#personal_ecRecover
+	// https://developer.coreblockchain.cc/Management-APIs#personal_ecRecover
 	if len(sig) != 112 + 56 {
 		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
 	}
