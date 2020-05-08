@@ -43,10 +43,10 @@ func TestDefaults(t *testing.T) {
 	if cfg.Time == nil {
 		t.Error("expected time to be non nil")
 	}
-	if cfg.GasLimit == 0 {
-		t.Error("didn't expect gaslimit to be zero")
+	if cfg.EnergyLimit == 0 {
+		t.Error("didn't expect energylimit to be zero")
 	}
-	if cfg.GasPrice == nil {
+	if cfg.EnergyPrice == nil {
 		t.Error("expected time to be non nil")
 	}
 	if cfg.Value == nil {
@@ -70,7 +70,7 @@ func TestEVM(t *testing.T) {
 	Execute([]byte{
 		byte(vm.DIFFICULTY),
 		byte(vm.TIMESTAMP),
-		byte(vm.GASLIMIT),
+		byte(vm.ENERGYLIMIT),
 		byte(vm.PUSH1),
 		byte(vm.ORIGIN),
 		byte(vm.BLOCKHASH),
@@ -164,7 +164,7 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 	runtimeConfig := Config{
 		Origin:      sender,
 		State:       statedb,
-		GasLimit:    10000000,
+		EnergyLimit:    10000000,
 		Difficulty:  big.NewInt(0x200000),
 		Time:        new(big.Int).SetUint64(0),
 		Coinbase:    common.Address{},
@@ -216,7 +216,7 @@ func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
 		Nonce:      types.BlockNonce{0x1},
 		Extra:      []byte{},
 		Difficulty: big.NewInt(0),
-		GasLimit:   100000,
+		EnergyLimit:   100000,
 	}
 	return &header
 }

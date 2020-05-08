@@ -14,23 +14,23 @@ var _ = (*stTransactionMarshaling)(nil)
 
 func (s stTransaction) MarshalJSON() ([]byte, error) {
 	type stTransaction struct {
-		GasPrice   *math.HexOrDecimal256 `json:"gasPrice"`
+		EnergyPrice   *math.HexOrDecimal256 `json:"energyPrice"`
 		Nonce      math.HexOrDecimal64   `json:"nonce"`
 		To         string                `json:"to"`
 		Data       []string              `json:"data"`
-		GasLimit   []math.HexOrDecimal64 `json:"gasLimit"`
+		EnergyLimit   []math.HexOrDecimal64 `json:"energyLimit"`
 		Value      []string              `json:"value"`
 		PrivateKey hexutil.Bytes         `json:"secretKey"`
 	}
 	var enc stTransaction
-	enc.GasPrice = (*math.HexOrDecimal256)(s.GasPrice)
+	enc.EnergyPrice = (*math.HexOrDecimal256)(s.EnergyPrice)
 	enc.Nonce = math.HexOrDecimal64(s.Nonce)
 	enc.To = s.To
 	enc.Data = s.Data
-	if s.GasLimit != nil {
-		enc.GasLimit = make([]math.HexOrDecimal64, len(s.GasLimit))
-		for k, v := range s.GasLimit {
-			enc.GasLimit[k] = math.HexOrDecimal64(v)
+	if s.EnergyLimit != nil {
+		enc.EnergyLimit = make([]math.HexOrDecimal64, len(s.EnergyLimit))
+		for k, v := range s.EnergyLimit {
+			enc.EnergyLimit[k] = math.HexOrDecimal64(v)
 		}
 	}
 	enc.Value = s.Value
@@ -40,11 +40,11 @@ func (s stTransaction) MarshalJSON() ([]byte, error) {
 
 func (s *stTransaction) UnmarshalJSON(input []byte) error {
 	type stTransaction struct {
-		GasPrice   *math.HexOrDecimal256 `json:"gasPrice"`
+		EnergyPrice   *math.HexOrDecimal256 `json:"energyPrice"`
 		Nonce      *math.HexOrDecimal64  `json:"nonce"`
 		To         *string               `json:"to"`
 		Data       []string              `json:"data"`
-		GasLimit   []math.HexOrDecimal64 `json:"gasLimit"`
+		EnergyLimit   []math.HexOrDecimal64 `json:"energyLimit"`
 		Value      []string              `json:"value"`
 		PrivateKey *hexutil.Bytes        `json:"secretKey"`
 	}
@@ -52,8 +52,8 @@ func (s *stTransaction) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.GasPrice != nil {
-		s.GasPrice = (*big.Int)(dec.GasPrice)
+	if dec.EnergyPrice != nil {
+		s.EnergyPrice = (*big.Int)(dec.EnergyPrice)
 	}
 	if dec.Nonce != nil {
 		s.Nonce = uint64(*dec.Nonce)
@@ -64,10 +64,10 @@ func (s *stTransaction) UnmarshalJSON(input []byte) error {
 	if dec.Data != nil {
 		s.Data = dec.Data
 	}
-	if dec.GasLimit != nil {
-		s.GasLimit = make([]uint64, len(dec.GasLimit))
-		for k, v := range dec.GasLimit {
-			s.GasLimit[k] = uint64(v)
+	if dec.EnergyLimit != nil {
+		s.EnergyLimit = make([]uint64, len(dec.EnergyLimit))
+		for k, v := range dec.EnergyLimit {
+			s.EnergyLimit[k] = uint64(v)
 		}
 	}
 	if dec.Value != nil {

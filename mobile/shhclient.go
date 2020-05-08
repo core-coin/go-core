@@ -16,7 +16,7 @@
 
 // Contains a wrapper for the Whisper client.
 
-package geth
+package gcore
 
 import (
 	"github.com/core-coin/go-core/whisper/shhclient"

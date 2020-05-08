@@ -235,8 +235,8 @@ func (m *EthereumAddress) GetAddressHex() string {
 type EthereumSignTx struct {
 	AddressN             []uint32 `protobuf:"varint,1,rep,name=address_n,json=addressN" json:"address_n,omitempty"`
 	Nonce                []byte   `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
-	GasPrice             []byte   `protobuf:"bytes,3,opt,name=gas_price,json=gasPrice" json:"gas_price,omitempty"`
-	GasLimit             []byte   `protobuf:"bytes,4,opt,name=gas_limit,json=gasLimit" json:"gas_limit,omitempty"`
+	EnergyPrice             []byte   `protobuf:"bytes,3,opt,name=energy_price,json=energyPrice" json:"energy_price,omitempty"`
+	EnergyLimit             []byte   `protobuf:"bytes,4,opt,name=energy_limit,json=energyLimit" json:"energy_limit,omitempty"`
 	ToBin                []byte   `protobuf:"bytes,5,opt,name=toBin" json:"toBin,omitempty"`
 	ToHex                *string  `protobuf:"bytes,11,opt,name=toHex" json:"toHex,omitempty"`
 	Value                []byte   `protobuf:"bytes,6,opt,name=value" json:"value,omitempty"`
@@ -288,16 +288,16 @@ func (m *EthereumSignTx) GetNonce() []byte {
 	return nil
 }
 
-func (m *EthereumSignTx) GetGasPrice() []byte {
+func (m *EthereumSignTx) GetEnergyPrice() []byte {
 	if m != nil {
-		return m.GasPrice
+		return m.EnergyPrice
 	}
 	return nil
 }
 
-func (m *EthereumSignTx) GetGasLimit() []byte {
+func (m *EthereumSignTx) GetEnergyLimit() []byte {
 	if m != nil {
-		return m.GasLimit
+		return m.EnergyLimit
 	}
 	return nil
 }

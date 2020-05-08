@@ -48,7 +48,7 @@ import (
 )
 
 const (
-	defaultGasPrice = params.Nucle
+	defaultEnergyPrice = params.Nucle
 )
 
 // PublicEthereumAPI provides an API to access Ethereum related information.
@@ -62,8 +62,8 @@ func NewPublicEthereumAPI(b Backend) *PublicEthereumAPI {
 	return &PublicEthereumAPI{b}
 }
 
-// GasPrice returns a suggestion for a gas price.
-func (s *PublicEthereumAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) {
+// EnergyPrice returns a suggestion for a energy price.
+func (s *PublicEthereumAPI) EnergyPrice(ctx context.Context) (*hexutil.Big, error) {
 	price, err := s.b.SuggestPrice(ctx)
 	return (*hexutil.Big)(price), err
 }
@@ -155,9 +155,9 @@ func (s *PublicTxPoolAPI) Inspect() map[string]map[string]map[string]string {
 	// Define a formatter to flatten a transaction into a string
 	var format = func(tx *types.Transaction) string {
 		if to := tx.To(); to != nil {
-			return fmt.Sprintf("%s: %v ore + %v gas × %v ore", tx.To().Hex(), tx.Value(), tx.Gas(), tx.GasPrice())
+			return fmt.Sprintf("%s: %v ore + %v energy × %v ore", tx.To().Hex(), tx.Value(), tx.Energy(), tx.EnergyPrice())
 		}
-		return fmt.Sprintf("contract creation: %v ore + %v gas × %v ore", tx.Value(), tx.Gas(), tx.GasPrice())
+		return fmt.Sprintf("contract creation: %v ore + %v energy × %v ore", tx.Value(), tx.Energy(), tx.EnergyPrice())
 	}
 	// Flatten the pending transactions
 	for account, txs := range pending {
@@ -383,11 +383,11 @@ func (s *PrivateAccountAPI) SendTransaction(ctx context.Context, args SendTxArgs
 func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs, passwd string) (*SignTransactionResult, error) {
 	// No need to obtain the noncelock mutex, since we won't be sending this
 	// tx into the transaction pool, but right back to the user
-	if args.Gas == nil {
-		return nil, fmt.Errorf("gas not specified")
+	if args.Energy == nil {
+		return nil, fmt.Errorf("energy not specified")
 	}
-	if args.GasPrice == nil {
-		return nil, fmt.Errorf("gasPrice not specified")
+	if args.EnergyPrice == nil {
+		return nil, fmt.Errorf("energyPrice not specified")
 	}
 	if args.Nonce == nil {
 		return nil, fmt.Errorf("nonce not specified")
@@ -491,7 +491,7 @@ func (s *PrivateAccountAPI) InitializeWallet(ctx context.Context, url string) (s
 	}
 }
 
-// Unpair deletes a pairing between wallet and geth.
+// Unpair deletes a pairing between wallet and gcore.
 func (s *PrivateAccountAPI) Unpair(ctx context.Context, url string, pin string) error {
 	wallet, err := s.am.Wallet(url)
 	if err != nil {
@@ -738,8 +738,8 @@ func (s *PublicBlockChainAPI) GetStorageAt(ctx context.Context, address common.A
 type CallArgs struct {
 	From     *common.Address `json:"from"`
 	To       *common.Address `json:"to"`
-	Gas      *hexutil.Uint64 `json:"gas"`
-	GasPrice *hexutil.Big    `json:"gasPrice"`
+	Energy      *hexutil.Uint64 `json:"energy"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice"`
 	Value    *hexutil.Big    `json:"value"`
 	Data     *hexutil.Bytes  `json:"data"`
 }
@@ -758,7 +758,7 @@ type account struct {
 	StateDiff *map[common.Hash]common.Hash `json:"stateDiff"`
 }
 
-func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalGasCap *big.Int) ([]byte, uint64, bool, error) {
+func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalEnergyCap *big.Int) ([]byte, uint64, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
 
 	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
@@ -800,18 +800,18 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 			}
 		}
 	}
-	// Set default gas & gas price if none were set
-	gas := uint64(math.MaxUint64 / 2)
-	if args.Gas != nil {
-		gas = uint64(*args.Gas)
+	// Set default energy & energy price if none were set
+	energy := uint64(math.MaxUint64 / 2)
+	if args.Energy != nil {
+		energy = uint64(*args.Energy)
 	}
-	if globalGasCap != nil && globalGasCap.Uint64() < gas {
-		log.Warn("Caller gas above allowance, capping", "requested", gas, "cap", globalGasCap)
-		gas = globalGasCap.Uint64()
+	if globalEnergyCap != nil && globalEnergyCap.Uint64() < energy {
+		log.Warn("Caller energy above allowance, capping", "requested", energy, "cap", globalEnergyCap)
+		energy = globalEnergyCap.Uint64()
 	}
-	gasPrice := new(big.Int).SetUint64(defaultGasPrice)
-	if args.GasPrice != nil {
-		gasPrice = args.GasPrice.ToInt()
+	energyPrice := new(big.Int).SetUint64(defaultEnergyPrice)
+	if args.EnergyPrice != nil {
+		energyPrice = args.EnergyPrice.ToInt()
 	}
 
 	value := new(big.Int)
@@ -825,10 +825,10 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	}
 
 	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, value, gas, gasPrice, data, false)
+	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
 
 	// Setup context so it may be cancelled the call has completed
-	// or, in case of unmetered gas, setup a context with a timeout.
+	// or, in case of unmetered energy, setup a context with a timeout.
 	var cancel context.CancelFunc
 	if timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -851,10 +851,10 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 		evm.Cancel()
 	}()
 
-	// Setup the gas pool (also for unmetered requests)
+	// Setup the energy pool (also for unmetered requests)
 	// and apply the message.
-	gp := new(core.GasPool).AddGas(math.MaxUint64)
-	res, gas, failed, err := core.ApplyMessage(evm, msg, gp)
+	gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
+	res, energy, failed, err := core.ApplyMessage(evm, msg, gp)
 	if err := vmError(); err != nil {
 		return nil, 0, false, err
 	}
@@ -862,7 +862,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	if evm.Cancelled() {
 		return nil, 0, false, fmt.Errorf("execution aborted (timeout = %v)", timeout)
 	}
-	return res, gas, failed, err
+	return res, energy, failed, err
 }
 
 // Call executes the given transaction on the state for the given block number.
@@ -876,30 +876,30 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOr
 	if overrides != nil {
 		accounts = *overrides
 	}
-	result, _, _, err := DoCall(ctx, s.b, args, blockNrOrHash, accounts, vm.Config{}, 5*time.Second, s.b.RPCGasCap())
+	result, _, _, err := DoCall(ctx, s.b, args, blockNrOrHash, accounts, vm.Config{}, 5*time.Second, s.b.RPCEnergyCap())
 	return (hexutil.Bytes)(result), err
 }
 
-func DoEstimateGas(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, gasCap *big.Int) (hexutil.Uint64, error) {
-	// Binary search the gas requirement, as it may be higher than the amount used
+func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, energyCap *big.Int) (hexutil.Uint64, error) {
+	// Binary search the energy requirement, as it may be higher than the amount used
 	var (
-		lo  uint64 = params.TxGas - 1
+		lo  uint64 = params.TxEnergy - 1
 		hi  uint64
 		cap uint64
 	)
-	if args.Gas != nil && uint64(*args.Gas) >= params.TxGas {
-		hi = uint64(*args.Gas)
+	if args.Energy != nil && uint64(*args.Energy) >= params.TxEnergy {
+		hi = uint64(*args.Energy)
 	} else {
-		// Retrieve the block to act as the gas ceiling
+		// Retrieve the block to act as the energy ceiling
 		block, err := b.BlockByNumberOrHash(ctx, blockNrOrHash)
 		if err != nil {
 			return 0, err
 		}
-		hi = block.GasLimit()
+		hi = block.EnergyLimit()
 	}
-	if gasCap != nil && hi > gasCap.Uint64() {
-		log.Warn("Caller gas above allowance, capping", "requested", hi, "cap", gasCap)
-		hi = gasCap.Uint64()
+	if energyCap != nil && hi > energyCap.Uint64() {
+		log.Warn("Caller energy above allowance, capping", "requested", hi, "cap", energyCap)
+		hi = energyCap.Uint64()
 	}
 	cap = hi
 
@@ -907,17 +907,17 @@ func DoEstimateGas(ctx context.Context, b Backend, args CallArgs, blockNrOrHash 
 	if args.From == nil {
 		args.From = new(common.Address)
 	}
-	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) bool {
-		args.Gas = (*hexutil.Uint64)(&gas)
+	// Create a helper to check if a energy allowance results in an executable transaction
+	executable := func(energy uint64) bool {
+		args.Energy = (*hexutil.Uint64)(&energy)
 
-		_, _, failed, err := DoCall(ctx, b, args, blockNrOrHash, nil, vm.Config{}, 0, gasCap)
+		_, _, failed, err := DoCall(ctx, b, args, blockNrOrHash, nil, vm.Config{}, 0, energyCap)
 		if err != nil || failed {
 			return false
 		}
 		return true
 	}
-	// Execute the binary search and hone in on an executable gas limit
+	// Execute the binary search and hone in on an executable energy limit
 	for lo+1 < hi {
 		mid := (hi + lo) / 2
 		if !executable(mid) {
@@ -929,24 +929,24 @@ func DoEstimateGas(ctx context.Context, b Backend, args CallArgs, blockNrOrHash 
 	// Reject the transaction as invalid if it still fails at the highest allowance
 	if hi == cap {
 		if !executable(hi) {
-			return 0, fmt.Errorf("gas required exceeds allowance (%d) or always failing transaction", cap)
+			return 0, fmt.Errorf("energy required exceeds allowance (%d) or always failing transaction", cap)
 		}
 	}
 	return hexutil.Uint64(hi), nil
 }
 
-// EstimateGas returns an estimate of the amount of gas needed to execute the
+// EstimateEnergy returns an estimate of the amount of energy needed to execute the
 // given transaction against the current pending block.
-func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
+func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
 	blockNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return DoEstimateGas(ctx, s.b, args, blockNrOrHash, s.b.RPCGasCap())
+	return DoEstimateEnergy(ctx, s.b, args, blockNrOrHash, s.b.RPCEnergyCap())
 }
 
 // ExecutionResult groups all structured logs emitted by the EVM
 // while replaying a transaction in debug mode as well as transaction
-// execution status, the amount of gas used and the return value
+// execution status, the amount of energy used and the return value
 type ExecutionResult struct {
-	Gas         uint64         `json:"gas"`
+	Energy         uint64         `json:"energy"`
 	Failed      bool           `json:"failed"`
 	ReturnValue string         `json:"returnValue"`
 	StructLogs  []StructLogRes `json:"structLogs"`
@@ -957,8 +957,8 @@ type ExecutionResult struct {
 type StructLogRes struct {
 	Pc      uint64             `json:"pc"`
 	Op      string             `json:"op"`
-	Gas     uint64             `json:"gas"`
-	GasCost uint64             `json:"gasCost"`
+	Energy     uint64             `json:"energy"`
+	EnergyCost uint64             `json:"energyCost"`
 	Depth   int                `json:"depth"`
 	Error   error              `json:"error,omitempty"`
 	Stack   *[]string          `json:"stack,omitempty"`
@@ -973,8 +973,8 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 		formatted[index] = StructLogRes{
 			Pc:      trace.Pc,
 			Op:      trace.Op.String(),
-			Gas:     trace.Gas,
-			GasCost: trace.GasCost,
+			Energy:     trace.Energy,
+			EnergyCost: trace.EnergyCost,
 			Depth:   trace.Depth,
 			Error:   trace.Err,
 		}
@@ -1018,8 +1018,8 @@ func RPCMarshalHeader(head *types.Header) map[string]interface{} {
 		"difficulty":       (*hexutil.Big)(head.Difficulty),
 		"extraData":        hexutil.Bytes(head.Extra),
 		"size":             hexutil.Uint64(head.Size()),
-		"gasLimit":         hexutil.Uint64(head.GasLimit),
-		"gasUsed":          hexutil.Uint64(head.GasUsed),
+		"energyLimit":         hexutil.Uint64(head.EnergyLimit),
+		"energyUsed":          hexutil.Uint64(head.EnergyUsed),
 		"timestamp":        hexutil.Uint64(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,
@@ -1088,8 +1088,8 @@ type RPCTransaction struct {
 	BlockHash        *common.Hash    `json:"blockHash"`
 	BlockNumber      *hexutil.Big    `json:"blockNumber"`
 	From             common.Address  `json:"from"`
-	Gas              hexutil.Uint64  `json:"gas"`
-	GasPrice         *hexutil.Big    `json:"gasPrice"`
+	Energy              hexutil.Uint64  `json:"energy"`
+	EnergyPrice         *hexutil.Big    `json:"energyPrice"`
 	Hash             common.Hash     `json:"hash"`
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
@@ -1113,8 +1113,8 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 
 	result := &RPCTransaction{
 		From:     from,
-		Gas:      hexutil.Uint64(tx.Gas()),
-		GasPrice: (*hexutil.Big)(tx.GasPrice()),
+		Energy:      hexutil.Uint64(tx.Energy()),
+		EnergyPrice: (*hexutil.Big)(tx.EnergyPrice()),
 		Hash:     tx.Hash(),
 		Input:    hexutil.Bytes(tx.Data()),
 		Nonce:    hexutil.Uint64(tx.Nonce()),
@@ -1310,8 +1310,8 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 		"transactionIndex":  hexutil.Uint64(index),
 		"from":              from,
 		"to":                tx.To(),
-		"gasUsed":           hexutil.Uint64(receipt.GasUsed),
-		"cumulativeGasUsed": hexutil.Uint64(receipt.CumulativeGasUsed),
+		"energyUsed":           hexutil.Uint64(receipt.EnergyUsed),
+		"cumulativeEnergyUsed": hexutil.Uint64(receipt.CumulativeEnergyUsed),
 		"contractAddress":   nil,
 		"logs":              receipt.Logs,
 		"logsBloom":         receipt.Bloom,
@@ -1350,8 +1350,8 @@ func (s *PublicTransactionPoolAPI) sign(addr common.Address, tx *types.Transacti
 type SendTxArgs struct {
 	From     common.Address  `json:"from"`
 	To       *common.Address `json:"to"`
-	Gas      *hexutil.Uint64 `json:"gas"`
-	GasPrice *hexutil.Big    `json:"gasPrice"`
+	Energy      *hexutil.Uint64 `json:"energy"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice"`
 	Value    *hexutil.Big    `json:"value"`
 	Nonce    *hexutil.Uint64 `json:"nonce"`
 	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
@@ -1362,12 +1362,12 @@ type SendTxArgs struct {
 
 // setDefaults is a helper function that fills in default values for unspecified tx fields.
 func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
-	if args.GasPrice == nil {
+	if args.EnergyPrice == nil {
 		price, err := b.SuggestPrice(ctx)
 		if err != nil {
 			return err
 		}
-		args.GasPrice = (*hexutil.Big)(price)
+		args.EnergyPrice = (*hexutil.Big)(price)
 	}
 	if args.Value == nil {
 		args.Value = new(hexutil.Big)
@@ -1394,8 +1394,8 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 			return errors.New(`contract creation without any data provided`)
 		}
 	}
-	// Estimate the gas usage if necessary.
-	if args.Gas == nil {
+	// Estimate the energy usage if necessary.
+	if args.Energy == nil {
 		// For backwards-compatibility reason, we try both input and data
 		// but input is preferred.
 		input := args.Input
@@ -1405,17 +1405,17 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 		callArgs := CallArgs{
 			From:     &args.From, // From shouldn't be nil
 			To:       args.To,
-			GasPrice: args.GasPrice,
+			EnergyPrice: args.EnergyPrice,
 			Value:    args.Value,
 			Data:     input,
 		}
 		pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-		estimated, err := DoEstimateGas(ctx, b, callArgs, pendingBlockNr, b.RPCGasCap())
+		estimated, err := DoEstimateEnergy(ctx, b, callArgs, pendingBlockNr, b.RPCEnergyCap())
 		if err != nil {
 			return err
 		}
-		args.Gas = &estimated
-		log.Trace("Estimate gas usage automatically", "gas", args.Gas)
+		args.Energy = &estimated
+		log.Trace("Estimate energy usage automatically", "energy", args.Energy)
 	}
 	return nil
 }
@@ -1428,9 +1428,9 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 		input = *args.Data
 	}
 	if args.To == nil {
-		return types.NewContractCreation(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
+		return types.NewContractCreation(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
 	}
-	return types.NewTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
+	return types.NewTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
 }
 
 // SubmitTransaction is a helper function that submits tx to txPool and logs a message.
@@ -1484,7 +1484,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	return SubmitTransaction(ctx, s.b, signed)
 }
 
-// FillTransaction fills the defaults (nonce, gas, gasPrice) on a given unsigned transaction,
+// FillTransaction fills the defaults (nonce, energy, energyPrice) on a given unsigned transaction,
 // and returns it to the caller for further processing (signing + broadcast)
 func (s *PublicTransactionPoolAPI) FillTransaction(ctx context.Context, args SendTxArgs) (*SignTransactionResult, error) {
 	// Set some sanity defaults and terminate on failure
@@ -1545,11 +1545,11 @@ type SignTransactionResult struct {
 // The node needs to have the private key of the account corresponding with
 // the given from address and it needs to be unlocked.
 func (s *PublicTransactionPoolAPI) SignTransaction(ctx context.Context, args SendTxArgs) (*SignTransactionResult, error) {
-	if args.Gas == nil {
-		return nil, fmt.Errorf("gas not specified")
+	if args.Energy == nil {
+		return nil, fmt.Errorf("energy not specified")
 	}
-	if args.GasPrice == nil {
-		return nil, fmt.Errorf("gasPrice not specified")
+	if args.EnergyPrice == nil {
+		return nil, fmt.Errorf("energyPrice not specified")
 	}
 	if args.Nonce == nil {
 		return nil, fmt.Errorf("nonce not specified")
@@ -1595,9 +1595,9 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	return transactions, nil
 }
 
-// Resend accepts an existing transaction and a new gas price and limit. It will remove
-// the given transaction from the pool and reinsert it with the new gas price and limit.
-func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxArgs, gasPrice *hexutil.Big, gasLimit *hexutil.Uint64) (common.Hash, error) {
+// Resend accepts an existing transaction and a new energy price and limit. It will remove
+// the given transaction from the pool and reinsert it with the new energy price and limit.
+func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxArgs, energyPrice *hexutil.Big, energyLimit *hexutil.Uint64) (common.Hash, error) {
 	if sendArgs.Nonce == nil {
 		return common.Hash{}, fmt.Errorf("missing transaction nonce in transaction spec")
 	}
@@ -1619,11 +1619,11 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {
 			// Match. Re-sign and send the transaction.
-			if gasPrice != nil && (*big.Int)(gasPrice).Sign() != 0 {
-				sendArgs.GasPrice = gasPrice
+			if energyPrice != nil && (*big.Int)(energyPrice).Sign() != 0 {
+				sendArgs.EnergyPrice = energyPrice
 			}
-			if gasLimit != nil && *gasLimit != 0 {
-				sendArgs.Gas = gasLimit
+			if energyLimit != nil && *energyLimit != 0 {
+				sendArgs.Energy = energyLimit
 			}
 			signedTx, err := s.sign(sendArgs.From, sendArgs.toTransaction())
 			if err != nil {

@@ -769,8 +769,8 @@ func testExternalUI(api *core.SignerAPI) {
 			ReceiptHash: common.HexToHash("0000H45H"),
 			Difficulty:  big.NewInt(1337),
 			Number:      big.NewInt(1337),
-			GasLimit:    1338,
-			GasUsed:     1338,
+			EnergyLimit:    1338,
+			EnergyUsed:     1338,
 			Time:        1338,
 			Extra:       []byte("Extra data Extra data Extra data  Extra data  Extra data  Extra data  Extra data Extra data"),
 			MixDigest:   common.HexToHash("0x0000H45H"),
@@ -820,8 +820,8 @@ func testExternalUI(api *core.SignerAPI) {
 			Value:    hexutil.Big(*big.NewInt(6)),
 			From:     common.NewMixedcaseAddress(a),
 			To:       &to,
-			GasPrice: hexutil.Big(*big.NewInt(5)),
-			Gas:      1000,
+			EnergyPrice: hexutil.Big(*big.NewInt(5)),
+			Energy:      1000,
 			Input:    nil,
 		}
 		_, err := api.SignTransaction(ctx, tx, nil)
@@ -977,8 +977,8 @@ func GenDoc(ctx *cli.Context) {
 				Value:    hexutil.Big(*big.NewInt(6)),
 				From:     common.NewMixedcaseAddress(a),
 				To:       nil,
-				GasPrice: hexutil.Big(*big.NewInt(5)),
-				Gas:      1000,
+				EnergyPrice: hexutil.Big(*big.NewInt(5)),
+				Energy:      1000,
 				Input:    nil,
 			}})
 	}
@@ -993,8 +993,8 @@ func GenDoc(ctx *cli.Context) {
 					Value:    hexutil.Big(*big.NewInt(6)),
 					From:     common.NewMixedcaseAddress(a),
 					To:       nil,
-					GasPrice: hexutil.Big(*big.NewInt(5)),
-					Gas:      1000,
+					EnergyPrice: hexutil.Big(*big.NewInt(5)),
+					Energy:      1000,
 					Input:    nil,
 				}})
 		add("SignTxResponse - deny", "Response to SignTxRequest. When denying a request, there's no need to "+

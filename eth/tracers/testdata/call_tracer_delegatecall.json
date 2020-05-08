@@ -1,7 +1,7 @@
 {
   "context": {
     "difficulty": "31927752",
-    "gasLimit": "4707788",
+    "energyLimit": "4707788",
     "miner": "0x5659922ce141eedbc2733678f9806c77b4eebee8",
     "number": "11495",
     "timestamp": "1479735917"
@@ -50,7 +50,7 @@
     },
     "difficulty": "31912170",
     "extraData": "0xd783010502846765746887676f312e372e33856c696e7578",
-    "gasLimit": "4712388",
+    "energyLimit": "4712388",
     "hash": "0x0855914bdc581bccdc62591fd438498386ffb59ea4d5361ed5c3702e26e2c72f",
     "miner": "0x334391aa808257952a462d1475562ee2106a6c90",
     "mixHash": "0x64bb70b8ca883cadb8fbbda2c70a861612407864089ed87b98e5de20acceada6",
@@ -67,8 +67,8 @@
         "calls": [
           {
             "from": "0x13204f5d64c28326fd7bd05fd4ea855302d7f2ff",
-            "gas": "0x2bf459",
-            "gasUsed": "0x2aa",
+            "energy": "0x2bf459",
+            "energyUsed": "0x2aa",
             "input": "0x7d65837a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a529806c67cc6486d4d62024471772f47f6fd672",
             "output": "0x0000000000000000000000000000000000000000000000000000000000000001",
             "to": "0x42b02b5deeb78f34cd5ac896473b63e6c99a71a2",
@@ -76,8 +76,8 @@
           }
         ],
         "from": "0x269296dddce321a6bcbaa2f0181127593d732cba",
-        "gas": "0x2cae73",
-        "gasUsed": "0xa9d",
+        "energy": "0x2cae73",
+        "energyUsed": "0xa9d",
         "input": "0x5dbe47e8000000000000000000000000a529806c67cc6486d4d62024471772f47f6fd672",
         "output": "0x0000000000000000000000000000000000000000000000000000000000000001",
         "to": "0x13204f5d64c28326fd7bd05fd4ea855302d7f2ff",
@@ -86,8 +86,8 @@
       }
     ],
     "from": "0xa529806c67cc6486d4d62024471772f47f6fd672",
-    "gas": "0x2d6e28",
-    "gasUsed": "0x64bd",
+    "energy": "0x2d6e28",
+    "energyUsed": "0x64bd",
     "input": "0x7065cb480000000000000000000000001523e55a1ca4efbae03355775ae89f8d7699ad9e",
     "output": "0x",
     "to": "0x269296dddce321a6bcbaa2f0181127593d732cba",

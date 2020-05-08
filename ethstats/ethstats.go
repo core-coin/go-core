@@ -473,8 +473,8 @@ type blockStats struct {
 	ParentHash common.Hash    `json:"parentHash"`
 	Timestamp  *big.Int       `json:"timestamp"`
 	Miner      common.Address `json:"miner"`
-	GasUsed    uint64         `json:"gasUsed"`
-	GasLimit   uint64         `json:"gasLimit"`
+	EnergyUsed    uint64         `json:"energyUsed"`
+	EnergyLimit   uint64         `json:"energyLimit"`
 	Diff       string         `json:"difficulty"`
 	TotalDiff  string         `json:"totalDifficulty"`
 	Txs        []txStats      `json:"transactions"`
@@ -559,8 +559,8 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		ParentHash: header.ParentHash,
 		Timestamp:  new(big.Int).SetUint64(header.Time),
 		Miner:      author,
-		GasUsed:    header.GasUsed,
-		GasLimit:   header.GasLimit,
+		EnergyUsed:    header.EnergyUsed,
+		EnergyLimit:   header.EnergyLimit,
 		Diff:       header.Difficulty.String(),
 		TotalDiff:  td.String(),
 		Txs:        txs,
@@ -668,7 +668,7 @@ type nodeStats struct {
 	Mining   bool `json:"mining"`
 	Hashrate int  `json:"hashrate"`
 	Peers    int  `json:"peers"`
-	GasPrice int  `json:"gasPrice"`
+	EnergyPrice int  `json:"energyPrice"`
 	Uptime   int  `json:"uptime"`
 }
 
@@ -680,7 +680,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		mining   bool
 		hashrate int
 		syncing  bool
-		gasprice int
+		energyprice int
 	)
 	if s.eth != nil {
 		mining = s.eth.Miner().Mining()
@@ -690,7 +690,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		syncing = s.eth.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
 
 		price, _ := s.eth.APIBackend.SuggestPrice(context.Background())
-		gasprice = int(price.Uint64())
+		energyprice = int(price.Uint64())
 	} else {
 		sync := s.les.Downloader().Progress()
 		syncing = s.les.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
@@ -705,7 +705,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 			Mining:   mining,
 			Hashrate: hashrate,
 			Peers:    s.server.PeerCount(),
-			GasPrice: gasprice,
+			EnergyPrice: energyprice,
 			Syncing:  syncing,
 			Uptime:   100,
 		},

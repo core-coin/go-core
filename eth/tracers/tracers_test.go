@@ -40,7 +40,7 @@ import (
 )
 
 // To generate a new callTracer test, copy paste the makeTest method below into
-// a Geth console and call it with a transaction hash you which to export.
+// a Gcore console and call it with a transaction hash you which to export.
 
 /*
 // makeTest generates a callTracer test by running a prestate reassembled and a
@@ -50,7 +50,7 @@ var makeTest = function(tx, rewind) {
   var block   = eth.getBlock(eth.getTransaction(tx).blockHash);
   var genesis = eth.getBlock(block.parentHash);
 
-  delete genesis.gasUsed;
+  delete genesis.energyUsed;
   delete genesis.logsBloom;
   delete genesis.parentHash;
   delete genesis.receiptsRoot;
@@ -60,7 +60,7 @@ var makeTest = function(tx, rewind) {
   delete genesis.transactionsRoot;
   delete genesis.uncles;
 
-  genesis.gasLimit  = genesis.gasLimit.toString();
+  genesis.energyLimit  = genesis.energyLimit.toString();
   genesis.number    = genesis.number.toString();
   genesis.timestamp = genesis.timestamp.toString();
 
@@ -80,7 +80,7 @@ var makeTest = function(tx, rewind) {
       number:     block.number.toString(),
       difficulty: block.difficulty,
       timestamp:  block.timestamp.toString(),
-      gasLimit:   block.gasLimit.toString(),
+      energyLimit:   block.energyLimit.toString(),
       miner:      block.miner,
     },
     input:  eth.getRawTransaction(tx),
@@ -96,8 +96,8 @@ type callTrace struct {
 	To      common.Address  `json:"to"`
 	Input   hexutil.Bytes   `json:"input"`
 	Output  hexutil.Bytes   `json:"output"`
-	Gas     *hexutil.Uint64 `json:"gas,omitempty"`
-	GasUsed *hexutil.Uint64 `json:"gasUsed,omitempty"`
+	Energy     *hexutil.Uint64 `json:"energy,omitempty"`
+	EnergyUsed *hexutil.Uint64 `json:"energyUsed,omitempty"`
 	Value   *hexutil.Big    `json:"value,omitempty"`
 	Error   string          `json:"error,omitempty"`
 	Calls   []callTrace     `json:"calls,omitempty"`
@@ -107,7 +107,7 @@ type callContext struct {
 	Number     math.HexOrDecimal64   `json:"number"`
 	Difficulty *math.HexOrDecimal256 `json:"difficulty"`
 	Time       math.HexOrDecimal64   `json:"timestamp"`
-	GasLimit   math.HexOrDecimal64   `json:"gasLimit"`
+	EnergyLimit   math.HexOrDecimal64   `json:"energyLimit"`
 	Miner      common.Address        `json:"miner"`
 }
 
@@ -138,7 +138,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	    address 0x00000000000000000000000000000000deadbeef
 	    salt 0x00000000000000000000000000000000000000000000000000000000cafebabe
 	    init_code 0xdeadbeef
-	    gas (assuming no mem expansion): 32006
+	    energy (assuming no mem expansion): 32006
 	    result: 0x60f3f640a8508fC6a86d45DF051962668E1e8AC7
 	*/
 	origin, _ := signer.Sender(tx)
@@ -150,8 +150,8 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		BlockNumber: new(big.Int).SetUint64(8000000),
 		Time:        new(big.Int).SetUint64(5),
 		Difficulty:  big.NewInt(0x30000),
-		GasLimit:    uint64(6000000),
-		GasPrice:    big.NewInt(1),
+		EnergyLimit:    uint64(6000000),
+		EnergyPrice:    big.NewInt(1),
 	}
 	alloc := core.GenesisAlloc{}
 
@@ -180,7 +180,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to prepare transaction for tracing: %v", err)
 	}
-	st := core.NewStateTransition(evm, msg, new(core.GasPool).AddGas(tx.Gas()))
+	st := core.NewStateTransition(evm, msg, new(core.EnergyPool).AddEnergy(tx.Energy()))
 	if _, _, _, err = st.TransitionDb(); err != nil {
 		t.Fatalf("failed to execute transaction: %v", err)
 	}
@@ -238,8 +238,8 @@ func TestCallTracer(t *testing.T) {
 				BlockNumber: new(big.Int).SetUint64(uint64(test.Context.Number)),
 				Time:        new(big.Int).SetUint64(uint64(test.Context.Time)),
 				Difficulty:  (*big.Int)(test.Context.Difficulty),
-				GasLimit:    uint64(test.Context.GasLimit),
-				GasPrice:    tx.GasPrice(),
+				EnergyLimit:    uint64(test.Context.EnergyLimit),
+				EnergyPrice:    tx.EnergyPrice(),
 			}
 			statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), test.Genesis.Alloc)
 
@@ -254,7 +254,7 @@ func TestCallTracer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to prepare transaction for tracing: %v", err)
 			}
-			st := core.NewStateTransition(evm, msg, new(core.GasPool).AddGas(tx.Gas()))
+			st := core.NewStateTransition(evm, msg, new(core.EnergyPool).AddEnergy(tx.Energy()))
 			if _, _, _, err = st.TransitionDb(); err != nil {
 				t.Fatalf("failed to execute transaction: %v", err)
 			}

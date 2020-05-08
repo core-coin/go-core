@@ -192,8 +192,8 @@ func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transactio
 		Data:     &data,
 		Nonce:    hexutil.Uint64(tx.Nonce()),
 		Value:    hexutil.Big(*tx.Value()),
-		Gas:      hexutil.Uint64(tx.Gas()),
-		GasPrice: hexutil.Big(*tx.GasPrice()),
+		Energy:      hexutil.Uint64(tx.Energy()),
+		EnergyPrice: hexutil.Big(*tx.EnergyPrice()),
 		To:       to,
 		From:     common.NewMixedcaseAddress(account.Address),
 	}

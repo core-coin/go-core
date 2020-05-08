@@ -20,9 +20,9 @@
 //
 // build/bin/clef --4bytedb=./cmd/clef/4byte.json --rpc
 //
-// Start geth with
+// Start gcore with
 //
-// build/bin/geth --nodiscover --maxpeers 0 --signer http://localhost:8550 console --preload=cmd/clef/tests/testsigner.js
+// build/bin/gcore --nodiscover --maxpeers 0 --signer http://localhost:8550 console --preload=cmd/clef/tests/testsigner.js
 //
 // and in the console simply invoke
 //
@@ -44,7 +44,7 @@ init()
 function testTx(){
     if( accts && accts.length > 0) {
         var a = accts[0]
-        var txdata = eth.signTransaction({from: a, to: a, value: 1, nonce: 1, gas: 1, gasPrice: 1})
+        var txdata = eth.signTransaction({from: a, to: a, value: 1, nonce: 1, energy: 1, energyPrice: 1})
         var v = parseInt(txdata.tx.v)
         console.log("V value: ", v)
         if (v == 37 || v == 38){

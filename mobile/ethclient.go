@@ -16,7 +16,7 @@
 
 // Contains a wrapper for the Ethereum client.
 
-package geth
+package gcore
 
 import (
 	"math/big"
@@ -291,20 +291,20 @@ func (ec *EthereumClient) PendingCallContract(ctx *Context, msg *CallMsg) (outpu
 	return ec.client.PendingCallContract(ctx.context, msg.msg)
 }
 
-// SuggestGasPrice retrieves the currently suggested gas price to allow a timely
+// SuggestEnergyPrice retrieves the currently suggested energy price to allow a timely
 // execution of a transaction.
-func (ec *EthereumClient) SuggestGasPrice(ctx *Context) (price *BigInt, _ error) {
-	rawPrice, err := ec.client.SuggestGasPrice(ctx.context)
+func (ec *EthereumClient) SuggestEnergyPrice(ctx *Context) (price *BigInt, _ error) {
+	rawPrice, err := ec.client.SuggestEnergyPrice(ctx.context)
 	return &BigInt{rawPrice}, err
 }
 
-// EstimateGas tries to estimate the gas needed to execute a specific transaction based on
+// EstimateEnergy tries to estimate the energy needed to execute a specific transaction based on
 // the current pending state of the backend blockchain. There is no guarantee that this is
-// the true gas limit requirement as other transactions may be added or removed by miners,
+// the true energy limit requirement as other transactions may be added or removed by miners,
 // but it should provide a basis for setting a reasonable default.
-func (ec *EthereumClient) EstimateGas(ctx *Context, msg *CallMsg) (gas int64, _ error) {
-	rawGas, err := ec.client.EstimateGas(ctx.context, msg.msg)
-	return int64(rawGas), err
+func (ec *EthereumClient) EstimateEnergy(ctx *Context, msg *CallMsg) (energy int64, _ error) {
+	rawEnergy, err := ec.client.EstimateEnergy(ctx.context, msg.msg)
+	return int64(rawEnergy), err
 }
 
 // SendTransaction injects a signed transaction into the pending pool for execution.

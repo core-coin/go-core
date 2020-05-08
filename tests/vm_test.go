@@ -29,7 +29,7 @@ func TestVM(t *testing.T) {
 	vmt.fails("^vmSystemOperationsTest.json/createNameRegistrator$", "fails without parallel execution")
 
 	vmt.walk(t, vmTestDir, func(t *testing.T, name string, test *VMTest) {
-		withTrace(t, test.json.Exec.GasLimit, func(vmconfig vm.Config) error {
+		withTrace(t, test.json.Exec.EnergyLimit, func(vmconfig vm.Config) error {
 			return vmt.checkFailure(t, name, test.Run(vmconfig))
 		})
 	})

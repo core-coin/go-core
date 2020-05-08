@@ -128,8 +128,8 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 // the return byte-slice and an error if one occurred.
 //
 // It's important to note that any errors returned by the interpreter should be
-// considered a revert-and-consume-all-gas operation except for
-// errExecutionReverted which means revert-and-keep-gas-left.
+// considered a revert-and-consume-all-energy operation except for
+// errExecutionReverted which means revert-and-keep-energy-left.
 func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
 	if in.intPool == nil {
 		in.intPool = poolOfIntPools.get()
@@ -170,7 +170,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		cost uint64
 		// copies used by tracer
 		pcCopy  uint64 // needed for the deferred Tracer
-		gasCopy uint64 // for Tracer to log gas remaining before execution
+		energyCopy uint64 // for Tracer to log energy remaining before execution
 		logged  bool   // deferred Tracer should ignore already logged steps
 		res     []byte // result of the opcode execution function
 	)
@@ -183,9 +183,9 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		defer func() {
 			if err != nil {
 				if !logged {
-					in.cfg.Tracer.CaptureState(in.evm, pcCopy, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)
+					in.cfg.Tracer.CaptureState(in.evm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
 				} else {
-					in.cfg.Tracer.CaptureFault(in.evm, pcCopy, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)
+					in.cfg.Tracer.CaptureFault(in.evm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
 				}
 			}
 		}()
@@ -197,7 +197,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	for atomic.LoadInt32(&in.evm.abort) == 0 {
 		if in.cfg.Debug {
 			// Capture pre-execution values for tracing.
-			logged, pcCopy, gasCopy = false, pc, contract.Gas
+			logged, pcCopy, energyCopy = false, pc, contract.Energy
 		}
 
 		// Get the operation from the jump table and validate the stack to ensure there are
@@ -224,37 +224,37 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 				return nil, errWriteProtection
 			}
 		}
-		// Static portion of gas
-		cost = operation.constantGas // For tracing
-		if !contract.UseGas(operation.constantGas) {
-			return nil, ErrOutOfGas
+		// Static portion of energy
+		cost = operation.constantEnergy // For tracing
+		if !contract.UseEnergy(operation.constantEnergy) {
+			return nil, ErrOutOfEnergy
 		}
 
 		var memorySize uint64
 		// calculate the new memory size and expand the memory to fit
 		// the operation
-		// Memory check needs to be done prior to evaluating the dynamic gas portion,
+		// Memory check needs to be done prior to evaluating the dynamic energy portion,
 		// to detect calculation overflows
 		if operation.memorySize != nil {
 			memSize, overflow := operation.memorySize(stack)
 			if overflow {
-				return nil, errGasUintOverflow
+				return nil, errEnergyUintOverflow
 			}
-			// memory is expanded in words of 32 bytes. Gas
+			// memory is expanded in words of 32 bytes. Energy
 			// is also calculated in words.
 			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); overflow {
-				return nil, errGasUintOverflow
+				return nil, errEnergyUintOverflow
 			}
 		}
-		// Dynamic portion of gas
-		// consume the gas and return an error if not enough gas is available.
+		// Dynamic portion of energy
+		// consume the energy and return an error if not enough energy is available.
 		// cost is explicitly set so that the capture state defer method can get the proper cost
-		if operation.dynamicGas != nil {
+		if operation.dynamicEnergy != nil {
 			var dynamicCost uint64
-			dynamicCost, err = operation.dynamicGas(in.evm, contract, stack, mem, memorySize)
+			dynamicCost, err = operation.dynamicEnergy(in.evm, contract, stack, mem, memorySize)
 			cost += dynamicCost // total cost, for debug tracing
-			if err != nil || !contract.UseGas(dynamicCost) {
-				return nil, ErrOutOfGas
+			if err != nil || !contract.UseEnergy(dynamicCost) {
+				return nil, ErrOutOfEnergy
 			}
 		}
 		if memorySize > 0 {
@@ -262,7 +262,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 
 		if in.cfg.Debug {
-			in.cfg.Tracer.CaptureState(in.evm, pc, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)
+			in.cfg.Tracer.CaptureState(in.evm, pc, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
 			logged = true
 		}
 

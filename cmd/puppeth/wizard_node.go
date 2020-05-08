@@ -50,7 +50,7 @@ func (w *wizard) deployNode(boot bool) {
 		if boot {
 			infos = &nodeInfos{port: 30300, peersTotal: 512, peersLight: 256}
 		} else {
-			infos = &nodeInfos{port: 30300, peersTotal: 50, peersLight: 0, gasTarget: 7.5, gasLimit: 10, gasPrice: 1}
+			infos = &nodeInfos{port: 30300, peersTotal: 50, peersLight: 0, energyTarget: 7.5, energyLimit: 10, energyPrice: 1}
 		}
 	}
 	existed := err == nil
@@ -137,18 +137,18 @@ func (w *wizard) deployNode(boot bool) {
 				}
 			}
 		}
-		// Establish the gas dynamics to be enforced by the signer
+		// Establish the energy dynamics to be enforced by the signer
 		fmt.Println()
-		fmt.Printf("What gas limit should empty blocks target (MGas)? (default = %0.3f)\n", infos.gasTarget)
-		infos.gasTarget = w.readDefaultFloat(infos.gasTarget)
+		fmt.Printf("What energy limit should empty blocks target (MEnergy)? (default = %0.3f)\n", infos.energyTarget)
+		infos.energyTarget = w.readDefaultFloat(infos.energyTarget)
 
 		fmt.Println()
-		fmt.Printf("What gas limit should full blocks target (MGas)? (default = %0.3f)\n", infos.gasLimit)
-		infos.gasLimit = w.readDefaultFloat(infos.gasLimit)
+		fmt.Printf("What energy limit should full blocks target (MEnergy)? (default = %0.3f)\n", infos.energyLimit)
+		infos.energyLimit = w.readDefaultFloat(infos.energyLimit)
 
 		fmt.Println()
-		fmt.Printf("What gas price should the signer require (Nucle)? (default = %0.3f)\n", infos.gasPrice)
-		infos.gasPrice = w.readDefaultFloat(infos.gasPrice)
+		fmt.Printf("What energy price should the signer require (Nucle)? (default = %0.3f)\n", infos.energyPrice)
+		infos.energyPrice = w.readDefaultFloat(infos.energyPrice)
 	}
 	// Try to deploy the full node on the host
 	nocache := false

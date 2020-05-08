@@ -117,7 +117,7 @@
         <div class="container">
           <div class="content">
             <div>
-              <a href="https://coreblockchain.cc/download#gcore" target="_blank" class="button is-primary is-outlined"><em class="oji">⛓️</em>&nbsp;Download&nbsp;<strong>Geth client</strong></a>
+              <a href="https://coreblockchain.cc/download#gcore" target="_blank" class="button is-primary is-outlined"><em class="oji">⛓️</em>&nbsp;Download&nbsp;<strong>Gcore client</strong></a>
               <a href="https://coreblockchain.cc/download#wallet" target="_blank" class="button is-primary is-outlined"><em class="oji">👝</em>&nbsp;Download&nbsp;<strong>Wallet</strong></a>
             </div>
             <div>
@@ -132,8 +132,8 @@
               <p>
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Full node</h2>
@@ -147,8 +147,8 @@
               <p>
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Light node</h2>
@@ -162,8 +162,8 @@
               <p>
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Embedded node</h2>
@@ -177,8 +177,8 @@
               <p>
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Wallet</h2>
@@ -192,11 +192,11 @@
               <p>
                 To connect with the Core Wallet, you'll need to initialize your private network first via Gcore as the wallet does not currently support calling Gcore directly. To initialize your local chain, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <p>
                 With your local chain initialized, you can start the Core Wallet:
               </p>
-              <pre><code>ethereumwallet --rpc $HOME/.{{.Network}}/geth.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Ethstats}} --node-ethstats='{{.Ethstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>ethereumwallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Ethstats}} --node-ethstats='{{.Ethstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
           </div>
         </div>

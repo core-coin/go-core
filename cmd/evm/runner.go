@@ -73,7 +73,7 @@ func readGenesis(genesisPath string) *core.Genesis {
 func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uint64, time.Duration, error) {
 	var (
 		output   []byte
-		gasLeft  uint64
+		energyLeft  uint64
 		execTime time.Duration
 		err      error
 	)
@@ -81,7 +81,7 @@ func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uin
 	if bench {
 		result := testing.Benchmark(func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				output, gasLeft, err = execFunc()
+				output, energyLeft, err = execFunc()
 			}
 		})
 
@@ -90,11 +90,11 @@ func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uin
 		execTime = time.Duration(result.NsPerOp())
 	} else {
 		startTime := time.Now()
-		output, gasLeft, err = execFunc()
+		output, energyLeft, err = execFunc()
 		execTime = time.Since(startTime)
 	}
 
-	return output, gasLeft, execTime, err
+	return output, energyLeft, execTime, err
 }
 
 func runCmd(ctx *cli.Context) error {
@@ -188,15 +188,15 @@ func runCmd(ctx *cli.Context) error {
 		}
 		code = common.Hex2Bytes(bin)
 	}
-	initialEnergy := ctx.GlobalUint64(GasFlag.Name)
-	if genesisConfig.GasLimit != 0 {
-		initialEnergy = genesisConfig.GasLimit
+	initialEnergy := ctx.GlobalUint64(EnergyFlag.Name)
+	if genesisConfig.EnergyLimit != 0 {
+		initialEnergy = genesisConfig.EnergyLimit
 	}
 	runtimeConfig := runtime.Config{
 		Origin:      sender,
 		State:       statedb,
-		GasLimit:    initialEnergy,
-		GasPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
+		EnergyLimit:    initialEnergy,
+		EnergyPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
 		Value:       utils.GlobalBig(ctx, ValueFlag.Name),
 		Difficulty:  genesisConfig.Difficulty,
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),
@@ -244,8 +244,8 @@ func runCmd(ctx *cli.Context) error {
 	if ctx.GlobalBool(CreateFlag.Name) {
 		input = append(code, input...)
 		execFunc = func() ([]byte, uint64, error) {
-			output, _, gasLeft, err := runtime.Create(input, &runtimeConfig)
-			return output, gasLeft, err
+			output, _, energyLeft, err := runtime.Create(input, &runtimeConfig)
+			return output, energyLeft, err
 		}
 	} else {
 		if len(code) > 0 {
@@ -256,7 +256,7 @@ func runCmd(ctx *cli.Context) error {
 		}
 	}
 
-	output, leftOverGas, execTime, err := timedExec(ctx.GlobalBool(BenchFlag.Name), execFunc)
+	output, leftOverEnergy, execTime, err := timedExec(ctx.GlobalBool(BenchFlag.Name), execFunc)
 
 	if ctx.GlobalBool(DumpFlag.Name) {
 		statedb.Commit(true)
@@ -294,9 +294,9 @@ heap objects:       %d
 allocations:        %d
 total allocations:  %d
 GC calls:           %d
-Gas used:           %d
+Energy used:           %d
 
-`, execTime, mem.HeapObjects, mem.Alloc, mem.TotalAlloc, mem.NumGC, initialEnergy-leftOverGas)
+`, execTime, mem.HeapObjects, mem.Alloc, mem.TotalAlloc, mem.NumGC, initialEnergy-leftOverEnergy)
 	}
 	if tracer == nil {
 		fmt.Printf("0x%x\n", output)

@@ -207,7 +207,7 @@ type faucet struct {
 	head     *types.Header      // Current head header of the faucet
 	balance  *big.Int           // Current balance of the faucet
 	nonce    uint64             // Current pending nonce of the faucet
-	price    *big.Int           // Current gas price to issue funds with
+	price    *big.Int           // Current energy price to issue funds with
 
 	conns    []*websocket.Conn    // Currently live websocket connections
 	timeouts map[string]time.Time // History of users and their funding timeouts
@@ -220,7 +220,7 @@ type faucet struct {
 func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network uint64, stats string, ks *keystore.KeyStore, index []byte) (*faucet, error) {
 	// Assemble the raw devp2p protocol stack
 	stack, err := node.New(&node.Config{
-		Name:    "geth",
+		Name:    "gcore",
 		Version: params.VersionWithCommit(gitCommit, gitDate),
 		DataDir: filepath.Join(os.Getenv("HOME"), ".faucet"),
 		P2P: p2p.Config{
@@ -552,7 +552,7 @@ func (f *faucet) refresh(head *types.Header) error {
 			return err
 		}
 	}
-	// Retrieve the balance, nonce and gas price from the current head
+	// Retrieve the balance, nonce and energy price from the current head
 	var (
 		balance *big.Int
 		nonce   uint64
@@ -564,7 +564,7 @@ func (f *faucet) refresh(head *types.Header) error {
 	if nonce, err = f.client.NonceAt(ctx, f.account.Address, head.Number); err != nil {
 		return err
 	}
-	if price, err = f.client.SuggestGasPrice(ctx); err != nil {
+	if price, err = f.client.SuggestEnergyPrice(ctx); err != nil {
 		return err
 	}
 	// Everything succeeded, update the cached stats and eject old requests

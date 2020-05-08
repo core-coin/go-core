@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/eth/gasprice"
+	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/ethdb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/light"
@@ -42,7 +42,7 @@ import (
 type LesApiBackend struct {
 	extRPCEnabled bool
 	eth           *LightEthereum
-	gpo           *gasprice.Oracle
+	gpo           *energyprice.Oracle
 }
 
 func (b *LesApiBackend) ChainConfig() *params.ChainConfig {
@@ -260,8 +260,8 @@ func (b *LesApiBackend) ExtRPCEnabled() bool {
 	return b.extRPCEnabled
 }
 
-func (b *LesApiBackend) RPCGasCap() *big.Int {
-	return b.eth.config.RPCGasCap
+func (b *LesApiBackend) RPCEnergyCap() *big.Int {
+	return b.eth.config.RPCEnergyCap
 }
 
 func (b *LesApiBackend) BloomStatus() (uint64, uint64) {

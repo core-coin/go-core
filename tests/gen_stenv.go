@@ -17,14 +17,14 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 	type stEnv struct {
 		Coinbase   common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
 		Difficulty *math.HexOrDecimal256    `json:"currentDifficulty" gencodec:"required"`
-		GasLimit   math.HexOrDecimal64      `json:"currentGasLimit"   gencodec:"required"`
+		EnergyLimit   math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
 		Number     math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
 		Timestamp  math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
 	}
 	var enc stEnv
 	enc.Coinbase = common.UnprefixedAddress(s.Coinbase)
 	enc.Difficulty = (*math.HexOrDecimal256)(s.Difficulty)
-	enc.GasLimit = math.HexOrDecimal64(s.GasLimit)
+	enc.EnergyLimit = math.HexOrDecimal64(s.EnergyLimit)
 	enc.Number = math.HexOrDecimal64(s.Number)
 	enc.Timestamp = math.HexOrDecimal64(s.Timestamp)
 	return json.Marshal(&enc)
@@ -34,7 +34,7 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 	type stEnv struct {
 		Coinbase   *common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
 		Difficulty *math.HexOrDecimal256     `json:"currentDifficulty" gencodec:"required"`
-		GasLimit   *math.HexOrDecimal64      `json:"currentGasLimit"   gencodec:"required"`
+		EnergyLimit   *math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
 		Number     *math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
 		Timestamp  *math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
 	}
@@ -50,10 +50,10 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'currentDifficulty' for stEnv")
 	}
 	s.Difficulty = (*big.Int)(dec.Difficulty)
-	if dec.GasLimit == nil {
-		return errors.New("missing required field 'currentGasLimit' for stEnv")
+	if dec.EnergyLimit == nil {
+		return errors.New("missing required field 'currentEnergyLimit' for stEnv")
 	}
-	s.GasLimit = uint64(*dec.GasLimit)
+	s.EnergyLimit = uint64(*dec.EnergyLimit)
 	if dec.Number == nil {
 		return errors.New("missing required field 'currentNumber' for stEnv")
 	}

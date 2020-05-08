@@ -30,8 +30,8 @@ type Validator interface {
 	ValidateBody(block *types.Block) error
 
 	// ValidateState validates the given statedb and optionally the receipts and
-	// gas used.
-	ValidateState(block *types.Block, state *state.StateDB, receipts types.Receipts, usedGas uint64) error
+	// energy used.
+	ValidateState(block *types.Block, state *state.StateDB, receipts types.Receipts, usedEnergy uint64) error
 }
 
 // Prefetcher is an interface for pre-caching transaction signatures and state.

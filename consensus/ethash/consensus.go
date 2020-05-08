@@ -263,25 +263,25 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 	if expected.Cmp(header.Difficulty) != 0 {
 		return fmt.Errorf("invalid difficulty: have %v, want %v", header.Difficulty, expected)
 	}
-	// Verify that the gas limit is <= 2^63-1
+	// Verify that the energy limit is <= 2^63-1
 	cap := uint64(0x7fffffffffffffff)
-	if header.GasLimit > cap {
-		return fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, cap)
+	if header.EnergyLimit > cap {
+		return fmt.Errorf("invalid energyLimit: have %v, max %v", header.EnergyLimit, cap)
 	}
-	// Verify that the gasUsed is <= gasLimit
-	if header.GasUsed > header.GasLimit {
-		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit)
+	// Verify that the energyUsed is <= energyLimit
+	if header.EnergyUsed > header.EnergyLimit {
+		return fmt.Errorf("invalid energyUsed: have %d, energyLimit %d", header.EnergyUsed, header.EnergyLimit)
 	}
 
-	// Verify that the gas limit remains within allowed bounds
-	diff := int64(parent.GasLimit) - int64(header.GasLimit)
+	// Verify that the energy limit remains within allowed bounds
+	diff := int64(parent.EnergyLimit) - int64(header.EnergyLimit)
 	if diff < 0 {
 		diff *= -1
 	}
-	limit := parent.GasLimit / params.GasLimitBoundDivisor
+	limit := parent.EnergyLimit / params.EnergyLimitBoundDivisor
 
-	if uint64(diff) >= limit || header.GasLimit < params.MinGasLimit {
-		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.GasLimit, limit)
+	if uint64(diff) >= limit || header.EnergyLimit < params.MinEnergyLimit {
+		return fmt.Errorf("invalid energy limit: have %d, want %d += %d", header.EnergyLimit, parent.EnergyLimit, limit)
 	}
 	// Verify that the block number is parent's +1
 	if diff := new(big.Int).Sub(header.Number, parent.Number); diff.Cmp(big.NewInt(1)) != 0 {
@@ -556,8 +556,8 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 		header.Bloom,
 		header.Difficulty,
 		header.Number,
-		header.GasLimit,
-		header.GasUsed,
+		header.EnergyLimit,
+		header.EnergyUsed,
 		header.Time,
 		header.Extra,
 	})

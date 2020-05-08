@@ -139,7 +139,7 @@ func main() {
 func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core.Genesis {
 	// Create a Clique network based off of the Rinkeby config
 	genesis := core.DefaultRinkebyGenesisBlock()
-	genesis.GasLimit = 25000000
+	genesis.EnergyLimit = 25000000
 
 	genesis.Config.ChainID = big.NewInt(18)
 	genesis.Config.Clique.Period = 1
@@ -176,7 +176,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 	datadir, _ := ioutil.TempDir("", "")
 
 	config := &node.Config{
-		Name:    "geth",
+		Name:    "gcore",
 		Version: params.Version,
 		DataDir: datadir,
 		P2P: p2p.Config{
@@ -201,9 +201,9 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 			TxPool:          core.DefaultTxPoolConfig,
 			GPO:             eth.DefaultConfig.GPO,
 			Miner: miner.Config{
-				GasFloor: genesis.GasLimit * 9 / 10,
-				GasCeil:  genesis.GasLimit * 11 / 10,
-				GasPrice: big.NewInt(1),
+				EnergyFloor: genesis.EnergyLimit * 9 / 10,
+				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
+				EnergyPrice: big.NewInt(1),
 				Recommit: time.Second,
 			},
 		})

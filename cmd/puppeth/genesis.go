@@ -46,10 +46,10 @@ type alethGenesisSpec struct {
 		ConstantinopleForkBlock    *hexutil.Big           `json:"constantinopleForkBlock,omitempty"`
 		ConstantinopleFixForkBlock *hexutil.Big           `json:"constantinopleFixForkBlock,omitempty"`
 		IstanbulForkBlock          *hexutil.Big           `json:"istanbulForkBlock,omitempty"`
-		MinGasLimit                hexutil.Uint64         `json:"minGasLimit"`
-		MaxGasLimit                hexutil.Uint64         `json:"maxGasLimit"`
-		TieBreakingGas             bool                   `json:"tieBreakingGas"`
-		GasLimitBoundDivisor       math2.HexOrDecimal64   `json:"gasLimitBoundDivisor"`
+		MinEnergyLimit                hexutil.Uint64         `json:"minEnergyLimit"`
+		MaxEnergyLimit                hexutil.Uint64         `json:"maxEnergyLimit"`
+		TieBreakingEnergy             bool                   `json:"tieBreakingEnergy"`
+		EnergyLimitBoundDivisor       math2.HexOrDecimal64   `json:"energyLimitBoundDivisor"`
 		MinimumDifficulty          *hexutil.Big           `json:"minimumDifficulty"`
 		DifficultyBoundDivisor     *math2.HexOrDecimal256 `json:"difficultyBoundDivisor"`
 		DurationLimit              *math2.HexOrDecimal256 `json:"durationLimit"`
@@ -67,7 +67,7 @@ type alethGenesisSpec struct {
 		Timestamp  hexutil.Uint64   `json:"timestamp"`
 		ParentHash common.Hash      `json:"parentHash"`
 		ExtraData  hexutil.Bytes    `json:"extraData"`
-		GasLimit   hexutil.Uint64   `json:"gasLimit"`
+		EnergyLimit   hexutil.Uint64   `json:"energyLimit"`
 	} `json:"genesis"`
 
 	Accounts map[common.UnprefixedAddress]*alethGenesisSpecAccount `json:"accounts"`
@@ -106,7 +106,7 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	}
 	// Some defaults
 	spec.Params.AccountStartNonce = 0
-	spec.Params.TieBreakingGas = false
+	spec.Params.TieBreakingEnergy = false
 	spec.Params.AllowFutureBlocks = false
 
 	// Dao hardfork block is a special one. The fork block is listed as 0 in the
@@ -138,11 +138,11 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	spec.Params.NetworkID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.ChainID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.MaximumExtraDataSize = (hexutil.Uint64)(params.MaximumExtraDataSize)
-	spec.Params.MinGasLimit = (hexutil.Uint64)(params.MinGasLimit)
-	spec.Params.MaxGasLimit = (hexutil.Uint64)(math.MaxInt64)
+	spec.Params.MinEnergyLimit = (hexutil.Uint64)(params.MinEnergyLimit)
+	spec.Params.MaxEnergyLimit = (hexutil.Uint64)(math.MaxInt64)
 	spec.Params.MinimumDifficulty = (*hexutil.Big)(params.MinimumDifficulty)
 	spec.Params.DifficultyBoundDivisor = (*math2.HexOrDecimal256)(params.DifficultyBoundDivisor)
-	spec.Params.GasLimitBoundDivisor = (math2.HexOrDecimal64)(params.GasLimitBoundDivisor)
+	spec.Params.EnergyLimitBoundDivisor = (math2.HexOrDecimal64)(params.EnergyLimitBoundDivisor)
 	spec.Params.DurationLimit = (*math2.HexOrDecimal256)(params.DurationLimit)
 	spec.Params.BlockReward = (*hexutil.Big)(ethash.FrontierBlockReward)
 
@@ -153,7 +153,7 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	spec.Genesis.Timestamp = (hexutil.Uint64)(genesis.Timestamp)
 	spec.Genesis.ParentHash = genesis.ParentHash
 	spec.Genesis.ExtraData = (hexutil.Bytes)(genesis.ExtraData)
-	spec.Genesis.GasLimit = (hexutil.Uint64)(genesis.GasLimit)
+	spec.Genesis.EnergyLimit = (hexutil.Uint64)(genesis.EnergyLimit)
 
 	for address, account := range genesis.Alloc {
 		spec.setAccount(address, account)
@@ -186,11 +186,11 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 		spec.setPrecompile(6, &alethGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_add",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the gas policy
+		}) // Aleth hardcoded the energy policy
 		spec.setPrecompile(7, &alethGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_mul",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the gas policy
+		}) // Aleth hardcoded the energy policy
 		spec.setPrecompile(9, &alethGenesisSpecBuiltin{
 			Name:          "blake2_compression",
 			StartingBlock: (*hexutil.Big)(genesis.Config.IstanbulBlock),
@@ -246,8 +246,8 @@ type parityChainSpec struct {
 	Params struct {
 		AccountStartNonce         hexutil.Uint64       `json:"accountStartNonce"`
 		MaximumExtraDataSize      hexutil.Uint64       `json:"maximumExtraDataSize"`
-		MinGasLimit               hexutil.Uint64       `json:"minGasLimit"`
-		GasLimitBoundDivisor      math2.HexOrDecimal64 `json:"gasLimitBoundDivisor"`
+		MinEnergyLimit               hexutil.Uint64       `json:"minEnergyLimit"`
+		EnergyLimitBoundDivisor      math2.HexOrDecimal64 `json:"energyLimitBoundDivisor"`
 		NetworkID                 hexutil.Uint64       `json:"networkID"`
 		ChainID                   hexutil.Uint64       `json:"chainID"`
 		MaxCodeSize               hexutil.Uint64       `json:"maxCodeSize"`
@@ -286,7 +286,7 @@ type parityChainSpec struct {
 		Timestamp  hexutil.Uint64 `json:"timestamp"`
 		ParentHash common.Hash    `json:"parentHash"`
 		ExtraData  hexutil.Bytes  `json:"extraData"`
-		GasLimit   hexutil.Uint64 `json:"gasLimit"`
+		EnergyLimit   hexutil.Uint64 `json:"energyLimit"`
 	} `json:"genesis"`
 
 	Nodes    []string                                             `json:"nodes"`
@@ -347,7 +347,7 @@ type parityChainSepcAltBnPairingPricing struct {
 // parityChainSpecBlakePricing defines the price policy for blake2 f
 // compression.
 type parityChainSpecBlakePricing struct {
-	GasPerRound uint64 `json:"gas_per_round"`
+	EnergyPerRound uint64 `json:"energy_per_round"`
 }
 
 type parityChainSpecAlternativePrice struct {
@@ -413,12 +413,12 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 		spec.setIstanbul(num)
 	}
 	spec.Params.MaximumExtraDataSize = (hexutil.Uint64)(params.MaximumExtraDataSize)
-	spec.Params.MinGasLimit = (hexutil.Uint64)(params.MinGasLimit)
-	spec.Params.GasLimitBoundDivisor = (math2.HexOrDecimal64)(params.GasLimitBoundDivisor)
+	spec.Params.MinEnergyLimit = (hexutil.Uint64)(params.MinEnergyLimit)
+	spec.Params.EnergyLimitBoundDivisor = (math2.HexOrDecimal64)(params.EnergyLimitBoundDivisor)
 	spec.Params.NetworkID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.ChainID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.MaxCodeSize = params.MaxCodeSize
-	// geth has it set from zero
+	// gcore has it set from zero
 	spec.Params.MaxCodeSizeTransition = 0
 
 	// Disable this one
@@ -431,7 +431,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Genesis.Timestamp = (hexutil.Uint64)(genesis.Timestamp)
 	spec.Genesis.ParentHash = genesis.ParentHash
 	spec.Genesis.ExtraData = (hexutil.Bytes)(genesis.ExtraData)
-	spec.Genesis.GasLimit = (hexutil.Uint64)(genesis.GasLimit)
+	spec.Genesis.EnergyLimit = (hexutil.Uint64)(genesis.EnergyLimit)
 
 	spec.Accounts = make(map[common.UnprefixedAddress]*parityChainSpecAccount)
 	for address, account := range genesis.Alloc {
@@ -540,7 +540,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 			Name:       "blake2_f",
 			ActivateAt: (*hexutil.Big)(genesis.Config.IstanbulBlock),
 			Pricing: &parityChainSpecPricing{
-				Blake2F: &parityChainSpecBlakePricing{GasPerRound: 1},
+				Blake2F: &parityChainSpecBlakePricing{EnergyPerRound: 1},
 			},
 		})
 	}
@@ -596,7 +596,7 @@ type pyEthereumGenesisSpec struct {
 	Nonce      types.BlockNonce  `json:"nonce"`
 	Timestamp  hexutil.Uint64    `json:"timestamp"`
 	ExtraData  hexutil.Bytes     `json:"extraData"`
-	GasLimit   hexutil.Uint64    `json:"gasLimit"`
+	EnergyLimit   hexutil.Uint64    `json:"energyLimit"`
 	Difficulty *hexutil.Big      `json:"difficulty"`
 	Mixhash    common.Hash       `json:"mixhash"`
 	Coinbase   common.Address    `json:"coinbase"`
@@ -615,7 +615,7 @@ func newPyEthereumGenesisSpec(network string, genesis *core.Genesis) (*pyEthereu
 		Nonce:      types.EncodeNonce(genesis.Nonce),
 		Timestamp:  (hexutil.Uint64)(genesis.Timestamp),
 		ExtraData:  genesis.ExtraData,
-		GasLimit:   (hexutil.Uint64)(genesis.GasLimit),
+		EnergyLimit:   (hexutil.Uint64)(genesis.EnergyLimit),
 		Difficulty: (*hexutil.Big)(genesis.Difficulty),
 		Mixhash:    genesis.Mixhash,
 		Coinbase:   genesis.Coinbase,

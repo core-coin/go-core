@@ -64,7 +64,7 @@ func TestState(t *testing.T) {
 				key := fmt.Sprintf("%s/%d", subtest.Fork, subtest.Index)
 				name := name + "/" + key
 				t.Run(key, func(t *testing.T) {
-					withTrace(t, test.gasLimit(subtest), func(vmconfig vm.Config) error {
+					withTrace(t, test.energyLimit(subtest), func(vmconfig vm.Config) error {
 						_, err := test.Run(subtest, vmconfig)
 						return st.checkFailure(t, name, err)
 					})
@@ -74,10 +74,10 @@ func TestState(t *testing.T) {
 	}
 }
 
-// Transactions with gasLimit above this value will not get a VM trace on failure.
+// Transactions with energyLimit above this value will not get a VM trace on failure.
 const traceErrorLimit = 400000
 
-func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
+func withTrace(t *testing.T, energyLimit uint64, test func(vm.Config) error) {
 	// Use config from command line arguments.
 	config := vm.Config{EVMInterpreter: *testEVM, EWASMInterpreter: *testEWASM}
 	err := test(config)
@@ -87,8 +87,8 @@ func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
 
 	// Test failed, re-run with tracing enabled.
 	t.Error(err)
-	if gasLimit > traceErrorLimit {
-		t.Log("gas limit too high for EVM trace")
+	if energyLimit > traceErrorLimit {
+		t.Log("energy limit too high for EVM trace")
 		return
 	}
 	buf := new(bytes.Buffer)

@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/consensus/ethash"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/eth/gasprice"
+	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/params"
 )
@@ -43,13 +43,13 @@ var DefaultConfig = Config{
 	TrieDirtyCache:     256,
 	TrieTimeout:        60 * time.Minute,
 	Miner: miner.Config{
-		GasFloor: 8000000,
-		GasCeil:  8000000,
-		GasPrice: big.NewInt(params.Nucle),
+		EnergyFloor: 8000000,
+		EnergyCeil:  8000000,
+		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit: 3 * time.Second,
 	},
 	TxPool: core.DefaultTxPoolConfig,
-	GPO: gasprice.Config{
+	GPO: energyprice.Config{
 		Blocks:     20,
 		Percentile: 60,
 	},
@@ -118,8 +118,8 @@ type Config struct {
 	// Transaction pool options
 	TxPool core.TxPoolConfig
 
-	// Gas Price Oracle options
-	GPO gasprice.Config
+	// Energy Price Oracle options
+	GPO energyprice.Config
 
 	// Enables tracking of SHA3 preimages in the VM
 	EnablePreimageRecording bool
@@ -133,8 +133,8 @@ type Config struct {
 	// Type of the EVM interpreter ("" for default)
 	EVMInterpreter string
 
-	// RPCGasCap is the global gas cap for eth-call variants.
-	RPCGasCap *big.Int `toml:",omitempty"`
+	// RPCEnergyCap is the global energy cap for eth-call variants.
+	RPCEnergyCap *big.Int `toml:",omitempty"`
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`

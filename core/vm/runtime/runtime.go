@@ -38,8 +38,8 @@ type Config struct {
 	Coinbase    common.Address
 	BlockNumber *big.Int
 	Time        *big.Int
-	GasLimit    uint64
-	GasPrice    *big.Int
+	EnergyLimit    uint64
+	EnergyPrice    *big.Int
 	Value       *big.Int
 	Debug       bool
 	EVMConfig   vm.Config
@@ -68,11 +68,11 @@ func setDefaults(cfg *Config) {
 	if cfg.Time == nil {
 		cfg.Time = big.NewInt(time.Now().Unix())
 	}
-	if cfg.GasLimit == 0 {
-		cfg.GasLimit = math.MaxUint64
+	if cfg.EnergyLimit == 0 {
+		cfg.EnergyLimit = math.MaxUint64
 	}
-	if cfg.GasPrice == nil {
-		cfg.GasPrice = new(big.Int)
+	if cfg.EnergyPrice == nil {
+		cfg.EnergyPrice = new(big.Int)
 	}
 	if cfg.Value == nil {
 		cfg.Value = new(big.Int)
@@ -114,7 +114,7 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *state.StateDB, error) {
 		sender,
 		common.BytesToAddress([]byte("contract")),
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
 
@@ -137,13 +137,13 @@ func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 	)
 
 	// Call the code with the given configuration.
-	code, address, leftOverGas, err := vmenv.Create(
+	code, address, leftOverEnergy, err := vmenv.Create(
 		sender,
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
-	return code, address, leftOverGas, err
+	return code, address, leftOverEnergy, err
 }
 
 // Call executes the code given by the contract's address. It will return the
@@ -158,13 +158,13 @@ func Call(address common.Address, input []byte, cfg *Config) ([]byte, uint64, er
 
 	sender := cfg.State.GetOrNewStateObject(cfg.Origin)
 	// Call the code with the given configuration.
-	ret, leftOverGas, err := vmenv.Call(
+	ret, leftOverEnergy, err := vmenv.Call(
 		sender,
 		address,
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
 
-	return ret, leftOverGas, err
+	return ret, leftOverEnergy, err
 }

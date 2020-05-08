@@ -43,17 +43,17 @@ func EnableEIP(eipNum int, jt *JumpTable) error {
 // - Increase cost of BALANCE to 700
 // - Increase cost of EXTCODEHASH to 700
 // - Increase cost of SLOAD to 800
-// - Define SELFBALANCE, with cost GasFastStep (5)
+// - Define SELFBALANCE, with cost EnergyFastStep (5)
 func enable1884(jt *JumpTable) {
-	// Gas cost changes
-	jt[SLOAD].constantGas = params.SloadGasEIP1884
-	jt[BALANCE].constantGas = params.BalanceGasEIP1884
-	jt[EXTCODEHASH].constantGas = params.ExtcodeHashGasEIP1884
+	// Energy cost changes
+	jt[SLOAD].constantEnergy = params.SloadEnergyEIP1884
+	jt[BALANCE].constantEnergy = params.BalanceEnergyEIP1884
+	jt[EXTCODEHASH].constantEnergy = params.ExtcodeHashEnergyEIP1884
 
 	// New opcode
 	jt[SELFBALANCE] = operation{
 		execute:     opSelfBalance,
-		constantGas: GasFastStep,
+		constantEnergy: EnergyFastStep,
 		minStack:    minStack(0, 1),
 		maxStack:    maxStack(0, 1),
 		valid:       true,
@@ -72,7 +72,7 @@ func enable1344(jt *JumpTable) {
 	// New opcode
 	jt[CHAINID] = operation{
 		execute:     opChainID,
-		constantGas: GasQuickStep,
+		constantEnergy: EnergyQuickStep,
 		minStack:    minStack(0, 1),
 		maxStack:    maxStack(0, 1),
 		valid:       true,
@@ -88,6 +88,6 @@ func opChainID(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memo
 
 // enable2200 applies EIP-2200 (Rebalance net-metered SSTORE)
 func enable2200(jt *JumpTable) {
-	jt[SLOAD].constantGas = params.SloadGasEIP2200
-	jt[SSTORE].dynamicGas = gasSStoreEIP2200
+	jt[SLOAD].constantEnergy = params.SloadEnergyEIP2200
+	jt[SSTORE].dynamicEnergy = energySStoreEIP2200
 }

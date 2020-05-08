@@ -17,8 +17,8 @@ var _ = (*txdataMarshaling)(nil)
 func (t txdata) MarshalJSON() ([]byte, error) {
 	type txdata struct {
 		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
-		Price        *hexutil.Big    `json:"gasPrice" gencodec:"required"`
-		GasLimit     hexutil.Uint64  `json:"gas"      gencodec:"required"`
+		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
+		EnergyLimit     hexutil.Uint64  `json:"energy"      gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Spender      common.Address `json:"from"     rlp:"-"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
@@ -31,7 +31,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	var enc txdata
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
 	enc.Price = (*hexutil.Big)(t.Price)
-	enc.GasLimit = hexutil.Uint64(t.GasLimit)
+	enc.EnergyLimit = hexutil.Uint64(t.EnergyLimit)
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
@@ -47,8 +47,8 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 func (t *txdata) UnmarshalJSON(input []byte) error {
 	type txdata struct {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
-		Price        *hexutil.Big    `json:"gasPrice" gencodec:"required"`
-		GasLimit     *hexutil.Uint64 `json:"gas"      gencodec:"required"`
+		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
+		EnergyLimit     *hexutil.Uint64 `json:"energy"      gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Spender      common.Address  `json:"from"     rlp:"-"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
@@ -67,13 +67,13 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	}
 	t.AccountNonce = uint64(*dec.AccountNonce)
 	if dec.Price == nil {
-		return errors.New("missing required field 'gasPrice' for txdata")
+		return errors.New("missing required field 'energyPrice' for txdata")
 	}
 	t.Price = (*big.Int)(dec.Price)
-	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gas' for txdata")
+	if dec.EnergyLimit == nil {
+		return errors.New("missing required field 'energy' for txdata")
 	}
-	t.GasLimit = uint64(*dec.GasLimit)
+	t.EnergyLimit = uint64(*dec.EnergyLimit)
 	if dec.Recipient != nil {
 		t.Recipient = dec.Recipient
 	}

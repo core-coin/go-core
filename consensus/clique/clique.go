@@ -729,8 +729,8 @@ func encodeSigHeader(w io.Writer, header *types.Header) {
 		header.Bloom,
 		header.Difficulty,
 		header.Number,
-		header.GasLimit,
-		header.GasUsed,
+		header.EnergyLimit,
+		header.EnergyUsed,
 		header.Time,
 		header.Extra[:len(header.Extra)-crypto.SignatureLength], // Yes, this will panic if extra is too short
 		header.MixDigest,

@@ -211,8 +211,8 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 	request := &trezor.EthereumSignTx{
 		AddressN:   derivationPath,
 		Nonce:      new(big.Int).SetUint64(tx.Nonce()).Bytes(),
-		GasPrice:   tx.GasPrice().Bytes(),
-		GasLimit:   new(big.Int).SetUint64(tx.Gas()).Bytes(),
+		EnergyPrice:   tx.EnergyPrice().Bytes(),
+		EnergyLimit:   new(big.Int).SetUint64(tx.Energy()).Bytes(),
 		Value:      tx.Value().Bytes(),
 		DataLength: &length,
 	}

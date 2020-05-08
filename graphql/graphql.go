@@ -160,20 +160,20 @@ func (t *Transaction) InputData(ctx context.Context) (hexutil.Bytes, error) {
 	return hexutil.Bytes(tx.Data()), nil
 }
 
-func (t *Transaction) Gas(ctx context.Context) (hexutil.Uint64, error) {
+func (t *Transaction) Energy(ctx context.Context) (hexutil.Uint64, error) {
 	tx, err := t.resolve(ctx)
 	if err != nil || tx == nil {
 		return 0, err
 	}
-	return hexutil.Uint64(tx.Gas()), nil
+	return hexutil.Uint64(tx.Energy()), nil
 }
 
-func (t *Transaction) GasPrice(ctx context.Context) (hexutil.Big, error) {
+func (t *Transaction) EnergyPrice(ctx context.Context) (hexutil.Big, error) {
 	tx, err := t.resolve(ctx)
 	if err != nil || tx == nil {
 		return hexutil.Big{}, err
 	}
-	return hexutil.Big(*tx.GasPrice()), nil
+	return hexutil.Big(*tx.EnergyPrice()), nil
 }
 
 func (t *Transaction) Value(ctx context.Context) (hexutil.Big, error) {
@@ -268,21 +268,21 @@ func (t *Transaction) Status(ctx context.Context) (*hexutil.Uint64, error) {
 	return &ret, nil
 }
 
-func (t *Transaction) GasUsed(ctx context.Context) (*hexutil.Uint64, error) {
+func (t *Transaction) EnergyUsed(ctx context.Context) (*hexutil.Uint64, error) {
 	receipt, err := t.getReceipt(ctx)
 	if err != nil || receipt == nil {
 		return nil, err
 	}
-	ret := hexutil.Uint64(receipt.GasUsed)
+	ret := hexutil.Uint64(receipt.EnergyUsed)
 	return &ret, nil
 }
 
-func (t *Transaction) CumulativeGasUsed(ctx context.Context) (*hexutil.Uint64, error) {
+func (t *Transaction) CumulativeEnergyUsed(ctx context.Context) (*hexutil.Uint64, error) {
 	receipt, err := t.getReceipt(ctx)
 	if err != nil || receipt == nil {
 		return nil, err
 	}
-	ret := hexutil.Uint64(receipt.CumulativeGasUsed)
+	ret := hexutil.Uint64(receipt.CumulativeEnergyUsed)
 	return &ret, nil
 }
 
@@ -435,20 +435,20 @@ func (b *Block) Hash(ctx context.Context) (common.Hash, error) {
 	return b.hash, nil
 }
 
-func (b *Block) GasLimit(ctx context.Context) (hexutil.Uint64, error) {
+func (b *Block) EnergyLimit(ctx context.Context) (hexutil.Uint64, error) {
 	header, err := b.resolveHeader(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return hexutil.Uint64(header.GasLimit), nil
+	return hexutil.Uint64(header.EnergyLimit), nil
 }
 
-func (b *Block) GasUsed(ctx context.Context) (hexutil.Uint64, error) {
+func (b *Block) EnergyUsed(ctx context.Context) (hexutil.Uint64, error) {
 	header, err := b.resolveHeader(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return hexutil.Uint64(header.GasUsed), nil
+	return hexutil.Uint64(header.EnergyUsed), nil
 }
 
 func (b *Block) Parent(ctx context.Context) (*Block, error) {
@@ -764,13 +764,13 @@ func (b *Block) Account(ctx context.Context, args struct {
 	}, nil
 }
 
-// CallData encapsulates arguments to `call` or `estimateGas`.
+// CallData encapsulates arguments to `call` or `estimateEnergy`.
 // All arguments are optional.
 type CallData struct {
 	From     *common.Address // The Ethereum address the call is from.
 	To       *common.Address // The Ethereum address the call is to.
-	Gas      *hexutil.Uint64 // The amount of gas provided for the call.
-	GasPrice *hexutil.Big    // The price of each unit of gas, in wei.
+	Energy      *hexutil.Uint64 // The amount of energy provided for the call.
+	EnergyPrice *hexutil.Big    // The price of each unit of energy, in wei.
 	Value    *hexutil.Big    // The value sent along with the call.
 	Data     *hexutil.Bytes  // Any data sent with the call.
 }
@@ -778,7 +778,7 @@ type CallData struct {
 // CallResult encapsulates the result of an invocation of the `call` accessor.
 type CallResult struct {
 	data    hexutil.Bytes  // The return data from the call
-	gasUsed hexutil.Uint64 // The amount of gas used
+	energyUsed hexutil.Uint64 // The amount of energy used
 	status  hexutil.Uint64 // The return status of the call - 0 for failure or 1 for success.
 }
 
@@ -786,8 +786,8 @@ func (c *CallResult) Data() hexutil.Bytes {
 	return c.data
 }
 
-func (c *CallResult) GasUsed() hexutil.Uint64 {
-	return c.gasUsed
+func (c *CallResult) EnergyUsed() hexutil.Uint64 {
+	return c.energyUsed
 }
 
 func (c *CallResult) Status() hexutil.Uint64 {
@@ -803,19 +803,19 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, gas, failed, err := ethapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCGasCap())
+	result, energy, failed, err := ethapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
 	}
 	return &CallResult{
 		data:    hexutil.Bytes(result),
-		gasUsed: hexutil.Uint64(gas),
+		energyUsed: hexutil.Uint64(energy),
 		status:  status,
 	}, err
 }
 
-func (b *Block) EstimateGas(ctx context.Context, args struct {
+func (b *Block) EstimateEnergy(ctx context.Context, args struct {
 	Data ethapi.CallArgs
 }) (hexutil.Uint64, error) {
 	if b.numberOrHash == nil {
@@ -824,8 +824,8 @@ func (b *Block) EstimateGas(ctx context.Context, args struct {
 			return hexutil.Uint64(0), err
 		}
 	}
-	gas, err := ethapi.DoEstimateGas(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCGasCap())
-	return gas, err
+	energy, err := ethapi.DoEstimateEnergy(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCEnergyCap())
+	return energy, err
 }
 
 type Pending struct {
@@ -869,23 +869,23 @@ func (p *Pending) Call(ctx context.Context, args struct {
 	Data ethapi.CallArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, gas, failed, err := ethapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCGasCap())
+	result, energy, failed, err := ethapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
 	}
 	return &CallResult{
 		data:    hexutil.Bytes(result),
-		gasUsed: hexutil.Uint64(gas),
+		energyUsed: hexutil.Uint64(energy),
 		status:  status,
 	}, err
 }
 
-func (p *Pending) EstimateGas(ctx context.Context, args struct {
+func (p *Pending) EstimateEnergy(ctx context.Context, args struct {
 	Data ethapi.CallArgs
 }) (hexutil.Uint64, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return ethapi.DoEstimateGas(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCGasCap())
+	return ethapi.DoEstimateEnergy(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCEnergyCap())
 }
 
 // Resolver is the top-level object in the GraphQL hierarchy.
@@ -1027,7 +1027,7 @@ func (r *Resolver) Logs(ctx context.Context, args struct{ Filter FilterCriteria 
 	return runFilter(ctx, r.backend, filter)
 }
 
-func (r *Resolver) GasPrice(ctx context.Context) (hexutil.Big, error) {
+func (r *Resolver) EnergyPrice(ctx context.Context) (hexutil.Big, error) {
 	price, err := r.backend.SuggestPrice(ctx)
 	return hexutil.Big(*price), err
 }

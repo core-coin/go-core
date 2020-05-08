@@ -72,7 +72,7 @@ var (
 	nodeURLFlag = cli.StringFlag{
 		Name:  "rpc",
 		Value: "http://localhost:8545",
-		Usage: "The rpc endpoint of a local or remote geth node",
+		Usage: "The rpc endpoint of a local or remote gcore node",
 	}
 	clefURLFlag = cli.StringFlag{
 		Name:  "clef",

@@ -47,8 +47,8 @@
 				type:    op,
 				from:    toHex(log.contract.getAddress()),
 				input:   toHex(log.memory.slice(inOff, inEnd)),
-				gasIn:   log.getGas(),
-				gasCost: log.getCost(),
+				energyIn:   log.getEnergy(),
+				energyCost: log.getCost(),
 				value:   '0x' + log.stack.peek(0).toString(16)
 			};
 			this.callstack.push(call);
@@ -82,8 +82,8 @@
 				from:    toHex(log.contract.getAddress()),
 				to:      toHex(to),
 				input:   toHex(log.memory.slice(inOff, inEnd)),
-				gasIn:   log.getGas(),
-				gasCost: log.getCost(),
+				energyIn:   log.getEnergy(),
+				energyCost: log.getCost(),
 				outOff:  log.stack.peek(4 + off).valueOf(),
 				outLen:  log.stack.peek(5 + off).valueOf()
 			};
@@ -95,15 +95,15 @@
 			return;
 		}
 		// If we've just descended into an inner call, retrieve it's true allowance. We
-		// need to extract if from within the call as there may be funky gas dynamics
-		// with regard to requested and actually given gas (2300 stipend, 63/64 rule).
+		// need to extract if from within the call as there may be funky energy dynamics
+		// with regard to requested and actually given energy (2300 stipend, 63/64 rule).
 		if (this.descended) {
 			if (log.getDepth() >= this.callstack.length) {
-				this.callstack[this.callstack.length - 1].gas = log.getGas();
+				this.callstack[this.callstack.length - 1].energy = log.getEnergy();
 			} else {
 				// TODO(karalabe): The call was made to a plain account. We currently don't
-				// have access to the true gas amount inside the call and so any amount will
-				// mostly be wrong since it depends on a lot of input args. Skip gas for now.
+				// have access to the true energy amount inside the call and so any amount will
+				// mostly be wrong since it depends on a lot of input args. Skip energy for now.
 			}
 			this.descended = false;
 		}
@@ -118,8 +118,8 @@
 
 			if (call.type == 'CREATE' || call.type == "CREATE2") {
 				// If the call was a CREATE, retrieve the contract address and output code
-				call.gasUsed = '0x' + bigInt(call.gasIn - call.gasCost - log.getGas()).toString(16);
-				delete call.gasIn; delete call.gasCost;
+				call.energyUsed = '0x' + bigInt(call.energyIn - call.energyCost - log.getEnergy()).toString(16);
+				delete call.energyIn; delete call.energyCost;
 
 				var ret = log.stack.peek(0);
 				if (!ret.equals(0)) {
@@ -129,9 +129,9 @@
 					call.error = "internal failure"; // TODO(karalabe): surface these faults somehow
 				}
 			} else {
-				// If the call was a contract call, retrieve the gas usage and output
-				if (call.gas !== undefined) {
-					call.gasUsed = '0x' + bigInt(call.gasIn - call.gasCost + call.gas - log.getGas()).toString(16);
+				// If the call was a contract call, retrieve the energy usage and output
+				if (call.energy !== undefined) {
+					call.energyUsed = '0x' + bigInt(call.energyIn - call.energyCost + call.energy - log.getEnergy()).toString(16);
 
 					var ret = log.stack.peek(0);
 					if (!ret.equals(0)) {
@@ -140,11 +140,11 @@
 						call.error = "internal failure"; // TODO(karalabe): surface these faults somehow
 					}
 				}
-				delete call.gasIn; delete call.gasCost;
+				delete call.energyIn; delete call.energyCost;
 				delete call.outOff; delete call.outLen;
 			}
-			if (call.gas !== undefined) {
-				call.gas = '0x' + bigInt(call.gas).toString(16);
+			if (call.energy !== undefined) {
+				call.energy = '0x' + bigInt(call.energy).toString(16);
 			}
 			// Inject the call into the previous one
 			var left = this.callstack.length;
@@ -165,12 +165,12 @@
 		var call = this.callstack.pop();
 		call.error = log.getError();
 
-		// Consume all available gas and clean any leftovers
-		if (call.gas !== undefined) {
-			call.gas = '0x' + bigInt(call.gas).toString(16);
-			call.gasUsed = call.gas
+		// Consume all available energy and clean any leftovers
+		if (call.energy !== undefined) {
+			call.energy = '0x' + bigInt(call.energy).toString(16);
+			call.energyUsed = call.energy
 		}
-		delete call.gasIn; delete call.gasCost;
+		delete call.energyIn; delete call.energyCost;
 		delete call.outOff; delete call.outLen;
 
 		// Flatten the failed call into its parent
@@ -194,8 +194,8 @@
 			from:    toHex(ctx.from),
 			to:      toHex(ctx.to),
 			value:   '0x' + ctx.value.toString(16),
-			gas:     '0x' + bigInt(ctx.gas).toString(16),
-			gasUsed: '0x' + bigInt(ctx.gasUsed).toString(16),
+			energy:     '0x' + bigInt(ctx.energy).toString(16),
+			energyUsed: '0x' + bigInt(ctx.energyUsed).toString(16),
 			input:   toHex(ctx.input),
 			output:  toHex(ctx.output),
 			time:    ctx.time,
@@ -223,8 +223,8 @@
 			from:    call.from,
 			to:      call.to,
 			value:   call.value,
-			gas:     call.gas,
-			gasUsed: call.gasUsed,
+			energy:     call.energy,
+			energyUsed: call.energyUsed,
 			input:   call.input,
 			output:  call.output,
 			error:   call.error,

@@ -50,7 +50,7 @@
 			case "CALL": case "CALLCODE":
 				var instart = log.stack.peek(3).valueOf();
 				var insize = log.stack.peek(4).valueOf();
-				opinfo["gas"] = log.stack.peek(0).valueOf();
+				opinfo["energy"] = log.stack.peek(0).valueOf();
 				opinfo["to"] = log.stack.peek(1).toString(16);
 				opinfo["value"] = log.stack.peek(2).toString();
 				opinfo["input"] = log.memory.slice(instart, instart + insize);
@@ -63,7 +63,7 @@
 				var instart = log.stack.peek(2).valueOf();
 				var insize = log.stack.peek(3).valueOf();
 				opinfo["op"] =  log.op.toString();
-				opinfo["gas"] =  log.stack.peek(0).valueOf();
+				opinfo["energy"] =  log.stack.peek(0).valueOf();
 				opinfo["to"] =  log.stack.peek(1).toString(16);
 				opinfo["input"] =  log.memory.slice(instart, instart + insize);
 				opinfo["error"] =  null;

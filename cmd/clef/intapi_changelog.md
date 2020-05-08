@@ -120,8 +120,8 @@ UserInputResponse struct {
       "transaction": {
         "from": "0x82A2A876D39022B3019932D30Cd9c97ad5616813",
         "to": "0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
-        "gas": "0x333",
-        "gasPrice": "0x123",
+        "energy": "0x333",
+        "energyPrice": "0x123",
         "value": "0x10",
         "nonce": "0x0",
         "data": "0x4401a6e40000000000000000000000000000000000000000000000000000000000000012",

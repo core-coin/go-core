@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/filters"
-	"github.com/core-coin/go-core/eth/gasprice"
+	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/ethapi"
 	"github.com/core-coin/go-core/les/checkpointoracle"
@@ -147,9 +147,9 @@ func New(ctx *node.ServiceContext, config *eth.Config) (*LightEthereum, error) {
 	leth.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), leth, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
-		gpoParams.Default = config.Miner.GasPrice
+		gpoParams.Default = config.Miner.EnergyPrice
 	}
-	leth.ApiBackend.gpo = gasprice.NewOracle(leth.ApiBackend, gpoParams)
+	leth.ApiBackend.gpo = energyprice.NewOracle(leth.ApiBackend, gpoParams)
 
 	return leth, nil
 }

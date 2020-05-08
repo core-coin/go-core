@@ -166,8 +166,8 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		if i+1 < len(txs) {
 			next := txs[i+1]
 			fromNext, _ := Sender(signer, next)
-			if fromi != fromNext && txi.GasPrice().Cmp(next.GasPrice()) < 0 {
-				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.GasPrice(), i+1, fromNext[:4], next.GasPrice())
+			if fromi != fromNext && txi.EnergyPrice().Cmp(next.EnergyPrice()) < 0 {
+				t.Errorf("invalid energyprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.EnergyPrice(), i+1, fromNext[:4], next.EnergyPrice())
 			}
 		}
 	}
@@ -212,7 +212,7 @@ func TestTransactionJSON(t *testing.T) {
 			t.Fatalf("json.Unmarshal failed: %v", err)
 		}
 
-		// compare nonce, price, gaslimit, recipient, amount, payload, V, R, S
+		// compare nonce, price, energylimit, recipient, amount, payload, V, R, S
 		if tx.Hash() != parsedTx.Hash() {
 			t.Errorf("parsed tx differs from original tx, want %v, got %v", tx, parsedTx)
 		}

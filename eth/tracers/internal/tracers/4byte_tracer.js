@@ -36,11 +36,11 @@
 	callType: function(opstr){
 		switch(opstr){
 		case "CALL": case "CALLCODE":
-			// gas, addr, val, memin, meminsz, memout, memoutsz
+			// energy, addr, val, memin, meminsz, memout, memoutsz
 			return 3; // stack ptr to memin
 
 		case "DELEGATECALL": case "STATICCALL":
-			// gas, addr, memin, meminsz, memout, memoutsz
+			// energy, addr, memin, meminsz, memout, memoutsz
 			return 2; // stack ptr to memin
 		}
 		return false;

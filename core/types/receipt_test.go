@@ -51,7 +51,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 	tx := NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil)
 	receipt := &Receipt{
 		Status:            ReceiptStatusFailed,
-		CumulativeGasUsed: 1,
+		CumulativeEnergyUsed: 1,
 		Logs: []*Log{
 			{
 				Address: common.BytesToAddress([]byte{0x11}),
@@ -66,7 +66,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 		},
 		TxHash:          tx.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-		GasUsed:         111111,
+		EnergyUsed:         111111,
 	}
 	receipt.Bloom = CreateBloom(Receipts{receipt})
 
@@ -84,8 +84,8 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			if dec.Status != receipt.Status {
 				t.Fatalf("Receipt status mismatch, want %v, have %v", receipt.Status, dec.Status)
 			}
-			if dec.CumulativeGasUsed != receipt.CumulativeGasUsed {
-				t.Fatalf("Receipt CumulativeGasUsed mismatch, want %v, have %v", receipt.CumulativeGasUsed, dec.CumulativeGasUsed)
+			if dec.CumulativeEnergyUsed != receipt.CumulativeEnergyUsed {
+				t.Fatalf("Receipt CumulativeEnergyUsed mismatch, want %v, have %v", receipt.CumulativeEnergyUsed, dec.CumulativeEnergyUsed)
 			}
 			if dec.Bloom != receipt.Bloom {
 				t.Fatalf("Bloom data mismatch, want %v, have %v", receipt.Bloom, dec.Bloom)
@@ -111,7 +111,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &storedReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
 	}
 	for i, log := range want.Logs {
@@ -123,11 +123,11 @@ func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v4StoredReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
 		TxHash:            want.TxHash,
 		ContractAddress:   want.ContractAddress,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
-		GasUsed:           want.GasUsed,
+		EnergyUsed:           want.EnergyUsed,
 	}
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
@@ -138,12 +138,12 @@ func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v3StoredReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
 		Bloom:             want.Bloom,
 		TxHash:            want.TxHash,
 		ContractAddress:   want.ContractAddress,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
-		GasUsed:           want.GasUsed,
+		EnergyUsed:           want.EnergyUsed,
 	}
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
@@ -162,25 +162,25 @@ func TestDeriveFields(t *testing.T) {
 	receipts := Receipts{
 		&Receipt{
 			Status:            ReceiptStatusFailed,
-			CumulativeGasUsed: 1,
+			CumulativeEnergyUsed: 1,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x11})},
 				{Address: common.BytesToAddress([]byte{0x01, 0x11})},
 			},
 			TxHash:          txs[0].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-			GasUsed:         1,
+			EnergyUsed:         1,
 		},
 		&Receipt{
 			PostState:         common.Hash{2}.Bytes(),
-			CumulativeGasUsed: 3,
+			CumulativeEnergyUsed: 3,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x22})},
 				{Address: common.BytesToAddress([]byte{0x02, 0x22})},
 			},
 			TxHash:          txs[1].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-			GasUsed:         2,
+			EnergyUsed:         2,
 		},
 	}
 	// Clear all the computed fields and re-derive them
@@ -208,8 +208,8 @@ func TestDeriveFields(t *testing.T) {
 		if receipts[i].TransactionIndex != uint(i) {
 			t.Errorf("receipts[%d].TransactionIndex = %d, want %d", i, receipts[i].TransactionIndex, i)
 		}
-		if receipts[i].GasUsed != txs[i].Gas() {
-			t.Errorf("receipts[%d].GasUsed = %d, want %d", i, receipts[i].GasUsed, txs[i].Gas())
+		if receipts[i].EnergyUsed != txs[i].Energy() {
+			t.Errorf("receipts[%d].EnergyUsed = %d, want %d", i, receipts[i].EnergyUsed, txs[i].Energy())
 		}
 		if txs[i].To() != nil && receipts[i].ContractAddress != (common.Address{}) {
 			t.Errorf("receipts[%d].ContractAddress = %s, want %s", i, receipts[i].ContractAddress.String(), (common.Address{}).String())
@@ -259,7 +259,7 @@ func clearComputedFieldsOnReceipt(t *testing.T, receipt *Receipt) {
 	receipt.BlockNumber = big.NewInt(math.MaxUint32)
 	receipt.TransactionIndex = math.MaxUint32
 	receipt.ContractAddress = common.Address{}
-	receipt.GasUsed = 0
+	receipt.EnergyUsed = 0
 
 	clearComputedFieldsOnLogs(t, receipt.Logs)
 }

@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the go-core root package.
 
-package geth
+package gcore
 
 import (
 	"errors"
@@ -48,8 +48,8 @@ func NewCallMsg() *CallMsg {
 }
 
 func (msg *CallMsg) GetFrom() *Address    { return &Address{msg.msg.From} }
-func (msg *CallMsg) GetGas() int64        { return int64(msg.msg.Gas) }
-func (msg *CallMsg) GetGasPrice() *BigInt { return &BigInt{msg.msg.GasPrice} }
+func (msg *CallMsg) GetEnergy() int64        { return int64(msg.msg.Energy) }
+func (msg *CallMsg) GetEnergyPrice() *BigInt { return &BigInt{msg.msg.EnergyPrice} }
 func (msg *CallMsg) GetValue() *BigInt    { return &BigInt{msg.msg.Value} }
 func (msg *CallMsg) GetData() []byte      { return msg.msg.Data }
 func (msg *CallMsg) GetTo() *Address {
@@ -60,8 +60,8 @@ func (msg *CallMsg) GetTo() *Address {
 }
 
 func (msg *CallMsg) SetFrom(address *Address)  { msg.msg.From = address.address }
-func (msg *CallMsg) SetGas(gas int64)          { msg.msg.Gas = uint64(gas) }
-func (msg *CallMsg) SetGasPrice(price *BigInt) { msg.msg.GasPrice = price.bigint }
+func (msg *CallMsg) SetEnergy(energy int64)          { msg.msg.Energy = uint64(energy) }
+func (msg *CallMsg) SetEnergyPrice(price *BigInt) { msg.msg.EnergyPrice = price.bigint }
 func (msg *CallMsg) SetValue(value *BigInt)    { msg.msg.Value = value.bigint }
 func (msg *CallMsg) SetData(data []byte)       { msg.msg.Data = common.CopyBytes(data) }
 func (msg *CallMsg) SetTo(address *Address) {

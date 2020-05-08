@@ -68,7 +68,7 @@ type stPostState struct {
 	Logs    common.UnprefixedHash `json:"logs"`
 	Indexes struct {
 		Data  int `json:"data"`
-		Gas   int `json:"gas"`
+		Energy   int `json:"energy"`
 		Value int `json:"value"`
 	}
 }
@@ -78,7 +78,7 @@ type stPostState struct {
 type stEnv struct {
 	Coinbase   common.Address `json:"currentCoinbase"   gencodec:"required"`
 	Difficulty *big.Int       `json:"currentDifficulty" gencodec:"required"`
-	GasLimit   uint64         `json:"currentGasLimit"   gencodec:"required"`
+	EnergyLimit   uint64         `json:"currentEnergyLimit"   gencodec:"required"`
 	Number     uint64         `json:"currentNumber"     gencodec:"required"`
 	Timestamp  uint64         `json:"currentTimestamp"  gencodec:"required"`
 }
@@ -86,7 +86,7 @@ type stEnv struct {
 type stEnvMarshaling struct {
 	Coinbase   common.UnprefixedAddress
 	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
+	EnergyLimit   math.HexOrDecimal64
 	Number     math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 }
@@ -94,19 +94,19 @@ type stEnvMarshaling struct {
 //go:generate gencodec -type stTransaction -field-override stTransactionMarshaling -out gen_sttransaction.go
 
 type stTransaction struct {
-	GasPrice   *big.Int `json:"gasPrice"`
+	EnergyPrice   *big.Int `json:"energyPrice"`
 	Nonce      uint64   `json:"nonce"`
 	To         string   `json:"to"`
 	Data       []string `json:"data"`
-	GasLimit   []uint64 `json:"gasLimit"`
+	EnergyLimit   []uint64 `json:"energyLimit"`
 	Value      []string `json:"value"`
 	PrivateKey []byte   `json:"secretKey"`
 }
 
 type stTransactionMarshaling struct {
-	GasPrice   *math.HexOrDecimal256
+	EnergyPrice   *math.HexOrDecimal256
 	Nonce      math.HexOrDecimal64
-	GasLimit   []math.HexOrDecimal64
+	EnergyLimit   []math.HexOrDecimal64
 	PrivateKey hexutil.Bytes
 }
 
@@ -181,10 +181,10 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 	context.GetHash = vmTestBlockHash
 	evm := vm.NewEVM(context, statedb, config, vmconfig)
 
-	gaspool := new(core.GasPool)
-	gaspool.AddGas(block.GasLimit())
+	energypool := new(core.EnergyPool)
+	energypool.AddEnergy(block.EnergyLimit())
 	snapshot := statedb.Snapshot()
-	if _, _, _, err := core.ApplyMessage(evm, msg, gaspool); err != nil {
+	if _, _, _, err := core.ApplyMessage(evm, msg, energypool); err != nil {
 		statedb.RevertToSnapshot(snapshot)
 	}
 	// Commit block
@@ -200,8 +200,8 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 	return statedb, root, nil
 }
 
-func (t *StateTest) gasLimit(subtest StateSubtest) uint64 {
-	return t.json.Tx.GasLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Gas]
+func (t *StateTest) energyLimit(subtest StateSubtest) uint64 {
+	return t.json.Tx.EnergyLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Energy]
 }
 
 func MakePreState(db ethdb.Database, accounts core.GenesisAlloc) *state.StateDB {
@@ -226,7 +226,7 @@ func (t *StateTest) genesis(config *params.ChainConfig) *core.Genesis {
 		Config:     config,
 		Coinbase:   t.json.Env.Coinbase,
 		Difficulty: t.json.Env.Difficulty,
-		GasLimit:   t.json.Env.GasLimit,
+		EnergyLimit:   t.json.Env.EnergyLimit,
 		Number:     t.json.Env.Number,
 		Timestamp:  t.json.Env.Timestamp,
 		Alloc:      t.json.Pre,
@@ -259,12 +259,12 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	if ps.Indexes.Value > len(tx.Value) {
 		return nil, fmt.Errorf("tx value index %d out of bounds", ps.Indexes.Value)
 	}
-	if ps.Indexes.Gas > len(tx.GasLimit) {
-		return nil, fmt.Errorf("tx gas limit index %d out of bounds", ps.Indexes.Gas)
+	if ps.Indexes.Energy > len(tx.EnergyLimit) {
+		return nil, fmt.Errorf("tx energy limit index %d out of bounds", ps.Indexes.Energy)
 	}
 	dataHex := tx.Data[ps.Indexes.Data]
 	valueHex := tx.Value[ps.Indexes.Value]
-	gasLimit := tx.GasLimit[ps.Indexes.Gas]
+	energyLimit := tx.EnergyLimit[ps.Indexes.Energy]
 	// Value, Data hex encoding is messy: https://github.com/ethereum/tests/issues/203
 	value := new(big.Int)
 	if valueHex != "0x" {
@@ -279,7 +279,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 		return nil, fmt.Errorf("invalid tx data %q", dataHex)
 	}
 
-	msg := types.NewMessage(from, to, tx.Nonce, value, gasLimit, tx.GasPrice, data, true)
+	msg := types.NewMessage(from, to, tx.Nonce, value, energyLimit, tx.EnergyPrice, data, true)
 	return msg, nil
 }
 

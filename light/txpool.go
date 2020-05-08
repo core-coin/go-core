@@ -361,10 +361,10 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	}
 
 	// Check the transaction doesn't exceed the current
-	// block limit gas.
+	// block limit energy.
 	header := pool.chain.GetHeaderByHash(pool.head)
-	if header.GasLimit < tx.Gas() {
-		return core.ErrGasLimit
+	if header.EnergyLimit < tx.Energy() {
+		return core.ErrEnergyLimit
 	}
 
 	// Transactions can't be negative. This may never happen
@@ -380,13 +380,13 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInsufficientFunds
 	}
 
-	// Should supply enough intrinsic gas
-	gas, err := core.IntrinsicGas(tx.Data(), tx.To() == nil, true, pool.istanbul)
+	// Should supply enough intrinsic energy
+	energy, err := core.IntrinsicEnergy(tx.Data(), tx.To() == nil, true, pool.istanbul)
 	if err != nil {
 		return err
 	}
-	if tx.Gas() < gas {
-		return core.ErrIntrinsicGas
+	if tx.Energy() < energy {
+		return core.ErrIntrinsicEnergy
 	}
 	return currentState.Error()
 }

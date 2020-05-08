@@ -10,7 +10,7 @@ import (
 	"github.com/core-coin/go-core/consensus/ethash"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/eth/gasprice"
+	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/params"
 )
@@ -42,12 +42,12 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		Miner                   miner.Config
 		Ethash                  ethash.Config
 		TxPool                  core.TxPoolConfig
-		GPO                     gasprice.Config
+		GPO                     energyprice.Config
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
 		EWASMInterpreter        string
 		EVMInterpreter          string
-		RPCGasCap               *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
@@ -83,7 +83,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.DocRoot = c.DocRoot
 	enc.EWASMInterpreter = c.EWASMInterpreter
 	enc.EVMInterpreter = c.EVMInterpreter
-	enc.RPCGasCap = c.RPCGasCap
+	enc.RPCEnergyCap = c.RPCEnergyCap
 	enc.Checkpoint = c.Checkpoint
 	enc.CheckpointOracle = c.CheckpointOracle
 	enc.OverrideIstanbul = c.OverrideIstanbul
@@ -118,12 +118,12 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		Miner                   *miner.Config
 		Ethash                  *ethash.Config
 		TxPool                  *core.TxPoolConfig
-		GPO                     *gasprice.Config
+		GPO                     *energyprice.Config
 		EnablePreimageRecording *bool
 		DocRoot                 *string `toml:"-"`
 		EWASMInterpreter        *string
 		EVMInterpreter          *string
-		RPCGasCap               *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
@@ -220,8 +220,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.EVMInterpreter != nil {
 		c.EVMInterpreter = *dec.EVMInterpreter
 	}
-	if dec.RPCGasCap != nil {
-		c.RPCGasCap = dec.RPCGasCap
+	if dec.RPCEnergyCap != nil {
+		c.RPCEnergyCap = dec.RPCEnergyCap
 	}
 	if dec.Checkpoint != nil {
 		c.Checkpoint = dec.Checkpoint

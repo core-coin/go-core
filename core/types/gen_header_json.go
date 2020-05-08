@@ -25,8 +25,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
 		Difficulty  *hexutil.Big   `json:"difficulty"       gencodec:"required"`
 		Number      *hexutil.Big   `json:"number"           gencodec:"required"`
-		GasLimit    hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
-		GasUsed     hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
+		EnergyLimit    hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
+		EnergyUsed     hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
 		Time        hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   common.Hash    `json:"mixHash"`
@@ -43,8 +43,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.Bloom = h.Bloom
 	enc.Difficulty = (*hexutil.Big)(h.Difficulty)
 	enc.Number = (*hexutil.Big)(h.Number)
-	enc.GasLimit = hexutil.Uint64(h.GasLimit)
-	enc.GasUsed = hexutil.Uint64(h.GasUsed)
+	enc.EnergyLimit = hexutil.Uint64(h.EnergyLimit)
+	enc.EnergyUsed = hexutil.Uint64(h.EnergyUsed)
 	enc.Time = hexutil.Uint64(h.Time)
 	enc.Extra = h.Extra
 	enc.MixDigest = h.MixDigest
@@ -65,8 +65,8 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		Bloom       *Bloom          `json:"logsBloom"        gencodec:"required"`
 		Difficulty  *hexutil.Big    `json:"difficulty"       gencodec:"required"`
 		Number      *hexutil.Big    `json:"number"           gencodec:"required"`
-		GasLimit    *hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
-		GasUsed     *hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
+		EnergyLimit    *hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
+		EnergyUsed     *hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
 		Time        *hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       *hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   *common.Hash    `json:"mixHash"`
@@ -112,14 +112,14 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'number' for Header")
 	}
 	h.Number = (*big.Int)(dec.Number)
-	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gasLimit' for Header")
+	if dec.EnergyLimit == nil {
+		return errors.New("missing required field 'energyLimit' for Header")
 	}
-	h.GasLimit = uint64(*dec.GasLimit)
-	if dec.GasUsed == nil {
-		return errors.New("missing required field 'gasUsed' for Header")
+	h.EnergyLimit = uint64(*dec.EnergyLimit)
+	if dec.EnergyUsed == nil {
+		return errors.New("missing required field 'energyUsed' for Header")
 	}
-	h.GasUsed = uint64(*dec.GasUsed)
+	h.EnergyUsed = uint64(*dec.EnergyUsed)
 	if dec.Time == nil {
 		return errors.New("missing required field 'timestamp' for Header")
 	}

@@ -45,7 +45,7 @@ type Backend interface {
 	ChainDb() ethdb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
-	RPCGasCap() *big.Int // global gas cap for eth_call over rpc: DoS protection
+	RPCEnergyCap() *big.Int // global energy cap for eth_call over rpc: DoS protection
 
 	// Blockchain API
 	SetHead(number uint64)

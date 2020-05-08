@@ -85,7 +85,7 @@ type environment struct {
 	family    mapset.Set     // family set (used for checking uncle invalidity)
 	uncles    mapset.Set     // uncle set
 	tcount    int            // tx count in cycle
-	gasPool   *core.GasPool  // available gas used to pack transactions
+	energyPool   *core.EnergyPool  // available energy used to pack transactions
 
 	header   *types.Header
 	txs      []*types.Transaction
@@ -458,7 +458,7 @@ func (w *worker) mainLoop() {
 			// be automatically eliminated.
 			if !w.isRunning() && w.current != nil {
 				// If block is already full, abort
-				if gp := w.current.gasPool; gp != nil && gp.Gas() < params.TxGas {
+				if gp := w.current.energyPool; gp != nil && gp.Energy() < params.TxEnergy {
 					continue
 				}
 				w.mu.RLock()
@@ -698,7 +698,7 @@ func (w *worker) updateSnapshot() {
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error) {
 	snap := w.current.state.Snapshot()
 
-	receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
+	receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.energyPool, w.current.state, w.current.header, tx, &w.current.header.EnergyUsed, *w.chain.GetVMConfig())
 	if err != nil {
 		w.current.state.RevertToSnapshot(snap)
 		return nil, err
@@ -715,8 +715,8 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		return true
 	}
 
-	if w.current.gasPool == nil {
-		w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
+	if w.current.energyPool == nil {
+		w.current.energyPool = new(core.EnergyPool).AddEnergy(w.current.header.EnergyLimit)
 	}
 
 	var coalescedLogs []*types.Log
@@ -731,7 +731,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		if interrupt != nil && atomic.LoadInt32(interrupt) != commitInterruptNone {
 			// Notify resubmit loop to increase resubmitting interval due to too frequent commits.
 			if atomic.LoadInt32(interrupt) == commitInterruptResubmit {
-				ratio := float64(w.current.header.GasLimit-w.current.gasPool.Gas()) / float64(w.current.header.GasLimit)
+				ratio := float64(w.current.header.EnergyLimit-w.current.energyPool.Energy()) / float64(w.current.header.EnergyLimit)
 				if ratio < 0.1 {
 					ratio = 0.1
 				}
@@ -742,9 +742,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			}
 			return atomic.LoadInt32(interrupt) == commitInterruptNewHead
 		}
-		// If we don't have enough gas for any further transactions then we're done
-		if w.current.gasPool.Gas() < params.TxGas {
-			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+		// If we don't have enough energy for any further transactions then we're done
+		if w.current.energyPool.Energy() < params.TxEnergy {
+			log.Trace("Not enough energy for further transactions", "have", w.current.energyPool, "want", params.TxEnergy)
 			break
 		}
 		// Retrieve the next transaction and abort if all done
@@ -770,9 +770,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 
 		logs, err := w.commitTransaction(tx, coinbase)
 		switch err {
-		case core.ErrGasLimitReached:
-			// Pop the current out-of-gas transaction without shifting in the next from the account
-			log.Trace("Gas limit exceeded for current block", "sender", from)
+		case core.ErrEnergyLimitReached:
+			// Pop the current out-of-energy transaction without shifting in the next from the account
+			log.Trace("Energy limit exceeded for current block", "sender", from)
 			txs.Pop()
 
 		case core.ErrNonceTooLow:
@@ -844,7 +844,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	header := &types.Header{
 		ParentHash: parent.Hash(),
 		Number:     num.Add(num, common.Big1),
-		GasLimit:   core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil),
+		EnergyLimit:   core.CalcEnergyLimit(parent, w.config.EnergyFloor, w.config.EnergyCeil),
 		Extra:      w.extra,
 		Time:       uint64(timestamp),
 	}
@@ -973,12 +973,12 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 
 			feesOre := new(big.Int)
 			for i, tx := range block.Transactions() {
-				feesOre.Add(feesOre, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice()))
+				feesOre.Add(feesOre, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].EnergyUsed), tx.EnergyPrice()))
 			}
 			feesEth := new(big.Float).Quo(new(big.Float).SetInt(feesOre), new(big.Float).SetInt(big.NewInt(params.Ether)))
 
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
-				"uncles", len(uncles), "txs", w.current.tcount, "gas", block.GasUsed(), "fees", feesEth, "elapsed", common.PrettyDuration(time.Since(start)))
+				"uncles", len(uncles), "txs", w.current.tcount, "energy", block.EnergyUsed(), "fees", feesEth, "elapsed", common.PrettyDuration(time.Since(start)))
 
 		case <-w.exitCh:
 			log.Info("Worker has exited")

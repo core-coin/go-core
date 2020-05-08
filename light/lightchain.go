@@ -177,9 +177,9 @@ func (lc *LightChain) SetHead(head uint64) error {
 	return lc.loadLastState()
 }
 
-// GasLimit returns the gas limit of the current HEAD block.
-func (lc *LightChain) GasLimit() uint64 {
-	return lc.hc.CurrentHeader().GasLimit
+// EnergyLimit returns the energy limit of the current HEAD block.
+func (lc *LightChain) EnergyLimit() uint64 {
+	return lc.hc.CurrentHeader().EnergyLimit
 }
 
 // Reset purges the entire blockchain, restoring it to its genesis state.

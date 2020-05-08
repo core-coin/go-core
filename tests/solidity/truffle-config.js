@@ -38,7 +38,7 @@
 //   networks: {
 //     // Useful for testing. The `development` name is special - truffle uses it by default
 //     // if it's defined here and no other network is specified at the command line.
-//     // You should run a client (like ganache-cli, geth or parity) in a separate terminal
+//     // You should run a client (like ganache-cli, gcore or parity) in a separate terminal
 //     // tab if you use this network and you must also set the `host`, `port` and `network_id`
 //     // options below to some value.
 //     //
@@ -52,8 +52,8 @@
 //     // advanced: {
 //       // port: 8777,             // Custom port
 //       // network_id: 1342,       // Custom network
-//       // gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
-//       // gasPrice: 20000000000,  // 20 nucle (in ore) (default: 100 nucle)
+//       // energy: 8500000,           // Energy sent with each transaction (default: ~6700000)
+//       // energyPrice: 20000000000,  // 20 nucle (in ore) (default: 100 nucle)
 //       // from: <address>,        // Account to send txs from (default: accounts[0])
 //       // websockets: true        // Enable EventEmitter interface for web3 (default: false)
 //     // },
@@ -63,7 +63,7 @@
 //     // testnet: {
 //       // provider: () => new HDWalletProvider(mnemonic, `https://testnet.infura.io/${infuraKey}`),
 //       // network_id: 3,       // Testnet's id
-//       // gas: 5500000,        // Testnet has a lower block limit than mainnet
+//       // energy: 5500000,        // Testnet has a lower block limit than mainnet
 //       // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
 //       // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
 //       // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )

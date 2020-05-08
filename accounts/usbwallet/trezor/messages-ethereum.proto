@@ -63,8 +63,8 @@ message EthereumAddress {
 message EthereumSignTx {
     repeated uint32 address_n = 1;          // BIP-32 path to derive the key from master node
     optional bytes nonce = 2;               // <=256 bit unsigned big endian
-    optional bytes gas_price = 3;           // <=256 bit unsigned big endian (in wei)
-    optional bytes gas_limit = 4;           // <=256 bit unsigned big endian
+    optional bytes energy_price = 3;           // <=256 bit unsigned big endian (in wei)
+    optional bytes energy_limit = 4;           // <=256 bit unsigned big endian
     optional bytes toBin = 5;               // recipient address (20 bytes, legacy firmware)
     optional string toHex = 11;             // recipient address (hex string, newer firmware)
     optional bytes value = 6;               // <=256 bit unsigned big endian (in wei)

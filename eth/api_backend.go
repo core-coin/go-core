@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/eth/gasprice"
+	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/ethdb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
@@ -42,7 +42,7 @@ import (
 type EthAPIBackend struct {
 	extRPCEnabled bool
 	eth           *Ethereum
-	gpo           *gasprice.Oracle
+	gpo           *energyprice.Oracle
 }
 
 // ChainConfig returns the active chain configuration.
@@ -291,8 +291,8 @@ func (b *EthAPIBackend) ExtRPCEnabled() bool {
 	return b.extRPCEnabled
 }
 
-func (b *EthAPIBackend) RPCGasCap() *big.Int {
-	return b.eth.config.RPCGasCap
+func (b *EthAPIBackend) RPCEnergyCap() *big.Int {
+	return b.eth.config.RPCEnergyCap
 }
 
 func (b *EthAPIBackend) BloomStatus() (uint64, uint64) {

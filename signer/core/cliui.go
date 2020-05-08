@@ -107,8 +107,8 @@ func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, erro
 	}
 	fmt.Printf("from:     %v\n", request.Transaction.From.String())
 	fmt.Printf("value:    %v ore\n", oreval)
-	fmt.Printf("gas:      %v (%v)\n", request.Transaction.Gas, uint64(request.Transaction.Gas))
-	fmt.Printf("gasprice: %v ore\n", request.Transaction.GasPrice.ToInt())
+	fmt.Printf("energy:      %v (%v)\n", request.Transaction.Energy, uint64(request.Transaction.Energy))
+	fmt.Printf("energyprice: %v ore\n", request.Transaction.EnergyPrice.ToInt())
 	fmt.Printf("nonce:    %v (%v)\n", request.Transaction.Nonce, uint64(request.Transaction.Nonce))
 	if request.Transaction.Data != nil {
 		d := *request.Transaction.Data

@@ -553,8 +553,8 @@ func opExtCodeHash(pc *uint64, interpreter *EVMInterpreter, contract *Contract, 
 	return nil, nil
 }
 
-func opGasprice(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	stack.push(interpreter.intPool.get().Set(interpreter.evm.GasPrice))
+func opEnergyprice(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	stack.push(interpreter.intPool.get().Set(interpreter.evm.EnergyPrice))
 	return nil, nil
 }
 
@@ -591,8 +591,8 @@ func opDifficulty(pc *uint64, interpreter *EVMInterpreter, contract *Contract, m
 	return nil, nil
 }
 
-func opGasLimit(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	stack.push(math.U256(interpreter.intPool.get().SetUint64(interpreter.evm.GasLimit)))
+func opEnergyLimit(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	stack.push(math.U256(interpreter.intPool.get().SetUint64(interpreter.evm.EnergyLimit)))
 	return nil, nil
 }
 
@@ -680,8 +680,8 @@ func opMsize(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory
 	return nil, nil
 }
 
-func opGas(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	stack.push(interpreter.intPool.get().SetUint64(contract.Gas))
+func opEnergy(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	stack.push(interpreter.intPool.get().SetUint64(contract.Energy))
 	return nil, nil
 }
 
@@ -690,26 +690,26 @@ func opCreate(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memor
 		value        = stack.pop()
 		offset, size = stack.pop(), stack.pop()
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
-		gas          = contract.Gas
+		energy          = contract.Energy
 	)
 	if interpreter.evm.chainRules.IsEIP150 {
-		gas -= gas / 64
+		energy -= energy / 64
 	}
 
-	contract.UseGas(gas)
-	res, addr, returnGas, suberr := interpreter.evm.Create(contract, input, gas, value)
+	contract.UseEnergy(energy)
+	res, addr, returnEnergy, suberr := interpreter.evm.Create(contract, input, energy, value)
 	// Push item on the stack based on the returned error. If the ruleset is
-	// homestead we must check for CodeStoreOutOfGasError (homestead only
+	// homestead we must check for CodeStoreOutOfEnergyError (homestead only
 	// rule) and treat as an error, if the ruleset is frontier we must
 	// ignore this error and pretend the operation was successful.
-	if interpreter.evm.chainRules.IsHomestead && suberr == ErrCodeStoreOutOfGas {
+	if interpreter.evm.chainRules.IsHomestead && suberr == ErrCodeStoreOutOfEnergy {
 		stack.push(interpreter.intPool.getZero())
-	} else if suberr != nil && suberr != ErrCodeStoreOutOfGas {
+	} else if suberr != nil && suberr != ErrCodeStoreOutOfEnergy {
 		stack.push(interpreter.intPool.getZero())
 	} else {
 		stack.push(interpreter.intPool.get().SetBytes(addr.Bytes()))
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 	interpreter.intPool.put(value, offset, size)
 
 	if suberr == errExecutionReverted {
@@ -724,20 +724,20 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memo
 		offset, size = stack.pop(), stack.pop()
 		salt         = stack.pop()
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
-		gas          = contract.Gas
+		energy          = contract.Energy
 	)
 
 	// Apply EIP150
-	gas -= gas / 64
-	contract.UseGas(gas)
-	res, addr, returnGas, suberr := interpreter.evm.Create2(contract, input, gas, endowment, salt)
+	energy -= energy / 64
+	contract.UseEnergy(energy)
+	res, addr, returnEnergy, suberr := interpreter.evm.Create2(contract, input, energy, endowment, salt)
 	// Push item on the stack based on the returned error.
 	if suberr != nil {
 		stack.push(interpreter.intPool.getZero())
 	} else {
 		stack.push(interpreter.intPool.get().SetBytes(addr.Bytes()))
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 	interpreter.intPool.put(endowment, offset, size, salt)
 
 	if suberr == errExecutionReverted {
@@ -747,9 +747,9 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memo
 }
 
 func opCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
+	// Pop energy. The actual energy in interpreter.evm.callEnergyTemp.
 	interpreter.intPool.put(stack.pop())
-	gas := interpreter.evm.callGasTemp
+	energy := interpreter.evm.callEnergyTemp
 	// Pop other call parameters.
 	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.BigToAddress(addr)
@@ -758,9 +758,9 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory 
 	args := memory.GetPtr(inOffset.Int64(), inSize.Int64())
 
 	if value.Sign() != 0 {
-		gas += params.CallStipend
+		energy += params.CallStipend
 	}
-	ret, returnGas, err := interpreter.evm.Call(contract, toAddr, args, gas, value)
+	ret, returnEnergy, err := interpreter.evm.Call(contract, toAddr, args, energy, value)
 	if err != nil {
 		stack.push(interpreter.intPool.getZero())
 	} else {
@@ -769,16 +769,16 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory 
 	if err == nil || err == errExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 
 	interpreter.intPool.put(addr, value, inOffset, inSize, retOffset, retSize)
 	return ret, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop energy. The actual energy is in interpreter.evm.callEnergyTemp.
 	interpreter.intPool.put(stack.pop())
-	gas := interpreter.evm.callGasTemp
+	energy := interpreter.evm.callEnergyTemp
 	// Pop other call parameters.
 	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.BigToAddress(addr)
@@ -787,9 +787,9 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, contract *Contract, mem
 	args := memory.GetPtr(inOffset.Int64(), inSize.Int64())
 
 	if value.Sign() != 0 {
-		gas += params.CallStipend
+		energy += params.CallStipend
 	}
-	ret, returnGas, err := interpreter.evm.CallCode(contract, toAddr, args, gas, value)
+	ret, returnEnergy, err := interpreter.evm.CallCode(contract, toAddr, args, energy, value)
 	if err != nil {
 		stack.push(interpreter.intPool.getZero())
 	} else {
@@ -798,23 +798,23 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, contract *Contract, mem
 	if err == nil || err == errExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 
 	interpreter.intPool.put(addr, value, inOffset, inSize, retOffset, retSize)
 	return ret, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop energy. The actual energy is in interpreter.evm.callEnergyTemp.
 	interpreter.intPool.put(stack.pop())
-	gas := interpreter.evm.callGasTemp
+	energy := interpreter.evm.callEnergyTemp
 	// Pop other call parameters.
 	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.BigToAddress(addr)
 	// Get arguments from the memory.
 	args := memory.GetPtr(inOffset.Int64(), inSize.Int64())
 
-	ret, returnGas, err := interpreter.evm.DelegateCall(contract, toAddr, args, gas)
+	ret, returnEnergy, err := interpreter.evm.DelegateCall(contract, toAddr, args, energy)
 	if err != nil {
 		stack.push(interpreter.intPool.getZero())
 	} else {
@@ -823,23 +823,23 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract,
 	if err == nil || err == errExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 
 	interpreter.intPool.put(addr, inOffset, inSize, retOffset, retSize)
 	return ret, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop energy. The actual energy is in interpreter.evm.callEnergyTemp.
 	interpreter.intPool.put(stack.pop())
-	gas := interpreter.evm.callGasTemp
+	energy := interpreter.evm.callEnergyTemp
 	// Pop other call parameters.
 	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.BigToAddress(addr)
 	// Get arguments from the memory.
 	args := memory.GetPtr(inOffset.Int64(), inSize.Int64())
 
-	ret, returnGas, err := interpreter.evm.StaticCall(contract, toAddr, args, gas)
+	ret, returnEnergy, err := interpreter.evm.StaticCall(contract, toAddr, args, energy)
 	if err != nil {
 		stack.push(interpreter.intPool.getZero())
 	} else {
@@ -848,7 +848,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, contract *Contract, m
 	if err == nil || err == errExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	contract.Gas += returnGas
+	contract.Energy += returnEnergy
 
 	interpreter.intPool.put(addr, inOffset, inSize, retOffset, retSize)
 	return ret, nil

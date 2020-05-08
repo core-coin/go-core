@@ -22,8 +22,8 @@ func (v vmExec) MarshalJSON() ([]byte, error) {
 		Code     hexutil.Bytes            `json:"code"     gencodec:"required"`
 		Data     hexutil.Bytes            `json:"data"     gencodec:"required"`
 		Value    *math.HexOrDecimal256    `json:"value"    gencodec:"required"`
-		GasLimit math.HexOrDecimal64      `json:"gas"      gencodec:"required"`
-		GasPrice *math.HexOrDecimal256    `json:"gasPrice" gencodec:"required"`
+		EnergyLimit math.HexOrDecimal64      `json:"energy"      gencodec:"required"`
+		EnergyPrice *math.HexOrDecimal256    `json:"energyPrice" gencodec:"required"`
 	}
 	var enc vmExec
 	enc.Address = common.UnprefixedAddress(v.Address)
@@ -32,8 +32,8 @@ func (v vmExec) MarshalJSON() ([]byte, error) {
 	enc.Code = v.Code
 	enc.Data = v.Data
 	enc.Value = (*math.HexOrDecimal256)(v.Value)
-	enc.GasLimit = math.HexOrDecimal64(v.GasLimit)
-	enc.GasPrice = (*math.HexOrDecimal256)(v.GasPrice)
+	enc.EnergyLimit = math.HexOrDecimal64(v.EnergyLimit)
+	enc.EnergyPrice = (*math.HexOrDecimal256)(v.EnergyPrice)
 	return json.Marshal(&enc)
 }
 
@@ -45,8 +45,8 @@ func (v *vmExec) UnmarshalJSON(input []byte) error {
 		Code     *hexutil.Bytes            `json:"code"     gencodec:"required"`
 		Data     *hexutil.Bytes            `json:"data"     gencodec:"required"`
 		Value    *math.HexOrDecimal256     `json:"value"    gencodec:"required"`
-		GasLimit *math.HexOrDecimal64      `json:"gas"      gencodec:"required"`
-		GasPrice *math.HexOrDecimal256     `json:"gasPrice" gencodec:"required"`
+		EnergyLimit *math.HexOrDecimal64      `json:"energy"      gencodec:"required"`
+		EnergyPrice *math.HexOrDecimal256     `json:"energyPrice" gencodec:"required"`
 	}
 	var dec vmExec
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -76,13 +76,13 @@ func (v *vmExec) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'value' for vmExec")
 	}
 	v.Value = (*big.Int)(dec.Value)
-	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gas' for vmExec")
+	if dec.EnergyLimit == nil {
+		return errors.New("missing required field 'energy' for vmExec")
 	}
-	v.GasLimit = uint64(*dec.GasLimit)
-	if dec.GasPrice == nil {
-		return errors.New("missing required field 'gasPrice' for vmExec")
+	v.EnergyLimit = uint64(*dec.EnergyLimit)
+	if dec.EnergyPrice == nil {
+		return errors.New("missing required field 'energyPrice' for vmExec")
 	}
-	v.GasPrice = (*big.Int)(dec.GasPrice)
+	v.EnergyPrice = (*big.Int)(dec.EnergyPrice)
 	return nil
 }

@@ -85,7 +85,7 @@ const (
 	CALLDATACOPY
 	CODESIZE
 	CODECOPY
-	GASPRICE
+	ENERGYPRICE
 	EXTCODESIZE
 	EXTCODECOPY
 	RETURNDATASIZE
@@ -100,7 +100,7 @@ const (
 	TIMESTAMP
 	NUMBER
 	DIFFICULTY
-	GASLIMIT
+	ENERGYLIMIT
 	CHAINID     = 0x46
 	SELFBALANCE = 0x47
 )
@@ -117,7 +117,7 @@ const (
 	JUMPI
 	PC
 	MSIZE
-	GAS
+	ENERGY
 	JUMPDEST
 )
 
@@ -265,7 +265,7 @@ var opCodeToString = map[OpCode]string{
 	CALLDATACOPY:   "CALLDATACOPY",
 	CODESIZE:       "CODESIZE",
 	CODECOPY:       "CODECOPY",
-	GASPRICE:       "GASPRICE",
+	ENERGYPRICE:       "ENERGYPRICE",
 	EXTCODESIZE:    "EXTCODESIZE",
 	EXTCODECOPY:    "EXTCODECOPY",
 	RETURNDATASIZE: "RETURNDATASIZE",
@@ -278,7 +278,7 @@ var opCodeToString = map[OpCode]string{
 	TIMESTAMP:   "TIMESTAMP",
 	NUMBER:      "NUMBER",
 	DIFFICULTY:  "DIFFICULTY",
-	GASLIMIT:    "GASLIMIT",
+	ENERGYLIMIT:    "ENERGYLIMIT",
 	CHAINID:     "CHAINID",
 	SELFBALANCE: "SELFBALANCE",
 
@@ -295,7 +295,7 @@ var opCodeToString = map[OpCode]string{
 	JUMPI:    "JUMPI",
 	PC:       "PC",
 	MSIZE:    "MSIZE",
-	GAS:      "GAS",
+	ENERGY:      "ENERGY",
 	JUMPDEST: "JUMPDEST",
 
 	// 0x60 range - push.
@@ -437,7 +437,7 @@ var stringToOp = map[string]OpCode{
 	"STATICCALL":     STATICCALL,
 	"CODESIZE":       CODESIZE,
 	"CODECOPY":       CODECOPY,
-	"GASPRICE":       GASPRICE,
+	"ENERGYPRICE":       ENERGYPRICE,
 	"EXTCODESIZE":    EXTCODESIZE,
 	"EXTCODECOPY":    EXTCODECOPY,
 	"RETURNDATASIZE": RETURNDATASIZE,
@@ -448,7 +448,7 @@ var stringToOp = map[string]OpCode{
 	"TIMESTAMP":      TIMESTAMP,
 	"NUMBER":         NUMBER,
 	"DIFFICULTY":     DIFFICULTY,
-	"GASLIMIT":       GASLIMIT,
+	"ENERGYLIMIT":       ENERGYLIMIT,
 	"SELFBALANCE":    SELFBALANCE,
 	"POP":            POP,
 	"MLOAD":          MLOAD,
@@ -460,7 +460,7 @@ var stringToOp = map[string]OpCode{
 	"JUMPI":          JUMPI,
 	"PC":             PC,
 	"MSIZE":          MSIZE,
-	"GAS":            GAS,
+	"ENERGY":            ENERGY,
 	"JUMPDEST":       JUMPDEST,
 	"PUSH1":          PUSH1,
 	"PUSH2":          PUSH2,

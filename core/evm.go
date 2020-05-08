@@ -53,8 +53,8 @@ func NewEVMContext(msg Message, header *types.Header, chain ChainContext, author
 		BlockNumber: new(big.Int).Set(header.Number),
 		Time:        new(big.Int).SetUint64(header.Time),
 		Difficulty:  new(big.Int).Set(header.Difficulty),
-		GasLimit:    header.GasLimit,
-		GasPrice:    new(big.Int).Set(msg.GasPrice()),
+		EnergyLimit:    header.EnergyLimit,
+		EnergyPrice:    new(big.Int).Set(msg.EnergyPrice()),
 	}
 }
 
@@ -93,7 +93,7 @@ func GetHashFn(ref *types.Header, chain ChainContext) func(n uint64) common.Hash
 }
 
 // CanTransfer checks whether there are enough funds in the address' account to make a transfer.
-// This does not take the necessary gas in to account to make the transfer valid.
+// This does not take the necessary energy in to account to make the transfer valid.
 func CanTransfer(db vm.StateDB, addr common.Address, amount *big.Int) bool {
 	return db.GetBalance(addr).Cmp(amount) >= 0
 }

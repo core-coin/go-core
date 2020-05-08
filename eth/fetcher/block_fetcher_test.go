@@ -38,7 +38,7 @@ var (
 	testKey, _   = crypto.HexToECDSA("71f6e8535ca1b851a31008f7c49361726ccd6642643b094acae200013ebb15879ca7cb7b5ef822b2310e70b8c59fcf6d6a99e390b3614919597d47ce4e72f5c8bffed51d2edc358ddc400ad1b6ae3cf4f2edc03c144c5e81002b084dc12526cbf55fb33a82fdc72a8747c0dfe440c974ff8acae586150135bb08979d75fd162f6689b18f251c5af5b4d2cd18fae7f5e3")
 	testAddress  = crypto.PubkeyToAddress(testKey.PublicKey)
 	genesis      = core.GenesisBlockForTesting(testdb, testAddress, big.NewInt(1000000000))
-	unknownBlock = types.NewBlock(&types.Header{GasLimit: params.GenesisGasLimit}, nil, nil, nil)
+	unknownBlock = types.NewBlock(&types.Header{EnergyLimit: params.GenesisEnergyLimit}, nil, nil, nil)
 )
 
 // makeChain creates a chain of n blocks starting at and including parent.
@@ -52,7 +52,7 @@ func makeChain(n int, seed byte, parent *types.Block) ([]common.Hash, map[common
 		// If the block number is multiple of 3, send a bonus transaction to the miner
 		if parent == genesis && i%3 == 0 {
 			signer := types.MakeSigner(params.TestChainConfig, block.Number())
-			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxGas, nil, nil), signer, testKey)
+			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)
 			}
