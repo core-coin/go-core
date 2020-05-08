@@ -130,9 +130,9 @@
                 Initial processing required to execute all transactions may require non-negligible time and disk capacity required to store all past state may be non-insignificant. High end machines with SSD storage, modern CPUs and 8GB+ RAM are recommended.
               </p>
               <p>
-                To run an archive node, download <em>{{.GethGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GethGenesis}}</code></pre>
+              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
@@ -145,9 +145,9 @@
                 Initial processing required to synchronize is more bandwidth intensive, but is light on the CPU and has significantly reduced disk requirements. Mid range machines with HDD storage, decent CPUs and 4GB+ RAM should be enough.
               </p>
               <p>
-                To run an archive node, download <em>{{.GethGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GethGenesis}}</code></pre>
+              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
@@ -160,9 +160,9 @@
                 Initial processing required to synchronize is light, as it only verifies the validity of the headers; similarly required disk capacity is small, tallying around 500 bytes per header. Low end machines with arbitrary storage, weak CPUs and 512MB+ RAM should cope well.
               </p>
               <p>
-                To run an archive node, download <em>{{.GethGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GethGenesis}}</code></pre>
+              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
@@ -175,9 +175,9 @@
                 Initial processing required to synchronize is light, as it only verifies the validity of the headers; similarly required disk capacity is small, tallying around 500 bytes per header. Embedded machines with arbitrary storage, low power CPUs and 128MB+ RAM may work.
               </p>
               <p>
-                To run an archive node, download <em>{{.GethGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GethGenesis}}</code></pre>
+              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <pre><code>geth --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
@@ -190,9 +190,9 @@
                 Under the hood the wallet is backed by a Gcore full node, meaning that a mid range machine is assumed. Similarly, synchronization is based on fast-sync, which will download all blockchain data from the network and make it available to the wallet. Light nodes cannot currently fully back the wallet, but it's a target actively pursued.
               </p>
               <p>
-                To connect with the Core Wallet, you'll need to initialize your private network first via Gcore as the wallet does not currently support calling Gcore directly. To initialize your local chain, download <em>{{.GethGenesis}}</em> and start Gcore with:
+                To connect with the Core Wallet, you'll need to initialize your private network first via Gcore as the wallet does not currently support calling Gcore directly. To initialize your local chain, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
-              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GethGenesis}}</code></pre>
+              <pre><code>geth --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
               <p>
                 With your local chain initialized, you can start the Core Wallet:
               </p>

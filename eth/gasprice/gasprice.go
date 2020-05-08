@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/rpc"
 )
 
-var maxPrice = big.NewInt(500 * params.GWei)
+var maxPrice = big.NewInt(500 * params.Nucle)
 
 type Config struct {
 	Blocks     int

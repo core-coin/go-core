@@ -181,7 +181,7 @@ func (info *nodeInfos) Report() map[string]string {
 	}
 	if info.gasTarget > 0 {
 		// Miner or signer node
-		report["Gas price (minimum accepted)"] = fmt.Sprintf("%0.3f GWei", info.gasPrice)
+		report["Gas price (minimum accepted)"] = fmt.Sprintf("%0.3f Nucle", info.gasPrice)
 		report["Gas floor (baseline target)"] = fmt.Sprintf("%0.3f MGas", info.gasTarget)
 		report["Gas ceil  (target maximum)"] = fmt.Sprintf("%0.3f MGas", info.gasLimit)
 

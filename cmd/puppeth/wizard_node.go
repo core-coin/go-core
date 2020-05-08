@@ -147,7 +147,7 @@ func (w *wizard) deployNode(boot bool) {
 		infos.gasLimit = w.readDefaultFloat(infos.gasLimit)
 
 		fmt.Println()
-		fmt.Printf("What gas price should the signer require (GWei)? (default = %0.3f)\n", infos.gasPrice)
+		fmt.Printf("What gas price should the signer require (Nucle)? (default = %0.3f)\n", infos.gasPrice)
 		infos.gasPrice = w.readDefaultFloat(infos.gasPrice)
 	}
 	// Try to deploy the full node on the host

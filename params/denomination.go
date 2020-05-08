@@ -17,12 +17,12 @@
 package params
 
 // These are the multipliers for ether denominations.
-// Example: To get the ore value of an amount in 'gwei', use
+// Example: To get the ore value of an amount in 'nucle', use
 //
-//    new(big.Int).Mul(value, big.NewInt(params.GWei))
+//    new(big.Int).Mul(value, big.NewInt(params.Nucle))
 //
 const (
 	Ore   = 1
-	GWei  = 1e9
+	Nucle  = 1e9
 	Ether = 1e18
 )
