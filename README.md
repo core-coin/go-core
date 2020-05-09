@@ -107,7 +107,7 @@ accounts available between them.*
 
 ### Full node on the Rinkeby test network
 
-The above test network is a cross-client one based on the ethash proof-of-work consensus
+The above test network is a cross-client one based on the cryptore proof-of-work consensus
 algorithm. As such, it has certain extra overhead and is more susceptible to reorganization
 attacks due to the network's low difficulty/security. Go Core also supports connecting
 to a proof-of-authority based test network called [*Rinkeby*](https://www.rinkeby.io)

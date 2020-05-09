@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/energyprice"
@@ -34,7 +34,7 @@ import (
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: ethash.Config{},
+	Cryptore: cryptore.Config{},
 	NetworkId:          1,
 	LightPeers:         100,
 	UltraLightFraction: 75,
@@ -112,8 +112,8 @@ type Config struct {
 	// Mining options
 	Miner miner.Config
 
-	// Ethash options
-	Ethash ethash.Config
+	// Cryptore options
+	Cryptore cryptore.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig

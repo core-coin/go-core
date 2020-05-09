@@ -91,7 +91,7 @@ func TestEIP2200(t *testing.T) {
 			CanTransfer: func(StateDB, common.Address, *big.Int) bool { return true },
 			Transfer:    func(StateDB, common.Address, common.Address, *big.Int) {},
 		}
-		vmenv := NewCVM(vmctx, statedb, params.AllEthashProtocolChanges, Config{ExtraEips: []int{2200}})
+		vmenv := NewCVM(vmctx, statedb, params.AllCryptoreProtocolChanges, Config{ExtraEips: []int{2200}})
 
 		_, energy, err := vmenv.Call(AccountRef(common.Address{}), address, nil, tt.energypool, new(big.Int))
 		if err != tt.failure {

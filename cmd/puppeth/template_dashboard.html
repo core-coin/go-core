@@ -178,7 +178,7 @@
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
               <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --cryptore.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Wallet</h2>

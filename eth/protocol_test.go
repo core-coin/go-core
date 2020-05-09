@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/forkid"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -156,7 +156,7 @@ func TestStatusMsgErrors64(t *testing.T) {
 
 func TestForkIDSplit(t *testing.T) {
 	var (
-		engine = ethash.NewFaker()
+		engine = cryptore.NewFaker()
 
 		configNoFork  = &params.ChainConfig{HomesteadBlock: big.NewInt(1)}
 		configProFork = &params.ChainConfig{

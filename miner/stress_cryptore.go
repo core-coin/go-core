@@ -16,7 +16,7 @@
 
 // +build none
 
-// This file contains a miner stress test based on the Ethash consensus engine.
+// This file contains a miner stress test based on the Cryptore consensus engine.
 package main
 
 import (
@@ -52,7 +52,7 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Create an Ethash network based off of the Testnet config
+	// Create an Cryptore network based off of the Testnet config
 	genesis := makeGenesis(faucets)
 
 	var (
@@ -125,7 +125,7 @@ func main() {
 	}
 }
 
-// makeGenesis creates a custom Ethash genesis block based on some pre-defined
+// makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
 func makeGenesis(faucets []*ecdsa.PrivateKey) *core.Genesis {
 	genesis := core.DefaultTestnetGenesisBlock()
@@ -174,7 +174,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 			DatabaseHandles: 256,
 			TxPool:          core.DefaultTxPoolConfig,
 			GPO:             eth.DefaultConfig.GPO,
-			Ethash:          eth.DefaultConfig.Ethash,
+			Cryptore:          eth.DefaultConfig.Cryptore,
 			Miner: miner.Config{
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,

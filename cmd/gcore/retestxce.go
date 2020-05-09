@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/consensus/misc"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -384,9 +384,9 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	var inner consensus.Engine
 	switch chainParams.SealEngine {
 	case "NoProof", "NoReward":
-		inner = ethash.NewFaker()
-	case "Ethash":
-		inner = ethash.New(ethash.Config{}, nil, false)
+		inner = cryptore.NewFaker()
+	case "Cryptore":
+		inner = cryptore.New(cryptore.Config{}, nil, false)
 	default:
 		return false, fmt.Errorf("unrecognised seal engine: %s", chainParams.SealEngine)
 	}

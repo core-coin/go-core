@@ -93,8 +93,8 @@ func (w *wizard) deployNode(boot bool) {
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
-		if w.conf.Genesis.Config.Ethash != nil {
-			// Ethash based miners only need an corebase to mine against
+		if w.conf.Genesis.Config.Cryptore != nil {
+			// Cryptore based miners only need an corebase to mine against
 			fmt.Println()
 			if infos.corebase == "" {
 				fmt.Printf("What address should the miner use?\n")

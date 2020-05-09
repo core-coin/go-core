@@ -60,8 +60,8 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/core{{if .Cryptoredir}}
-      - {{.Cryptoredir}}:/root/.ethash{{end}}
+      - {{.Datadir}}:/root/.core{{if .Cryptoredir}}
+      - {{.Cryptoredir}}:/root/.cryptore{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
@@ -186,8 +186,8 @@ func (info *nodeInfos) Report() map[string]string {
 		report["Energy ceil  (target maximum)"] = fmt.Sprintf("%0.3f MEnergy", info.energyLimit)
 
 		if info.corebase != "" {
-			// Ethash proof-of-work miner
-			report["Ethash directory"] = info.cryptoredir
+			// Cryptore proof-of-work miner
+			report["Cryptore directory"] = info.cryptoredir
 			report["Miner account"] = info.corebase
 		}
 		if info.keyJSON != "" {
@@ -254,8 +254,8 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	// Assemble and return the useful infos
 	stats := &nodeInfos{
 		genesis:    genesis,
-		datadir:    infos.volumes["/root/core"],
-		cryptoredir:  infos.volumes["/root/.ethash"],
+		datadir:    infos.volumes["/root/.core"],
+		cryptoredir:  infos.volumes["/root/.cryptore"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,

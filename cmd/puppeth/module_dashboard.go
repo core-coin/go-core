@@ -135,7 +135,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Bootnodes":         conf.bootnodes,
 		"BootnodesFlat":     strings.Join(conf.bootnodes, ","),
 		"Xcestats":          statsLogin,
-		"Ethash":            conf.Genesis.Config.Ethash != nil,
+		"Cryptore":            conf.Genesis.Config.Cryptore != nil,
 		"CppGenesis":        network + "-cpp.json",
 		"CppBootnodes":      strings.Join(bootCpp, " "),
 		"HarmonyGenesis":    network + "-harmony.json",
@@ -156,7 +156,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 	genesis, _ := conf.Genesis.MarshalJSON()
 	files[filepath.Join(workdir, network+".json")] = genesis
 
-	if conf.Genesis.Config.Ethash != nil {
+	if conf.Genesis.Config.Cryptore != nil {
 		cppSpec, err := newAlethGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err

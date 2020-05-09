@@ -1,5 +1,5 @@
 {
-  "sealEngine": "Ethash",
+  "sealEngine": "Cryptore",
   "params": {
     "accountStartNonce": "0x0",
     "maximumExtraDataSize": "0x20",

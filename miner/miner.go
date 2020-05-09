@@ -44,13 +44,13 @@ type Backend interface {
 // Config is the configuration parameters of mining.
 type Config struct {
 	Corebase common.Address `toml:",omitempty"` // Public address for block mining rewards (default = first account)
-	Notify    []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in ethash).
+	Notify    []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in cryptore).
 	ExtraData hexutil.Bytes  `toml:",omitempty"` // Block extra data set by the miner
 	EnergyFloor  uint64         // Target energy floor for mined blocks.
 	EnergyCeil   uint64         // Target energy ceiling for mined blocks.
 	EnergyPrice  *big.Int       // Minimum energy price for mining a transaction
 	Recommit  time.Duration  // The time interval for miner to re-create mining work.
-	Noverify  bool           // Disable remote mining solution verification(only useful in ethash).
+	Noverify  bool           // Disable remote mining solution verification(only useful in cryptore).
 }
 
 // Miner creates blocks and searches for proof-of-work values.
