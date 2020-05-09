@@ -25,7 +25,7 @@ import (
 
 func TestTextHash(t *testing.T) {
 	hash := TextHash([]byte("Hello Joe"))
-	want := hexutil.MustDecode("0xa080337ae51c4e064c189e113edd0ba391df9206e2f49db658bb32cf2911730b")
+	want := hexutil.MustDecode("0xe0f492e66aa450d803739093170df4360e1327ede61becd740b1f82382171956")
 	if !bytes.Equal(hash, want) {
 		t.Fatalf("wrong hash: %x", hash)
 	}
