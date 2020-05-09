@@ -45,7 +45,7 @@ func newStatePrefetcher(config *params.ChainConfig, bc *BlockChain, engine conse
 	}
 }
 
-// Prefetch processes the state changes according to the Ethereum rules by running
+// Prefetch processes the state changes according to the Core rules by running
 // the transaction messages using the statedb, but any changes are discarded. The
 // only goal is to pre-cache transaction signatures and state trie nodes.
 func (p *statePrefetcher) Prefetch(block *types.Block, statedb *state.StateDB, cfg vm.Config, interrupt *uint32) {
@@ -76,9 +76,9 @@ func precacheTransaction(config *params.ChainConfig, bc ChainContext, author *co
 	if err != nil {
 		return err
 	}
-	// Create the EVM and execute the transaction
-	context := NewEVMContext(msg, header, bc, author)
-	vm := vm.NewEVM(context, statedb, config, cfg)
+	// Create the CVM and execute the transaction
+	context := NewCVMContext(msg, header, bc, author)
+	vm := vm.NewCVM(context, statedb, config, cfg)
 
 	_, _, _, err = ApplyMessage(vm, msg, energypool)
 	return err

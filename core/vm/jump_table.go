@@ -23,8 +23,8 @@ import (
 )
 
 type (
-	executionFunc func(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error)
-	energyFunc       func(*EVM, *Contract, *Stack, *Memory, uint64) (uint64, error) // last parameter is the requested memory size as a uint64
+	executionFunc func(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error)
+	energyFunc       func(*CVM, *Contract, *Stack, *Memory, uint64) (uint64, error) // last parameter is the requested memory size as a uint64
 	// memorySizeFunc returns the required size, and whether the operation overflowed a uint64
 	memorySizeFunc func(*Stack) (size uint64, overflow bool)
 )
@@ -63,7 +63,7 @@ var (
 	istanbulInstructionSet         = newIstanbulInstructionSet()
 )
 
-// JumpTable contains the EVM opcodes supported at a given fork.
+// JumpTable contains the CVM opcodes supported at a given fork.
 type JumpTable [256]operation
 
 // newIstanbulInstructionSet returns the frontier, homestead
@@ -71,9 +71,9 @@ type JumpTable [256]operation
 func newIstanbulInstructionSet() JumpTable {
 	instructionSet := newConstantinopleInstructionSet()
 
-	enable1344(&instructionSet) // ChainID opcode - https://eips.ethereum.org/EIPS/eip-1344
-	enable1884(&instructionSet) // Reprice reader opcodes - https://eips.ethereum.org/EIPS/eip-1884
-	enable2200(&instructionSet) // Net metered SSTORE - https://eips.ethereum.org/EIPS/eip-2200
+	enable1344(&instructionSet) // ChainID opcode - https://eips.coreblockchain.cc/EIPS/eip-1344
+	enable1884(&instructionSet) // Reprice reader opcodes - https://eips.coreblockchain.cc/EIPS/eip-1884
+	enable2200(&instructionSet) // Net metered SSTORE - https://eips.coreblockchain.cc/EIPS/eip-2200
 
 	return instructionSet
 }

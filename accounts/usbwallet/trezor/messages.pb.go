@@ -96,17 +96,17 @@ const (
 	MessageType_MessageType_DebugLinkMemory      MessageType = 111
 	MessageType_MessageType_DebugLinkMemoryWrite MessageType = 112
 	MessageType_MessageType_DebugLinkFlashErase  MessageType = 113
-	// Ethereum
-	MessageType_MessageType_EthereumGetPublicKey     MessageType = 450
-	MessageType_MessageType_EthereumPublicKey        MessageType = 451
-	MessageType_MessageType_EthereumGetAddress       MessageType = 56
-	MessageType_MessageType_EthereumAddress          MessageType = 57
-	MessageType_MessageType_EthereumSignTx           MessageType = 58
-	MessageType_MessageType_EthereumTxRequest        MessageType = 59
-	MessageType_MessageType_EthereumTxAck            MessageType = 60
-	MessageType_MessageType_EthereumSignMessage      MessageType = 64
-	MessageType_MessageType_EthereumVerifyMessage    MessageType = 65
-	MessageType_MessageType_EthereumMessageSignature MessageType = 66
+	// Core
+	MessageType_MessageType_CoreGetPublicKey     MessageType = 450
+	MessageType_MessageType_CorePublicKey        MessageType = 451
+	MessageType_MessageType_CoreGetAddress       MessageType = 56
+	MessageType_MessageType_CoreAddress          MessageType = 57
+	MessageType_MessageType_CoreSignTx           MessageType = 58
+	MessageType_MessageType_CoreTxRequest        MessageType = 59
+	MessageType_MessageType_CoreTxAck            MessageType = 60
+	MessageType_MessageType_CoreSignMessage      MessageType = 64
+	MessageType_MessageType_CoreVerifyMessage    MessageType = 65
+	MessageType_MessageType_CoreMessageSignature MessageType = 66
 	// NEM
 	MessageType_MessageType_NEMGetAddress       MessageType = 67
 	MessageType_MessageType_NEMAddress          MessageType = 68
@@ -306,16 +306,16 @@ var MessageType_name = map[int32]string{
 	111: "MessageType_DebugLinkMemory",
 	112: "MessageType_DebugLinkMemoryWrite",
 	113: "MessageType_DebugLinkFlashErase",
-	450: "MessageType_EthereumGetPublicKey",
-	451: "MessageType_EthereumPublicKey",
-	56:  "MessageType_EthereumGetAddress",
-	57:  "MessageType_EthereumAddress",
-	58:  "MessageType_EthereumSignTx",
-	59:  "MessageType_EthereumTxRequest",
-	60:  "MessageType_EthereumTxAck",
-	64:  "MessageType_EthereumSignMessage",
-	65:  "MessageType_EthereumVerifyMessage",
-	66:  "MessageType_EthereumMessageSignature",
+	450: "MessageType_CoreGetPublicKey",
+	451: "MessageType_CorePublicKey",
+	56:  "MessageType_CoreGetAddress",
+	57:  "MessageType_CoreAddress",
+	58:  "MessageType_CoreSignTx",
+	59:  "MessageType_CoreTxRequest",
+	60:  "MessageType_CoreTxAck",
+	64:  "MessageType_CoreSignMessage",
+	65:  "MessageType_CoreVerifyMessage",
+	66:  "MessageType_CoreMessageSignature",
 	67:  "MessageType_NEMGetAddress",
 	68:  "MessageType_NEMAddress",
 	69:  "MessageType_NEMSignTx",
@@ -502,16 +502,16 @@ var MessageType_value = map[string]int32{
 	"MessageType_DebugLinkMemory":                           111,
 	"MessageType_DebugLinkMemoryWrite":                      112,
 	"MessageType_DebugLinkFlashErase":                       113,
-	"MessageType_EthereumGetPublicKey":                      450,
-	"MessageType_EthereumPublicKey":                         451,
-	"MessageType_EthereumGetAddress":                        56,
-	"MessageType_EthereumAddress":                           57,
-	"MessageType_EthereumSignTx":                            58,
-	"MessageType_EthereumTxRequest":                         59,
-	"MessageType_EthereumTxAck":                             60,
-	"MessageType_EthereumSignMessage":                       64,
-	"MessageType_EthereumVerifyMessage":                     65,
-	"MessageType_EthereumMessageSignature":                  66,
+	"MessageType_CoreGetPublicKey":                      450,
+	"MessageType_CorePublicKey":                         451,
+	"MessageType_CoreGetAddress":                        56,
+	"MessageType_CoreAddress":                           57,
+	"MessageType_CoreSignTx":                            58,
+	"MessageType_CoreTxRequest":                         59,
+	"MessageType_CoreTxAck":                             60,
+	"MessageType_CoreSignMessage":                       64,
+	"MessageType_CoreVerifyMessage":                     65,
+	"MessageType_CoreMessageSignature":                  66,
 	"MessageType_NEMGetAddress":                             67,
 	"MessageType_NEMAddress":                                68,
 	"MessageType_NEMSignTx":                                 69,

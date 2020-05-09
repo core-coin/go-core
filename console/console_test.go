@@ -76,7 +76,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	ethereum  *eth.Ethereum
+	core  *eth.Core
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -91,7 +91,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		t.Fatalf("failed to create temporary keystore: %v", err)
 	}
 
-	// Create a networkless protocol stack and start an Ethereum service within
+	// Create a networkless protocol stack and start an Core service within
 	stack, err := node.New(&node.Config{DataDir: workspace, UseLightweightKDF: true, Name: testInstance})
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
@@ -109,7 +109,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		confOverride(ethConf)
 	}
 	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return eth.New(ctx, ethConf) }); err != nil {
-		t.Fatalf("failed to register Ethereum protocol: %v", err)
+		t.Fatalf("failed to register Core protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
 	if err = stack.Start(); err != nil {
@@ -134,13 +134,13 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var ethereum *eth.Ethereum
-	stack.Service(&ethereum)
+	var core *eth.Core
+	stack.Service(&core)
 
 	return &tester{
 		workspace: workspace,
 		stack:     stack,
-		ethereum:  ethereum,
+		core:  core,
 		console:   console,
 		input:     prompter,
 		output:    printer,

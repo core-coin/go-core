@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package state provides a caching layer atop the Ethereum state trie.
+// Package state provides a caching layer atop the Core state trie.
 package state
 
 import (
@@ -42,7 +42,7 @@ var (
 	// emptyRoot is the known root hash of an empty trie.
 	emptyRoot = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
-	// emptyCode is the known hash of the empty EVM bytecode.
+	// emptyCode is the known hash of the empty CVM bytecode.
 	emptyCode = crypto.Keccak256Hash(nil)
 )
 
@@ -57,7 +57,7 @@ func (n *proofList) Delete(key []byte) error {
 	panic("not supported")
 }
 
-// StateDBs within the ethereum protocol are used to store anything
+// StateDBs within the core protocol are used to store anything
 // within the merkle trie. StateDBs take care of caching and storing
 // nested states. It's the general query interface to retrieve:
 // * Contracts
@@ -523,7 +523,7 @@ func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) 
 // CreateAccount explicitly creates a state object. If a state object with the address
 // already exists the balance is carried over to the new account.
 //
-// CreateAccount is called during the EVM CREATE operation. The situation might arise that
+// CreateAccount is called during the CVM CREATE operation. The situation might arise that
 // a contract does the following:
 //
 //   1. sends funds to sha(account ++ (nonce + 1))
@@ -710,7 +710,7 @@ func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash {
 }
 
 // Prepare sets the current transaction hash and index and block hash which is
-// used when the EVM emits new state logs.
+// used when the CVM emits new state logs.
 func (s *StateDB) Prepare(thash, bhash common.Hash, ti int) {
 	s.thash = thash
 	s.bhash = bhash

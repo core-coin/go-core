@@ -60,7 +60,7 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
-func TestEVM(t *testing.T) {
+func TestCVM(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.Fatalf("crashed with: %v", r)
@@ -152,7 +152,7 @@ func BenchmarkCall(b *testing.B) {
 		}
 	}
 }
-func benchmarkEVM_Create(bench *testing.B, code string) {
+func benchmarkCVM_Create(bench *testing.B, code string) {
 	var (
 		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
 		sender     = common.BytesToAddress([]byte("sender"))
@@ -180,7 +180,7 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 			EIP155Block:         new(big.Int),
 			EIP158Block:         new(big.Int),
 		},
-		EVMConfig: vm.Config{},
+		CVMConfig: vm.Config{},
 	}
 	// Warm up the intpools and stuff
 	bench.ResetTimer()
@@ -190,21 +190,21 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 	bench.StopTimer()
 }
 
-func BenchmarkEVM_CREATE_500(bench *testing.B) {
+func BenchmarkCVM_CREATE_500(bench *testing.B) {
 	// initcode size 500K, repeatedly calls CREATE and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b6207a120600080f0600152600056")
+	benchmarkCVM_Create(bench, "5b6207a120600080f0600152600056")
 }
-func BenchmarkEVM_CREATE2_500(bench *testing.B) {
+func BenchmarkCVM_CREATE2_500(bench *testing.B) {
 	// initcode size 500K, repeatedly calls CREATE2 and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b586207a120600080f5600152600056")
+	benchmarkCVM_Create(bench, "5b586207a120600080f5600152600056")
 }
-func BenchmarkEVM_CREATE_1200(bench *testing.B) {
+func BenchmarkCVM_CREATE_1200(bench *testing.B) {
 	// initcode size 1200K, repeatedly calls CREATE and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b62124f80600080f0600152600056")
+	benchmarkCVM_Create(bench, "5b62124f80600080f0600152600056")
 }
-func BenchmarkEVM_CREATE2_1200(bench *testing.B) {
+func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 	// initcode size 1200K, repeatedly calls CREATE2 and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b5862124f80600080f5600152600056")
+	benchmarkCVM_Create(bench, "5b5862124f80600080f5600152600056")
 }
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {

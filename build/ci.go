@@ -64,19 +64,19 @@ import (
 )
 
 var (
-	// Files that end up in the geth*.zip archive.
-	gethArchiveFiles = []string{
+	// Files that end up in the gcore*.zip archive.
+	gcoreArchiveFiles = []string{
 		"COPYING",
-		executablePath("geth"),
+		executablePath("gcore"),
 	}
 
-	// Files that end up in the geth-alltools*.zip archive.
+	// Files that end up in the gcore-alltools*.zip archive.
 	allToolsArchiveFiles = []string{
 		"COPYING",
 		executablePath("abigen"),
 		executablePath("bootnode"),
-		executablePath("evm"),
-		executablePath("geth"),
+		executablePath("cvm"),
+		executablePath("gcore"),
 		executablePath("puppeth"),
 		executablePath("rlpdump"),
 		executablePath("wnode"),
@@ -87,23 +87,23 @@ var (
 	debExecutables = []debExecutable{
 		{
 			BinaryName:  "abigen",
-			Description: "Source code generator to convert Ethereum contract definitions into easy to use, compile-time type-safe Go packages.",
+			Description: "Source code generator to convert Core contract definitions into easy to use, compile-time type-safe Go packages.",
 		},
 		{
 			BinaryName:  "bootnode",
-			Description: "Ethereum bootnode.",
+			Description: "Core bootnode.",
 		},
 		{
-			BinaryName:  "evm",
-			Description: "Developer utility version of the EVM (Ethereum Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode.",
+			BinaryName:  "cvm",
+			Description: "Developer utility version of the CVM (Core Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode.",
 		},
 		{
-			BinaryName:  "geth",
-			Description: "Ethereum CLI client.",
+			BinaryName:  "gcore",
+			Description: "Core CLI client.",
 		},
 		{
 			BinaryName:  "puppeth",
-			Description: "Ethereum private network manager.",
+			Description: "Core private network manager.",
 		},
 		{
 			BinaryName:  "rlpdump",
@@ -111,25 +111,25 @@ var (
 		},
 		{
 			BinaryName:  "wnode",
-			Description: "Ethereum Whisper diagnostic tool",
+			Description: "Core Whisper diagnostic tool",
 		},
 		{
 			BinaryName:  "clef",
-			Description: "Ethereum account management tool.",
+			Description: "Core account management tool.",
 		},
 	}
 
 	// A debian package is created for all executables listed here.
 
-	debEthereum = debPackage{
-		Name:        "ethereum",
+	debCore = debPackage{
+		Name:        "core",
 		Version:     params.Version,
 		Executables: debExecutables,
 	}
 
 	// Debian meta packages to build and push to Ubuntu PPA
 	debPackages = []debPackage{
-		debEthereum,
+		debCore,
 	}
 
 	// Distros for which packages are created.
@@ -393,18 +393,18 @@ func doArchive(cmdline []string) {
 	var (
 		env = build.Env()
 
-		basegeth = archiveBasename(*arch, params.ArchiveVersion(env.Commit))
-		geth     = "geth-" + basegeth + ext
-		alltools = "geth-alltools-" + basegeth + ext
+		basegcore = archiveBasename(*arch, params.ArchiveVersion(env.Commit))
+		gcore     = "gcore-" + basegcore + ext
+		alltools = "gcore-alltools-" + basegcore + ext
 	)
 	maybeSkipArchive(env)
-	if err := build.WriteArchive(geth, gethArchiveFiles); err != nil {
+	if err := build.WriteArchive(gcore, gcoreArchiveFiles); err != nil {
 		log.Fatal(err)
 	}
 	if err := build.WriteArchive(alltools, allToolsArchiveFiles); err != nil {
 		log.Fatal(err)
 	}
-	for _, archive := range []string{geth, alltools} {
+	for _, archive := range []string{gcore, alltools} {
 		if err := archiveUpload(archive, *upload, *signer); err != nil {
 			log.Fatal(err)
 		}
@@ -474,8 +474,8 @@ func doDebianSource(cmdline []string) {
 		goversion = flag.String("goversion", "", `Go version to build with (will be included in the source package)`)
 		cachedir  = flag.String("cachedir", "./build/cache", `Filesystem path to cache the downloaded Go bundles at`)
 		signer    = flag.String("signer", "", `Signing key name, also used as package author`)
-		upload    = flag.String("upload", "", `Where to upload the source package (usually "ethereum/ethereum")`)
-		sshUser   = flag.String("sftp-user", "", `Username for SFTP upload (usually "geth-ci")`)
+		upload    = flag.String("upload", "", `Where to upload the source package (usually "core/core")`)
+		sshUser   = flag.String("sftp-user", "", `Username for SFTP upload (usually "gcore-ci")`)
 		workdir   = flag.String("workdir", "", `Output directory for packages (uses temp dir if unset)`)
 		now       = time.Now()
 	)
@@ -591,7 +591,7 @@ func makeWorkdir(wdflag string) string {
 	if wdflag != "" {
 		err = os.MkdirAll(wdflag, 0744)
 	} else {
-		wdflag, err = ioutil.TempDir("", "geth-build-")
+		wdflag, err = ioutil.TempDir("", "gcore-build-")
 	}
 	if err != nil {
 		log.Fatal(err)
@@ -607,7 +607,7 @@ func isUnstableBuild(env build.Environment) bool {
 }
 
 type debPackage struct {
-	Name        string          // the name of the Debian package to produce, e.g. "ethereum"
+	Name        string          // the name of the Debian package to produce, e.g. "core"
 	Version     string          // the clean version of the debPackage, e.g. 1.8.12, without any metadata
 	Executables []debExecutable // executables to be included in the package
 }
@@ -647,7 +647,7 @@ func (d debExecutable) Package() string {
 func newDebMetadata(distro, goboot, author string, env build.Environment, t time.Time, name string, version string, exes []debExecutable) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "Ethereum Builds <fjl@ethereum.org>"
+		author = "Core Builds <fjl@coreblockchain.cc>"
 	}
 	return debMetadata{
 		GoBootPackage: goboot,
@@ -712,7 +712,7 @@ func (meta debMetadata) ExeConflicts(exe debExecutable) string {
 		// be preferred and the conflicting files should be handled via
 		// alternates. We might do this eventually but using a conflict is
 		// easier now.
-		return "ethereum, " + exe.Package()
+		return "core, " + exe.Package()
 	}
 	return ""
 }
@@ -761,28 +761,28 @@ func doWindowsInstaller(cmdline []string) {
 	var (
 		devTools []string
 		allTools []string
-		gethTool string
+		gcoreTool string
 	)
 	for _, file := range allToolsArchiveFiles {
 		if file == "COPYING" { // license, copied later
 			continue
 		}
 		allTools = append(allTools, filepath.Base(file))
-		if filepath.Base(file) == "geth.exe" {
-			gethTool = file
+		if filepath.Base(file) == "gcore.exe" {
+			gcoreTool = file
 		} else {
 			devTools = append(devTools, file)
 		}
 	}
 
 	// Render NSIS scripts: Installer NSIS contains two installer sections,
-	// first section contains the geth binary, second section holds the dev tools.
+	// first section contains the gcore binary, second section holds the dev tools.
 	templateData := map[string]interface{}{
 		"License":  "COPYING",
-		"Geth":     gethTool,
+		"Gcore":     gcoreTool,
 		"DevTools": devTools,
 	}
-	build.Render("build/nsis.geth.nsi", filepath.Join(*workdir, "geth.nsi"), 0644, nil)
+	build.Render("build/nsis.gcore.nsi", filepath.Join(*workdir, "gcore.nsi"), 0644, nil)
 	build.Render("build/nsis.install.nsh", filepath.Join(*workdir, "install.nsh"), 0644, templateData)
 	build.Render("build/nsis.uninstall.nsh", filepath.Join(*workdir, "uninstall.nsh"), 0644, allTools)
 	build.Render("build/nsis.pathupdate.nsh", filepath.Join(*workdir, "PathUpdate.nsh"), 0644, nil)
@@ -800,14 +800,14 @@ func doWindowsInstaller(cmdline []string) {
 	if env.Commit != "" {
 		version[2] += "-" + env.Commit[:8]
 	}
-	installer, _ := filepath.Abs("geth-" + archiveBasename(*arch, params.ArchiveVersion(env.Commit)) + ".exe")
+	installer, _ := filepath.Abs("gcore-" + archiveBasename(*arch, params.ArchiveVersion(env.Commit)) + ".exe")
 	build.MustRunCommand("makensis.exe",
 		"/DOUTPUTFILE="+installer,
 		"/DMAJORVERSION="+version[0],
 		"/DMINORVERSION="+version[1],
 		"/DBUILDVERSION="+version[2],
 		"/DARCH="+*arch,
-		filepath.Join(*workdir, "geth.nsi"),
+		filepath.Join(*workdir, "gcore.nsi"),
 	)
 	// Sign and publish installer.
 	if err := archiveUpload(installer, *upload, *signer); err != nil {
@@ -833,11 +833,11 @@ func doAndroidArchive(cmdline []string) {
 	}
 	// Build the Android archive and Maven resources
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile", "golang.org/x/mobile/cmd/gobind"))
-	build.MustRun(gomobileTool("bind", "-ldflags", "-s -w", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/core-coin/go-core/mobile"))
+	build.MustRun(gomobileTool("bind", "-ldflags", "-s -w", "--target", "android", "--javapkg", "cc.coreblockchain", "-v", "github.com/core-coin/go-core/mobile"))
 
 	if *local {
 		// If we're building locally, copy bundle to build dir and skip Maven
-		os.Rename("geth.aar", filepath.Join(GOBIN, "geth.aar"))
+		os.Rename("gcore.aar", filepath.Join(GOBIN, "gcore.aar"))
 		return
 	}
 	meta := newMavenMetadata(env)
@@ -847,8 +847,8 @@ func doAndroidArchive(cmdline []string) {
 	maybeSkipArchive(env)
 
 	// Sign and upload the archive to Azure
-	archive := "geth-" + archiveBasename("android", params.ArchiveVersion(env.Commit)) + ".aar"
-	os.Rename("geth.aar", archive)
+	archive := "gcore-" + archiveBasename("android", params.ArchiveVersion(env.Commit)) + ".aar"
+	os.Rename("gcore.aar", archive)
 
 	if err := archiveUpload(archive, *upload, *signer); err != nil {
 		log.Fatal(err)
@@ -932,7 +932,7 @@ func newMavenMetadata(env build.Environment) mavenMetadata {
 	}
 	return mavenMetadata{
 		Version:      version,
-		Package:      "geth-" + version,
+		Package:      "gcore-" + version,
 		Develop:      isUnstableBuild(env),
 		Contributors: contribs,
 	}
@@ -961,7 +961,7 @@ func doXCodeFramework(cmdline []string) {
 		build.MustRun(bind)
 		return
 	}
-	archive := "geth-" + archiveBasename("ios", params.ArchiveVersion(env.Commit))
+	archive := "gcore-" + archiveBasename("ios", params.ArchiveVersion(env.Commit))
 	if err := os.Mkdir(archive, os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
@@ -979,8 +979,8 @@ func doXCodeFramework(cmdline []string) {
 	// Prepare and upload a PodSpec to CocoaPods
 	if *deploy != "" {
 		meta := newPodMetadata(env, archive)
-		build.Render("build/pod.podspec", "Geth.podspec", 0755, meta)
-		build.MustRunCommand("pod", *deploy, "push", "Geth.podspec", "--allow-warnings", "--verbose")
+		build.Render("build/pod.podspec", "Gcore.podspec", 0755, meta)
+		build.MustRunCommand("pod", *deploy, "push", "Gcore.podspec", "--allow-warnings", "--verbose")
 	}
 }
 

@@ -667,9 +667,9 @@ func (api *RetestxceAPI) AccountRange(ctx context.Context,
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
-			context := core.NewEVMContext(msg, block.Header(), api.blockchain, nil)
+			context := core.NewCVMContext(msg, block.Header(), api.blockchain, nil)
 			// Not yet the searched for transaction, execute on top of the current state
-			vmenv := vm.NewEVM(context, statedb, api.blockchain.Config(), vm.Config{})
+			vmenv := vm.NewCVM(context, statedb, api.blockchain.Config(), vm.Config{})
 			if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
 				return AccountRangeResult{}, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 			}
@@ -777,9 +777,9 @@ func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
-			context := core.NewEVMContext(msg, block.Header(), api.blockchain, nil)
+			context := core.NewCVMContext(msg, block.Header(), api.blockchain, nil)
 			// Not yet the searched for transaction, execute on top of the current state
-			vmenv := vm.NewEVM(context, statedb, api.blockchain.Config(), vm.Config{})
+			vmenv := vm.NewCVM(context, statedb, api.blockchain.Config(), vm.Config{})
 			if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
 				return StorageRangeResult{}, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 			}

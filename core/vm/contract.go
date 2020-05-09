@@ -29,7 +29,7 @@ type ContractRef interface {
 
 // AccountRef implements ContractRef.
 //
-// Account references are used during EVM initialisation and
+// Account references are used during CVM initialisation and
 // it's primary use is to fetch addresses. Removing this object
 // proves difficult because of the cached jump destinations which
 // are fetched from the parent contract (i.e. the caller), which
@@ -39,7 +39,7 @@ type AccountRef common.Address
 // Address casts AccountRef to a Address
 func (ar AccountRef) Address() common.Address { return (common.Address)(ar) }
 
-// Contract represents an ethereum contract in the state database. It contains
+// Contract represents an core contract in the state database. It contains
 // the contract code, calling arguments. Contract implements ContractRef
 type Contract struct {
 	// CallerAddress is the result of the caller which initialised this
@@ -61,7 +61,7 @@ type Contract struct {
 	value *big.Int
 }
 
-// NewContract returns a new contract environment for the execution of EVM.
+// NewContract returns a new contract environment for the execution of CVM.
 func NewContract(caller ContractRef, object ContractRef, value *big.Int, energy uint64) *Contract {
 	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object}
 

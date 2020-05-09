@@ -33,15 +33,15 @@ type Config struct {
 	NoRecursion             bool   // Disables call, callcode, delegate call and create
 	EnablePreimageRecording bool   // Enables recording of SHA3/keccak preimages
 
-	JumpTable [256]operation // EVM instruction table, automatically populated if unset
+	JumpTable [256]operation // CVM instruction table, automatically populated if unset
 
 	EWASMInterpreter string // External EWASM interpreter options
-	EVMInterpreter   string // External EVM interpreter options
+	CVMInterpreter   string // External CVM interpreter options
 
 	ExtraEips []int // Additional EIPS that are to be enabled
 }
 
-// Interpreter is used to run Ethereum based contracts and will utilise the
+// Interpreter is used to run Core based contracts and will utilise the
 // passed environment to query external sources for state information.
 // The Interpreter will run the byte code VM based on the passed
 // configuration.
@@ -71,9 +71,9 @@ type keccakState interface {
 	Read([]byte) (int, error)
 }
 
-// EVMInterpreter represents an EVM interpreter
-type EVMInterpreter struct {
-	evm *EVM
+// CVMInterpreter represents an CVM interpreter
+type CVMInterpreter struct {
+	cvm *CVM
 	cfg Config
 
 	intPool *intPool
@@ -85,25 +85,25 @@ type EVMInterpreter struct {
 	returnData []byte // Last CALL's return data for subsequent reuse
 }
 
-// NewEVMInterpreter returns a new instance of the Interpreter.
-func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
+// NewCVMInterpreter returns a new instance of the Interpreter.
+func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 	// We use the STOP instruction whether to see
 	// the jump table was initialised. If it was not
 	// we'll set the default jump table.
 	if !cfg.JumpTable[STOP].valid {
 		var jt JumpTable
 		switch {
-		case evm.chainRules.IsIstanbul:
+		case cvm.chainRules.IsIstanbul:
 			jt = istanbulInstructionSet
-		case evm.chainRules.IsConstantinople:
+		case cvm.chainRules.IsConstantinople:
 			jt = constantinopleInstructionSet
-		case evm.chainRules.IsByzantium:
+		case cvm.chainRules.IsByzantium:
 			jt = byzantiumInstructionSet
-		case evm.chainRules.IsEIP158:
+		case cvm.chainRules.IsEIP158:
 			jt = spuriousDragonInstructionSet
-		case evm.chainRules.IsEIP150:
+		case cvm.chainRules.IsEIP150:
 			jt = tangerineWhistleInstructionSet
-		case evm.chainRules.IsHomestead:
+		case cvm.chainRules.IsHomestead:
 			jt = homesteadInstructionSet
 		default:
 			jt = frontierInstructionSet
@@ -118,8 +118,8 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 		cfg.JumpTable = jt
 	}
 
-	return &EVMInterpreter{
-		evm: evm,
+	return &CVMInterpreter{
+		cvm: cvm,
 		cfg: cfg,
 	}
 }
@@ -130,7 +130,7 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 // It's important to note that any errors returned by the interpreter should be
 // considered a revert-and-consume-all-energy operation except for
 // errExecutionReverted which means revert-and-keep-energy-left.
-func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
+func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
 	if in.intPool == nil {
 		in.intPool = poolOfIntPools.get()
 		defer func() {
@@ -140,8 +140,8 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	}
 
 	// Increment the call depth which is restricted to 1024
-	in.evm.depth++
-	defer func() { in.evm.depth-- }()
+	in.cvm.depth++
+	defer func() { in.cvm.depth-- }()
 
 	// Make sure the readOnly is only set if we aren't in readOnly yet.
 	// This makes also sure that the readOnly flag isn't removed for child calls.
@@ -183,9 +183,9 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		defer func() {
 			if err != nil {
 				if !logged {
-					in.cfg.Tracer.CaptureState(in.evm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
+					in.cfg.Tracer.CaptureState(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
 				} else {
-					in.cfg.Tracer.CaptureFault(in.evm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
+					in.cfg.Tracer.CaptureFault(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
 				}
 			}
 		}()
@@ -194,7 +194,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	// explicit STOP, RETURN or SELFDESTRUCT is executed, an error occurred during
 	// the execution of one of the operations or until the done flag is set by the
 	// parent context.
-	for atomic.LoadInt32(&in.evm.abort) == 0 {
+	for atomic.LoadInt32(&in.cvm.abort) == 0 {
 		if in.cfg.Debug {
 			// Capture pre-execution values for tracing.
 			logged, pcCopy, energyCopy = false, pc, contract.Energy
@@ -214,7 +214,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			return nil, fmt.Errorf("stack limit reached %d (%d)", sLen, operation.maxStack)
 		}
 		// If the operation is valid, enforce and write restrictions
-		if in.readOnly && in.evm.chainRules.IsByzantium {
+		if in.readOnly && in.cvm.chainRules.IsByzantium {
 			// If the interpreter is operating in readonly mode, make sure no
 			// state-modifying operation is performed. The 3rd stack item
 			// for a call operation is the value. Transferring value from one
@@ -251,7 +251,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// cost is explicitly set so that the capture state defer method can get the proper cost
 		if operation.dynamicEnergy != nil {
 			var dynamicCost uint64
-			dynamicCost, err = operation.dynamicEnergy(in.evm, contract, stack, mem, memorySize)
+			dynamicCost, err = operation.dynamicEnergy(in.cvm, contract, stack, mem, memorySize)
 			cost += dynamicCost // total cost, for debug tracing
 			if err != nil || !contract.UseEnergy(dynamicCost) {
 				return nil, ErrOutOfEnergy
@@ -262,7 +262,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 
 		if in.cfg.Debug {
-			in.cfg.Tracer.CaptureState(in.evm, pc, op, energyCopy, cost, mem, stack, contract, in.evm.depth, err)
+			in.cfg.Tracer.CaptureState(in.cvm, pc, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
 			logged = true
 		}
 
@@ -295,6 +295,6 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 // CanRun tells if the contract, passed as an argument, can be
 // run by the current interpreter.
-func (in *EVMInterpreter) CanRun(code []byte) bool {
+func (in *CVMInterpreter) CanRun(code []byte) bool {
 	return true
 }

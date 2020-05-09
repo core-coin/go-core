@@ -185,11 +185,11 @@ func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr com
 func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (*SignDataRequest, bool, error) {
 	var (
 		req          *SignDataRequest
-		useEthereumV = true // Default to use V = 27 or 28, the legacy Ethereum format
+		useCoreV = true // Default to use V = 27 or 28, the legacy Core format
 	)
 	mediaType, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		return nil, useEthereumV, err
+		return nil, useCoreV, err
 	}
 
 	switch mediaType {
@@ -197,7 +197,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		// Data with an intended validator
 		validatorData, err := UnmarshalValidatorData(data)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		sighash, msg := SignTextValidator(validatorData)
 		messages := []*NameValueType{
@@ -224,18 +224,18 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		}
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: []byte(msg), Messages: messages, Hash: sighash}
 	case ApplicationClique.Mime:
-		// Clique is the Ethereum PoA standard
+		// Clique is the Core PoA standard
 		stringData, ok := data.(string)
 		if !ok {
-			return nil, useEthereumV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationClique.Mime)
+			return nil, useCoreV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationClique.Mime)
 		}
 		cliqueData, err := hexutil.Decode(stringData)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		header := &types.Header{}
 		if err := rlp.DecodeBytes(cliqueData, header); err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		// The incoming clique header is already truncated, sent to us with a extradata already shortened
 		if len(header.Extra) < 112 + 56 {
@@ -247,7 +247,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		// Get back the rlp data, encoded by us
 		sighash, cliqueRlp, err := cliqueHeaderHashAndRlp(header)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		messages := []*NameValueType{
 			{
@@ -257,17 +257,17 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			},
 		}
 		// Clique uses V on the form 0 or 1
-		useEthereumV = false
+		useCoreV = false
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
 	default: // also case TextPlain.Mime:
-		// Calculates an Ethereum ECDSA signature for:
-		// hash = keccak256("\x19${byteVersion}Ethereum Signed Message:\n${message length}${message}")
+		// Calculates an Core ECDSA signature for:
+		// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 		// We expect it to be a string
 		if stringData, ok := data.(string); !ok {
-			return nil, useEthereumV, fmt.Errorf("input for text/plain must be an hex-encoded string")
+			return nil, useCoreV, fmt.Errorf("input for text/plain must be an hex-encoded string")
 		} else {
 			if textData, err := hexutil.Decode(stringData); err != nil {
-				return nil, useEthereumV, err
+				return nil, useCoreV, err
 			} else {
 				sighash, msg := accounts.TextAndHash(textData)
 				messages := []*NameValueType{
@@ -283,7 +283,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 	}
 	req.Address = addr
 	req.Meta = MetadataFromContext(ctx)
-	return req, useEthereumV, nil
+	return req, useCoreV, nil
 }
 
 // SignTextWithValidator signs the given message which can be further recovered
@@ -606,7 +606,7 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	//
 	// Note, this function is compatible with eth_sign and personal_sign. As such it recovers
 	// the address of:
-	// hash = keccak256("\x19${byteVersion}Ethereum Signed Message:\n${message length}${message}")
+	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
 	//
 	// Note, the signature must conform to the secp256k1 curve R, S and V values, where
@@ -618,7 +618,7 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	}
     /*
 	if sig[64] != 27 && sig[64] != 28 {
-		return common.Address{}, fmt.Errorf("invalid Ethereum signature (V is not 27 or 28)")
+		return common.Address{}, fmt.Errorf("invalid Core signature (V is not 27 or 28)")
 	}
 	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
     */

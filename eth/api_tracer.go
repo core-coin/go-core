@@ -99,7 +99,7 @@ type txTraceTask struct {
 	index   int            // Transaction offset in the block
 }
 
-// TraceChain returns the structured logs created during the execution of EVM
+// TraceChain returns the structured logs created during the execution of CVM
 // between two blocks (excluding start) and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.BlockNumber, config *TraceConfig) (*rpc.Subscription, error) {
 	// Fetch the block interval that we want to trace
@@ -206,7 +206,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				// Trace all the transactions contained within
 				for i, tx := range task.block.Transactions() {
 					msg, _ := tx.AsMessage(signer)
-					vmctx := core.NewEVMContext(msg, task.block.Header(), api.eth.blockchain, nil)
+					vmctx := core.NewCVMContext(msg, task.block.Header(), api.eth.blockchain, nil)
 
 					res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 					if err != nil {
@@ -351,7 +351,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 }
 
 // TraceBlockByNumber returns the structured logs created during the execution of
-// EVM and returns them as a JSON object.
+// CVM and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.BlockNumber, config *TraceConfig) ([]*txTraceResult, error) {
 	// Fetch the block that we want to trace
 	var block *types.Block
@@ -372,7 +372,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.B
 }
 
 // TraceBlockByHash returns the structured logs created during the execution of
-// EVM and returns them as a JSON object.
+// CVM and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlockByHash(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
 	block := api.eth.blockchain.GetBlockByHash(hash)
 	if block == nil {
@@ -381,7 +381,7 @@ func (api *PrivateDebugAPI) TraceBlockByHash(ctx context.Context, hash common.Ha
 	return api.traceBlock(ctx, block, config)
 }
 
-// TraceBlock returns the structured logs created during the execution of EVM
+// TraceBlock returns the structured logs created during the execution of CVM
 // and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlock(ctx context.Context, blob []byte, config *TraceConfig) ([]*txTraceResult, error) {
 	block := new(types.Block)
@@ -392,7 +392,7 @@ func (api *PrivateDebugAPI) TraceBlock(ctx context.Context, blob []byte, config 
 }
 
 // TraceBlockFromFile returns the structured logs created during the execution of
-// EVM and returns them as a JSON object.
+// CVM and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlockFromFile(ctx context.Context, file string, config *TraceConfig) ([]*txTraceResult, error) {
 	blob, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -402,7 +402,7 @@ func (api *PrivateDebugAPI) TraceBlockFromFile(ctx context.Context, file string,
 }
 
 // TraceBadBlockByHash returns the structured logs created during the execution of
-// EVM against a block pulled from the pool of bad ones and returns them as a JSON
+// CVM against a block pulled from the pool of bad ones and returns them as a JSON
 // object.
 func (api *PrivateDebugAPI) TraceBadBlock(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
 	blocks := api.eth.blockchain.BadBlocks()
@@ -415,7 +415,7 @@ func (api *PrivateDebugAPI) TraceBadBlock(ctx context.Context, hash common.Hash,
 }
 
 // StandardTraceBlockToFile dumps the structured logs created during the
-// execution of EVM to the local file system and returns a list of files
+// execution of CVM to the local file system and returns a list of files
 // to the caller.
 func (api *PrivateDebugAPI) StandardTraceBlockToFile(ctx context.Context, hash common.Hash, config *StdTraceConfig) ([]string, error) {
 	block := api.eth.blockchain.GetBlockByHash(hash)
@@ -426,7 +426,7 @@ func (api *PrivateDebugAPI) StandardTraceBlockToFile(ctx context.Context, hash c
 }
 
 // StandardTraceBadBlockToFile dumps the structured logs created during the
-// execution of EVM against a block pulled from the pool of bad ones to the
+// execution of CVM against a block pulled from the pool of bad ones to the
 // local file system and returns a list of files to the caller.
 func (api *PrivateDebugAPI) StandardTraceBadBlockToFile(ctx context.Context, hash common.Hash, config *StdTraceConfig) ([]string, error) {
 	blocks := api.eth.blockchain.BadBlocks()
@@ -480,7 +480,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 			// Fetch and execute the next transaction trace tasks
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer)
-				vmctx := core.NewEVMContext(msg, block.Header(), api.eth.blockchain, nil)
+				vmctx := core.NewCVMContext(msg, block.Header(), api.eth.blockchain, nil)
 
 				res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 				if err != nil {
@@ -499,9 +499,9 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 
 		// Generate the next state snapshot fast without tracing
 		msg, _ := tx.AsMessage(signer)
-		vmctx := core.NewEVMContext(msg, block.Header(), api.eth.blockchain, nil)
+		vmctx := core.NewCVMContext(msg, block.Header(), api.eth.blockchain, nil)
 
-		vmenv := vm.NewEVM(vmctx, statedb, api.eth.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewCVM(vmctx, statedb, api.eth.blockchain.Config(), vm.Config{})
 		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy())); err != nil {
 			failed = err
 			break
@@ -568,7 +568,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 		// Prepare the trasaction for un-traced execution
 		var (
 			msg, _ = tx.AsMessage(signer)
-			vmctx  = core.NewEVMContext(msg, block.Header(), api.eth.blockchain, nil)
+			vmctx  = core.NewCVMContext(msg, block.Header(), api.eth.blockchain, nil)
 
 			vmConf vm.Config
 			dump   *os.File
@@ -595,7 +595,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 			}
 		}
 		// Execute the transaction and flush any traces to disk
-		vmenv := vm.NewEVM(vmctx, statedb, api.eth.blockchain.Config(), vmConf)
+		vmenv := vm.NewCVM(vmctx, statedb, api.eth.blockchain.Config(), vmConf)
 		_, _, _, err = core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy()))
 		if writer != nil {
 			writer.Flush()
@@ -699,10 +699,10 @@ func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*
 	return statedb, nil
 }
 
-// TraceTransaction returns the structured logs created during the execution of EVM
+// TraceTransaction returns the structured logs created during the execution of CVM
 // and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, hash common.Hash, config *TraceConfig) (interface{}, error) {
-	// Retrieve the transaction and assemble its EVM context
+	// Retrieve the transaction and assemble its CVM context
 	tx, blockHash, _, index := rawdb.ReadTransaction(api.eth.ChainDb(), hash)
 	if tx == nil {
 		return nil, fmt.Errorf("transaction %#x not found", hash)
@@ -756,7 +756,7 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 		tracer = vm.NewStructLogger(config.LogConfig)
 	}
 	// Run the transaction with tracing enabled.
-	vmenv := vm.NewEVM(vmctx, statedb, api.eth.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer})
+	vmenv := vm.NewCVM(vmctx, statedb, api.eth.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer})
 
 	ret, energy, failed, err := core.ApplyMessage(vmenv, message, new(core.EnergyPool).AddEnergy(message.Energy()))
 	if err != nil {
@@ -806,12 +806,12 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
-		context := core.NewEVMContext(msg, block.Header(), api.eth.blockchain, nil)
+		context := core.NewCVMContext(msg, block.Header(), api.eth.blockchain, nil)
 		if idx == txIndex {
 			return msg, context, statedb, nil
 		}
 		// Not yet the searched for transaction, execute on top of the current state
-		vmenv := vm.NewEVM(context, statedb, api.eth.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewCVM(context, statedb, api.eth.blockchain.Config(), vm.Config{})
 		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
 			return nil, vm.Context{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 		}

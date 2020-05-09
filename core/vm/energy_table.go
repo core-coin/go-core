@@ -63,7 +63,7 @@ func memoryEnergyCost(mem *Memory, newMemSize uint64) (uint64, error) {
 // EXTCODECOPY (stack poition 3)
 // RETURNDATACOPY (stack position 2)
 func memoryCopierEnergy(stackpos int) energyFunc {
-	return func(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+	return func(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 		// Energy for expanding the memory
 		energy, err := memoryEnergyCost(mem, memorySize)
 		if err != nil {
@@ -93,15 +93,15 @@ var (
 	energyReturnDataCopy = memoryCopierEnergy(2)
 )
 
-func energySStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energySStore(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	var (
 		y, x    = stack.Back(1), stack.Back(0)
-		current = evm.StateDB.GetState(contract.Address(), common.BigToHash(x))
+		current = cvm.StateDB.GetState(contract.Address(), common.BigToHash(x))
 	)
 	// The legacy energy metering only takes into consideration the current state
 	// Legacy rules should be applied if we are in Petersburg (removal of EIP-1283)
 	// OR Constantinople is not active
-	if evm.chainRules.IsPetersburg || !evm.chainRules.IsConstantinople {
+	if cvm.chainRules.IsPetersburg || !cvm.chainRules.IsConstantinople {
 		// This checks for 3 scenario's and calculates energy accordingly:
 		//
 		// 1. From a zero-value address to a non-zero value         (NEW VALUE)
@@ -111,7 +111,7 @@ func energySStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memor
 		case current == (common.Hash{}) && y.Sign() != 0: // 0 => non 0
 			return params.SstoreSetEnergy, nil
 		case current != (common.Hash{}) && y.Sign() == 0: // non 0 => 0
-			evm.StateDB.AddRefund(params.SstoreRefundEnergy)
+			cvm.StateDB.AddRefund(params.SstoreRefundEnergy)
 			return params.SstoreClearEnergy, nil
 		default: // non 0 => non 0 (or 0 => 0)
 			return params.SstoreResetEnergy, nil
@@ -135,28 +135,28 @@ func energySStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memor
 	if current == value { // noop (1)
 		return params.NetSstoreNoopEnergy, nil
 	}
-	original := evm.StateDB.GetCommittedState(contract.Address(), common.BigToHash(x))
+	original := cvm.StateDB.GetCommittedState(contract.Address(), common.BigToHash(x))
 	if original == current {
 		if original == (common.Hash{}) { // create slot (2.1.1)
 			return params.NetSstoreInitEnergy, nil
 		}
 		if value == (common.Hash{}) { // delete slot (2.1.2b)
-			evm.StateDB.AddRefund(params.NetSstoreClearRefund)
+			cvm.StateDB.AddRefund(params.NetSstoreClearRefund)
 		}
 		return params.NetSstoreCleanEnergy, nil // write existing slot (2.1.2)
 	}
 	if original != (common.Hash{}) {
 		if current == (common.Hash{}) { // recreate slot (2.2.1.1)
-			evm.StateDB.SubRefund(params.NetSstoreClearRefund)
+			cvm.StateDB.SubRefund(params.NetSstoreClearRefund)
 		} else if value == (common.Hash{}) { // delete slot (2.2.1.2)
-			evm.StateDB.AddRefund(params.NetSstoreClearRefund)
+			cvm.StateDB.AddRefund(params.NetSstoreClearRefund)
 		}
 	}
 	if original == value {
 		if original == (common.Hash{}) { // reset to original inexistent slot (2.2.2.1)
-			evm.StateDB.AddRefund(params.NetSstoreResetClearRefund)
+			cvm.StateDB.AddRefund(params.NetSstoreResetClearRefund)
 		} else { // reset to original existing slot (2.2.2.2)
-			evm.StateDB.AddRefund(params.NetSstoreResetRefund)
+			cvm.StateDB.AddRefund(params.NetSstoreResetRefund)
 		}
 	}
 	return params.NetSstoreDirtyEnergy, nil
@@ -175,7 +175,7 @@ func energySStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memor
 //     2.2.2. If original value equals new value (this storage slot is reset):
 //       2.2.2.1. If original value is 0, add SSTORE_INIT_REFUND to refund counter.
 //       2.2.2.2. Otherwise, add SSTORE_CLEAN_REFUND energy to refund counter.
-func energySStoreEIP2200(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energySStoreEIP2200(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	// If we fail the minimum energy availability invariant, fail (0)
 	if contract.Energy <= params.SstoreSentryEnergyEIP2200 {
 		return 0, errors.New("not enough energy for reentrancy sentry")
@@ -183,42 +183,42 @@ func energySStoreEIP2200(evm *EVM, contract *Contract, stack *Stack, mem *Memory
 	// Energy sentry honoured, do the actual energy calculation based on the stored value
 	var (
 		y, x    = stack.Back(1), stack.Back(0)
-		current = evm.StateDB.GetState(contract.Address(), common.BigToHash(x))
+		current = cvm.StateDB.GetState(contract.Address(), common.BigToHash(x))
 	)
 	value := common.BigToHash(y)
 
 	if current == value { // noop (1)
 		return params.SstoreNoopEnergyEIP2200, nil
 	}
-	original := evm.StateDB.GetCommittedState(contract.Address(), common.BigToHash(x))
+	original := cvm.StateDB.GetCommittedState(contract.Address(), common.BigToHash(x))
 	if original == current {
 		if original == (common.Hash{}) { // create slot (2.1.1)
 			return params.SstoreInitEnergyEIP2200, nil
 		}
 		if value == (common.Hash{}) { // delete slot (2.1.2b)
-			evm.StateDB.AddRefund(params.SstoreClearRefundEIP2200)
+			cvm.StateDB.AddRefund(params.SstoreClearRefundEIP2200)
 		}
 		return params.SstoreCleanEnergyEIP2200, nil // write existing slot (2.1.2)
 	}
 	if original != (common.Hash{}) {
 		if current == (common.Hash{}) { // recreate slot (2.2.1.1)
-			evm.StateDB.SubRefund(params.SstoreClearRefundEIP2200)
+			cvm.StateDB.SubRefund(params.SstoreClearRefundEIP2200)
 		} else if value == (common.Hash{}) { // delete slot (2.2.1.2)
-			evm.StateDB.AddRefund(params.SstoreClearRefundEIP2200)
+			cvm.StateDB.AddRefund(params.SstoreClearRefundEIP2200)
 		}
 	}
 	if original == value {
 		if original == (common.Hash{}) { // reset to original inexistent slot (2.2.2.1)
-			evm.StateDB.AddRefund(params.SstoreInitRefundEIP2200)
+			cvm.StateDB.AddRefund(params.SstoreInitRefundEIP2200)
 		} else { // reset to original existing slot (2.2.2.2)
-			evm.StateDB.AddRefund(params.SstoreCleanRefundEIP2200)
+			cvm.StateDB.AddRefund(params.SstoreCleanRefundEIP2200)
 		}
 	}
 	return params.SstoreDirtyEnergyEIP2200, nil // dirty update (2.2)
 }
 
 func makeEnergyLog(n uint64) energyFunc {
-	return func(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+	return func(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 		requestedSize, overflow := bigUint64(stack.Back(1))
 		if overflow {
 			return 0, errEnergyUintOverflow
@@ -247,7 +247,7 @@ func makeEnergyLog(n uint64) energyFunc {
 	}
 }
 
-func energySha3(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energySha3(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	energy, err := memoryEnergyCost(mem, memorySize)
 	if err != nil {
 		return 0, err
@@ -268,7 +268,7 @@ func energySha3(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 // pureMemoryEnergycost is used by several operations, which aside from their
 // static cost have a dynamic cost which is solely based on the memory
 // expansion
-func pureMemoryEnergycost(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func pureMemoryEnergycost(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	return memoryEnergyCost(mem, memorySize)
 }
 
@@ -281,7 +281,7 @@ var (
 	energyCreate  = pureMemoryEnergycost
 )
 
-func energyCreate2(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyCreate2(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	energy, err := memoryEnergyCost(mem, memorySize)
 	if err != nil {
 		return 0, err
@@ -299,7 +299,7 @@ func energyCreate2(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memo
 	return energy, nil
 }
 
-func energyExpFrontier(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyExpFrontier(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	expByteLen := uint64((stack.data[stack.len()-2].BitLen() + 7) / 8)
 
 	var (
@@ -312,7 +312,7 @@ func energyExpFrontier(evm *EVM, contract *Contract, stack *Stack, mem *Memory, 
 	return energy, nil
 }
 
-func energyExpEIP158(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyExpEIP158(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	expByteLen := uint64((stack.data[stack.len()-2].BitLen() + 7) / 8)
 
 	var (
@@ -325,17 +325,17 @@ func energyExpEIP158(evm *EVM, contract *Contract, stack *Stack, mem *Memory, me
 	return energy, nil
 }
 
-func energyCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	var (
 		energy            uint64
 		transfersValue = stack.Back(2).Sign() != 0
 		address        = common.BigToAddress(stack.Back(1))
 	)
-	if evm.chainRules.IsEIP158 {
-		if transfersValue && evm.StateDB.Empty(address) {
+	if cvm.chainRules.IsEIP158 {
+		if transfersValue && cvm.StateDB.Empty(address) {
 			energy += params.CallNewAccountEnergy
 		}
-	} else if !evm.StateDB.Exist(address) {
+	} else if !cvm.StateDB.Exist(address) {
 		energy += params.CallNewAccountEnergy
 	}
 	if transfersValue {
@@ -350,17 +350,17 @@ func energyCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 		return 0, errEnergyUintOverflow
 	}
 
-	evm.callEnergyTemp, err = callEnergy(evm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
+	cvm.callEnergyTemp, err = callEnergy(cvm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
-	if energy, overflow = math.SafeAdd(energy, evm.callEnergyTemp); overflow {
+	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
 		return 0, errEnergyUintOverflow
 	}
 	return energy, nil
 }
 
-func energyCallCode(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyCallCode(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	memoryEnergy, err := memoryEnergyCost(mem, memorySize)
 	if err != nil {
 		return 0, err
@@ -375,67 +375,67 @@ func energyCallCode(evm *EVM, contract *Contract, stack *Stack, mem *Memory, mem
 	if energy, overflow = math.SafeAdd(energy, memoryEnergy); overflow {
 		return 0, errEnergyUintOverflow
 	}
-	evm.callEnergyTemp, err = callEnergy(evm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
+	cvm.callEnergyTemp, err = callEnergy(cvm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
-	if energy, overflow = math.SafeAdd(energy, evm.callEnergyTemp); overflow {
+	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
 		return 0, errEnergyUintOverflow
 	}
 	return energy, nil
 }
 
-func energyDelegateCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyDelegateCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	energy, err := memoryEnergyCost(mem, memorySize)
 	if err != nil {
 		return 0, err
 	}
-	evm.callEnergyTemp, err = callEnergy(evm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
+	cvm.callEnergyTemp, err = callEnergy(cvm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
 	var overflow bool
-	if energy, overflow = math.SafeAdd(energy, evm.callEnergyTemp); overflow {
+	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
 		return 0, errEnergyUintOverflow
 	}
 	return energy, nil
 }
 
-func energyStaticCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energyStaticCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	energy, err := memoryEnergyCost(mem, memorySize)
 	if err != nil {
 		return 0, err
 	}
-	evm.callEnergyTemp, err = callEnergy(evm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
+	cvm.callEnergyTemp, err = callEnergy(cvm.chainRules.IsEIP150, contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
 	var overflow bool
-	if energy, overflow = math.SafeAdd(energy, evm.callEnergyTemp); overflow {
+	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
 		return 0, errEnergyUintOverflow
 	}
 	return energy, nil
 }
 
-func energySelfdestruct(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+func energySelfdestruct(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	var energy uint64
 	// EIP150 homestead energy reprice fork:
-	if evm.chainRules.IsEIP150 {
+	if cvm.chainRules.IsEIP150 {
 		energy = params.SelfdestructEnergyEIP150
 		var address = common.BigToAddress(stack.Back(0))
 
-		if evm.chainRules.IsEIP158 {
+		if cvm.chainRules.IsEIP158 {
 			// if empty and transfers value
-			if evm.StateDB.Empty(address) && evm.StateDB.GetBalance(contract.Address()).Sign() != 0 {
+			if cvm.StateDB.Empty(address) && cvm.StateDB.GetBalance(contract.Address()).Sign() != 0 {
 				energy += params.CreateBySelfdestructEnergy
 			}
-		} else if !evm.StateDB.Exist(address) {
+		} else if !cvm.StateDB.Exist(address) {
 			energy += params.CreateBySelfdestructEnergy
 		}
 	}
 
-	if !evm.StateDB.HasSuicided(contract.Address()) {
-		evm.StateDB.AddRefund(params.SelfdestructRefundEnergy)
+	if !cvm.StateDB.HasSuicided(contract.Address()) {
+		cvm.StateDB.AddRefund(params.SelfdestructRefundEnergy)
 	}
 	return energy, nil
 }

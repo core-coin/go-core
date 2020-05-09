@@ -46,7 +46,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
 		EWASMInterpreter        string
-		EVMInterpreter          string
+		CVMInterpreter          string
 		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
@@ -82,7 +82,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
 	enc.DocRoot = c.DocRoot
 	enc.EWASMInterpreter = c.EWASMInterpreter
-	enc.EVMInterpreter = c.EVMInterpreter
+	enc.CVMInterpreter = c.CVMInterpreter
 	enc.RPCEnergyCap = c.RPCEnergyCap
 	enc.Checkpoint = c.Checkpoint
 	enc.CheckpointOracle = c.CheckpointOracle
@@ -122,7 +122,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		EnablePreimageRecording *bool
 		DocRoot                 *string `toml:"-"`
 		EWASMInterpreter        *string
-		EVMInterpreter          *string
+		CVMInterpreter          *string
 		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
@@ -217,8 +217,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.EWASMInterpreter != nil {
 		c.EWASMInterpreter = *dec.EWASMInterpreter
 	}
-	if dec.EVMInterpreter != nil {
-		c.EVMInterpreter = *dec.EVMInterpreter
+	if dec.CVMInterpreter != nil {
+		c.CVMInterpreter = *dec.CVMInterpreter
 	}
 	if dec.RPCEnergyCap != nil {
 		c.RPCEnergyCap = dec.RPCEnergyCap

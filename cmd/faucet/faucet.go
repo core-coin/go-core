@@ -49,7 +49,7 @@ import (
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/ethclient"
-	"github.com/core-coin/go-core/ethstats"
+	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -64,13 +64,13 @@ import (
 var (
 	genesisFlag = flag.String("genesis", "", "Genesis json file to seed the chain with")
 	apiPortFlag = flag.Int("apiport", 8080, "Listener port for the HTTP API connection")
-	ethPortFlag = flag.Int("ethport", 30300, "Listener port for the devp2p connection")
+	xcePortFlag = flag.Int("xceport", 30300, "Listener port for the devp2p connection")
 	bootFlag    = flag.String("bootnodes", "", "Comma separated bootnode enode URLs to seed with")
-	netFlag     = flag.Uint64("network", 0, "Network ID to use for the Ethereum protocol")
-	statsFlag   = flag.String("ethstats", "", "Ethstats network monitoring auth string")
+	netFlag     = flag.Uint64("network", 0, "Network ID to use for the Core protocol")
+	statsFlag   = flag.String("xcestats", "", "Xcestats network monitoring auth string")
 
 	netnameFlag = flag.String("faucet.name", "", "Network name to assign to the faucet")
-	payoutFlag  = flag.Int("faucet.amount", 1, "Number of Ethers to pay out per user request")
+	payoutFlag  = flag.Int("faucet.amount", 1, "Number of Cores to pay out per user request")
 	minutesFlag = flag.Int("faucet.minutes", 1440, "Number of minutes to wait between funding rounds")
 	tiersFlag   = flag.Int("faucet.tiers", 3, "Number of funding tiers to enable (x3 time, x2.5 funds)")
 
@@ -81,7 +81,7 @@ var (
 	captchaSecret = flag.String("captcha.secret", "", "Recaptcha secret key to authenticate server side")
 
 	noauthFlag = flag.Bool("noauth", false, "Enables funding requests without authentication")
-	logFlag    = flag.Int("loglevel", 3, "Log level to use for Ethereum and the faucet")
+	logFlag    = flag.Int("loglevel", 3, "Log level to use for Core and the faucet")
 )
 
 var (
@@ -104,7 +104,7 @@ func main() {
 	for i := 0; i < *tiersFlag; i++ {
 		// Calculate the amount for the next tier and format it
 		amount := float64(*payoutFlag) * math.Pow(2.5, float64(i))
-		amounts[i] = fmt.Sprintf("%s Ethers", strconv.FormatFloat(amount, 'f', -1, 64))
+		amounts[i] = fmt.Sprintf("%s Cores", strconv.FormatFloat(amount, 'f', -1, 64))
 		if amount == 1 {
 			amounts[i] = strings.TrimSuffix(amounts[i], "s")
 		}
@@ -176,7 +176,7 @@ func main() {
 	ks.Unlock(acc, pass)
 
 	// Assemble and start the faucet light service
-	faucet, err := newFaucet(genesis, *ethPortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
+	faucet, err := newFaucet(genesis, *xcePortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
 	if err != nil {
 		log.Crit("Failed to start faucet", "err", err)
 	}
@@ -190,16 +190,16 @@ func main() {
 // request represents an accepted funding request.
 type request struct {
 	Avatar  string             `json:"avatar"`  // Avatar URL to make the UI nicer
-	Account common.Address     `json:"account"` // Ethereum address being funded
+	Account common.Address     `json:"account"` // Core address being funded
 	Time    time.Time          `json:"time"`    // Timestamp when the request was accepted
 	Tx      *types.Transaction `json:"tx"`      // Transaction funding the account
 }
 
-// faucet represents a crypto faucet backed by an Ethereum light client.
+// faucet represents a crypto faucet backed by an Core light client.
 type faucet struct {
 	config *params.ChainConfig // Chain configurations for signing
-	stack  *node.Node          // Ethereum protocol stack
-	client *ethclient.Client   // Client connection to the Ethereum chain
+	stack  *node.Node          // Core protocol stack
+	client *ethclient.Client   // Client connection to the Core chain
 	index  []byte              // Index page to serve up on the web
 
 	keystore *keystore.KeyStore // Keystore containing the single signer
@@ -235,7 +235,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	if err != nil {
 		return nil, err
 	}
-	// Assemble the Ethereum light client protocol
+	// Assemble the Core light client protocol
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		cfg := eth.DefaultConfig
 		cfg.SyncMode = downloader.LightSync
@@ -245,12 +245,12 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}); err != nil {
 		return nil, err
 	}
-	// Assemble the ethstats monitoring and reporting service'
+	// Assemble the xcestats monitoring and reporting service'
 	if stats != "" {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			var serv *les.LightEthereum
+			var serv *les.LightCore
 			ctx.Service(&serv)
-			return ethstats.New(stats, nil, serv)
+			return xcestats.New(stats, nil, serv)
 		}); err != nil {
 			return nil, err
 		}
@@ -285,7 +285,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}, nil
 }
 
-// close terminates the Ethereum connection and tears down the faucet.
+// close terminates the Core connection and tears down the faucet.
 func (f *faucet) close() error {
 	return f.stack.Close()
 }
@@ -442,7 +442,7 @@ func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 		}
-		// Retrieve the Ethereum address to fund, the requesting user and a profile picture
+		// Retrieve the Core address to fund, the requesting user and a profile picture
 		var (
 			username string
 			avatar   string
@@ -678,7 +678,7 @@ func sendSuccess(conn *websocket.Conn, msg string) error {
 }
 
 // authTwitter tries to authenticate a faucet request using Twitter posts, returning
-// the username, avatar URL and Ethereum address to fund on success.
+// the username, avatar URL and Core address to fund on success.
 func authTwitter(url string) (string, string, common.Address, error) {
 	// Ensure the user specified a meaningful URL, no fancy nonsense
 	parts := strings.Split(url, "/")
@@ -688,7 +688,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 	}
 	// Twitter's API isn't really friendly with direct links. Still, we don't
 	// want to do ask read permissions from users, so just load the public posts and
-	// scrape it for the Ethereum address and profile URL.
+	// scrape it for the Core address and profile URL.
 	res, err := http.Get(url)
 	if err != nil {
 		return "", "", common.Address{}, err
@@ -710,7 +710,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 	address := common.HexToAddress(string(regexp.MustCompile("0x[0-9a-fA-F]{40}").Find(body)))
 	if address == (common.Address{}) {
 		//lint:ignore ST1005 This error is to be displayed in the browser
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No Core address found to fund")
 	}
 	var avatar string
 	if parts = regexp.MustCompile("src=\"([^\"]+twimg.com/profile_images[^\"]+)\"").FindStringSubmatch(string(body)); len(parts) == 2 {
@@ -720,7 +720,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 }
 
 // authFacebook tries to authenticate a faucet request using Facebook posts,
-// returning the username, avatar URL and Ethereum address to fund on success.
+// returning the username, avatar URL and Core address to fund on success.
 func authFacebook(url string) (string, string, common.Address, error) {
 	// Ensure the user specified a meaningful URL, no fancy nonsense
 	parts := strings.Split(url, "/")
@@ -732,7 +732,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 
 	// Facebook's Graph API isn't really friendly with direct links. Still, we don't
 	// want to do ask read permissions from users, so just load the public posts and
-	// scrape it for the Ethereum address and profile URL.
+	// scrape it for the Core address and profile URL.
 	res, err := http.Get(url)
 	if err != nil {
 		return "", "", common.Address{}, err
@@ -746,7 +746,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 	address := common.HexToAddress(string(regexp.MustCompile("0x[0-9a-fA-F]{40}").Find(body)))
 	if address == (common.Address{}) {
 		//lint:ignore ST1005 This error is to be displayed in the browser
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No Core address found to fund")
 	}
 	var avatar string
 	if parts = regexp.MustCompile("src=\"([^\"]+fbcdn.net[^\"]+)\"").FindStringSubmatch(string(body)); len(parts) == 2 {
@@ -755,14 +755,14 @@ func authFacebook(url string) (string, string, common.Address, error) {
 	return username + "@facebook", avatar, address, nil
 }
 
-// authNoAuth tries to interpret a faucet request as a plain Ethereum address,
+// authNoAuth tries to interpret a faucet request as a plain Core address,
 // without actually performing any remote authentication. This mode is prone to
 // Byzantine attack, so only ever use for truly private networks.
 func authNoAuth(url string) (string, string, common.Address, error) {
 	address := common.HexToAddress(regexp.MustCompile("0x[0-9a-fA-F]{40}").FindString(url))
 	if address == (common.Address{}) {
 		//lint:ignore ST1005 This error is to be displayed in the browser
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No Core address found to fund")
 	}
 	return address.Hex() + "@noauth", "", address, nil
 }

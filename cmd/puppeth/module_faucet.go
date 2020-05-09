@@ -42,7 +42,7 @@ ADD account.pass /account.pass
 EXPOSE 8080 30300 30300/udp
 
 ENTRYPOINT [ \
-	"faucet", "--genesis", "/genesis.json", "--network", "{{.NetworkID}}", "--bootnodes", "{{.Bootnodes}}", "--ethstats", "{{.Ethstats}}", "--ethport", "{{.EthPort}}",     \
+	"faucet", "--genesis", "/genesis.json", "--network", "{{.NetworkID}}", "--bootnodes", "{{.Bootnodes}}", "--xcestats", "{{.Xcestats}}", "--xceport", "{{.XcePort}}",     \
 	"--faucet.name", "{{.FaucetName}}", "--faucet.amount", "{{.FaucetAmount}}", "--faucet.minutes", "{{.FaucetMinutes}}", "--faucet.tiers", "{{.FaucetTiers}}",             \
 	"--account.json", "/account.json", "--account.pass", "/account.pass"                                                                                                    \
 	{{if .CaptchaToken}}, "--captcha.token", "{{.CaptchaToken}}", "--captcha.secret", "{{.CaptchaSecret}}"{{end}}{{if .NoAuth}}, "--noauth"{{end}}                          \
@@ -58,14 +58,14 @@ services:
     image: {{.Network}}/faucet
     container_name: {{.Network}}_faucet_1
     ports:
-      - "{{.EthPort}}:{{.EthPort}}"
-      - "{{.EthPort}}:{{.EthPort}}/udp"{{if not .VHost}}
+      - "{{.XcePort}}:{{.XcePort}}"
+      - "{{.XcePort}}:{{.XcePort}}/udp"{{if not .VHost}}
       - "{{.ApiPort}}:8080"{{end}}
     volumes:
       - {{.Datadir}}:/root/.faucet
     environment:
-      - ETH_PORT={{.EthPort}}
-      - ETH_NAME={{.EthName}}
+      - ETH_PORT={{.XcePort}}
+      - ETH_NAME={{.XceName}}
       - FAUCET_AMOUNT={{.FaucetAmount}}
       - FAUCET_MINUTES={{.FaucetMinutes}}
       - FAUCET_TIERS={{.FaucetTiers}}
@@ -94,8 +94,8 @@ func deployFaucet(client *sshClient, network string, bootnodes []string, config 
 	template.Must(template.New("").Parse(faucetDockerfile)).Execute(dockerfile, map[string]interface{}{
 		"NetworkID":     config.node.network,
 		"Bootnodes":     strings.Join(bootnodes, ","),
-		"Ethstats":      config.node.ethstats,
-		"EthPort":       config.node.port,
+		"Xcestats":      config.node.xcestats,
+		"XcePort":       config.node.port,
 		"CaptchaToken":  config.captchaToken,
 		"CaptchaSecret": config.captchaSecret,
 		"FaucetName":    strings.Title(network),
@@ -112,8 +112,8 @@ func deployFaucet(client *sshClient, network string, bootnodes []string, config 
 		"Datadir":       config.node.datadir,
 		"VHost":         config.host,
 		"ApiPort":       config.port,
-		"EthPort":       config.node.port,
-		"EthName":       config.node.ethstats[:strings.Index(config.node.ethstats, ":")],
+		"XcePort":       config.node.port,
+		"XceName":       config.node.xcestats[:strings.Index(config.node.xcestats, ":")],
 		"CaptchaToken":  config.captchaToken,
 		"CaptchaSecret": config.captchaSecret,
 		"FaucetAmount":  config.amount,
@@ -160,12 +160,12 @@ func (info *faucetInfos) Report() map[string]string {
 	report := map[string]string{
 		"Website address":              info.host,
 		"Website listener port":        strconv.Itoa(info.port),
-		"Ethereum listener port":       strconv.Itoa(info.node.port),
-		"Funding amount (base tier)":   fmt.Sprintf("%d Ethers", info.amount),
+		"Core listener port":       strconv.Itoa(info.node.port),
+		"Funding amount (base tier)":   fmt.Sprintf("%d Cores", info.amount),
 		"Funding cooldown (base tier)": fmt.Sprintf("%d mins", info.minutes),
 		"Funding tiers":                strconv.Itoa(info.tiers),
 		"Captha protection":            fmt.Sprintf("%v", info.captchaToken != ""),
-		"Ethstats username":            info.node.ethstats,
+		"Xcestats username":            info.node.xcestats,
 	}
 	if info.noauth {
 		report["Debug mode (no auth)"] = "enabled"
@@ -231,7 +231,7 @@ func checkFaucet(client *sshClient, network string) (*faucetInfos, error) {
 		node: &nodeInfos{
 			datadir:  infos.volumes["/root/.faucet"],
 			port:     infos.portmap[infos.envvars["ETH_PORT"]+"/tcp"],
-			ethstats: infos.envvars["ETH_NAME"],
+			xcestats: infos.envvars["ETH_NAME"],
 			keyJSON:  keyJSON,
 			keyPass:  keyPass,
 		},

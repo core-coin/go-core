@@ -51,25 +51,25 @@ const (
 	defaultEnergyPrice = params.Nucle
 )
 
-// PublicEthereumAPI provides an API to access Ethereum related information.
+// PublicCoreAPI provides an API to access Core related information.
 // It offers only methods that operate on public data that is freely available to anyone.
-type PublicEthereumAPI struct {
+type PublicCoreAPI struct {
 	b Backend
 }
 
-// NewPublicEthereumAPI creates a new Ethereum protocol API.
-func NewPublicEthereumAPI(b Backend) *PublicEthereumAPI {
-	return &PublicEthereumAPI{b}
+// NewPublicCoreAPI creates a new Core protocol API.
+func NewPublicCoreAPI(b Backend) *PublicCoreAPI {
+	return &PublicCoreAPI{b}
 }
 
 // EnergyPrice returns a suggestion for a energy price.
-func (s *PublicEthereumAPI) EnergyPrice(ctx context.Context) (*hexutil.Big, error) {
+func (s *PublicCoreAPI) EnergyPrice(ctx context.Context) (*hexutil.Big, error) {
 	price, err := s.b.SuggestPrice(ctx)
 	return (*hexutil.Big)(price), err
 }
 
-// ProtocolVersion returns the current Ethereum protocol version this node supports
-func (s *PublicEthereumAPI) ProtocolVersion() hexutil.Uint {
+// ProtocolVersion returns the current Core protocol version this node supports
+func (s *PublicCoreAPI) ProtocolVersion() hexutil.Uint {
 	return hexutil.Uint(s.b.ProtocolVersion())
 }
 
@@ -80,7 +80,7 @@ func (s *PublicEthereumAPI) ProtocolVersion() hexutil.Uint {
 // - highestBlock:  block number of the highest block header this node has received from peers
 // - pulledStates:  number of state entries processed until now
 // - knownStates:   number of known state entries that still need to be pulled
-func (s *PublicEthereumAPI) Syncing() (interface{}, error) {
+func (s *PublicCoreAPI) Syncing() (interface{}, error) {
 	progress := s.b.Downloader().Progress()
 
 	// Return not syncing if the synchronisation already completed
@@ -404,8 +404,8 @@ func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs
 	return &SignTransactionResult{data, signed}, nil
 }
 
-// Sign calculates an Ethereum ECDSA signature for:
-// keccack256("\x19Ethereum Signed Message:\n" + len(message) + message))
+// Sign calculates an Core ECDSA signature for:
+// keccack256("\x19Core Signed Message:\n" + len(message) + message))
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,
 // where the V value will be 27 or 28 for legacy reasons.
@@ -434,7 +434,7 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 // EcRecover returns the address for the account that was used to create the signature.
 // Note, this function is compatible with eth_sign and personal_sign. As such it recovers
 // the address of:
-// hash = keccak256("\x19Ethereum Signed Message:\n"${message length}${message})
+// hash = keccak256("\x19Core Signed Message:\n"${message length}${message})
 // addr = ecrecover(hash, signature)
 //
 // Note, the signature must conform to the secp256k1 curve R, S and V values, where
@@ -447,7 +447,7 @@ func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Byt
 	}
 
 	//if sig[crypto.RecoveryIDOffset] != 27 && sig[crypto.RecoveryIDOffset] != 28 {
-	//	return common.Address{}, fmt.Errorf("invalid Ethereum signature (V is not 27 or 28)")
+	//	return common.Address{}, fmt.Errorf("invalid Core signature (V is not 27 or 28)")
 	//}
 	//sig[crypto.RecoveryIDOffset] -= 27 // Transform yellow paper V from 27/28 to 0/1
 
@@ -506,13 +506,13 @@ func (s *PrivateAccountAPI) Unpair(ctx context.Context, url string, pin string) 
 	}
 }
 
-// PublicBlockChainAPI provides an API to access the Ethereum blockchain.
+// PublicBlockChainAPI provides an API to access the Core blockchain.
 // It offers only methods that operate on public data that is freely available to anyone.
 type PublicBlockChainAPI struct {
 	b Backend
 }
 
-// NewPublicBlockChainAPI creates a new Ethereum blockchain API.
+// NewPublicBlockChainAPI creates a new Core blockchain API.
 func NewPublicBlockChainAPI(b Backend) *PublicBlockChainAPI {
 	return &PublicBlockChainAPI{b}
 }
@@ -759,7 +759,7 @@ type account struct {
 }
 
 func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalEnergyCap *big.Int) ([]byte, uint64, bool, error) {
-	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+	defer func(start time.Time) { log.Debug("Executing CVM call finished", "runtime", time.Since(start)) }(time.Now())
 
 	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
@@ -839,27 +839,27 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	// this makes sure resources are cleaned up.
 	defer cancel()
 
-	// Get a new instance of the EVM.
-	evm, vmError, err := b.GetEVM(ctx, msg, state, header)
+	// Get a new instance of the CVM.
+	cvm, vmError, err := b.GetCVM(ctx, msg, state, header)
 	if err != nil {
 		return nil, 0, false, err
 	}
-	// Wait for the context to be done and cancel the evm. Even if the
-	// EVM has finished, cancelling may be done (repeatedly)
+	// Wait for the context to be done and cancel the cvm. Even if the
+	// CVM has finished, cancelling may be done (repeatedly)
 	go func() {
 		<-ctx.Done()
-		evm.Cancel()
+		cvm.Cancel()
 	}()
 
 	// Setup the energy pool (also for unmetered requests)
 	// and apply the message.
 	gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
-	res, energy, failed, err := core.ApplyMessage(evm, msg, gp)
+	res, energy, failed, err := core.ApplyMessage(cvm, msg, gp)
 	if err := vmError(); err != nil {
 		return nil, 0, false, err
 	}
 	// If the timer caused an abort, return an appropriate error message
-	if evm.Cancelled() {
+	if cvm.Cancelled() {
 		return nil, 0, false, fmt.Errorf("execution aborted (timeout = %v)", timeout)
 	}
 	return res, energy, failed, err
@@ -942,7 +942,7 @@ func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs)
 	return DoEstimateEnergy(ctx, s.b, args, blockNrOrHash, s.b.RPCEnergyCap())
 }
 
-// ExecutionResult groups all structured logs emitted by the EVM
+// ExecutionResult groups all structured logs emitted by the CVM
 // while replaying a transaction in debug mode as well as transaction
 // execution status, the amount of energy used and the return value
 type ExecutionResult struct {
@@ -952,7 +952,7 @@ type ExecutionResult struct {
 	StructLogs  []StructLogRes `json:"structLogs"`
 }
 
-// StructLogRes stores a structured log emitted by the EVM while replaying a
+// StructLogRes stores a structured log emitted by the CVM while replaying a
 // transaction in debug mode
 type StructLogRes struct {
 	Pc      uint64             `json:"pc"`
@@ -966,7 +966,7 @@ type StructLogRes struct {
 	Storage *map[string]string `json:"storage,omitempty"`
 }
 
-// FormatLogs formats EVM returned structured logs for json output
+// FormatLogs formats CVM returned structured logs for json output
 func FormatLogs(logs []vm.StructLog) []StructLogRes {
 	formatted := make([]StructLogRes, len(logs))
 	for index, trace := range logs {
@@ -1511,14 +1511,14 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 }
 
 // Sign calculates an ECDSA signature for:
-// keccack256("\x19Ethereum Signed Message:\n" + len(message) + message).
+// keccack256("\x19Core Signed Message:\n" + len(message) + message).
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,
 // where the V value will be 27 or 28 for legacy reasons.
 //
 // The account associated with addr must be unlocked.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
+// https://github.com/core-coin/wiki/wiki/JSON-RPC#eth_sign
 func (s *PublicTransactionPoolAPI) Sign(addr common.Address, data hexutil.Bytes) (hexutil.Bytes, error) {
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: addr}
@@ -1639,14 +1639,14 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	return common.Hash{}, fmt.Errorf("transaction %#x not found", matchTx.Hash())
 }
 
-// PublicDebugAPI is the collection of Ethereum APIs exposed over the public
+// PublicDebugAPI is the collection of Core APIs exposed over the public
 // debugging endpoint.
 type PublicDebugAPI struct {
 	b Backend
 }
 
 // NewPublicDebugAPI creates a new API definition for the public debug methods
-// of the Ethereum service.
+// of the Core service.
 func NewPublicDebugAPI(b Backend) *PublicDebugAPI {
 	return &PublicDebugAPI{b: b}
 }
@@ -1721,14 +1721,14 @@ func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string,
 	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
 }
 
-// PrivateDebugAPI is the collection of Ethereum APIs exposed over the private
+// PrivateDebugAPI is the collection of Core APIs exposed over the private
 // debugging endpoint.
 type PrivateDebugAPI struct {
 	b Backend
 }
 
 // NewPrivateDebugAPI creates a new API definition for the private debug methods
-// of the Ethereum service.
+// of the Core service.
 func NewPrivateDebugAPI(b Backend) *PrivateDebugAPI {
 	return &PrivateDebugAPI{b: b}
 }
@@ -1782,7 +1782,7 @@ func (s *PublicNetAPI) PeerCount() hexutil.Uint {
 	return hexutil.Uint(s.net.PeerCount())
 }
 
-// Version returns the current ethereum protocol version.
+// Version returns the current core protocol version.
 func (s *PublicNetAPI) Version() string {
 	return fmt.Sprintf("%d", s.networkVersion)
 }

@@ -2,7 +2,7 @@
 # with Go source code. If you know what GOPATH is then you probably
 # don't need to bother with make.
 
-.PHONY: gcore android ios gcore-cross evm all test clean
+.PHONY: gcore android ios gcore-cross cvm all test clean
 .PHONY: gcore-linux gcore-linux-386 gcore-linux-amd64 gcore-linux-mips64 gcore-linux-mips64le
 .PHONY: gcore-linux-arm gcore-linux-arm-5 gcore-linux-arm-6 gcore-linux-arm-7 gcore-linux-arm64
 .PHONY: gcore-darwin gcore-darwin-386 gcore-darwin-amd64

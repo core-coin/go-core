@@ -20,7 +20,7 @@ import (
 	"context"
 	"sync"
 
-	ethereum "github.com/core-coin/go-core"
+	core "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
 )
@@ -89,7 +89,7 @@ func (api *PublicDownloaderAPI) eventLoop() {
 	}
 }
 
-// Syncing provides information when this nodes starts synchronising with the Ethereum network and when it's finished.
+// Syncing provides information when this nodes starts synchronising with the Core network and when it's finished.
 func (api *PublicDownloaderAPI) Syncing(ctx context.Context) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
@@ -122,7 +122,7 @@ func (api *PublicDownloaderAPI) Syncing(ctx context.Context) (*rpc.Subscription,
 // SyncingResult provides information about the current synchronisation status for this node.
 type SyncingResult struct {
 	Syncing bool                  `json:"syncing"`
-	Status  ethereum.SyncProgress `json:"status"`
+	Status  core.SyncProgress `json:"status"`
 }
 
 // uninstallSyncSubscriptionRequest uninstalles a syncing subscription in the API event loop.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package p2p implements the Ethereum p2p network protocols.
+// Package p2p implements the Core p2p network protocols.
 package p2p
 
 import (
@@ -562,7 +562,7 @@ func (srv *Server) setupDiscovery() error {
 	srv.log.Debug("UDP listener up", "addr", realaddr)
 	if srv.NAT != nil {
 		if !realaddr.IP.IsLoopback() {
-			go nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "ethereum discovery")
+			go nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "core discovery")
 		}
 	}
 	srv.localnode.SetFallbackUDP(realaddr.Port)
@@ -666,7 +666,7 @@ func (srv *Server) setupListening() error {
 		if !tcp.IP.IsLoopback() && srv.NAT != nil {
 			srv.loopWG.Add(1)
 			go func() {
-				nat.Map(srv.NAT, srv.quit, "tcp", tcp.Port, tcp.Port, "ethereum p2p")
+				nat.Map(srv.NAT, srv.quit, "tcp", tcp.Port, tcp.Port, "core p2p")
 				srv.loopWG.Done()
 			}()
 		}
@@ -1057,7 +1057,7 @@ type NodeInfo struct {
 	ID    string `json:"id"`    // Unique node identifier (also the encryption key)
 	Name  string `json:"name"`  // Name of the node, including client type, version, OS, custom data
 	Enode string `json:"enode"` // Enode URL for adding this peer from remote peers
-	ENR   string `json:"enr"`   // Ethereum Node Record
+	ENR   string `json:"enr"`   // Core Node Record
 	IP    string `json:"ip"`    // IP address of the node
 	Ports struct {
 		Discovery int `json:"discovery"` // UDP listening port for discovery protocol

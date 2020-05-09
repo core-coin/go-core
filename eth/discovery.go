@@ -40,7 +40,7 @@ func (e ethEntry) ENRKey() string {
 }
 
 // startEthEntryUpdate starts the ENR updater loop.
-func (eth *Ethereum) startEthEntryUpdate(ln *enode.LocalNode) {
+func (eth *Core) startEthEntryUpdate(ln *enode.LocalNode) {
 	var newHead = make(chan core.ChainHeadEvent, 10)
 	sub := eth.blockchain.SubscribeChainHeadEvent(newHead)
 
@@ -59,12 +59,12 @@ func (eth *Ethereum) startEthEntryUpdate(ln *enode.LocalNode) {
 	}()
 }
 
-func (eth *Ethereum) currentEthEntry() *ethEntry {
+func (eth *Core) currentEthEntry() *ethEntry {
 	return &ethEntry{ForkID: forkid.NewID(eth.blockchain)}
 }
 
 // setupDiscovery creates the node discovery source for the eth protocol.
-func (eth *Ethereum) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
+func (eth *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
 	if cfg.NoDiscovery || len(eth.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}

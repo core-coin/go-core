@@ -57,7 +57,7 @@ type StateTransition struct {
 	value      *big.Int
 	data       []byte
 	state      vm.StateDB
-	evm        *vm.EVM
+	cvm        *vm.CVM
 }
 
 // Message represents a message sent to a contract.
@@ -113,27 +113,27 @@ func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isEIP2028 
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(evm *vm.EVM, msg Message, gp *EnergyPool) *StateTransition {
+func NewStateTransition(cvm *vm.CVM, msg Message, gp *EnergyPool) *StateTransition {
 	return &StateTransition{
 		gp:       gp,
-		evm:      evm,
+		cvm:      cvm,
 		msg:      msg,
 		energyPrice: msg.EnergyPrice(),
 		value:    msg.Value(),
 		data:     msg.Data(),
-		state:    evm.StateDB,
+		state:    cvm.StateDB,
 	}
 }
 
 // ApplyMessage computes the new state by applying the given message
 // against the old state within the environment.
 //
-// ApplyMessage returns the bytes returned by any EVM execution (if it took place),
+// ApplyMessage returns the bytes returned by any CVM execution (if it took place),
 // the energy used (which includes energy refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg Message, gp *EnergyPool) ([]byte, uint64, bool, error) {
-	return NewStateTransition(evm, msg, gp).TransitionDb()
+func ApplyMessage(cvm *vm.CVM, msg Message, gp *EnergyPool) ([]byte, uint64, bool, error) {
+	return NewStateTransition(cvm, msg, gp).TransitionDb()
 }
 
 // to returns the recipient of the message.
@@ -190,8 +190,8 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed
 	}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
-	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
-	istanbul := st.evm.ChainConfig().IsIstanbul(st.evm.BlockNumber)
+	homestead := st.cvm.ChainConfig().IsHomestead(st.cvm.BlockNumber)
+	istanbul := st.cvm.ChainConfig().IsIstanbul(st.cvm.BlockNumber)
 	contractCreation := msg.To() == nil
 
 	// Pay intrinsic energy
@@ -204,18 +204,18 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed
 	}
 
 	var (
-		evm = st.evm
+		cvm = st.cvm
 		// vm errors do not effect consensus and are therefor
 		// not assigned to err, except for insufficient balance
 		// error.
 		vmerr error
 	)
 	if contractCreation {
-		ret, _, st.energy, vmerr = evm.Create(sender, st.data, st.energy, st.value)
+		ret, _, st.energy, vmerr = cvm.Create(sender, st.data, st.energy, st.value)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
-		ret, st.energy, vmerr = evm.Call(sender, st.to(), st.data, st.energy, st.value)
+		ret, st.energy, vmerr = cvm.Call(sender, st.to(), st.data, st.energy, st.value)
 	}
 	if vmerr != nil {
 		log.Debug("VM returned with error", "err", vmerr)
@@ -227,7 +227,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed
 		}
 	}
 	st.refundEnergy()
-	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
+	st.state.AddBalance(st.cvm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
 
 	return ret, st.energyUsed(), vmerr != nil, err
 }

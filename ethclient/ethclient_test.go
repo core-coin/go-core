@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core"
+	gcore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/ethash"
 	"github.com/core-coin/go-core/core"
@@ -37,19 +37,19 @@ import (
 	"github.com/core-coin/go-core/params"
 )
 
-// Verify that Client implements the ethereum interfaces.
+// Verify that Client implements the core interfaces.
 var (
-	_ = ethereum.ChainReader(&Client{})
-	_ = ethereum.TransactionReader(&Client{})
-	_ = ethereum.ChainStateReader(&Client{})
-	_ = ethereum.ChainSyncReader(&Client{})
-	_ = ethereum.ContractCaller(&Client{})
-	_ = ethereum.EnergyEstimator(&Client{})
-	_ = ethereum.EnergyPricer(&Client{})
-	_ = ethereum.LogFilterer(&Client{})
-	_ = ethereum.PendingStateReader(&Client{})
-	// _ = ethereum.PendingStateEventer(&Client{})
-	_ = ethereum.PendingContractCaller(&Client{})
+	_ = gcore.ChainReader(&Client{})
+	_ = gcore.TransactionReader(&Client{})
+	_ = gcore.ChainStateReader(&Client{})
+	_ = gcore.ChainSyncReader(&Client{})
+	_ = gcore.ContractCaller(&Client{})
+	_ = gcore.EnergyEstimator(&Client{})
+	_ = gcore.EnergyPricer(&Client{})
+	_ = gcore.LogFilterer(&Client{})
+	_ = gcore.PendingStateReader(&Client{})
+	// _ = gcore.PendingStateEventer(&Client{})
+	_ = gcore.PendingContractCaller(&Client{})
 )
 
 func TestToFilterArg(t *testing.T) {
@@ -63,13 +63,13 @@ func TestToFilterArg(t *testing.T) {
 
 	for _, testCase := range []struct {
 		name   string
-		input  ethereum.FilterQuery
+		input  gcore.FilterQuery
 		output interface{}
 		err    error
 	}{
 		{
 			"without BlockHash",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				FromBlock: big.NewInt(1),
 				ToBlock:   big.NewInt(2),
@@ -85,7 +85,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with nil fromBlock and nil toBlock",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				Topics:    [][]common.Hash{},
 			},
@@ -99,7 +99,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				Topics:    [][]common.Hash{},
@@ -113,7 +113,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and from block",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),
@@ -124,7 +124,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and to block",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				ToBlock:   big.NewInt(1),
@@ -135,7 +135,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and both from / to block",
-			ethereum.FilterQuery{
+			gcore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),
@@ -172,8 +172,8 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	// Generate test chain.
 	genesis, blocks := generateTestChain()
 
-	// Start Ethereum service.
-	var ethservice *eth.Ethereum
+	// Start Core service.
+	var ethservice *eth.Core
 	n, err := node.New(&node.Config{})
 	n.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		config := &eth.Config{Genesis: genesis}

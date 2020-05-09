@@ -46,7 +46,7 @@ import (
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/ethdb"
-	"github.com/core-coin/go-core/ethstats"
+	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/graphql"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
@@ -465,9 +465,9 @@ var (
 		Usage: "Sets a cap on energy that can be used in eth_call/estimateEnergy",
 	}
 	// Logging and debug settings
-	EthStatsURLFlag = cli.StringFlag{
-		Name:  "ethstats",
-		Usage: "Reporting URL of a ethstats service (nodename:secret@host:port)",
+	XceStatsURLFlag = cli.StringFlag{
+		Name:  "xcestats",
+		Usage: "Reporting URL of a xcestats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -723,9 +723,9 @@ var (
 		Usage: "External ewasm configuration (default = built-in interpreter)",
 		Value: "",
 	}
-	EVMInterpreterFlag = cli.StringFlag{
-		Name:  "vm.evm",
-		Usage: "External EVM configuration (default = built-in interpreter)",
+	CVMInterpreterFlag = cli.StringFlag{
+		Name:  "vm.cvm",
+		Usage: "External CVM configuration (default = built-in interpreter)",
 		Value: "",
 	}
 )
@@ -1428,8 +1428,8 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 		cfg.EWASMInterpreter = ctx.GlobalString(EWASMInterpreterFlag.Name)
 	}
 
-	if ctx.GlobalIsSet(EVMInterpreterFlag.Name) {
-		cfg.EVMInterpreter = ctx.GlobalString(EVMInterpreterFlag.Name)
+	if ctx.GlobalIsSet(CVMInterpreterFlag.Name) {
+		cfg.CVMInterpreter = ctx.GlobalString(CVMInterpreterFlag.Name)
 	}
 	if ctx.GlobalIsSet(RPCGlobalEnergyCap.Name) {
 		cfg.RPCEnergyCap = new(big.Int).SetUint64(ctx.GlobalUint64(RPCGlobalEnergyCap.Name))
@@ -1508,7 +1508,7 @@ func setDNSDiscoveryDefaults(cfg *eth.Config, url string) {
 	cfg.DiscoveryURLs = []string{url}
 }
 
-// RegisterEthService adds an Ethereum client to the stack.
+// RegisterEthService adds an Core client to the stack.
 func RegisterEthService(stack *node.Node, cfg *eth.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
@@ -1526,7 +1526,7 @@ func RegisterEthService(stack *node.Node, cfg *eth.Config) {
 		})
 	}
 	if err != nil {
-		Fatalf("Failed to register the Ethereum service: %v", err)
+		Fatalf("Failed to register the Core service: %v", err)
 	}
 }
 
@@ -1539,21 +1539,21 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterEthStatsService configures the Ethereum Stats daemon and adds it to
+// RegisterXceStatsService configures the Core Stats daemon and adds it to
 // the given node.
-func RegisterEthStatsService(stack *node.Node, url string) {
+func RegisterXceStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both eth and les services
-		var ethServ *eth.Ethereum
+		var ethServ *eth.Core
 		ctx.Service(&ethServ)
 
-		var lesServ *les.LightEthereum
+		var lesServ *les.LightCore
 		ctx.Service(&lesServ)
 
-		// Let ethstats use whichever is not nil
-		return ethstats.New(url, ethServ, lesServ)
+		// Let xcestats use whichever is not nil
+		return xcestats.New(url, ethServ, lesServ)
 	}); err != nil {
-		Fatalf("Failed to register the Ethereum Stats service: %v", err)
+		Fatalf("Failed to register the Core Stats service: %v", err)
 	}
 }
 
@@ -1561,17 +1561,17 @@ func RegisterEthStatsService(stack *node.Node, url string) {
 func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Try to construct the GraphQL service backed by a full node
-		var ethServ *eth.Ethereum
+		var ethServ *eth.Core
 		if err := ctx.Service(&ethServ); err == nil {
 			return graphql.New(ethServ.APIBackend, endpoint, cors, vhosts, timeouts)
 		}
 		// Try to construct the GraphQL service backed by a light node
-		var lesServ *les.LightEthereum
+		var lesServ *les.LightCore
 		if err := ctx.Service(&lesServ); err == nil {
 			return graphql.New(lesServ.ApiBackend, endpoint, cors, vhosts, timeouts)
 		}
 		// Well, this should not have happened, bail out
-		return nil, errors.New("no Ethereum service")
+		return nil, errors.New("no Core service")
 	}); err != nil {
 		Fatalf("Failed to register the GraphQL service: %v", err)
 	}

@@ -2,7 +2,7 @@ pragma solidity ^0.5.10;
 
 /**
  * @title CheckpointOracle
- * @author Gary Rong<garyrong@ethereum.org>, Martin Swende <martin.swende@ethereum.org>
+ * @author Gary Rong<garyrong@core.org>, Martin Swende <martin.swende@core.org>
  * @dev Implementation of the blockchain checkpoint registrar.
  */
 contract CheckpointOracle {
@@ -158,7 +158,7 @@ contract CheckpointOracle {
 
     // The frequency for creating a checkpoint
     //
-    // The default value should be the same as the checkpoint size(32768) in the ethereum.
+    // The default value should be the same as the checkpoint size(32768) in the core.
     uint sectionSize;
 
     // The number of confirmations needed before a checkpoint can be registered.
@@ -166,7 +166,7 @@ contract CheckpointOracle {
     // chain reorg.
     //
     // The default value should be the same as the checkpoint process confirmations(256)
-    // in the ethereum.
+    // in the core.
     uint processConfirms;
 
     // The required signatures to finalize a stable checkpoint.

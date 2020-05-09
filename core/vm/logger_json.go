@@ -31,7 +31,7 @@ type JSONLogger struct {
 	cfg     *LogConfig
 }
 
-// NewJSONLogger creates a new EVM tracer that prints execution steps as JSON objects
+// NewJSONLogger creates a new CVM tracer that prints execution steps as JSON objects
 // into the provided stream.
 func NewJSONLogger(cfg *LogConfig, writer io.Writer) *JSONLogger {
 	l := &JSONLogger{json.NewEncoder(writer), cfg}
@@ -46,7 +46,7 @@ func (l *JSONLogger) CaptureStart(from common.Address, to common.Address, create
 }
 
 // CaptureState outputs state information on the logger.
-func (l *JSONLogger) CaptureState(env *EVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
 	log := StructLog{
 		Pc:            pc,
 		Op:            op,
@@ -68,7 +68,7 @@ func (l *JSONLogger) CaptureState(env *EVM, pc uint64, op OpCode, energy, cost u
 }
 
 // CaptureFault outputs state information on the logger.
-func (l *JSONLogger) CaptureFault(env *EVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *JSONLogger) CaptureFault(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
 	return nil
 }
 

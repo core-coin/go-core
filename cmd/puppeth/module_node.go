@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/log"
 )
 
-// nodeDockerfile is the Dockerfile required to run an Ethereum node.
+// nodeDockerfile is the Dockerfile required to run an Core node.
 var nodeDockerfile = `
 FROM corehub/go-core:latest
 
@@ -41,14 +41,14 @@ ADD genesis.json /genesis.json
 {{end}}
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
-	echo 'mkdir -p /root/.ethereum/keystore/ && cp /signer.json /root/.ethereum/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --ethstats \'{{.Ethstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Etherbase}}--miner.etherbase {{.Etherbase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
+	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcestats \'{{.Xcestats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Etherbase}}--miner.etherbase {{.Etherbase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
 
 ENTRYPOINT ["/bin/sh", "gcore.sh"]
 `
 
 // nodeComposefile is the docker-compose.yml file required to deploy and maintain
-// an Ethereum node (bootnode or miner for now).
+// an Core node (bootnode or miner for now).
 var nodeComposefile = `
 version: '2'
 services:
@@ -60,13 +60,13 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/.ethereum{{if .Ethashdir}}
+      - {{.Datadir}}:/root/core{{if .Ethashdir}}
       - {{.Ethashdir}}:/root/.ethash{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
       - LIGHT_PEERS={{.LightPeers}}
-      - STATS_NAME={{.Ethstats}}
+      - STATS_NAME={{.Xcestats}}
       - MINER_NAME={{.Etherbase}}
       - ENERGY_TARGET={{.EnergyTarget}}
       - ENERGY_LIMIT={{.EnergyLimit}}
@@ -79,7 +79,7 @@ services:
     restart: always
 `
 
-// deployNode deploys a new Ethereum node container to a remote machine via SSH,
+// deployNode deploys a new Core node container to a remote machine via SSH,
 // docker and docker-compose. If an instance with the specified network name
 // already exists there, it will be overwritten!
 func deployNode(client *sshClient, network string, bootnodes []string, config *nodeInfos, nocache bool) ([]byte, error) {
@@ -104,7 +104,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"Peers":     config.peersTotal,
 		"LightFlag": lightFlag,
 		"Bootnodes": strings.Join(bootnodes, ","),
-		"Ethstats":  config.ethstats,
+		"Xcestats":  config.xcestats,
 		"Etherbase": config.etherbase,
 		"EnergyTarget": uint64(1000000 * config.energyTarget),
 		"EnergyLimit":  uint64(1000000 * config.energyLimit),
@@ -123,7 +123,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"TotalPeers": config.peersTotal,
 		"Light":      config.peersLight > 0,
 		"LightPeers": config.peersLight,
-		"Ethstats":   config.ethstats[:strings.Index(config.ethstats, ":")],
+		"Xcestats":   config.xcestats[:strings.Index(config.xcestats, ":")],
 		"Etherbase":  config.etherbase,
 		"EnergyTarget":  config.energyTarget,
 		"EnergyLimit":   config.energyLimit,
@@ -156,7 +156,7 @@ type nodeInfos struct {
 	network    int64
 	datadir    string
 	ethashdir  string
-	ethstats   string
+	xcestats   string
 	port       int
 	enode      string
 	peersTotal int
@@ -177,7 +177,7 @@ func (info *nodeInfos) Report() map[string]string {
 		"Listener port":            strconv.Itoa(info.port),
 		"Peer count (all total)":   strconv.Itoa(info.peersTotal),
 		"Peer count (light nodes)": strconv.Itoa(info.peersLight),
-		"Ethstats username":        info.ethstats,
+		"Xcestats username":        info.xcestats,
 	}
 	if info.energyTarget > 0 {
 		// Miner or signer node
@@ -254,12 +254,12 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	// Assemble and return the useful infos
 	stats := &nodeInfos{
 		genesis:    genesis,
-		datadir:    infos.volumes["/root/.ethereum"],
+		datadir:    infos.volumes["/root/core"],
 		ethashdir:  infos.volumes["/root/.ethash"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,
-		ethstats:   infos.envvars["STATS_NAME"],
+		xcestats:   infos.envvars["STATS_NAME"],
 		etherbase:  infos.envvars["MINER_NAME"],
 		keyJSON:    keyJSON,
 		keyPass:    keyPass,

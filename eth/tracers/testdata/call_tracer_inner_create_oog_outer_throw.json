@@ -65,7 +65,7 @@
         "value": "0x0"
       }
     ],
-    "error": "evm: invalid jump destination",
+    "error": "cvm: invalid jump destination",
     "from": "0xe4a13bc304682a903e9472f469c33801dd18d9e8",
     "energy": "0x435c8",
     "energyUsed": "0x435c8",

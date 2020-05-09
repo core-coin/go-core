@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package graphql provides a GraphQL interface to Ethereum node data.
+// Package graphql provides a GraphQL interface to Core node data.
 package graphql
 
 import (
@@ -39,7 +39,7 @@ var (
 	errBlockInvariant = errors.New("block objects must be instantiated with at least one of num or hash")
 )
 
-// Account represents an Ethereum account at a particular block.
+// Account represents an Core account at a particular block.
 type Account struct {
 	backend       ethapi.Backend
 	address       common.Address
@@ -119,7 +119,7 @@ func (l *Log) Data(ctx context.Context) hexutil.Bytes {
 	return hexutil.Bytes(l.log.Data)
 }
 
-// Transaction represents an Ethereum transaction.
+// Transaction represents an Core transaction.
 // backend and hash are mandatory; all others will be fetched when required.
 type Transaction struct {
 	backend ethapi.Backend
@@ -343,7 +343,7 @@ func (t *Transaction) V(ctx context.Context) (hexutil.Big, error) {
 
 type BlockType int
 
-// Block represents an Ethereum block.
+// Block represents an Core block.
 // backend, and numberOrHash are mandatory. All other fields are lazily fetched
 // when required.
 type Block struct {
@@ -767,8 +767,8 @@ func (b *Block) Account(ctx context.Context, args struct {
 // CallData encapsulates arguments to `call` or `estimateEnergy`.
 // All arguments are optional.
 type CallData struct {
-	From     *common.Address // The Ethereum address the call is from.
-	To       *common.Address // The Ethereum address the call is to.
+	From     *common.Address // The Core address the call is from.
+	To       *common.Address // The Core address the call is to.
 	Energy      *hexutil.Uint64 // The amount of energy provided for the call.
 	EnergyPrice *hexutil.Big    // The price of each unit of energy, in wei.
 	Value    *hexutil.Big    // The value sent along with the call.
@@ -1038,7 +1038,7 @@ func (r *Resolver) ProtocolVersion(ctx context.Context) (int32, error) {
 
 // SyncState represents the synchronisation status returned from the `syncing` accessor.
 type SyncState struct {
-	progress ethereum.SyncProgress
+	progress core.SyncProgress
 }
 
 func (s *SyncState) StartingBlock() hexutil.Uint64 {

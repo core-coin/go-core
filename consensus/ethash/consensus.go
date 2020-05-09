@@ -46,20 +46,20 @@ var (
 
 	// calcDifficultyEip2384 is the difficulty adjustment algorithm as specified by EIP 2384.
 	// It offsets the bomb 4M blocks from Constantinople, so in total 9M blocks.
-	// Specification EIP-2384: https://eips.ethereum.org/EIPS/eip-2384
+	// Specification EIP-2384: https://eips.coreblockchain.cc/EIPS/eip-2384
 	calcDifficultyEip2384 = makeDifficultyCalculator(big.NewInt(9000000))
 
 	// calcDifficultyConstantinople is the difficulty adjustment algorithm for Constantinople.
 	// It returns the difficulty that a new block should have when created at time given the
 	// parent block's time and difficulty. The calculation uses the Byzantium rules, but with
 	// bomb offset 5M.
-	// Specification EIP-1234: https://eips.ethereum.org/EIPS/eip-1234
+	// Specification EIP-1234: https://eips.coreblockchain.cc/EIPS/eip-1234
 	calcDifficultyConstantinople = makeDifficultyCalculator(big.NewInt(5000000))
 
 	// calcDifficultyByzantium is the difficulty adjustment algorithm. It returns
 	// the difficulty that a new block should have when created at time given the
 	// parent block's time and difficulty. The calculation uses the Byzantium rules.
-	// Specification EIP-649: https://eips.ethereum.org/EIPS/eip-649
+	// Specification EIP-649: https://eips.coreblockchain.cc/EIPS/eip-649
 	calcDifficultyByzantium = makeDifficultyCalculator(big.NewInt(3000000))
 )
 
@@ -85,7 +85,7 @@ func (ethash *Ethash) Author(header *types.Header) (common.Address, error) {
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules of the
-// stock Ethereum ethash engine.
+// stock Core ethash engine.
 func (ethash *Ethash) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 	// If we're running a full engine faking, accept any input as valid
 	if ethash.config.PowMode == ModeFullFake {
@@ -186,7 +186,7 @@ func (ethash *Ethash) verifyHeaderWorker(chain consensus.ChainReader, headers []
 }
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus
-// rules of the stock Ethereum ethash engine.
+// rules of the stock Core ethash engine.
 func (ethash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
 	// If we're running a full engine faking, accept any input as valid
 	if ethash.config.PowMode == ModeFullFake {
@@ -241,7 +241,7 @@ func (ethash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 }
 
 // verifyHeader checks whether a header conforms to the consensus rules of the
-// stock Ethereum ethash engine.
+// stock Core ethash engine.
 // See YP section 4.3.4. "Block Header Validity"
 func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
@@ -347,7 +347,7 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *type
 	// the block number. Thus we remove one from the delay given
 
 	return func(time uint64, parent *types.Header) *big.Int {
-		// https://github.com/ethereum/EIPs/issues/100.
+		// https://github.com/core-coin/EIPs/issues/100.
 		// algorithm:
 		// diff = (parent_diff +
 		//         (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
@@ -390,7 +390,7 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *type
 // the difficulty that a new block should have when created at time given the
 // parent block's time and difficulty. The calculation uses the Homestead rules.
 func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
-	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2.md
+	// https://github.com/core-coin/EIPs/blob/master/EIPS/eip-2.md
 	// algorithm:
 	// diff = (parent_diff +
 	//         (parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) // 10, -99))

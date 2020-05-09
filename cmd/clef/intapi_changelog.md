@@ -35,7 +35,7 @@ If `clef` requires a password, the `OnInputRequired` will be used to collect it.
 
 ### 5.0.0
 
-Changed the namespace format to adhere to the legacy ethereum format: `name_methodName`. Changes:
+Changed the namespace format to adhere to the legacy core format: `name_methodName`. Changes:
 
 * `ApproveTx` -> `ui_approveTx`
 * `ApproveSignData` -> `ui_approveSignData`
@@ -68,7 +68,7 @@ Changed the namespace format to adhere to the legacy ethereum format: `name_meth
 
 ```go
 type Account struct {
-	Address common.Address `json:"address"` // Ethereum account address derived from the key
+	Address common.Address `json:"address"` // Core account address derived from the key
 	URL     URL            `json:"url"`     // Optional resource locator within a backend
 }
 ```

@@ -64,7 +64,7 @@
 
       <div id="navbarMenu" class="navbar-menu">
         <div class="navbar-start">
-          {{if .EthstatsPage}}
+          {{if .CorestatsPage}}
           <a href="#statistics" class="navbar-item">
             Statistics&nbsp;<em class="oji">🛰</em>
           </a>
@@ -98,9 +98,9 @@
   </header>
   <main>
     <section class="tab-content">
-      {{if .EthstatsPage}}
+      {{if .CorestatsPage}}
       <article id="statistics" class="arrangeIframe">
-        <iframe src="//{{.EthstatsPage}}" frameborder="0" allowfullscreen></iframe>
+        <iframe src="//{{.CorestatsPage}}" frameborder="0" allowfullscreen></iframe>
       </article>
       {{end}}
       {{if .ExplorerPage}}
@@ -133,7 +133,7 @@
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
               <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Xcestats}} --xcestats='{{.Xcestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Full node</h2>
@@ -148,7 +148,7 @@
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
               <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --xcestats='{{.Xcestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Light node</h2>
@@ -196,7 +196,7 @@
               <p>
                 With your local chain initialized, you can start the Core Wallet:
               </p>
-              <pre><code>ethereumwallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Ethstats}} --node-ethstats='{{.Ethstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>corewallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Xcestats}} --node-xcestats='{{.Xcestats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
           </div>
         </div>

@@ -122,7 +122,7 @@ func TestImportPreSaleKey(t *testing.T) {
 	}
 }
 
-// Test and utils for the key store tests in the Ethereum JSON tests;
+// Test and utils for the key store tests in the Core JSON tests;
 // testdataKeyStoreTests/basic_tests.json
 type KeyStoreTestV3 struct {
 	Json     encryptedKeyJSONV3

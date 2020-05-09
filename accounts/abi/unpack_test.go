@@ -32,7 +32,7 @@ import (
 
 type unpackTest struct {
 	def  string      // ABI definition JSON
-	enc  string      // evm return data
+	enc  string      // cvm return data
 	want interface{} // the expected output
 	err  string      // empty or error if expected
 }
@@ -644,7 +644,7 @@ func TestMultiReturnWithStringArray(t *testing.T) {
 	temp, _ := big.NewInt(0).SetString("30000000000000000000", 10)
 	ret1, ret1Exp := new([3]*big.Int), [3]*big.Int{big.NewInt(1545304298), big.NewInt(6), temp}
 	ret2, ret2Exp := new(common.Address), common.HexToAddress("ab1257528b3782fb40d7ed5f72e624b744dffb2f")
-	ret3, ret3Exp := new([2]string), [2]string{"Ethereum", "Hello, Ethereum!"}
+	ret3, ret3Exp := new([2]string), [2]string{"Core", "Hello, Core!"}
 	ret4, ret4Exp := new(bool), false
 	if err := abi.Unpack(&[]interface{}{ret1, ret2, ret3, ret4}, "multi", buff.Bytes()); err != nil {
 		t.Fatal(err)
@@ -682,7 +682,7 @@ func TestMultiReturnWithStringSlice(t *testing.T) {
 	buff.Write(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000000002")) // output[1] length
 	buff.Write(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000000064")) // output[1][0] value
 	buff.Write(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000000065")) // output[1][1] value
-	ret1, ret1Exp := new([]string), []string{"ethereum", "go-corecoin"}
+	ret1, ret1Exp := new([]string), []string{"core", "go-corecoin"}
 	ret2, ret2Exp := new([]*big.Int), []*big.Int{big.NewInt(100), big.NewInt(101)}
 	if err := abi.Unpack(&[]interface{}{ret1, ret2}, "multi", buff.Bytes()); err != nil {
 		t.Fatal(err)

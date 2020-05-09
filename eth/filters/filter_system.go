@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package filters implements an ethereum filtering system for block,
+// Package filters implements an core filtering system for block,
 // transactions and log events.
 package filters
 
@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	ethereum "github.com/core-coin/go-core"
+	gcore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -72,7 +72,7 @@ type subscription struct {
 	id        rpc.ID
 	typ       Type
 	created   time.Time
-	logsCrit  ethereum.FilterQuery
+	logsCrit  gcore.FilterQuery
 	logs      chan []*types.Log
 	hashes    chan []common.Hash
 	headers   chan *types.Header
@@ -187,7 +187,7 @@ func (es *EventSystem) subscribe(sub *subscription) *Subscription {
 // SubscribeLogs creates a subscription that will write all logs matching the
 // given criteria to the given logs channel. Default value for the from and to
 // block is "latest". If the fromBlock > toBlock an error is returned.
-func (es *EventSystem) SubscribeLogs(crit ethereum.FilterQuery, logs chan []*types.Log) (*Subscription, error) {
+func (es *EventSystem) SubscribeLogs(crit gcore.FilterQuery, logs chan []*types.Log) (*Subscription, error) {
 	var from, to rpc.BlockNumber
 	if crit.FromBlock == nil {
 		from = rpc.LatestBlockNumber
@@ -225,7 +225,7 @@ func (es *EventSystem) SubscribeLogs(crit ethereum.FilterQuery, logs chan []*typ
 
 // subscribeMinedPendingLogs creates a subscription that returned mined and
 // pending logs that match the given criteria.
-func (es *EventSystem) subscribeMinedPendingLogs(crit ethereum.FilterQuery, logs chan []*types.Log) *Subscription {
+func (es *EventSystem) subscribeMinedPendingLogs(crit gcore.FilterQuery, logs chan []*types.Log) *Subscription {
 	sub := &subscription{
 		id:        rpc.NewID(),
 		typ:       MinedAndPendingLogsSubscription,
@@ -242,7 +242,7 @@ func (es *EventSystem) subscribeMinedPendingLogs(crit ethereum.FilterQuery, logs
 
 // subscribeLogs creates a subscription that will write all logs matching the
 // given criteria to the given logs channel.
-func (es *EventSystem) subscribeLogs(crit ethereum.FilterQuery, logs chan []*types.Log) *Subscription {
+func (es *EventSystem) subscribeLogs(crit gcore.FilterQuery, logs chan []*types.Log) *Subscription {
 	sub := &subscription{
 		id:        rpc.NewID(),
 		typ:       LogsSubscription,
@@ -259,7 +259,7 @@ func (es *EventSystem) subscribeLogs(crit ethereum.FilterQuery, logs chan []*typ
 
 // subscribePendingLogs creates a subscription that writes transaction hashes for
 // transactions that enter the transaction pool.
-func (es *EventSystem) subscribePendingLogs(crit ethereum.FilterQuery, logs chan []*types.Log) *Subscription {
+func (es *EventSystem) subscribePendingLogs(crit gcore.FilterQuery, logs chan []*types.Log) *Subscription {
 	sub := &subscription{
 		id:        rpc.NewID(),
 		typ:       PendingLogsSubscription,

@@ -21,7 +21,7 @@ import (
 	"github.com/core-coin/go-core/core/vm"
 )
 
-func NewEnv(cfg *Config) *vm.EVM {
+func NewEnv(cfg *Config) *vm.CVM {
 	context := vm.Context{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
@@ -35,5 +35,5 @@ func NewEnv(cfg *Config) *vm.EVM {
 		EnergyPrice:    cfg.EnergyPrice,
 	}
 
-	return vm.NewEVM(context, cfg.State, cfg.ChainConfig, cfg.EVMConfig)
+	return vm.NewCVM(context, cfg.State, cfg.ChainConfig, cfg.CVMConfig)
 }

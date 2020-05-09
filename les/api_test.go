@@ -504,14 +504,14 @@ func newLesServerService(ctx *adapters.ServiceContext) (node.Service, error) {
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	ethereum, err := eth.New(ctx.NodeContext, &config)
+	core, err := eth.New(ctx.NodeContext, &config)
 	if err != nil {
 		return nil, err
 	}
-	server, err := NewLesServer(ethereum, &config)
+	server, err := NewLesServer(core, &config)
 	if err != nil {
 		return nil, err
 	}
-	ethereum.AddLesServer(server)
-	return ethereum, nil
+	core.AddLesServer(server)
+	return core, nil
 }

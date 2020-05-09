@@ -97,11 +97,11 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	for _, node := range nodes {
-		var ethereum *eth.Ethereum
-		if err := node.Service(&ethereum); err != nil {
+		var core *eth.Core
+		if err := node.Service(&core); err != nil {
 			panic(err)
 		}
-		if err := ethereum.StartMining(1); err != nil {
+		if err := core.StartMining(1); err != nil {
 			panic(err)
 		}
 	}
@@ -113,8 +113,8 @@ func main() {
 		index := rand.Intn(len(faucets))
 
 		// Fetch the accessor for the relevant signer
-		var ethereum *eth.Ethereum
-		if err := nodes[index%len(nodes)].Service(&ethereum); err != nil {
+		var core *eth.Core
+		if err := nodes[index%len(nodes)].Service(&core); err != nil {
 			panic(err)
 		}
 		// Create a self transaction and inject into the pool
@@ -122,13 +122,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if err := ethereum.TxPool().AddLocal(tx); err != nil {
+		if err := core.TxPool().AddLocal(tx); err != nil {
 			panic(err)
 		}
 		nonces[index]++
 
 		// Wait if we're too saturated
-		if pend, _ := ethereum.TxPool().Stats(); pend > 2048 {
+		if pend, _ := core.TxPool().Stats(); pend > 2048 {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
@@ -172,7 +172,7 @@ func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core
 }
 
 func makeSealer(genesis *core.Genesis) (*node.Node, error) {
-	// Define the basic configurations for the Ethereum node
+	// Define the basic configurations for the Core node
 	datadir, _ := ioutil.TempDir("", "")
 
 	config := &node.Config{
@@ -186,7 +186,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 		},
 		NoUSB: true,
 	}
-	// Start the node and configure a full Ethereum node on it
+	// Start the node and configure a full Core node on it
 	stack, err := node.New(config)
 	if err != nil {
 		return nil, err

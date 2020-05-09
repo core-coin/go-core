@@ -33,8 +33,8 @@ func (w *wizard) deployNode(boot bool) {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.ethstats == "" {
-		log.Error("No ethstats server configured")
+	if w.conf.xcestats == "" {
+		log.Error("No xcestats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -84,12 +84,12 @@ func (w *wizard) deployNode(boot bool) {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.ethstats == "" {
+	if infos.xcestats == "" {
 		fmt.Printf("What should the node be called on the stats page?\n")
-		infos.ethstats = w.readString() + ":" + w.conf.ethstats
+		infos.xcestats = w.readString() + ":" + w.conf.xcestats
 	} else {
-		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.ethstats)
-		infos.ethstats = w.readDefaultString(infos.ethstats) + ":" + w.conf.ethstats
+		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.xcestats)
+		infos.xcestats = w.readDefaultString(infos.xcestats) + ":" + w.conf.xcestats
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
@@ -158,7 +158,7 @@ func (w *wizard) deployNode(boot bool) {
 		nocache = w.readDefaultYesNo(false)
 	}
 	if out, err := deployNode(client, w.network, w.conf.bootnodes, infos, nocache); err != nil {
-		log.Error("Failed to deploy Ethereum node container", "err", err)
+		log.Error("Failed to deploy Core node container", "err", err)
 		if len(out) > 0 {
 			fmt.Printf("%s\n", out)
 		}

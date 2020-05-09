@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
-// gcore is the official command-line client for Ethereum.
+// gcore is the official command-line client for Core.
 package main
 
 import (
@@ -134,13 +134,13 @@ var (
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.EthStatsURLFlag,
+		utils.XceStatsURLFlag,
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
 		utils.GpoPercentileFlag,
 		utils.EWASMInterpreterFlag,
-		utils.EVMInterpreterFlag,
+		utils.CVMInterpreterFlag,
 		configFileFlag,
 	}
 
@@ -323,21 +323,21 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}
 	ethClient := ethclient.NewClient(rpcClient)
 
-	// Set contract backend for ethereum service if local node
+	// Set contract backend for core service if local node
 	// is serving LES requests.
 	if ctx.GlobalInt(utils.LightLegacyServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var ethService *eth.Ethereum
+		var ethService *eth.Core
 		if err := stack.Service(&ethService); err != nil {
-			utils.Fatalf("Failed to retrieve ethereum service: %v", err)
+			utils.Fatalf("Failed to retrieve core service: %v", err)
 		}
 		ethService.SetContractBackend(ethClient)
 	}
 	// Set contract backend for les service if local node is
 	// running as a light client.
 	if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
-		var lesService *les.LightEthereum
+		var lesService *les.LightCore
 		if err := stack.Service(&lesService); err != nil {
-			utils.Fatalf("Failed to retrieve light ethereum service: %v", err)
+			utils.Fatalf("Failed to retrieve light core service: %v", err)
 		}
 		lesService.SetContractBackend(ethClient)
 	}
@@ -401,26 +401,26 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 	// Start auxiliary services if enabled
 	if ctx.GlobalBool(utils.MiningEnabledFlag.Name) || ctx.GlobalBool(utils.DeveloperFlag.Name) {
-		// Mining only makes sense if a full Ethereum node is running
+		// Mining only makes sense if a full Core node is running
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var ethereum *eth.Ethereum
-		if err := stack.Service(&ethereum); err != nil {
-			utils.Fatalf("Ethereum service not running: %v", err)
+		var core *eth.Core
+		if err := stack.Service(&core); err != nil {
+			utils.Fatalf("Core service not running: %v", err)
 		}
 		// Set the energy price to the limits from the CLI and start mining
 		energyprice := utils.GlobalBig(ctx, utils.MinerLegacyEnergyPriceFlag.Name)
 		if ctx.IsSet(utils.MinerEnergyPriceFlag.Name) {
 			energyprice = utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
 		}
-		ethereum.TxPool().SetEnergyPrice(energyprice)
+		core.TxPool().SetEnergyPrice(energyprice)
 
 		threads := ctx.GlobalInt(utils.MinerLegacyThreadsFlag.Name)
 		if ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
 			threads = ctx.GlobalInt(utils.MinerThreadsFlag.Name)
 		}
-		if err := ethereum.StartMining(threads); err != nil {
+		if err := core.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
 	}

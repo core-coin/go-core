@@ -40,7 +40,7 @@ import (
 )
 
 // StateTest checks transaction processing without block context.
-// See https://github.com/ethereum/EIPs/issues/176 for the test format specification.
+// See https://github.com/core/EIPs/issues/176 for the test format specification.
 type StateTest struct {
 	json stJSON
 }
@@ -177,14 +177,14 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 	if err != nil {
 		return nil, common.Hash{}, err
 	}
-	context := core.NewEVMContext(msg, block.Header(), nil, &t.json.Env.Coinbase)
+	context := core.NewCVMContext(msg, block.Header(), nil, &t.json.Env.Coinbase)
 	context.GetHash = vmTestBlockHash
-	evm := vm.NewEVM(context, statedb, config, vmconfig)
+	cvm := vm.NewCVM(context, statedb, config, vmconfig)
 
 	energypool := new(core.EnergyPool)
 	energypool.AddEnergy(block.EnergyLimit())
 	snapshot := statedb.Snapshot()
-	if _, _, _, err := core.ApplyMessage(evm, msg, energypool); err != nil {
+	if _, _, _, err := core.ApplyMessage(cvm, msg, energypool); err != nil {
 		statedb.RevertToSnapshot(snapshot)
 	}
 	// Commit block
@@ -265,7 +265,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	dataHex := tx.Data[ps.Indexes.Data]
 	valueHex := tx.Value[ps.Indexes.Value]
 	energyLimit := tx.EnergyLimit[ps.Indexes.Energy]
-	// Value, Data hex encoding is messy: https://github.com/ethereum/tests/issues/203
+	// Value, Data hex encoding is messy: https://github.com/core-coin/tests/issues/203
 	value := new(big.Int)
 	if valueHex != "0x" {
 		v, ok := math.ParseBig256(valueHex)

@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core"
+	gcore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
@@ -59,7 +59,7 @@ var (
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
 	database   ethdb.Database   // In memory database to store our testing data
-	blockchain *core.BlockChain // Ethereum blockchain to handle the consensus
+	blockchain *core.BlockChain // Core blockchain to handle the consensus
 
 	mu           sync.Mutex
 	pendingBlock *types.Block   // Currently pending block that will be imported on request
@@ -217,7 +217,7 @@ func (b *SimulatedBackend) TransactionByHash(ctx context.Context, txHash common.
 	if tx != nil {
 		return tx, false, nil
 	}
-	return nil, false, ethereum.NotFound
+	return nil, false, gcore.NotFound
 }
 
 // BlockByHash retrieves a block based on the block hash
@@ -338,7 +338,7 @@ func (b *SimulatedBackend) PendingCodeAt(ctx context.Context, contract common.Ad
 }
 
 // CallContract executes a contract call.
-func (b *SimulatedBackend) CallContract(ctx context.Context, call ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (b *SimulatedBackend) CallContract(ctx context.Context, call gcore.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -354,7 +354,7 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call ethereum.CallM
 }
 
 // PendingCallContract executes a contract call on the pending state.
-func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call ethereum.CallMsg) ([]byte, error) {
+func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gcore.CallMsg) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	defer b.pendingState.RevertToSnapshot(b.pendingState.Snapshot())
@@ -380,7 +380,7 @@ func (b *SimulatedBackend) SuggestEnergyPrice(ctx context.Context) (*big.Int, er
 
 // EstimateEnergy executes the requested code against the currently pending block/state and
 // returns the used amount of energy.
-func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call ethereum.CallMsg) (uint64, error) {
+func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gcore.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -430,7 +430,7 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call ethereum.Cal
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call ethereum.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call gcore.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
 	// Ensure message is initialized properly.
 	if call.EnergyPrice == nil {
 		call.EnergyPrice = big.NewInt(1)
@@ -447,10 +447,10 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call ethereum.CallM
 	// Execute the call.
 	msg := callmsg{call}
 
-	evmContext := core.NewEVMContext(msg, block.Header(), b.blockchain, nil)
+	cvmContext := core.NewCVMContext(msg, block.Header(), b.blockchain, nil)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
-	vmenv := vm.NewEVM(evmContext, statedb, b.config, vm.Config{})
+	vmenv := vm.NewCVM(cvmContext, statedb, b.config, vm.Config{})
 	energypool := new(core.EnergyPool).AddEnergy(math.MaxUint64)
 
 	return core.NewStateTransition(vmenv, msg, energypool).TransitionDb()
@@ -488,7 +488,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 // returning all the results in one batch.
 //
 // TODO(karalabe): Deprecate when the subscription one can return past data too.
-func (b *SimulatedBackend) FilterLogs(ctx context.Context, query ethereum.FilterQuery) ([]types.Log, error) {
+func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gcore.FilterQuery) ([]types.Log, error) {
 	var filter *filters.Filter
 	if query.BlockHash != nil {
 		// Block filter requested, construct a single-shot filter
@@ -520,7 +520,7 @@ func (b *SimulatedBackend) FilterLogs(ctx context.Context, query ethereum.Filter
 
 // SubscribeFilterLogs creates a background log filtering operation, returning a
 // subscription immediately, which can be used to stream the found events.
-func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
+func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gcore.FilterQuery, ch chan<- types.Log) (gcore.Subscription, error) {
 	// Subscribe to contract events
 	sink := make(chan []*types.Log)
 
@@ -553,7 +553,7 @@ func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query ethere
 }
 
 // SubscribeNewHead returns an event subscription for a new header
-func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
+func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (gcore.Subscription, error) {
 	// subscribe to a new head
 	sink := make(chan *types.Header)
 	sub := b.events.SubscribeNewHeads(sink)
@@ -605,7 +605,7 @@ func (b *SimulatedBackend) Blockchain() *core.BlockChain {
 
 // callmsg implements core.Message to allow passing it as a transaction simulator.
 type callmsg struct {
-	ethereum.CallMsg
+	gcore.CallMsg
 }
 
 func (m callmsg) From() common.Address { return m.CallMsg.From }

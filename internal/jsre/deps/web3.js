@@ -2409,7 +2409,7 @@ var isJson = function (str) {
 };
 
 /**
- * Returns true if given string is a valid Ethereum block header bloom.
+ * Returns true if given string is a valid Core block header bloom.
  *
  * @method isBloom
  * @param {String} hex encoded bloom filter
@@ -2609,7 +2609,7 @@ var properties = function () {
             inputFormatter: utils.toDecimal
         }),
         new Property({
-            name: 'version.ethereum',
+            name: 'version.core',
             getter: 'eth_protocolVersion',
             inputFormatter: utils.toDecimal
         }),
@@ -4496,7 +4496,7 @@ var Iban = function (iban) {
 };
 
 /**
- * This method should be used to create iban object from ethereum address
+ * This method should be used to create iban object from core address
  *
  * @method fromAddress
  * @param {String} address
@@ -5713,7 +5713,7 @@ module.exports = Personal;
 */
 /** @file shh.js
  * @authors:
- *   Fabian Vogelsteller <fabian@ethereum.org>
+ *   Fabian Vogelsteller <fabian@core.org>
  *   Marek Kotewicz <marek@ethcore.io>
  * @date 2017
  */
@@ -6317,7 +6317,7 @@ var errors = require('./errors');
 
 /**
  * It's responsible for passing messages to providers
- * It's also responsible for polling the ethereum node for incoming messages
+ * It's also responsible for polling the core node for incoming messages
  * Default poll timeout is 1 second
  * Singleton
  */

@@ -1,20 +1,20 @@
-## Go Ethereum
+## Go Core
 
-Official Golang implementation of the Ethereum protocol.
+Official Golang implementation of the Core protocol.
 
 [![API Reference](
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
-)](https://godoc.org/github.com/ethereum/go-ethereum)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ethereum/go-ethereum)](https://goreportcard.com/report/github.com/ethereum/go-ethereum)
-[![Travis](https://travis-ci.org/ethereum/go-ethereum.svg?branch=master)](https://travis-ci.org/ethereum/go-ethereum)
+)](https://godoc.org/github.com/core-coin/go-core)
+[![Go Report Card](https://goreportcard.com/badge/github.com/core-coin/go-core)](https://goreportcard.com/report/github.com/core-coin/go-core)
+[![Travis](https://travis-ci.org/core/go-core.svg?branch=master)](https://travis-ci.org/core/go-core)
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://discord.gg/nthXNEv)
 
 Automated builds are available for stable releases and the unstable master branch. Binary
-archives are published at https://gcore.ethereum.org/downloads/.
+archives are published at https://gcore.coreblockchain.cc/downloads/.
 
 ## Building the source
 
-For prerequisites and detailed build instructions please read the [Installation Instructions](https://developer.coreblockchain.cc/Building-Ethereum) on the wiki.
+For prerequisites and detailed build instructions please read the [Installation Instructions](https://developer.coreblockchain.cc/Building-Core) on the wiki.
 
 Building `gcore` requires both a Go (version 1.10 or later) and a C compiler. You can install
 them using your favourite package manager. Once the dependencies are installed, run
@@ -31,18 +31,18 @@ make all
 
 ## Executables
 
-The go-ethereum project comes with several wrappers/executables found in the `cmd`
+The go-core project comes with several wrappers/executables found in the `cmd`
 directory.
 
 |    Command    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  **`gcore`**   | Our main Ethereum CLI client. It is the entry point into the Ethereum network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Ethereum network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. `gcore --help` and the [CLI Wiki page](https://developer.coreblockchain.cc/Command-Line-Options) for command line options.          |
-|   `abigen`    | Source code generator to convert Ethereum contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [Ethereum contract ABIs](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI) with expanded functionality if the contract bytecode is also available. However, it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://developer.coreblockchain.cc/Native-DApps:-Go-bindings-to-Ethereum-contracts) wiki page for details. |
-|  `bootnode`   | Stripped down version of our Ethereum client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.                                                                                                                                                                                                                                                                 |
-|     `evm`     | Developer utility version of the EVM (Ethereum Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of EVM opcodes (e.g. `evm --code 60ff60ff --debug run`).                                                                                                                                                                                                                                                                     |
-| `gocorerpctest` | Developer utility tool to support our [ethereum/rpc-test](https://github.com/ethereum/rpc-tests) test suite which validates baseline conformity to the [Ethereum JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) specs. Please see the [test suite's readme](https://github.com/ethereum/rpc-tests/blob/master/README.md) for details.                                                                                                                                                                                                     |
-|   `rlpdump`   | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://github.com/ethereum/wiki/wiki/RLP)) dumps (data encoding used by the Ethereum protocol both network as well as consensus wise) to user-friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`).                                                                                                                                                                                                                                 |
-|   `puppeth`   | a CLI wizard that aids in creating a new Ethereum network.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|  **`gcore`**   | Our main Core CLI client. It is the entry point into the Core network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Core network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. `gcore --help` and the [CLI Wiki page](https://developer.coreblockchain.cc/Command-Line-Options) for command line options.          |
+|   `abigen`    | Source code generator to convert Core contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [Core contract ABIs](https://github.com/core-coin/wiki/wiki/Core-Contract-ABI) with expanded functionality if the contract bytecode is also available. However, it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://developer.coreblockchain.cc/Native-DApps:-Go-bindings-to-Core-contracts) wiki page for details. |
+|  `bootnode`   | Stripped down version of our Core client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.                                                                                                                                                                                                                                                                 |
+|     `cvm`     | Developer utility version of the CVM (Core Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of CVM opcodes (e.g. `cvm --code 60ff60ff --debug run`).                                                                                                                                                                                                                                                                     |
+| `gocorerpctest` | Developer utility tool to support our [core/rpc-test](https://github.com/core-coin/rpc-tests) test suite which validates baseline conformity to the [Core JSON RPC](https://github.com/core-coin/wiki/wiki/JSON-RPC) specs. Please see the [test suite's readme](https://github.com/core-coin/rpc-tests/blob/master/README.md) for details.                                                                                                                                                                                                     |
+|   `rlpdump`   | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://github.com/core-coin/wiki/wiki/RLP)) dumps (data encoding used by the Core protocol both network as well as consensus wise) to user-friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`).                                                                                                                                                                                                                                 |
+|   `puppeth`   | a CLI wizard that aids in creating a new Core network.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Running `gcore`
 
@@ -51,9 +51,9 @@ Going through all the possible command line flags is out of scope here (please c
 but we've enumerated a few common parameter combos to get you up to speed quickly
 on how you can run your own `gcore` instance.
 
-### Full node on the main Ethereum network
+### Full node on the main Core network
 
-By far the most common scenario is people wanting to simply interact with the Ethereum
+By far the most common scenario is people wanting to simply interact with the Core
 network: create accounts; transfer funds; deploy and interact with contracts. For this
 particular use-case the user doesn't care about years-old historical data, so we can
 fast-sync quickly to the current state of the network. To do so:
@@ -65,16 +65,16 @@ $ gcore console
 This command will:
  * Start `gcore` in fast sync mode (default, can be changed with the `--syncmode` flag),
    causing it to download more data in exchange for avoiding processing the entire history
-   of the Ethereum network, which is very CPU intensive.
+   of the Core network, which is very CPU intensive.
  * Start up `gcore`'s built-in interactive [JavaScript console](https://developer.coreblockchain.cc/JavaScript-Console),
-   (via the trailing `console` subcommand) through which you can invoke all official [`web3` methods](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+   (via the trailing `console` subcommand) through which you can invoke all official [`web3` methods](https://github.com/core-coin/wiki/wiki/JavaScript-API)
    as well as `gcore`'s own [management APIs](https://developer.coreblockchain.cc/Management-APIs).
    This tool is optional and if you leave it out you can always attach to an already running
    `gcore` instance with `gcore attach`.
 
-### A Full node on the Ethereum test network
+### A Full node on the Core test network
 
-Transitioning towards developers, if you'd like to play around with creating Ethereum
+Transitioning towards developers, if you'd like to play around with creating Core
 contracts, you almost certainly would like to do that without any real money involved until
 you get the hang of the entire system. In other words, instead of attaching to the main
 network, you want to join the **test** network with your node, which is fully equivalent to
@@ -89,14 +89,14 @@ useful on the testnet too. Please see above for their explanations if you've ski
 
 Specifying the `--testnet` flag, however, will reconfigure your `gcore` instance a bit:
 
- * Instead of using the default data directory (`~/.ethereum` on Linux for example), `gcore`
-   will nest itself one level deeper into a `testnet` subfolder (`~/.ethereum/testnet` on
+ * Instead of using the default data directory (`~/core` on Linux for example), `gcore`
+   will nest itself one level deeper into a `testnet` subfolder (`~/core/testnet` on
    Linux). Note, on OSX and Linux this also means that attaching to a running testnet node
    requires the use of a custom endpoint since `gcore attach` will try to attach to a
    production node endpoint by default. E.g.
    `gcore attach <datadir>/testnet/gcore.ipc`. Windows users are not affected by
    this.
- * Instead of connecting the main Ethereum network, the client will connect to the test
+ * Instead of connecting the main Core network, the client will connect to the test
    network, which uses different P2P bootnodes, different network IDs and genesis states.
 
 *Note: Although there are some internal protective measures to prevent transactions from
@@ -109,10 +109,10 @@ accounts available between them.*
 
 The above test network is a cross-client one based on the ethash proof-of-work consensus
 algorithm. As such, it has certain extra overhead and is more susceptible to reorganization
-attacks due to the network's low difficulty/security. Go Ethereum also supports connecting
+attacks due to the network's low difficulty/security. Go Core also supports connecting
 to a proof-of-authority based test network called [*Rinkeby*](https://www.rinkeby.io)
 (operated by members of the community). This network is lighter, more secure, but is only
-supported by go-ethereum.
+supported by go-core.
 
 ```shell
 $ gcore --rinkeby console
@@ -138,13 +138,13 @@ $ gcore --your-favourite-flags dumpconfig
 
 #### Docker quick start
 
-One of the quickest ways to get Ethereum up and running on your machine is by using
+One of the quickest ways to get Core up and running on your machine is by using
 Docker:
 
 ```shell
-docker run -d --name ethereum-node -v /Users/alice/ethereum:/root \
+docker run -d --name core-node -v /Users/alice/core-coin:/root \
            -p 8545:8545 -p 30300:30300 \
-           ethereum/client-go
+           core-coin/client-go
 ```
 
 This will start `gcore` in fast-sync mode with a DB memory allowance of 1GB just as the
@@ -159,8 +159,8 @@ accessible from the outside.
 ### Programmatically interfacing `gcore` nodes
 
 As a developer, sooner rather than later you'll want to start interacting with `gcore` and the
-Ethereum network via your own programs and not manually through the console. To aid
-this, `gcore` has built-in support for a JSON-RPC based APIs ([standard APIs](https://github.com/ethereum/wiki/wiki/JSON-RPC)
+Core network via your own programs and not manually through the console. To aid
+this, `gcore` has built-in support for a JSON-RPC based APIs ([standard APIs](https://github.com/core-coin/wiki/wiki/JSON-RPC)
 and [`gcore` specific APIs](https://developer.coreblockchain.cc/Management-APIs)).
 These can be exposed via HTTP, WebSockets and IPC (UNIX sockets on UNIX based
 platforms, and named pipes on Windows).
@@ -193,7 +193,7 @@ can reuse the same connection for multiple requests!
 
 **Note: Please understand the security implications of opening up an HTTP/WS based
 transport before doing so! Hackers on the internet are actively trying to subvert
-Ethereum nodes with exposed APIs! Further, all browser tabs can access locally
+Core nodes with exposed APIs! Further, all browser tabs can access locally
 running web servers, so malicious web pages could try to subvert locally available
 APIs!**
 
@@ -268,7 +268,7 @@ $ bootnode --genkey=boot.key
 $ bootnode --nodekey=boot.key
 ```
 
-With the bootnode online, it will display an [`enode` URL](https://github.com/ethereum/wiki/wiki/enode-url-format)
+With the bootnode online, it will display an [`enode` URL](https://github.com/core-coin/wiki/wiki/enode-url-format)
 that other nodes can use to connect to it and exchange peer information. Make sure to
 replace the displayed IP address information (most probably `[::]`) with your externally
 accessible IP to get the actual `enode` URL.
@@ -293,10 +293,10 @@ also need to configure a miner to process transactions and create new blocks for
 
 #### Running a private miner
 
-Mining on the public Ethereum network is a complex task as it's only feasible using GPUs,
+Mining on the public Core network is a complex task as it's only feasible using GPUs,
 requiring an OpenCL or CUDA enabled `ethminer` instance. For information on such a
 setup, please consult the [EtherMining subreddit](https://www.reddit.com/r/EtherMining/)
-and the [ethminer](https://github.com/ethereum-mining/ethminer) repository.
+and the [ethminer](https://github.com/core-coin-mining/ethminer) repository.
 
 In a private network setting, however a single CPU miner instance is more than enough for
 practical purposes as it can produce a stable stream of blocks at the correct intervals
@@ -318,9 +318,9 @@ transactions are accepted at (`--energyprice`).
 Thank you for considering to help out with the source code! We welcome contributions
 from anyone on the internet, and are grateful for even the smallest of fixes!
 
-If you'd like to contribute to go-ethereum, please fork, fix, commit and send a pull request
+If you'd like to contribute to go-core, please fork, fix, commit and send a pull request
 for the maintainers to review and merge into the main code base. If you wish to submit
-more complex changes though, please check up with the core devs first on [our gitter channel](https://gitter.im/ethereum/go-ethereum)
+more complex changes though, please check up with the core devs first on [our gitter channel](https://gitter.im/core-coin/go-core)
 to ensure those changes are in line with the general philosophy of the project and/or get
 some early feedback which can make both your efforts much lighter as well as our review
 and merge procedures quick and simple.
@@ -341,10 +341,10 @@ testing procedures.
 
 ## License
 
-The go-ethereum library (i.e. all code outside of the `cmd` directory) is licensed under the
+The go-core library (i.e. all code outside of the `cmd` directory) is licensed under the
 [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html),
 also included in our repository in the `COPYING.LESSER` file.
 
-The go-ethereum binaries (i.e. all code inside of the `cmd` directory) is licensed under the
+The go-core binaries (i.e. all code inside of the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
 included in our repository in the `COPYING` file.

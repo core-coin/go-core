@@ -19,6 +19,7 @@ package abi
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
@@ -172,6 +173,7 @@ func (abi *ABI) MethodById(sigdata []byte) (*Method, error) {
 		if bytes.Equal(method.ID(), sigdata[:4]) {
 			return &method, nil
 		}
+		return nil, errors.New(common.Bytes2Hex(method.ID()))
 	}
 	return nil, fmt.Errorf("no method with id: %#x", sigdata[:4])
 }

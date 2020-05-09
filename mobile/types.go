@@ -60,7 +60,7 @@ func (b *Bloom) GetHex() string {
 	return fmt.Sprintf("0x%x", b.bloom[:])
 }
 
-// Header represents a block header in the Ethereum blockchain.
+// Header represents a block header in the Core blockchain.
 type Header struct {
 	header *types.Header
 }
@@ -131,7 +131,7 @@ func (h *Headers) Get(index int) (header *Header, _ error) {
 	return &Header{h.headers[index]}, nil
 }
 
-// Block represents an entire block in the Ethereum blockchain.
+// Block represents an entire block in the Core blockchain.
 type Block struct {
 	block *types.Block
 }
@@ -192,7 +192,7 @@ func (b *Block) GetTransaction(hash *Hash) *Transaction {
 	return &Transaction{b.block.Transaction(hash.hash)}
 }
 
-// Transaction represents a single Ethereum transaction.
+// Transaction represents a single Core transaction.
 type Transaction struct {
 	tx *types.Transaction
 }
@@ -257,7 +257,7 @@ func (tx *Transaction) GetCost() *BigInt { return &BigInt{tx.tx.Cost()} }
 // Deprecated: GetSigHash cannot know which signer to use.
 func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.HomesteadSigner{}.Hash(tx.tx)} }
 
-// Deprecated: use EthereumClient.TransactionSender
+// Deprecated: use CoreClient.TransactionSender
 func (tx *Transaction) GetFrom(chainID *BigInt) (address *Address, _ error) {
 	var signer types.Signer = types.HomesteadSigner{}
 	if chainID != nil {

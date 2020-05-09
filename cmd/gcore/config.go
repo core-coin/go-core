@@ -69,7 +69,7 @@ var tomlSettings = toml.Config{
 	},
 }
 
-type ethstatsConfig struct {
+type xcestatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
@@ -77,7 +77,7 @@ type gcoreConfig struct {
 	Eth      eth.Config
 	Shh      whisper.Config
 	Node     node.Config
-	Ethstats ethstatsConfig
+	Xcestats xcestatsConfig
 }
 
 func loadConfig(file string, cfg *gcoreConfig) error {
@@ -127,8 +127,8 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
 	utils.SetEthConfig(ctx, stack, &cfg.Eth)
-	if ctx.GlobalIsSet(utils.EthStatsURLFlag.Name) {
-		cfg.Ethstats.URL = ctx.GlobalString(utils.EthStatsURLFlag.Name)
+	if ctx.GlobalIsSet(utils.XceStatsURLFlag.Name) {
+		cfg.Xcestats.URL = ctx.GlobalString(utils.XceStatsURLFlag.Name)
 	}
 	utils.SetShhConfig(ctx, stack, &cfg.Shh)
 
@@ -174,9 +174,9 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
 		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
 	}
-	// Add the Ethereum Stats daemon if requested.
-	if cfg.Ethstats.URL != "" {
-		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)
+	// Add the Core Stats daemon if requested.
+	if cfg.Xcestats.URL != "" {
+		utils.RegisterXceStatsService(stack, cfg.Xcestats.URL)
 	}
 	return stack
 }

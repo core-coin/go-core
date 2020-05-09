@@ -261,7 +261,7 @@ func (w *wizard) manageGenesis() {
 		}
 		log.Info("Saved native genesis chain spec", "path", gcoreJson)
 
-		// Export the genesis spec used by Aleth (formerly C++ Ethereum)
+		// Export the genesis spec used by Aleth (formerly C++ Core)
 		if spec, err := newAlethGenesisSpec(w.network, w.conf.Genesis); err != nil {
 			log.Error("Failed to create Aleth chain spec", "err", err)
 		} else {
@@ -273,7 +273,7 @@ func (w *wizard) manageGenesis() {
 		} else {
 			saveGenesis(folder, w.network, "parity", spec)
 		}
-		// Export the genesis spec used by Harmony (formerly EthereumJ)
+		// Export the genesis spec used by Harmony (formerly CoreJ)
 		saveGenesis(folder, w.network, "harmony", w.conf.Genesis)
 
 	case "3":

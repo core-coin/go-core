@@ -33,8 +33,8 @@ import (
 	"github.com/core-coin/go-core/params"
 )
 
-// VMTest checks EVM execution without block or transaction context.
-// See https://github.com/ethereum/tests/wiki/VM-Tests for the test format specification.
+// VMTest checks CVM execution without block or transaction context.
+// See https://github.com/core-coin/tests/wiki/VM-Tests for the test format specification.
 type VMTest struct {
 	json vmJSON
 }
@@ -115,12 +115,12 @@ func (t *VMTest) Run(vmconfig vm.Config) error {
 }
 
 func (t *VMTest) exec(statedb *state.StateDB, vmconfig vm.Config) ([]byte, uint64, error) {
-	evm := t.newEVM(statedb, vmconfig)
+	cvm := t.newCVM(statedb, vmconfig)
 	e := t.json.Exec
-	return evm.Call(vm.AccountRef(e.Caller), e.Address, e.Data, e.EnergyLimit, e.Value)
+	return cvm.Call(vm.AccountRef(e.Caller), e.Address, e.Data, e.EnergyLimit, e.Value)
 }
 
-func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
+func (t *VMTest) newCVM(statedb *state.StateDB, vmconfig vm.Config) *vm.CVM {
 	initialCall := true
 	canTransfer := func(db vm.StateDB, address common.Address, amount *big.Int) bool {
 		if initialCall {
@@ -143,7 +143,7 @@ func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
 		EnergyPrice:    t.json.Exec.EnergyPrice,
 	}
 	vmconfig.NoRecursion = true
-	return vm.NewEVM(context, statedb, params.MainnetChainConfig, vmconfig)
+	return vm.NewCVM(context, statedb, params.MainnetChainConfig, vmconfig)
 }
 
 func vmTestBlockHash(n uint64) common.Hash {

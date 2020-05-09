@@ -21,7 +21,7 @@ import (
 	"math/big"
 	"sync"
 
-	"github.com/core-coin/go-core"
+	gcore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
@@ -143,7 +143,7 @@ func (api *ExternalSigner) Derive(path accounts.DerivationPath, pin bool) (accou
 	return accounts.Account{}, fmt.Errorf("operation not supported on external signers")
 }
 
-func (api *ExternalSigner) SelfDerive(bases []accounts.DerivationPath, chain ethereum.ChainStateReader) {
+func (api *ExternalSigner) SelfDerive(bases []accounts.DerivationPath, chain gcore.ChainStateReader) {
 	log.Error("operation SelfDerive not supported on external signers")
 }
 

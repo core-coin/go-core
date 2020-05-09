@@ -571,7 +571,7 @@ func TestBroadcastBlock(t *testing.T) {
 
 func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	var (
-		evmux   = new(event.TypeMux)
+		cvmux   = new(event.TypeMux)
 		pow     = ethash.NewFaker()
 		db      = rawdb.NewMemoryDatabase()
 		config  = &params.ChainConfig{}
@@ -582,7 +582,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
-	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, evmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil)
+	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, cvmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil)
 	if err != nil {
 		t.Fatalf("failed to start test protocol manager: %v", err)
 	}

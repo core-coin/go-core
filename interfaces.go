@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethereum defines interfaces for interacting with Ethereum.
-package ethereum
+// Package core defines interfaces for interacting with Core.
+package core
 
 import (
 	"context"
@@ -96,7 +96,7 @@ type ChainStateReader interface {
 }
 
 // SyncProgress gives progress indications when the node is synchronising with
-// the Ethereum network.
+// the Core network.
 type SyncProgress struct {
 	StartingBlock uint64 // Block number where sync began
 	CurrentBlock  uint64 // Current block number where sync is at
@@ -122,7 +122,7 @@ type CallMsg struct {
 }
 
 // A ContractCaller provides contract calls, essentially transactions that are executed by
-// the EVM but not mined into the blockchain. ContractCall is a low-level method to
+// the CVM but not mined into the blockchain. ContractCall is a low-level method to
 // execute such calls. For applications which are structured around specific contracts,
 // the abigen tool provides a nicer, properly typed way to perform calls.
 type ContractCaller interface {

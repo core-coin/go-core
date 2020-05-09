@@ -46,7 +46,7 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 	}
 }
 
-// Process processes the state changes according to the Ethereum rules by running
+// Process processes the state changes according to the Core rules by running
 // the transaction messages using the statedb and applying any rewards to both
 // the processor (coinbase) and any included uncles.
 //
@@ -90,11 +90,11 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	if err != nil {
 		return nil, err
 	}
-	// Create a new context to be used in the EVM environment
-	context := NewEVMContext(msg, header, bc, author)
+	// Create a new context to be used in the CVM environment
+	context := NewCVMContext(msg, header, bc, author)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
-	vmenv := vm.NewEVM(context, statedb, config, cfg)
+	vmenv := vm.NewCVM(context, statedb, config, cfg)
 	// Apply the transaction to the current state (included in the env)
 	_, energy, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {

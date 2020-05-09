@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/params"
 )
 
-// DefaultConfig contains default settings for use on the Ethereum main net.
+// DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
 	Ethash: ethash.Config{},
@@ -68,7 +68,7 @@ func init() {
 
 type Config struct {
 	// The genesis block, which is inserted if the database is empty.
-	// If nil, the Ethereum main net block is used.
+	// If nil, the Core main net block is used.
 	Genesis *core.Genesis `toml:",omitempty"`
 
 	// Protocol options
@@ -130,8 +130,8 @@ type Config struct {
 	// Type of the EWASM interpreter ("" for default)
 	EWASMInterpreter string
 
-	// Type of the EVM interpreter ("" for default)
-	EVMInterpreter string
+	// Type of the CVM interpreter ("" for default)
+	CVMInterpreter string
 
 	// RPCEnergyCap is the global energy cap for eth-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`

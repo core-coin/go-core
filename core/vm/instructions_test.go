@@ -92,16 +92,16 @@ func init() {
 func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFunc, name string) {
 
 	var (
-		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		pc             = uint64(0)
-		evmInterpreter = env.interpreter.(*EVMInterpreter)
+		cvmInterpreter = env.interpreter.(*CVMInterpreter)
 	)
 	// Stuff a couple of nonzero bigints into pool, to ensure that ops do not rely on pooled integers to be zero
-	evmInterpreter.intPool = poolOfIntPools.get()
-	evmInterpreter.intPool.put(big.NewInt(-1337))
-	evmInterpreter.intPool.put(big.NewInt(-1337))
-	evmInterpreter.intPool.put(big.NewInt(-1337))
+	cvmInterpreter.intPool = poolOfIntPools.get()
+	cvmInterpreter.intPool.put(big.NewInt(-1337))
+	cvmInterpreter.intPool.put(big.NewInt(-1337))
+	cvmInterpreter.intPool.put(big.NewInt(-1337))
 
 	for i, test := range tests {
 		x := new(big.Int).SetBytes(common.Hex2Bytes(test.X))
@@ -109,7 +109,7 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 		expected := new(big.Int).SetBytes(common.Hex2Bytes(test.Expected))
 		stack.push(x)
 		stack.push(y)
-		opFn(&pc, evmInterpreter, nil, nil, stack)
+		opFn(&pc, cvmInterpreter, nil, nil, stack)
 		actual := stack.pop()
 
 		if actual.Cmp(expected) != 0 {
@@ -118,13 +118,13 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 		// Check pool usage
 		// 1.pool is not allowed to contain anything on the stack
 		// 2.pool is not allowed to contain the same pointers twice
-		if evmInterpreter.intPool.pool.len() > 0 {
+		if cvmInterpreter.intPool.pool.len() > 0 {
 
 			poolvals := make(map[*big.Int]struct{})
 			poolvals[actual] = struct{}{}
 
-			for evmInterpreter.intPool.pool.len() > 0 {
-				key := evmInterpreter.intPool.get()
+			for cvmInterpreter.intPool.pool.len() > 0 {
+				key := cvmInterpreter.intPool.get()
 				if _, exist := poolvals[key]; exist {
 					t.Errorf("Testcase %v %d, pool contains double-entry", name, i)
 				}
@@ -132,7 +132,7 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 			}
 		}
 	}
-	poolOfIntPools.put(evmInterpreter.intPool)
+	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func TestByteOp(t *testing.T) {
@@ -150,7 +150,7 @@ func TestByteOp(t *testing.T) {
 }
 
 func TestSHL(t *testing.T) {
-	// Testcases from https://github.com/ethereum/EIPs/blob/master/EIPS/eip-145.md#shl-shift-left
+	// Testcases from https://github.com/core-coin/EIPs/blob/master/EIPS/eip-145.md#shl-shift-left
 	tests := []TwoOperandTestcase{
 		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000002"},
 		{"0000000000000000000000000000000000000000000000000000000000000001", "ff", "8000000000000000000000000000000000000000000000000000000000000000"},
@@ -167,7 +167,7 @@ func TestSHL(t *testing.T) {
 }
 
 func TestSHR(t *testing.T) {
-	// Testcases from https://github.com/ethereum/EIPs/blob/master/EIPS/eip-145.md#shr-logical-shift-right
+	// Testcases from https://github.com/core-coin/EIPs/blob/master/EIPS/eip-145.md#shr-logical-shift-right
 	tests := []TwoOperandTestcase{
 		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
 		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
@@ -185,7 +185,7 @@ func TestSHR(t *testing.T) {
 }
 
 func TestSAR(t *testing.T) {
-	// Testcases from https://github.com/ethereum/EIPs/blob/master/EIPS/eip-145.md#sar-arithmetic-shift-right
+	// Testcases from https://github.com/core-coin/EIPs/blob/master/EIPS/eip-145.md#sar-arithmetic-shift-right
 	tests := []TwoOperandTestcase{
 		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
 		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
@@ -211,10 +211,10 @@ func TestSAR(t *testing.T) {
 // getResult is a convenience function to generate the expected values
 func getResult(args []*twoOperandParams, opFn executionFunc) []TwoOperandTestcase {
 	var (
-		env         = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env         = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack       = newstack()
 		pc          = uint64(0)
-		interpreter = env.interpreter.(*EVMInterpreter)
+		interpreter = env.interpreter.(*CVMInterpreter)
 	)
 	interpreter.intPool = poolOfIntPools.get()
 	result := make([]TwoOperandTestcase, len(args))
@@ -260,15 +260,15 @@ func TestJsonTestcases(t *testing.T) {
 	}
 }
 
-func opBenchmark(bench *testing.B, op func(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error), args ...string) {
+func opBenchmark(bench *testing.B, op func(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error), args ...string) {
 	var (
-		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
-		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
+		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
 
-	env.interpreter = evmInterpreter
-	evmInterpreter.intPool = poolOfIntPools.get()
+	env.interpreter = cvmInterpreter
+	cvmInterpreter.intPool = poolOfIntPools.get()
 	// convert args
 	byteArgs := make([][]byte, len(args))
 	for i, arg := range args {
@@ -281,10 +281,10 @@ func opBenchmark(bench *testing.B, op func(pc *uint64, interpreter *EVMInterpret
 			a := new(big.Int).SetBytes(arg)
 			stack.push(a)
 		}
-		op(&pc, evmInterpreter, nil, nil, stack)
+		op(&pc, cvmInterpreter, nil, nil, stack)
 		stack.pop()
 	}
-	poolOfIntPools.put(evmInterpreter.intPool)
+	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpAdd64(b *testing.B) {
@@ -497,40 +497,40 @@ func BenchmarkOpIsZero(b *testing.B) {
 
 func TestOpMstore(t *testing.T) {
 	var (
-		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		mem            = NewMemory()
-		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
+		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
 
-	env.interpreter = evmInterpreter
-	evmInterpreter.intPool = poolOfIntPools.get()
+	env.interpreter = cvmInterpreter
+	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(64)
 	pc := uint64(0)
 	v := "abcdef00000000000000abba000000000deaf000000c0de00100000000133700"
 	stack.pushN(new(big.Int).SetBytes(common.Hex2Bytes(v)), big.NewInt(0))
-	opMstore(&pc, evmInterpreter, nil, mem, stack)
+	opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	if got := common.Bytes2Hex(mem.GetCopy(0, 32)); got != v {
 		t.Fatalf("Mstore fail, got %v, expected %v", got, v)
 	}
 	stack.pushN(big.NewInt(0x1), big.NewInt(0))
-	opMstore(&pc, evmInterpreter, nil, mem, stack)
+	opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	if common.Bytes2Hex(mem.GetCopy(0, 32)) != "0000000000000000000000000000000000000000000000000000000000000001" {
 		t.Fatalf("Mstore failed to overwrite previous value")
 	}
-	poolOfIntPools.put(evmInterpreter.intPool)
+	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpMstore(bench *testing.B) {
 	var (
-		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		mem            = NewMemory()
-		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
+		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
 
-	env.interpreter = evmInterpreter
-	evmInterpreter.intPool = poolOfIntPools.get()
+	env.interpreter = cvmInterpreter
+	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(64)
 	pc := uint64(0)
 	memStart := big.NewInt(0)
@@ -539,20 +539,20 @@ func BenchmarkOpMstore(bench *testing.B) {
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
 		stack.pushN(value, memStart)
-		opMstore(&pc, evmInterpreter, nil, mem, stack)
+		opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	}
-	poolOfIntPools.put(evmInterpreter.intPool)
+	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpSHA3(bench *testing.B) {
 	var (
-		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		mem            = NewMemory()
-		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
+		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
-	env.interpreter = evmInterpreter
-	evmInterpreter.intPool = poolOfIntPools.get()
+	env.interpreter = cvmInterpreter
+	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(32)
 	pc := uint64(0)
 	start := big.NewInt(0)
@@ -560,9 +560,9 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
 		stack.pushN(big.NewInt(32), start)
-		opSha3(&pc, evmInterpreter, nil, mem, stack)
+		opSha3(&pc, cvmInterpreter, nil, mem, stack)
 	}
-	poolOfIntPools.put(evmInterpreter.intPool)
+	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func TestCreate2Addreses(t *testing.T) {
