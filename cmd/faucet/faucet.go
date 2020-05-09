@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
-// faucet is a Ether faucet backed by a light client.
+// faucet is a Core faucet backed by a light client.
 package main
 
 //go:generate go-bindata -nometadata -o website.go faucet.html
@@ -49,7 +49,6 @@ import (
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/ethclient"
-	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -58,6 +57,7 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcestats"
 	"github.com/gorilla/websocket"
 )
 
@@ -85,7 +85,7 @@ var (
 )
 
 var (
-	ether = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	coree = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 )
 
 var (
@@ -306,7 +306,7 @@ func (f *faucet) webHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(f.index)
 }
 
-// apiHandler handles requests for Ether grants and transaction statuses.
+// apiHandler handles requests for Core grants and transaction statuses.
 func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{}
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -364,7 +364,7 @@ func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 	reqs := f.reqs
 	f.lock.RUnlock()
 	if err = send(conn, map[string]interface{}{
-		"funds":    new(big.Int).Div(balance, ether),
+		"funds":    new(big.Int).Div(balance, coree),
 		"funded":   nonce,
 		"peers":    f.stack.Server().PeerCount(),
 		"requests": reqs,
@@ -482,7 +482,7 @@ func (f *faucet) apiHandler(w http.ResponseWriter, r *http.Request) {
 		)
 		if timeout = f.timeouts[username]; time.Now().After(timeout) {
 			// User wasn't funded recently, create the funding transaction
-			amount := new(big.Int).Mul(big.NewInt(int64(*payoutFlag)), ether)
+			amount := new(big.Int).Mul(big.NewInt(int64(*payoutFlag)), coree)
 			amount = new(big.Int).Mul(amount, new(big.Int).Exp(big.NewInt(5), big.NewInt(int64(msg.Tier)), nil))
 			amount = new(big.Int).Div(amount, new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(msg.Tier)), nil))
 
@@ -609,7 +609,7 @@ func (f *faucet) loop() {
 			f.lock.RLock()
 			log.Info("Updated faucet state", "number", head.Number, "hash", head.Hash(), "age", common.PrettyAge(timestamp), "balance", f.balance, "nonce", f.nonce, "price", f.price)
 
-			balance := new(big.Int).Div(f.balance, ether)
+			balance := new(big.Int).Div(f.balance, coree)
 			peers := f.stack.Server().PeerCount()
 
 			for _, conn := range f.conns {

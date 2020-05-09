@@ -39,7 +39,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
@@ -103,7 +103,7 @@ type RetestWeb3API interface {
 }
 
 type RetestxceAPI struct {
-	ethDb         ethdb.Database
+	xceDb         xcedb.Database
 	db            state.Database
 	chainConfig   *params.ChainConfig
 	author        common.Address
@@ -280,10 +280,10 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	if api.engine != nil {
 		api.engine.Close()
 	}
-	if api.ethDb != nil {
-		api.ethDb.Close()
+	if api.xceDb != nil {
+		api.xceDb.Close()
 	}
-	ethDb := rawdb.NewMemoryDatabase()
+	xceDb := rawdb.NewMemoryDatabase()
 	accounts := make(core.GenesisAlloc)
 	for address, account := range chainParams.Accounts {
 		balance := big.NewInt(0)
@@ -375,7 +375,7 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 		ParentHash: chainParams.Genesis.ParentHash,
 		Alloc:      accounts,
 	}
-	chainConfig, genesisHash, err := core.SetupGenesisBlock(ethDb, genesis)
+	chainConfig, genesisHash, err := core.SetupGenesisBlock(xceDb, genesis)
 	if err != nil {
 		return false, err
 	}
@@ -392,7 +392,7 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	}
 	engine := &NoRewardEngine{inner: inner, rewardsOn: chainParams.SealEngine != "NoReward"}
 
-	blockchain, err := core.NewBlockChain(ethDb, nil, chainConfig, engine, vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(xceDb, nil, chainConfig, engine, vm.Config{}, nil)
 	if err != nil {
 		return false, err
 	}
@@ -401,10 +401,10 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	api.genesisHash = genesisHash
 	api.author = chainParams.Genesis.Author
 	api.extraData = chainParams.Genesis.ExtraData
-	api.ethDb = ethDb
+	api.xceDb = xceDb
 	api.engine = engine
 	api.blockchain = blockchain
-	api.db = state.NewDatabase(api.ethDb)
+	api.db = state.NewDatabase(api.xceDb)
 	api.txMap = make(map[common.Address]map[uint64]*types.Transaction)
 	api.txSenders = make(map[common.Address]struct{})
 	api.blockInterval = 0
@@ -452,8 +452,8 @@ func (api *RetestxceAPI) currentNumber() uint64 {
 
 func (api *RetestxceAPI) mineBlock() error {
 	number := api.currentNumber()
-	parentHash := rawdb.ReadCanonicalHash(api.ethDb, number)
-	parent := rawdb.ReadBlock(api.ethDb, parentHash, number)
+	parentHash := rawdb.ReadCanonicalHash(api.xceDb, number)
+	parent := rawdb.ReadBlock(api.xceDb, parentHash, number)
 	var timestamp uint64
 	if api.blockInterval == 0 {
 		timestamp = uint64(time.Now().Unix())
@@ -583,7 +583,7 @@ func (api *RetestxceAPI) RewindToBlock(ctx context.Context, newHead uint64) (boo
 var emptyListHash common.Hash = common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347")
 
 func (api *RetestxceAPI) GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error) {
-	receipt, _, _, _ := rawdb.ReadReceipt(api.ethDb, txHash, api.chainConfig)
+	receipt, _, _, _ := rawdb.ReadReceipt(api.xceDb, txHash, api.chainConfig)
 	if receipt == nil {
 		return emptyListHash, nil
 	} else {

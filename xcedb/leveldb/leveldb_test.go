@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2019 The go-core Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -14,19 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package memorydb
+package leveldb
 
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/ethdb"
-	"github.com/core-coin/go-core/ethdb/dbtest"
+	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcedb/dbtest"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
-func TestMemoryDB(t *testing.T) {
+func TestLevelDB(t *testing.T) {
 	t.Run("DatabaseSuite", func(t *testing.T) {
-		dbtest.TestDatabaseSuite(t, func() ethdb.KeyValueStore {
-			return New()
+		dbtest.TestDatabaseSuite(t, func() xcedb.KeyValueStore {
+			db, err := leveldb.Open(storage.NewMemStorage(), nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return &Database{
+				db: db,
+			}
 		})
 	})
 }

@@ -74,9 +74,9 @@ func run(cvm *CVM, contract *Contract, input []byte, readOnly bool) ([]byte, err
 // it shouldn't be modified.
 type Context struct {
 	// CanTransfer returns whether the account contains
-	// sufficient ether to transfer the value
+	// sufficient core to transfer the value
 	CanTransfer CanTransferFunc
-	// Transfer transfers ether from one account to the other
+	// Transfer transfers core from one account to the other
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc

@@ -25,13 +25,13 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
 )
 
 type Backend interface {
-	ChainDb() ethdb.Database
+	ChainDb() xcedb.Database
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
 	HeaderByHash(ctx context.Context, blockHash common.Hash) (*types.Header, error)
 	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
@@ -51,7 +51,7 @@ type Backend interface {
 type Filter struct {
 	backend Backend
 
-	db        ethdb.Database
+	db        xcedb.Database
 	addresses []common.Address
 	topics    [][]common.Hash
 

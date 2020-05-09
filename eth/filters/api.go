@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
 )
@@ -55,7 +55,7 @@ type PublicFilterAPI struct {
 	backend   Backend
 	mux       *event.TypeMux
 	quit      chan struct{}
-	chainDb   ethdb.Database
+	chainDb   xcedb.Database
 	events    *EventSystem
 	filtersMu sync.Mutex
 	filters   map[rpc.ID]*filter

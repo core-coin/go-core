@@ -19,7 +19,7 @@ package core
 import (
 	"context"
 
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
 )
@@ -97,7 +97,7 @@ func (ui *StdIOUI) ShowInfo(message string) {
 		log.Info("Error calling 'ui_showInfo'", "exc", err.Error(), "msg", message)
 	}
 }
-func (ui *StdIOUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (ui *StdIOUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
 	err := ui.notify("ui_onApprovedTx", tx)
 	if err != nil {
 		log.Info("Error calling 'ui_onApprovedTx'", "exc", err.Error(), "tx", tx)

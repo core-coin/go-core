@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/fourbyte"
@@ -52,7 +52,7 @@ func (ui *headlessUi) OnInputRequired(info core.UserInputRequest) (core.UserInpu
 
 func (ui *headlessUi) OnSignerStartup(info core.StartupInfo)        {}
 func (ui *headlessUi) RegisterUIServer(api *core.UIServerAPI)       {}
-func (ui *headlessUi) OnApprovedTx(tx ethapi.SignTransactionResult) {}
+func (ui *headlessUi) OnApprovedTx(tx xceapi.SignTransactionResult) {}
 
 func (ui *headlessUi) ApproveTx(request *core.SignTxRequest) (core.SignTxResponse, error) {
 
@@ -244,7 +244,7 @@ func mkTestTx(from common.MixedcaseAddress) core.SendTxArgs {
 func TestSignTx(t *testing.T) {
 	var (
 		list      []common.Address
-		res, res2 *ethapi.SignTransactionResult
+		res, res2 *xceapi.SignTransactionResult
 		err       error
 	)
 

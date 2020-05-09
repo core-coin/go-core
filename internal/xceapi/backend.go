@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethapi implements the general Core API functions.
-package ethapi
+// Package xceapi implements the general Core API functions.
+package xceapi
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
@@ -42,7 +42,7 @@ type Backend interface {
 	Downloader() *downloader.Downloader
 	ProtocolVersion() int
 	SuggestPrice(ctx context.Context) (*big.Int, error)
-	ChainDb() ethdb.Database
+	ChainDb() xcedb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
 	RPCEnergyCap() *big.Int // global energy cap for eth_call over rpc: DoS protection

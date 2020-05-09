@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/filters"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
 )
@@ -41,7 +41,7 @@ var (
 
 // Account represents an Core account at a particular block.
 type Account struct {
-	backend       ethapi.Backend
+	backend       xceapi.Backend
 	address       common.Address
 	blockNrOrHash rpc.BlockNumberOrHash
 }
@@ -90,7 +90,7 @@ func (a *Account) Storage(ctx context.Context, args struct{ Slot common.Hash }) 
 
 // Log represents an individual log message. All arguments are mandatory.
 type Log struct {
-	backend     ethapi.Backend
+	backend     xceapi.Backend
 	transaction *Transaction
 	log         *types.Log
 }
@@ -122,7 +122,7 @@ func (l *Log) Data(ctx context.Context) hexutil.Bytes {
 // Transaction represents an Core transaction.
 // backend and hash are mandatory; all others will be fetched when required.
 type Transaction struct {
-	backend ethapi.Backend
+	backend xceapi.Backend
 	hash    common.Hash
 	tx      *types.Transaction
 	block   *Block
@@ -347,7 +347,7 @@ type BlockType int
 // backend, and numberOrHash are mandatory. All other fields are lazily fetched
 // when required.
 type Block struct {
-	backend      ethapi.Backend
+	backend      xceapi.Backend
 	numberOrHash *rpc.BlockNumberOrHash
 	hash         common.Hash
 	header       *types.Header
@@ -708,7 +708,7 @@ type BlockFilterCriteria struct {
 
 // runFilter accepts a filter and executes it, returning all its results as
 // `Log` objects.
-func runFilter(ctx context.Context, be ethapi.Backend, filter *filters.Filter) ([]*Log, error) {
+func runFilter(ctx context.Context, be xceapi.Backend, filter *filters.Filter) ([]*Log, error) {
 	logs, err := filter.Logs(ctx)
 	if err != nil || logs == nil {
 		return nil, err
@@ -770,7 +770,7 @@ type CallData struct {
 	From     *common.Address // The Core address the call is from.
 	To       *common.Address // The Core address the call is to.
 	Energy      *hexutil.Uint64 // The amount of energy provided for the call.
-	EnergyPrice *hexutil.Big    // The price of each unit of energy, in wei.
+	EnergyPrice *hexutil.Big    // The price of each unit of energy, in ore.
 	Value    *hexutil.Big    // The value sent along with the call.
 	Data     *hexutil.Bytes  // Any data sent with the call.
 }
@@ -795,7 +795,7 @@ func (c *CallResult) Status() hexutil.Uint64 {
 }
 
 func (b *Block) Call(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data xceapi.CallArgs
 }) (*CallResult, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolve(ctx)
@@ -803,7 +803,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, energy, failed, err := ethapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
+	result, energy, failed, err := xceapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
@@ -816,7 +816,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 }
 
 func (b *Block) EstimateEnergy(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data xceapi.CallArgs
 }) (hexutil.Uint64, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolveHeader(ctx)
@@ -824,12 +824,12 @@ func (b *Block) EstimateEnergy(ctx context.Context, args struct {
 			return hexutil.Uint64(0), err
 		}
 	}
-	energy, err := ethapi.DoEstimateEnergy(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCEnergyCap())
+	energy, err := xceapi.DoEstimateEnergy(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCEnergyCap())
 	return energy, err
 }
 
 type Pending struct {
-	backend ethapi.Backend
+	backend xceapi.Backend
 }
 
 func (p *Pending) TransactionCount(ctx context.Context) (int32, error) {
@@ -866,10 +866,10 @@ func (p *Pending) Account(ctx context.Context, args struct {
 }
 
 func (p *Pending) Call(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data xceapi.CallArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, energy, failed, err := ethapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
+	result, energy, failed, err := xceapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
@@ -882,15 +882,15 @@ func (p *Pending) Call(ctx context.Context, args struct {
 }
 
 func (p *Pending) EstimateEnergy(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data xceapi.CallArgs
 }) (hexutil.Uint64, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return ethapi.DoEstimateEnergy(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCEnergyCap())
+	return xceapi.DoEstimateEnergy(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCEnergyCap())
 }
 
 // Resolver is the top-level object in the GraphQL hierarchy.
 type Resolver struct {
-	backend ethapi.Backend
+	backend xceapi.Backend
 }
 
 func (r *Resolver) Block(ctx context.Context, args struct {
@@ -980,7 +980,7 @@ func (r *Resolver) SendRawTransaction(ctx context.Context, args struct{ Data hex
 	if err := rlp.DecodeBytes(args.Data, tx); err != nil {
 		return common.Hash{}, err
 	}
-	hash, err := ethapi.SubmitTransaction(ctx, r.backend, tx)
+	hash, err := xceapi.SubmitTransaction(ctx, r.backend, tx)
 	return hash, err
 }
 

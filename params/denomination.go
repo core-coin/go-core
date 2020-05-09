@@ -24,5 +24,5 @@ package params
 const (
 	Ore   = 1
 	Nucle  = 1e9
-	Ether = 1e18
+	Core = 1e18
 )

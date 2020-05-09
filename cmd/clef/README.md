@@ -437,7 +437,7 @@ Response
       },
       "primaryType": "Mail",
       "domain": {
-        "name": "Ether Mail",
+        "name": "Core Mail",
         "version": "1",
         "chainId": 1,
         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"

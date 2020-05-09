@@ -215,7 +215,7 @@ contract OpCodes {
          let success := call(
                          5000, //5k energy
                          contractAddr, //To addr
-                         0,    //No wei passed
+                         0,    //No ore passed
                          x,    // Inputs are at location x
                          0x44, //Inputs size two padded, so 68 bytes
                          x,    //Store output over input
@@ -234,7 +234,7 @@ contract OpCodes {
          let success := callcode(
                          5000, //5k energy
                          contractAddr, //To addr
-                         0,    //No wei passed
+                         0,    //No ore passed
                          x,    // Inputs are at location x
                          0x44, //Inputs size two padded, so 68 bytes
                          x,    //Store output over input

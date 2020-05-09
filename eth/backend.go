@@ -40,9 +40,9 @@ import (
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/filters"
 	"github.com/core-coin/go-core/eth/energyprice"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
@@ -78,7 +78,7 @@ type Core struct {
 	dialCandiates   enode.Iterator
 
 	// DB interfaces
-	chainDb ethdb.Database // Block chain database
+	chainDb xcedb.Database // Block chain database
 
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
@@ -91,12 +91,12 @@ type Core struct {
 
 	miner     *miner.Miner
 	energyPrice  *big.Int
-	etherbase common.Address
+	corebase common.Address
 
 	networkID     uint64
-	netRPCService *ethapi.PublicNetAPI
+	netRPCService *xceapi.PublicNetAPI
 
-	lock sync.RWMutex // Protects the variadic fields (e.g. energy price and etherbase)
+	lock sync.RWMutex // Protects the variadic fields (e.g. energy price and corebase)
 }
 
 func (s *Core) AddLesServer(ls LesServer) {
@@ -152,7 +152,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		energyPrice:       config.Miner.EnergyPrice,
-		etherbase:      config.Miner.Etherbase,
+		corebase:      config.Miner.Corebase,
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
 	}
@@ -248,7 +248,7 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Core service
-func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
+func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db xcedb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
@@ -274,7 +274,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainCo
 // APIs return the collection of RPC services the core package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Core) APIs() []rpc.API {
-	apis := ethapi.GetAPIs(s.APIBackend)
+	apis := xceapi.GetAPIs(s.APIBackend)
 
 	// Append any APIs exposed explicitly by the les server
 	if s.lesServer != nil {
@@ -341,33 +341,33 @@ func (s *Core) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Core) Etherbase() (eb common.Address, err error) {
+func (s *Core) Corebase() (eb common.Address, err error) {
 	s.lock.RLock()
-	etherbase := s.etherbase
+	corebase := s.corebase
 	s.lock.RUnlock()
 
-	if etherbase != (common.Address{}) {
-		return etherbase, nil
+	if corebase != (common.Address{}) {
+		return corebase, nil
 	}
 	if wallets := s.AccountManager().Wallets(); len(wallets) > 0 {
 		if accounts := wallets[0].Accounts(); len(accounts) > 0 {
-			etherbase := accounts[0].Address
+			corebase := accounts[0].Address
 
 			s.lock.Lock()
-			s.etherbase = etherbase
+			s.corebase = corebase
 			s.lock.Unlock()
 
-			log.Info("Etherbase automatically configured", "address", etherbase)
-			return etherbase, nil
+			log.Info("Corebase automatically configured", "address", corebase)
+			return corebase, nil
 		}
 	}
-	return common.Address{}, fmt.Errorf("etherbase must be explicitly specified")
+	return common.Address{}, fmt.Errorf("corebase must be explicitly specified")
 }
 
 // isLocalBlock checks whether the specified block is mined
 // by local miner accounts.
 //
-// We regard two types of accounts as local miner account: etherbase
+// We regard two types of accounts as local miner account: corebase
 // and accounts specified via `txpool.locals` flag.
 func (s *Core) isLocalBlock(block *types.Block) bool {
 	author, err := s.engine.Author(block.Header())
@@ -375,11 +375,11 @@ func (s *Core) isLocalBlock(block *types.Block) bool {
 		log.Warn("Failed to retrieve block author", "number", block.NumberU64(), "hash", block.Hash(), "err", err)
 		return false
 	}
-	// Check whether the given address is etherbase.
+	// Check whether the given address is corebase.
 	s.lock.RLock()
-	etherbase := s.etherbase
+	corebase := s.corebase
 	s.lock.RUnlock()
-	if author == etherbase {
+	if author == corebase {
 		return true
 	}
 	// Check whether the given address is specified by `txpool.local`
@@ -418,13 +418,13 @@ func (s *Core) shouldPreserve(block *types.Block) bool {
 	return s.isLocalBlock(block)
 }
 
-// SetEtherbase sets the mining reward address.
-func (s *Core) SetEtherbase(etherbase common.Address) {
+// SetCorebase sets the mining reward address.
+func (s *Core) SetCorebase(corebase common.Address) {
 	s.lock.Lock()
-	s.etherbase = etherbase
+	s.corebase = corebase
 	s.lock.Unlock()
 
-	s.miner.SetEtherbase(etherbase)
+	s.miner.SetCorebase(corebase)
 }
 
 // StartMining starts the miner with the given number of CPU threads. If mining
@@ -451,15 +451,15 @@ func (s *Core) StartMining(threads int) error {
 		s.txPool.SetEnergyPrice(price)
 
 		// Configure the local mining address
-		eb, err := s.Etherbase()
+		eb, err := s.Corebase()
 		if err != nil {
-			log.Error("Cannot start mining without etherbase", "err", err)
-			return fmt.Errorf("etherbase missing: %v", err)
+			log.Error("Cannot start mining without corebase", "err", err)
+			return fmt.Errorf("corebase missing: %v", err)
 		}
 		if clique, ok := s.engine.(*clique.Clique); ok {
 			wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
 			if wallet == nil || err != nil {
-				log.Error("Etherbase account unavailable locally", "err", err)
+				log.Error("Corebase account unavailable locally", "err", err)
 				return fmt.Errorf("signer missing: %v", err)
 			}
 			clique.Authorize(eb, wallet.SignData)
@@ -495,7 +495,7 @@ func (s *Core) BlockChain() *core.BlockChain       { return s.blockchain }
 func (s *Core) TxPool() *core.TxPool               { return s.txPool }
 func (s *Core) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Core) Engine() consensus.Engine           { return s.engine }
-func (s *Core) ChainDb() ethdb.Database            { return s.chainDb }
+func (s *Core) ChainDb() xcedb.Database            { return s.chainDb }
 func (s *Core) IsListening() bool                  { return true } // Always listening
 func (s *Core) EthVersion() int                    { return int(ProtocolVersions[0]) }
 func (s *Core) NetVersion() uint64                 { return s.networkID }
@@ -527,7 +527,7 @@ func (s *Core) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers(params.BloomBitsBlocks)
 
 	// Start the RPC service
-	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.NetVersion())
+	s.netRPCService = xceapi.NewPublicNetAPI(srvr, s.NetVersion())
 
 	// Figure out a max peers count based on the server limits
 	maxPeers := srvr.MaxPeers

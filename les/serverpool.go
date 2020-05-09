@@ -29,7 +29,7 @@ import (
 
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/discv5"
@@ -112,7 +112,7 @@ type registerReq struct {
 // known light server nodes. It received discovered nodes, stores statistics about
 // known nodes and takes care of always having enough good quality servers connected.
 type serverPool struct {
-	db     ethdb.Database
+	db     xcedb.Database
 	dbKey  []byte
 	server *p2p.Server
 	connWg sync.WaitGroup
@@ -141,7 +141,7 @@ type serverPool struct {
 }
 
 // newServerPool creates a new serverPool instance
-func newServerPool(db ethdb.Database, ulcServers []string) *serverPool {
+func newServerPool(db xcedb.Database, ulcServers []string) *serverPool {
 	pool := &serverPool{
 		db:           db,
 		entries:      make(map[enode.ID]*poolEntry),

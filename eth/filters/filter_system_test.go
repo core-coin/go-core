@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
@@ -40,7 +40,7 @@ import (
 
 type testBackend struct {
 	mux             *event.TypeMux
-	db              ethdb.Database
+	db              xcedb.Database
 	sections        uint64
 	txFeed          event.Feed
 	logsFeed        event.Feed
@@ -49,7 +49,7 @@ type testBackend struct {
 	chainFeed       event.Feed
 }
 
-func (b *testBackend) ChainDb() ethdb.Database {
+func (b *testBackend) ChainDb() xcedb.Database {
 	return b.db
 }
 

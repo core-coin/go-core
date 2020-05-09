@@ -43,7 +43,7 @@ func TestConsoleWelcome(t *testing.T) {
 	// Start a gcore console, make sure it's cleaned up and terminate the console
 	gcore := runGcore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--etherbase", coinbase, "--shh",
+		"--corebase", coinbase, "--shh",
 		"console")
 
 	// Gather all the infos the welcome message needs to contain
@@ -61,7 +61,7 @@ func TestConsoleWelcome(t *testing.T) {
 Welcome to the Gcore JavaScript console!
 
 instance: Gcore/v{{gcorever}}/{{goos}}-{{goarch}}/{{gover}}
-coinbase: {{.Etherbase}}
+coinbase: {{.Corebase}}
 at block: 0 ({{niltime}})
  datadir: {{.Datadir}}
  modules: {{apis}}
@@ -87,7 +87,7 @@ func TestIPCAttachWelcome(t *testing.T) {
 	// list of ipc modules and shh is included there.
 	gcore := runGcore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--etherbase", coinbase, "--shh", "--ipcpath", ipc)
+		"--corebase", coinbase, "--shh", "--ipcpath", ipc)
 
 	defer func() {
 		gcore.Interrupt()
@@ -104,7 +104,7 @@ func TestHTTPAttachWelcome(t *testing.T) {
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 	gcore := runGcore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--etherbase", coinbase, "--rpc", "--rpcport", port)
+		"--corebase", coinbase, "--rpc", "--rpcport", port)
 	defer func() {
 		gcore.Interrupt()
 		gcore.ExpectExit()
@@ -121,7 +121,7 @@ func TestWSAttachWelcome(t *testing.T) {
 
 	gcore := runGcore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--etherbase", coinbase, "--ws", "--wsport", port)
+		"--corebase", coinbase, "--ws", "--wsport", port)
 	defer func() {
 		gcore.Interrupt()
 		gcore.ExpectExit()
@@ -143,7 +143,7 @@ func testAttachWelcome(t *testing.T, gcore *testgcore, endpoint, apis string) {
 	attach.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	attach.SetTemplateFunc("gover", runtime.Version)
 	attach.SetTemplateFunc("gcorever", func() string { return params.VersionWithCommit("", "") })
-	attach.SetTemplateFunc("etherbase", func() string { return gcore.Etherbase })
+	attach.SetTemplateFunc("corebase", func() string { return gcore.Corebase })
 	attach.SetTemplateFunc("niltime", func() string {
 		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
@@ -156,7 +156,7 @@ func testAttachWelcome(t *testing.T, gcore *testgcore, endpoint, apis string) {
 Welcome to the Gcore JavaScript console!
 
 instance: Gcore/v{{gcorever}}/{{goos}}-{{goarch}}/{{gover}}
-coinbase: {{etherbase}}
+coinbase: {{corebase}}
 at block: 0 ({{niltime}}){{if ipc}}
  datadir: {{datadir}}{{end}}
  modules: {{apis}}

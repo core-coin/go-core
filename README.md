@@ -78,7 +78,7 @@ Transitioning towards developers, if you'd like to play around with creating Cor
 contracts, you almost certainly would like to do that without any real money involved until
 you get the hang of the entire system. In other words, instead of attaching to the main
 network, you want to join the **test** network with your node, which is fully equivalent to
-the main network, but with play-Ether only.
+the main network, but with play-Core only.
 
 ```shell
 $ gcore --testnet console
@@ -295,7 +295,7 @@ also need to configure a miner to process transactions and create new blocks for
 
 Mining on the public Core network is a complex task as it's only feasible using GPUs,
 requiring an OpenCL or CUDA enabled `ethminer` instance. For information on such a
-setup, please consult the [EtherMining subreddit](https://www.reddit.com/r/EtherMining/)
+setup, please consult the [CoreMining subreddit](https://www.reddit.com/r/CoreMining/)
 and the [ethminer](https://github.com/core-coin-mining/ethminer) repository.
 
 In a private network setting, however a single CPU miner instance is more than enough for
@@ -305,11 +305,11 @@ ones either). To start a `gcore` instance for mining, run it with all your usual
 by:
 
 ```shell
-$ gcore <usual-flags> --mine --miner.threads=1 --etherbase=0x0000000000000000000000000000000000000000
+$ gcore <usual-flags> --mine --miner.threads=1 --corebase=0x0000000000000000000000000000000000000000
 ```
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all
-proceedings to the account specified by `--etherbase`. You can further tune the mining
+proceedings to the account specified by `--corebase`. You can further tune the mining
 by changing the default energy limit blocks converge to (`--targetenergylimit`) and the price
 transactions are accepted at (`--energyprice`).
 

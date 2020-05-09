@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/signer/core"
@@ -181,7 +181,7 @@ func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]by
 }
 
 func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	res := ethapi.SignTransactionResult{}
+	res := xceapi.SignTransactionResult{}
 	data := hexutil.Bytes(tx.Data())
 	var to *common.MixedcaseAddress
 	if tx.To() != nil {

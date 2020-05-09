@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
@@ -63,7 +63,7 @@ var (
 // all incoming light requests.
 type serverHandler struct {
 	blockchain *core.BlockChain
-	chainDb    ethdb.Database
+	chainDb    xcedb.Database
 	txpool     *core.TxPool
 	server     *LesServer
 
@@ -75,7 +75,7 @@ type serverHandler struct {
 	addTxsSync bool
 }
 
-func newServerHandler(server *LesServer, blockchain *core.BlockChain, chainDb ethdb.Database, txpool *core.TxPool, synced func() bool) *serverHandler {
+func newServerHandler(server *LesServer, blockchain *core.BlockChain, chainDb xcedb.Database, txpool *core.TxPool, synced func() bool) *serverHandler {
 	handler := &serverHandler{
 		server:     server,
 		blockchain: blockchain,

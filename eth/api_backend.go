@@ -32,13 +32,13 @@ import (
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/energyprice"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 )
 
-// EthAPIBackend implements ethapi.Backend for full nodes
+// EthAPIBackend implements xceapi.Backend for full nodes
 type EthAPIBackend struct {
 	extRPCEnabled bool
 	eth           *Core
@@ -275,7 +275,7 @@ func (b *EthAPIBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
 }
 
-func (b *EthAPIBackend) ChainDb() ethdb.Database {
+func (b *EthAPIBackend) ChainDb() xcedb.Database {
 	return b.eth.ChainDb()
 }
 

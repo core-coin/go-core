@@ -228,8 +228,8 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 	return worker
 }
 
-// setEtherbase sets the etherbase used to initialize the block coinbase field.
-func (w *worker) setEtherbase(addr common.Address) {
+// setCorebase sets the corebase used to initialize the block coinbase field.
+func (w *worker) setCorebase(addr common.Address) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.coinbase = addr
@@ -851,7 +851,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	// Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
 	if w.isRunning() {
 		if w.coinbase == (common.Address{}) {
-			log.Error("Refusing to mine without etherbase")
+			log.Error("Refusing to mine without corebase")
 			return
 		}
 		header.Coinbase = w.coinbase
@@ -975,7 +975,7 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 			for i, tx := range block.Transactions() {
 				feesOre.Add(feesOre, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].EnergyUsed), tx.EnergyPrice()))
 			}
-			feesEth := new(big.Float).Quo(new(big.Float).SetInt(feesOre), new(big.Float).SetInt(big.NewInt(params.Ether)))
+			feesEth := new(big.Float).Quo(new(big.Float).SetInt(feesOre), new(big.Float).SetInt(big.NewInt(params.Core)))
 
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
 				"uncles", len(uncles), "txs", w.current.tcount, "energy", block.EnergyUsed(), "fees", feesEth, "elapsed", common.PrettyDuration(time.Since(start)))

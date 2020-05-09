@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/eth/filters"
 	"github.com/core-coin/go-core/eth/energyprice"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
@@ -66,7 +66,7 @@ type LightCore struct {
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
 	accountManager *accounts.Manager
-	netRPCService  *ethapi.PublicNetAPI
+	netRPCService  *xceapi.PublicNetAPI
 }
 
 func New(ctx *node.ServiceContext, config *eth.Config) (*LightCore, error) {
@@ -156,12 +156,12 @@ func New(ctx *node.ServiceContext, config *eth.Config) (*LightCore, error) {
 
 type LightDummyAPI struct{}
 
-// Etherbase is the address that mining rewards will be send to
-func (s *LightDummyAPI) Etherbase() (common.Address, error) {
+// Corebase is the address that mining rewards will be send to
+func (s *LightDummyAPI) Corebase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("mining is not supported in light mode")
 }
 
-// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
+// Coinbase is the address that mining rewards will be send to (alias for Corebase)
 func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("mining is not supported in light mode")
 }
@@ -179,7 +179,7 @@ func (s *LightDummyAPI) Mining() bool {
 // APIs returns the collection of RPC services the core package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightCore) APIs() []rpc.API {
-	apis := ethapi.GetAPIs(s.ApiBackend)
+	apis := xceapi.GetAPIs(s.ApiBackend)
 	apis = append(apis, s.engine.APIs(s.BlockChain().HeaderChain())...)
 	return append(apis, []rpc.API{
 		{
@@ -242,7 +242,7 @@ func (s *LightCore) Start(srvr *p2p.Server) error {
 	s.wg.Add(bloomServiceThreads)
 	s.startBloomHandlers(params.BloomBitsBlocksClient)
 
-	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.config.NetworkId)
+	s.netRPCService = xceapi.NewPublicNetAPI(srvr, s.config.NetworkId)
 
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]

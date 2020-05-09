@@ -24,7 +24,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 )
@@ -40,7 +40,7 @@ type Config struct {
 // Oracle recommends energy prices based on the content of recent
 // blocks. Suitable for both light and full clients.
 type Oracle struct {
-	backend   ethapi.Backend
+	backend   xceapi.Backend
 	lastHead  common.Hash
 	lastPrice *big.Int
 	cacheLock sync.RWMutex
@@ -51,7 +51,7 @@ type Oracle struct {
 }
 
 // NewOracle returns a new oracle.
-func NewOracle(backend ethapi.Backend, params Config) *Oracle {
+func NewOracle(backend xceapi.Backend, params Config) *Oracle {
 	blocks := params.Blocks
 	if blocks < 1 {
 		blocks = 1

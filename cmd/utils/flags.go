@@ -45,7 +45,7 @@ import (
 	"github.com/core-coin/go-core/eth"
 	"github.com/core-coin/go-core/eth/downloader"
 	"github.com/core-coin/go-core/eth/energyprice"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/graphql"
 	"github.com/core-coin/go-core/les"
@@ -409,14 +409,14 @@ var (
 		Usage: "Minimum energy price for mining a transaction (deprecated, use --miner.energyprice)",
 		Value: eth.DefaultConfig.Miner.EnergyPrice,
 	}
-	MinerEtherbaseFlag = cli.StringFlag{
-		Name:  "miner.etherbase",
+	MinerCorebaseFlag = cli.StringFlag{
+		Name:  "miner.corebase",
 		Usage: "Public address for block mining rewards (default = first account)",
 		Value: "0",
 	}
-	MinerLegacyEtherbaseFlag = cli.StringFlag{
-		Name:  "etherbase",
-		Usage: "Public address for block mining rewards (default = first account, deprecated, use --miner.etherbase)",
+	MinerLegacyCorebaseFlag = cli.StringFlag{
+		Name:  "corebase",
+		Usage: "Public address for block mining rewards (default = first account, deprecated, use --miner.corebase)",
 		Value: "0",
 	}
 	MinerExtraDataFlag = cli.StringFlag{
@@ -1025,27 +1025,27 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 	return accs[index], nil
 }
 
-// setEtherbase retrieves the etherbase either from the directly specified
+// setCorebase retrieves the corebase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *eth.Config) {
-	// Extract the current etherbase, new flag overriding legacy one
-	var etherbase string
-	if ctx.GlobalIsSet(MinerLegacyEtherbaseFlag.Name) {
-		etherbase = ctx.GlobalString(MinerLegacyEtherbaseFlag.Name)
+func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *eth.Config) {
+	// Extract the current corebase, new flag overriding legacy one
+	var corebase string
+	if ctx.GlobalIsSet(MinerLegacyCorebaseFlag.Name) {
+		corebase = ctx.GlobalString(MinerLegacyCorebaseFlag.Name)
 	}
-	if ctx.GlobalIsSet(MinerEtherbaseFlag.Name) {
-		etherbase = ctx.GlobalString(MinerEtherbaseFlag.Name)
+	if ctx.GlobalIsSet(MinerCorebaseFlag.Name) {
+		corebase = ctx.GlobalString(MinerCorebaseFlag.Name)
 	}
-	// Convert the etherbase into an address and configure it
-	if etherbase != "" {
+	// Convert the corebase into an address and configure it
+	if corebase != "" {
 		if ks != nil {
-			account, err := MakeAddress(ks, etherbase)
+			account, err := MakeAddress(ks, corebase)
 			if err != nil {
-				Fatalf("Invalid miner etherbase: %v", err)
+				Fatalf("Invalid miner corebase: %v", err)
 			}
-			cfg.Miner.Etherbase = account.Address
+			cfg.Miner.Corebase = account.Address
 		} else {
-			Fatalf("No etherbase configured")
+			Fatalf("No corebase configured")
 		}
 	}
 }
@@ -1107,7 +1107,7 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if lightClient {
 		ethPeers = 0
 	}
-	log.Info("Maximum peer count", "ETH", ethPeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "XCE", ethPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -1380,7 +1380,7 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	if keystores := stack.AccountManager().Backends(keystore.KeyStoreType); len(keystores) > 0 {
 		ks = keystores[0].(*keystore.KeyStore)
 	}
-	setEtherbase(ctx, ks, cfg)
+	setCorebase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setMiner(ctx, &cfg.Miner)
@@ -1616,7 +1616,7 @@ func SplitTagsFlag(tagsFlag string) map[string]string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ethdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcedb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1648,7 +1648,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb ethdb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xcedb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))

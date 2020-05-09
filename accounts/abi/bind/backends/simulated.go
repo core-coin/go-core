@@ -36,7 +36,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/filters"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
@@ -58,7 +58,7 @@ var (
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   ethdb.Database   // In memory database to store our testing data
+	database   xcedb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Core blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -72,7 +72,7 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database ethdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
+func NewSimulatedBackendWithDatabase(database xcedb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	genesis := core.Genesis{Config: params.AllEthashProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, nil)
@@ -152,7 +152,7 @@ func (b *SimulatedBackend) CodeAt(ctx context.Context, contract common.Address, 
 	return statedb.GetCode(contract), nil
 }
 
-// BalanceAt returns the wei balance of a certain account in the blockchain.
+// BalanceAt returns the ore balance of a certain account in the blockchain.
 func (b *SimulatedBackend) BalanceAt(ctx context.Context, contract common.Address, blockNumber *big.Int) (*big.Int, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -620,11 +620,11 @@ func (m callmsg) Data() []byte         { return m.CallMsg.Data }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db ethdb.Database
+	db xcedb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() ethdb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() xcedb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

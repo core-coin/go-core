@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/trie"
 	"golang.org/x/crypto/sha3"
@@ -342,7 +342,7 @@ func (s *stateSync) loop() (err error) {
 }
 
 func (s *stateSync) commit(force bool) error {
-	if !force && s.bytesUncommitted < ethdb.IdealBatchSize {
+	if !force && s.bytesUncommitted < xcedb.IdealBatchSize {
 		return nil
 	}
 	start := time.Now()

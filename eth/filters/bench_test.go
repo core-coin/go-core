@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/node"
 )
 
@@ -145,7 +145,7 @@ func benchmarkBloomBits(b *testing.B, sectionSize uint64) {
 
 var bloomBitsPrefix = []byte("bloomBits-")
 
-func clearBloomBits(db ethdb.Database) {
+func clearBloomBits(db xcedb.Database) {
 	fmt.Println("Clearing bloombits data...")
 	it := db.NewIteratorWithPrefix(bloomBitsPrefix)
 	for it.Next() {

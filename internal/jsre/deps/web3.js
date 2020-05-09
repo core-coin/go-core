@@ -926,7 +926,7 @@ var SolidityParam = require('./param');
  * @returns {SolidityParam}
  */
 var formatInputInt = function (value) {
-    BigNumber.config(c.ETH_BIGNUMBER_ROUNDING_MODE);
+    BigNumber.config(c.XCE_BIGNUMBER_ROUNDING_MODE);
     var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
     return new SolidityParam(result);
 };
@@ -1758,45 +1758,45 @@ if (typeof XMLHttpRequest === 'undefined') {
  */
 
 
-/// required to define ETH_BIGNUMBER_ROUNDING_MODE
+/// required to define XCE_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var ETH_UNITS = [
-    'wei',
-    'kwei',
-    'Mwei',
+var XCE_UNITS = [
+    'ore',
+    'kore',
+    'More',
     'Nucle',
     'szabo',
     'finney',
-    'femtoether',
-    'picoether',
-    'nanoether',
-    'microether',
-    'milliether',
+    'femtocore',
+    'picocore',
+    'nanocore',
+    'microcore',
+    'millicore',
     'nano',
     'micro',
     'milli',
-    'ether',
+    'core',
     'grand',
-    'Mether',
+    'Mcore',
     'Gcoreer',
-    'Tether',
-    'Pether',
-    'Eether',
-    'Zether',
-    'Yether',
-    'Nether',
-    'Dether',
-    'Vether',
-    'Uether'
+    'Tcore',
+    'Pcore',
+    'Ecore',
+    'Zcore',
+    'Ycore',
+    'Ncore',
+    'Dcore',
+    'Vcore',
+    'Ucore'
 ];
 
 module.exports = {
-    ETH_PADDING: 32,
-    ETH_SIGNATURE_LENGTH: 4,
-    ETH_UNITS: ETH_UNITS,
-    ETH_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    ETH_POLLING_TIMEOUT: 1000/2,
+    XCE_PADDING: 32,
+    XCE_SIGNATURE_LENGTH: 4,
+    XCE_UNITS: XCE_UNITS,
+    XCE_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    XCE_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -1884,33 +1884,33 @@ var sha3 = require('./sha3.js');
 var utf8 = require('utf8');
 
 var unitMap = {
-    'noether':      '0',
-    'wei':          '1',
-    'kwei':         '1000',
-    'Kwei':         '1000',
+    'nocore':      '0',
+    'ore':          '1',
+    'kore':         '1000',
+    'Kore':         '1000',
     'babbage':      '1000',
-    'femtoether':   '1000',
-    'mwei':         '1000000',
-    'Mwei':         '1000000',
+    'femtocore':   '1000',
+    'more':         '1000000',
+    'More':         '1000000',
     'lovelace':     '1000000',
-    'picoether':    '1000000',
+    'picocore':    '1000000',
     'nucle':         '1000000000',
     'Nucle':         '1000000000',
     'shannon':      '1000000000',
-    'nanoether':    '1000000000',
+    'nanocore':    '1000000000',
     'nano':         '1000000000',
     'szabo':        '1000000000000',
-    'microether':   '1000000000000',
+    'microcore':   '1000000000000',
     'micro':        '1000000000000',
     'finney':       '1000000000000000',
-    'milliether':    '1000000000000000',
+    'millicore':    '1000000000000000',
     'milli':         '1000000000000000',
-    'ether':        '1000000000000000000',
-    'kether':       '1000000000000000000000',
+    'core':        '1000000000000000000',
+    'kcore':       '1000000000000000000000',
     'grand':        '1000000000000000000000',
-    'mether':       '1000000000000000000000000',
-    'gether':       '1000000000000000000000000000',
-    'tether':       '1000000000000000000000000000000'
+    'mcore':       '1000000000000000000000000',
+    'gcore':       '1000000000000000000000000000',
+    'tcore':       '1000000000000000000000000000000'
 };
 
 /**
@@ -2121,15 +2121,15 @@ var toHex = function (val) {
 };
 
 /**
- * Returns value of unit in Wei
+ * Returns value of unit in Ore
  *
  * @method getValueOfUnit
- * @param {String} unit the unit to convert to, default ether
- * @returns {BigNumber} value of the unit (in Wei)
+ * @param {String} unit the unit to convert to, default core
+ * @returns {BigNumber} value of the unit (in Ore)
  * @throws error if the unit is not correct:w
  */
 var getValueOfUnit = function (unit) {
-    unit = unit ? unit.toLowerCase() : 'ether';
+    unit = unit ? unit.toLowerCase() : 'core';
     var unitValue = unitMap[unit];
     if (unitValue === undefined) {
         throw new Error('This unit doesn\'t exists, please use the one of the following units' + JSON.stringify(unitMap, null, 2));
@@ -2138,55 +2138,55 @@ var getValueOfUnit = function (unit) {
 };
 
 /**
- * Takes a number of wei and converts it to any other ether unit.
+ * Takes a number of ore and converts it to any other core unit.
  *
  * Possible units are:
  *   SI Short   SI Full        Effigy       Other
- * - kwei       femtoether     babbage
- * - mwei       picoether      lovelace
- * - nucle       nanoether      shannon      nano
- * - --         microether     szabo        micro
- * - --         milliether     finney       milli
- * - ether      --             --
- * - kether                    --           grand
- * - mether
- * - gether
- * - tether
+ * - kore       femtocore     babbage
+ * - more       picocore      lovelace
+ * - nucle       nanocore      shannon      nano
+ * - --         microcore     szabo        micro
+ * - --         millicore     finney       milli
+ * - core      --             --
+ * - kcore                    --           grand
+ * - mcore
+ * - gcore
+ * - tcore
  *
- * @method fromWei
+ * @method fromOre
  * @param {Number|String} number can be a number, number string or a HEX of a decimal
- * @param {String} unit the unit to convert to, default ether
+ * @param {String} unit the unit to convert to, default core
  * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
 */
-var fromWei = function(number, unit) {
+var fromOre = function(number, unit) {
     var returnValue = toBigNumber(number).dividedBy(getValueOfUnit(unit));
 
     return isBigNumber(number) ? returnValue : returnValue.toString(10);
 };
 
 /**
- * Takes a number of a unit and converts it to wei.
+ * Takes a number of a unit and converts it to ore.
  *
  * Possible units are:
  *   SI Short   SI Full        Effigy       Other
- * - kwei       femtoether     babbage
- * - mwei       picoether      lovelace
- * - nucle       nanoether      shannon      nano
- * - --         microether     szabo        micro
- * - --         microether     szabo        micro
- * - --         milliether     finney       milli
- * - ether      --             --
- * - kether                    --           grand
- * - mether
- * - gether
- * - tether
+ * - kore       femtocore     babbage
+ * - more       picocore      lovelace
+ * - nucle       nanocore      shannon      nano
+ * - --         microcore     szabo        micro
+ * - --         microcore     szabo        micro
+ * - --         millicore     finney       milli
+ * - core      --             --
+ * - kcore                    --           grand
+ * - mcore
+ * - gcore
+ * - tcore
  *
- * @method toWei
+ * @method toOre
  * @param {Number|String|BigNumber} number can be a number, number string or a HEX of a decimal
- * @param {String} unit the unit to convert from, default ether
+ * @param {String} unit the unit to convert from, default core
  * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
 */
-var toWei = function(number, unit) {
+var toOre = function(number, unit) {
     var returnValue = toBigNumber(number).times(getValueOfUnit(unit));
 
     return isBigNumber(number) ? returnValue : returnValue.toString(10);
@@ -2453,8 +2453,8 @@ module.exports = {
     transformToFullName: transformToFullName,
     extractDisplayName: extractDisplayName,
     extractTypeName: extractTypeName,
-    toWei: toWei,
-    fromWei: fromWei,
+    toOre: toOre,
+    fromOre: fromOre,
     toBigNumber: toBigNumber,
     toTwosComplement: toTwosComplement,
     toAddress: toAddress,
@@ -2575,8 +2575,8 @@ Web3.prototype.fromUtf8 = utils.fromUtf8;
 Web3.prototype.toDecimal = utils.toDecimal;
 Web3.prototype.fromDecimal = utils.fromDecimal;
 Web3.prototype.toBigNumber = utils.toBigNumber;
-Web3.prototype.toWei = utils.toWei;
-Web3.prototype.fromWei = utils.fromWei;
+Web3.prototype.toOre = utils.toOre;
+Web3.prototype.fromOre = utils.fromOre;
 Web3.prototype.isAddress = utils.isAddress;
 Web3.prototype.isChecksumAddress = utils.isChecksumAddress;
 Web3.prototype.toChecksumAddress = utils.toChecksumAddress;
@@ -3239,7 +3239,7 @@ SolidityEvent.prototype.signature = function () {
  * @method encode
  * @param {Object} indexed
  * @param {Object} options
- * @return {Object} everything combined together and encoded
+ * @return {Object} everything combined togcore and encoded
  */
 SolidityEvent.prototype.encode = function (indexed, options) {
     indexed = indexed || {};
@@ -4535,7 +4535,7 @@ Iban.fromBban = function (bban) {
  * @return {Iban} the IBAN object
  */
 Iban.createIndirect = function (options) {
-    return Iban.fromBban('ETH' + options.institution + options.identifier);
+    return Iban.fromBban('XCE' + options.institution + options.identifier);
 };
 
 /**
@@ -4557,7 +4557,7 @@ Iban.isValid = function (iban) {
  * @returns {Boolean} true if it is, otherwise false
  */
 Iban.prototype.isValid = function () {
-    return /^XE[0-9]{2}(ETH[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
+    return /^XE[0-9]{2}(XCE[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
         mod9710(iso13616Prepare(this._iban)) === 1;
 };
 
@@ -6481,7 +6481,7 @@ RequestManager.prototype.reset = function (keepIsSyncing) {
  */
 RequestManager.prototype.poll = function () {
     /*jshint maxcomplexity: 6 */
-    this.timeout = setTimeout(this.poll.bind(this), c.ETH_POLLING_TIMEOUT);
+    this.timeout = setTimeout(this.poll.bind(this), c.XCE_POLLING_TIMEOUT);
 
     if (Object.keys(this.polls).length === 0) {
         return;

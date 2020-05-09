@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/prque"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 )
 
@@ -33,7 +33,7 @@ import (
 // of frozen ancient blocks. The method iterates over all the frozen blocks and
 // injects into the database the block hash->number mappings and the transaction
 // lookup entries.
-func InitDatabaseFromFreezer(db ethdb.Database) error {
+func InitDatabaseFromFreezer(db xcedb.Database) error {
 	// If we can't access the freezer or it's empty, abort
 	frozen, err := db.Ancients()
 	if err != nil || frozen == 0 {
@@ -105,7 +105,7 @@ func InitDatabaseFromFreezer(db ethdb.Database) error {
 			WriteTxLookupEntries(batch, block)
 
 			// If enough data was accumulated in memory or we're at the last block, dump to disk
-			if batch.ValueSize() > ethdb.IdealBatchSize || uint64(next) == frozen {
+			if batch.ValueSize() > xcedb.IdealBatchSize || uint64(next) == frozen {
 				if err := batch.Write(); err != nil {
 					return err
 				}

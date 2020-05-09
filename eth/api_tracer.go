@@ -36,7 +36,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/eth/tracers"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
@@ -765,11 +765,11 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	// Depending on the tracer type, format and return the output
 	switch tracer := tracer.(type) {
 	case *vm.StructLogger:
-		return &ethapi.ExecutionResult{
-			Energy:         energy,
+		return &xceapi.ExecutionResult{
+			Energy:      energy,
 			Failed:      failed,
 			ReturnValue: fmt.Sprintf("%x", ret),
-			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
+			StructLogs:  xceapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
 	case *tracers.Tracer:

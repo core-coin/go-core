@@ -255,7 +255,7 @@ func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Tran
 		threshold := new(big.Int).Div(new(big.Int).Mul(old.EnergyPrice(), big.NewInt(100+int64(priceBump))), big.NewInt(100))
 		// Have to ensure that the new energy price is higher than the old energy
 		// price as well as checking the percentage threshold to ensure that
-		// this is accurate for low (Wei-level) energy price replacements
+		// this is accurate for low (Ore-level) energy price replacements
 		if old.EnergyPrice().Cmp(tx.EnergyPrice()) >= 0 || threshold.Cmp(tx.EnergyPrice()) > 0 {
 			return false, nil
 		}

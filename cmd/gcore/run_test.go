@@ -42,7 +42,7 @@ type testgcore struct {
 
 	// template variables for expect
 	Datadir   string
-	Etherbase string
+	Corebase string
 }
 
 func init() {
@@ -75,9 +75,9 @@ func runGcore(t *testing.T, args ...string) *testgcore {
 			if i < len(args)-1 {
 				tt.Datadir = args[i+1]
 			}
-		case arg == "-etherbase" || arg == "--etherbase":
+		case arg == "-corebase" || arg == "--corebase":
 			if i < len(args)-1 {
-				tt.Etherbase = args[i+1]
+				tt.Corebase = args[i+1]
 			}
 		}
 	}

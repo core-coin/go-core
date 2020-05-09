@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
@@ -204,7 +204,7 @@ func (t *StateTest) energyLimit(subtest StateSubtest) uint64 {
 	return t.json.Tx.EnergyLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Energy]
 }
 
-func MakePreState(db ethdb.Database, accounts core.GenesisAlloc) *state.StateDB {
+func MakePreState(db xcedb.Database, accounts core.GenesisAlloc) *state.StateDB {
 	sdb := state.NewDatabase(db)
 	statedb, _ := state.New(common.Hash{}, sdb)
 	for addr, a := range accounts {

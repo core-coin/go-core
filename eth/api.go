@@ -34,7 +34,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/trie"
@@ -51,14 +51,14 @@ func NewPublicCoreAPI(e *Core) *PublicCoreAPI {
 	return &PublicCoreAPI{e}
 }
 
-// Etherbase is the address that mining rewards will be send to
-func (api *PublicCoreAPI) Etherbase() (common.Address, error) {
-	return api.e.Etherbase()
+// Corebase is the address that mining rewards will be send to
+func (api *PublicCoreAPI) Corebase() (common.Address, error) {
+	return api.e.Corebase()
 }
 
-// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
+// Coinbase is the address that mining rewards will be send to (alias for Corebase)
 func (api *PublicCoreAPI) Coinbase() (common.Address, error) {
-	return api.Etherbase()
+	return api.Corebase()
 }
 
 // Hashrate returns the POW hashrate
@@ -138,9 +138,9 @@ func (api *PrivateMinerAPI) SetEnergyPrice(energyPrice hexutil.Big) bool {
 	return true
 }
 
-// SetEtherbase sets the etherbase of the miner
-func (api *PrivateMinerAPI) SetEtherbase(etherbase common.Address) bool {
-	api.e.SetEtherbase(etherbase)
+// SetCorebase sets the corebase of the miner
+func (api *PrivateMinerAPI) SetCorebase(corebase common.Address) bool {
+	api.e.SetCorebase(corebase)
 	return true
 }
 
@@ -344,7 +344,7 @@ func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]*BadBlockArgs, 
 		} else {
 			results[i].RLP = fmt.Sprintf("0x%x", rlpBytes)
 		}
-		if results[i].Block, err = ethapi.RPCMarshalBlock(block, true, true); err != nil {
+		if results[i].Block, err = xceapi.RPCMarshalBlock(block, true, true); err != nil {
 			results[i].Block = map[string]interface{}{"error": err.Error()}
 		}
 	}

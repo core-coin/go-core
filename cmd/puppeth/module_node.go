@@ -42,7 +42,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
 	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcestats \'{{.Xcestats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Etherbase}}--miner.etherbase {{.Etherbase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcestats \'{{.Xcestats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
 
 ENTRYPOINT ["/bin/sh", "gcore.sh"]
 `
@@ -60,14 +60,14 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/core{{if .Ethashdir}}
-      - {{.Ethashdir}}:/root/.ethash{{end}}
+      - {{.Datadir}}:/root/core{{if .Cryptoredir}}
+      - {{.Cryptoredir}}:/root/.ethash{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
       - LIGHT_PEERS={{.LightPeers}}
       - STATS_NAME={{.Xcestats}}
-      - MINER_NAME={{.Etherbase}}
+      - MINER_NAME={{.Corebase}}
       - ENERGY_TARGET={{.EnergyTarget}}
       - ENERGY_LIMIT={{.EnergyLimit}}
       - ENERGY_PRICE={{.EnergyPrice}}
@@ -84,7 +84,7 @@ services:
 // already exists there, it will be overwritten!
 func deployNode(client *sshClient, network string, bootnodes []string, config *nodeInfos, nocache bool) ([]byte, error) {
 	kind := "sealnode"
-	if config.keyJSON == "" && config.etherbase == "" {
+	if config.keyJSON == "" && config.corebase == "" {
 		kind = "bootnode"
 		bootnodes = make([]string, 0)
 	}
@@ -105,7 +105,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"LightFlag": lightFlag,
 		"Bootnodes": strings.Join(bootnodes, ","),
 		"Xcestats":  config.xcestats,
-		"Etherbase": config.etherbase,
+		"Corebase": config.corebase,
 		"EnergyTarget": uint64(1000000 * config.energyTarget),
 		"EnergyLimit":  uint64(1000000 * config.energyLimit),
 		"EnergyPrice":  uint64(1000000000 * config.energyPrice),
@@ -117,14 +117,14 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
 		"Type":       kind,
 		"Datadir":    config.datadir,
-		"Ethashdir":  config.ethashdir,
+		"Cryptoredir":  config.cryptoredir,
 		"Network":    network,
 		"Port":       config.port,
 		"TotalPeers": config.peersTotal,
 		"Light":      config.peersLight > 0,
 		"LightPeers": config.peersLight,
 		"Xcestats":   config.xcestats[:strings.Index(config.xcestats, ":")],
-		"Etherbase":  config.etherbase,
+		"Corebase":  config.corebase,
 		"EnergyTarget":  config.energyTarget,
 		"EnergyLimit":   config.energyLimit,
 		"EnergyPrice":   config.energyPrice,
@@ -155,13 +155,13 @@ type nodeInfos struct {
 	genesis    []byte
 	network    int64
 	datadir    string
-	ethashdir  string
+	cryptoredir  string
 	xcestats   string
 	port       int
 	enode      string
 	peersTotal int
 	peersLight int
-	etherbase  string
+	corebase  string
 	keyJSON    string
 	keyPass    string
 	energyTarget  float64
@@ -185,10 +185,10 @@ func (info *nodeInfos) Report() map[string]string {
 		report["Energy floor (baseline target)"] = fmt.Sprintf("%0.3f MEnergy", info.energyTarget)
 		report["Energy ceil  (target maximum)"] = fmt.Sprintf("%0.3f MEnergy", info.energyLimit)
 
-		if info.etherbase != "" {
+		if info.corebase != "" {
 			// Ethash proof-of-work miner
-			report["Ethash directory"] = info.ethashdir
-			report["Miner account"] = info.etherbase
+			report["Ethash directory"] = info.cryptoredir
+			report["Miner account"] = info.corebase
 		}
 		if info.keyJSON != "" {
 			// Clique proof-of-authority signer
@@ -255,12 +255,12 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	stats := &nodeInfos{
 		genesis:    genesis,
 		datadir:    infos.volumes["/root/core"],
-		ethashdir:  infos.volumes["/root/.ethash"],
+		cryptoredir:  infos.volumes["/root/.ethash"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,
 		xcestats:   infos.envvars["STATS_NAME"],
-		etherbase:  infos.envvars["MINER_NAME"],
+		corebase:  infos.envvars["MINER_NAME"],
 		keyJSON:    keyJSON,
 		keyPass:    keyPass,
 		energyTarget:  energyTarget,

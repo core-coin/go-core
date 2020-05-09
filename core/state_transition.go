@@ -240,7 +240,7 @@ func (st *StateTransition) refundEnergy() {
 	}
 	st.energy += refund
 
-	// Return ETH for remaining energy, exchanged at the original rate.
+	// Return XCE for remaining energy, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.energy), st.energyPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 

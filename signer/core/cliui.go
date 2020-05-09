@@ -25,7 +25,7 @@ import (
 	"sync"
 
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -204,7 +204,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("## Info \n%s\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	if jsn, err := json.MarshalIndent(tx.Tx, "  ", "  "); err != nil {
 		fmt.Printf("WARN: marshalling error %v\n", err)
