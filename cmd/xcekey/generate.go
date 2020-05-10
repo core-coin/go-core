@@ -33,7 +33,7 @@ import (
 
 type outputGenerate struct {
 	Address      string
-	AddressEIP55 string
+	AddressCIP55 string
 }
 
 var commandGenerate = cli.Command{

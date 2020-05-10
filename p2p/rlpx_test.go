@@ -382,20 +382,20 @@ type handshakeAuthTest struct {
 	wantRest    []rlp.RawValue
 }
 
-var eip8HandshakeAuthTests = []handshakeAuthTest{
+var cip8HandshakeAuthTests = []handshakeAuthTest{
 	// (Auth₁) RLPx v4 plain encoding
 	{
 		input: `8ecb2481c2ee7018dd29f045c93f49e644352633064b18c1a847a96f114461650616a457ea69275dbeb38a53e2f9147db89abe85ac951f8b1739d07273bea0968e646cb08e212f0641f7a43c311b40936541923ad7ae6f3927168e69571cd5b7a61d0ddec45876057309b4120a4d3de24e090bfac314b9286c043eea94c5e3bdcf541cd744802fa028d4bf1b0841934a98f47d323afd96c46be5ce401a5077f2fe84e958e5f52beecfd1eb5352f029f3ba9d743e1495d65b29a549c861ea269b9fde4456f6f15838b7d0049d2c6ecc5307dd690140cfeeb37e440e54796a03cda729bff51c1fbf66a71d2a85931f1ac4a8c14c69e0433f59bb10a9065f24eb91911a365d76f75ad67befa737a3f48019869206d5e9f5500de6fc7e5e2487837389454fd1b5e4c84180ab5af28317989b93814fc3ec7b0ef61fe17ccfce1914a1a66a9d6471e299dbe06cab902ff4b9d87e0cadcbb3acfee82d6801a48facc0214433b3e5d342bfccdc919cdaec1548eb420a1067f0dfbece4420b93030d0d4a3d5a817913f23ff3c7f940dd08ebc2ac1f4fcdf923a0d7876830e5a81c7d9036105ffd14b3fcf826428c3afc9859f3c3555442d3e1e58c64844794a1af1014fc238d5d1a46b4953800e`,
 		isPlain:     true,
 		wantVersion: 4,
 	},
-	// (Auth₂) EIP-8 encoding
+	// (Auth₂) CIP-8 encoding
 	{
 		input: `024724846bb478d4e8123254ee2c321215458b4c47e451d0eb9bc5b4503bcfe39500ec6b1f516cdcca7d2dcbf8833107efe9ce82594c5913f60b71f48339709af3ccd79a7ceaf4f95c3a328fc19bab7ec9c901785b32ae20f9c4f239dea5987bb19eaa6fec73df64c7372a941c7d0532856fdd21c34fd1a2aaa19c7122977e0ad4b3c249da462a04546ac3c170639e828bacd9171c79b0ef018a9c0802c36237fba1d470dc30f39ae495a3f3cb06cbc7d7b5611c2b5cfab0088ef0ab9d478688f44c99e0581e2846e4c5fc4d4f7d5b50991a252076604ba3a6303a3d0185dc3d663e8ed852a2a820c33ad1154e1b8140b87f3f2bbdfdd8855416cbb857be64b3b72ccb7e7fe8eaca4a45f45dcbbaf611f4b78ffa5bc83fe77a5d0d24792936197ba89bad0946d2b542b519f415b8f65fae797e9c318ec0c887ee9a5171983e6e7e7f19388718ed8c2b4d609519545541779c627ae4e0ee376db9701f7fb0f9fd289d45db397636b6f763115099adea1c70233d35e145e750c3b2f13957b08b9d324a16041db9a333596b88de5036c24d9319ad8b7a7cecee6add0730046b46daf24c659ae0fa14ddd7e3785fe014df4139eca4fc8a7d3f7a085216affee62963143cf993c2934e8c48003f1644ba986ac163b79471c522a2d9997372d2f86354f30b099cb429115d8825027dcee11ce83a74372a38e87e96fabed0816c827f9efdf095139cff6920d7d1a84a2c453d2e9be50020334df00b1a70a87624336bf8c08b6bdfb4f04e37c5a93810a300ce50257029d29c8cf3409494c46e648de6a36b2dbb5d93da3a058d`,
 		wantVersion: 4,
 		wantRest:    []rlp.RawValue{},
 	},
-	// (Auth₃) RLPx v4 EIP-8 encoding with version 56, additional list elements
+	// (Auth₃) RLPx v4 CIP-8 encoding with version 56, additional list elements
 	{
 		input: `024c2f7a121aa610c3a0ac371536571df2a1782ae62f8ae5b91f14a9e7a1f6ca887f2d2ee92ba7ca49395089fc010dd44ce65b729878d8114766a3449f9477c869f147e1e9e5658559a75d51431b21e1db17f13cefa5ed0c6ca32b5828fa6288b96062fe22a76980e322029b33d07213644e58cb3045d52f12bfac2c2280573c486bac2c74de5d5da0638c75fe376111def0f9e9da2b03d7cd56493dbf5ae3b3bc0ac32aeced270ec07a068d93ec683df877f207b12aa03eba490ca3ad1240ef903db1c41318577c272b68f68ce5f10d5e6cc8bec568c00c8d7c3c899f42adce48aeb2621247afc638dac77f3ce048baf1b75bd9e36d94411f3a380769c73fd6b9e5290946e47191ef1f4c87b184e7296a14c2365db25c5bb2f0882b1d36a6043e94455959474b2745b1d0edc5058861c4f76af92446b2de4d1bfbae1e34873b805dd74a5c5c54895f2313a3b91f9e0e708fefbe180cdf48e74f5089964727d3a8ed6f881639d3b73ce876bd1dabc789c4bd68e6b0db3bbc7b53f9f5c54af94302ed13124603f2d45f05b03f2beb14990e64ea1c0ff5833036bbb9669eff96cd69e3162dd7d9b8a09b2d49f65468d65ba498b79e7a3be6d0788e103bfbf8321f1f8d5ea27e34f67aa05f80c74f880b65eda58dd6a84b61de25d608a94b2ce3c4d77247f8859d96ea107a569be85e20c128679636d12d4945e26a28fff3a2d9b32ee66f3bf4ed05267ae9f76eba53dce7ed8c630026f0114ebdf5126eb088bd0c2bdd76fcede1a4ef4ff3e231f8a12c2eceb47a52742aabb778e6a3a763ee4abe1815f4e9c5f146f6ea832f231262`,
 		wantVersion: 56,
@@ -409,19 +409,19 @@ type handshakeAckTest struct {
 	wantRest    []rlp.RawValue
 }
 
-var eip8HandshakeRespTests = []handshakeAckTest{
+var cip8HandshakeRespTests = []handshakeAckTest{
 	// (Ack₁) RLPx v4 plain encoding
 	{
 		input: `206e18faa45f217fe75d59c3f6ea05779a20a36e297ba9046e413b5b22c2800fe540b7d61e41098978a9dc63f0c6feab012313c70e897a4aa698e40d80783d2cc142ad607ae1faa6f5e95e710ff89aee7ce0f43935458d31ea709c12d23c4eaac8895523773185e7419675f11ebcb87e222125f7f4330da0f5af6dc8d3e259c05d580ce0e4ec8aa6c1142c1dc575547b4cfbe94bbb62954416bd34e61175543b1b5614cac7abcba6b76a5fd868efa58a255d3e6bcd5e33b9b76a040d6c2d0d1fcadea74812fc6a91e9e073a516c5f527b5990621fb1c4f455385279f91d33a16ba`,
 		wantVersion: 4,
 	},
-	// (Ack₂) EIP-8 encoding
+	// (Ack₂) CIP-8 encoding
 	{
 		input: `019c6449a9404d13da141579c6dc4e8a288acc6cf599362af25d83335fd8aba13871137362730e615ef8b8c1d0b453bbc46e199fe69a061172583975883b2f89c1fd2f974f090a9e2060970155a4a3b53b0fa5d272cde53f4d8a0aa2e2a21408fc6693cfd968c236c374f7571a116c3e4ea5e399732c826a96626af7ade6264d45181e2e2911c901201290b502e97e9c9c4b2d06c5ce16b5aa8780ef17ea8d7ae3d02f6b43509b74918dd6ed9b86b27c27ba77a426986206cab09ce46471350df65eac051c7496c9def976fd534c6df8c80926c1945280bbf10f1e2f8dd8f521409d0b2ddda22cca5730aaa53f783b96098b20d4022e98ee93a1537048b577d0d7a0d82858ca0b4f649d9c2b5ac28a2063bc07467656e190a015121926265d7b01ccda43a082c27c401a985d1f18340d1ad8d1d173e215707fa2320ce611223faf75a25052ab981d378c4962e83fda2ed7df5616ce01298f6713252c97e7723cca1155af2ca9f9a45ef3321fddfb35db49377d715dd072627b7bd8807b3c82b50f10bb4499077d5d4694e4a71d9855724c230a33c0cd798768bba940e453`,
 		wantVersion: 4,
 		wantRest:    []rlp.RawValue{},
 	},
-	// (Ack₃) EIP-8 encoding with version 57, additional list elements
+	// (Ack₃) CIP-8 encoding with version 57, additional list elements
 	{
 		input: `01a286450a5c21857fc9ed284593dd35bb33183d7d79ae506163e1a4071edbd4664d478913762422fe921ab748d7c1a7eca88b4acebcf5fecf3f0ae72429dbf4a701dc0d0c9ec18b49f3a14b588ddca4cbe185f3c5820b625f2f41684b69e01ec114ed896c862a729bef660679ac3f1f44f0875639bdcb46d630f28be60c7de35d65ddb880c4bedb72606a9173633697027c306697beca92d354a7e21102ae4e2ed7d2748a800ec8a22b1f7d6938ca8a0157ac6fbf4ab6e32757706bb7f4317f7b97c1feeee487167206899f83d3ca53a05eaeb5bb58f8b287e9684085ef656326caf9451ed23210792434edfee6c8d4f89d44c2bf624c79fc776590ae7ce45516c0d75780395924162781f37899639561aa31205129be552544b2b54415cfe02017d959ecbedcd12c65c346c8ebee5c794755d0929879ecde042e278a8491247dd8a06a3d5b94f98dc6b50de96f71bc5a3334c92f22fabed2662af9928fa30a22c9eb58b358f7d2aa3257e4e7033366ba94f710fa6a439bed1d8b7347279ee74813f705eaac680b84a27a602adc5864e41fb26f19c73cf11a1c91dfa84c95c7691544be`,
 		wantVersion: 57,
@@ -460,7 +460,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 	}
 
 	// check auth msg parsing
-	for _, test := range eip8HandshakeAuthTests {
+	for _, test := range cip8HandshakeAuthTests {
 		r := bytes.NewReader(unhex(test.input))
 		msg := new(authMsgV4)
 		ciphertext, err := readHandshakeMsg(msg, encAuthMsgLen, keyB, r)
@@ -478,7 +478,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 	}
 
 	// check auth resp parsing
-	for _, test := range eip8HandshakeRespTests {
+	for _, test := range cip8HandshakeRespTests {
 		input := unhex(test.input)
 		r := bytes.NewReader(input)
 		msg := new(authRespV4)
@@ -503,9 +503,9 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 			respNonce:     nonceB,
 			randomPrivKey: ecies.ImportEDDSA(ephB),
 		}
-		authCiphertext     = unhex(eip8HandshakeAuthTests[1].input)
-		authRespCiphertext = unhex(eip8HandshakeRespTests[1].input)
-		authMsg            = makeAuth(eip8HandshakeAuthTests[1])
+		authCiphertext     = unhex(cip8HandshakeAuthTests[1].input)
+		authRespCiphertext = unhex(cip8HandshakeRespTests[1].input)
+		authMsg            = makeAuth(cip8HandshakeAuthTests[1])
 		wantAES            = unhex("d5b5c6435460380778791811be8d3a354a17cbcc8a49a742bfc679e5db852c5e")
 		wantMAC            = unhex("f4a7d65c026ba34aeaf0c7446a2c36fbfc88918bcf9541bbff84ac0bf48fbbd7")
 		wantFooIngressHash = unhex("0d6d8c38e8befa00cbc118765cdc7c31bb8224d5109f72e80d9bc42a499a70d0")

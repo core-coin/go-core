@@ -38,7 +38,7 @@ type Config struct {
 	EWASMInterpreter string // External EWASM interpreter options
 	CVMInterpreter   string // External CVM interpreter options
 
-	ExtraEips []int // Additional EIPS that are to be enabled
+	ExtraCips []int // Additional CIPS that are to be enabled
 }
 
 // Interpreter is used to run Core based contracts and will utilise the
@@ -99,20 +99,20 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 			jt = constantinopleInstructionSet
 		case cvm.chainRules.IsByzantium:
 			jt = byzantiumInstructionSet
-		case cvm.chainRules.IsEIP158:
+		case cvm.chainRules.IsCIP158:
 			jt = spuriousDragonInstructionSet
-		case cvm.chainRules.IsEIP150:
+		case cvm.chainRules.IsCIP150:
 			jt = tangerineWhistleInstructionSet
 		case cvm.chainRules.IsHomestead:
 			jt = homesteadInstructionSet
 		default:
 			jt = frontierInstructionSet
 		}
-		for i, eip := range cfg.ExtraEips {
-			if err := EnableEIP(eip, &jt); err != nil {
+		for i, cip := range cfg.ExtraCips {
+			if err := EnableCIP(cip, &jt); err != nil {
 				// Disable it, so caller can check if it's activated or not
-				cfg.ExtraEips = append(cfg.ExtraEips[:i], cfg.ExtraEips[i+1:]...)
-				log.Error("EIP activation failed", "eip", eip, "error", err)
+				cfg.ExtraCips = append(cfg.ExtraCips[:i], cfg.ExtraCips[i+1:]...)
+				log.Error("CIP activation failed", "cip", cip, "error", err)
 			}
 		}
 		cfg.JumpTable = jt

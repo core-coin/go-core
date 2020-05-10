@@ -212,7 +212,7 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 		if cvm.chainRules.IsIstanbul {
 			precompiles = PrecompiledContractsIstanbul
 		}
-		if precompiles[addr] == nil && cvm.chainRules.IsEIP158 && value.Sign() == 0 {
+		if precompiles[addr] == nil && cvm.chainRules.IsCIP158 && value.Sign() == 0 {
 			// Calling a non existing account, don't do anything, but ping the tracer
 			if cvm.vmConfig.Debug && cvm.depth == 0 {
 				cvm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, energy, value)
@@ -400,7 +400,7 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	// Create a new account on the state
 	snapshot := cvm.StateDB.Snapshot()
 	cvm.StateDB.CreateAccount(address)
-	if cvm.chainRules.IsEIP158 {
+	if cvm.chainRules.IsCIP158 {
 		cvm.StateDB.SetNonce(address, 1)
 	}
 	cvm.Transfer(cvm.StateDB, caller.Address(), address, value)
@@ -422,7 +422,7 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	ret, err := run(cvm, contract, nil, false)
 
 	// check whether the max code size has been exceeded
-	maxCodeSizeExceeded := cvm.chainRules.IsEIP158 && len(ret) > params.MaxCodeSize
+	maxCodeSizeExceeded := cvm.chainRules.IsCIP158 && len(ret) > params.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
 	// calculate the energy required to store the code. If the code could not
 	// be stored due to not enough energy set an error and let it be handled

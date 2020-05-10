@@ -465,8 +465,8 @@ func TestUDPv4_successfulPing(t *testing.T) {
 	}
 }
 
-// This test checks that EIP-868 requests work.
-func TestUDPv4_EIP868(t *testing.T) {
+// This test checks that CIP-868 requests work.
+func TestUDPv4_CIP868(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
 
@@ -503,7 +503,7 @@ func TestUDPv4_EIP868(t *testing.T) {
 	})
 }
 
-// EIP-8 test vectors.
+// CIP-8 test vectors.
 var testPackets = []struct {
 	input      string
 	wantPacket interface{}

@@ -51,7 +51,7 @@ var modexpTests = []precompiledTest{
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
 		expected: "0000000000000000000000000000000000000000000000000000000000000001",
-		name:     "eip_example1",
+		name:     "cip_example1",
 	}, {
 		input: "0000000000000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000000000000000000000000020" +
@@ -59,7 +59,7 @@ var modexpTests = []precompiledTest{
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
 		expected: "0000000000000000000000000000000000000000000000000000000000000000",
-		name:     "eip_example2",
+		name:     "cip_example2",
 	}, {
 		input:    "000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040e09ad9675465c53a109fac66a445c91b292d2bb2c5268addb30cd82f80fcb0033ff97c80a5fc6f39193ae969c6ede6710a6b7ac27078a06d90ef1c72e5c85fb502fc9e1f6beb81516545975218075ec2af118cd8798df6e08a147c60fd6095ac2bb02c2908cf4dd7c81f11c289e4bce98f3553768f392a80ce22bf5c4f4a248c6b",
 		expected: "60008f1614cc01dcfb6bfb09c625cf90b47d4468db81b5f8b7a39d42f332eab9b2da8f2d95311648a8f243f4bb13cfb3d8f7f2a3c014122ebb3ed41b02783adc",
@@ -345,7 +345,7 @@ var bn256PairingTests = []precompiledTest{
 	},
 }
 
-// EIP-152 test vectors
+// CIP-152 test vectors
 var blake2FMalformedInputTests = []precompiledFailureTest{
 	{
 		input:         "",
@@ -369,7 +369,7 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 	},
 }
 
-// EIP-152 test vectors
+// CIP-152 test vectors
 var blake2FTests = []precompiledTest{
 	{
 		input:    "0000000048c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5d182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b61626300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000001",
@@ -530,28 +530,28 @@ func BenchmarkPrecompiledIdentity(bench *testing.B) {
 	benchmarkPrecompiled("04", t, bench)
 }
 
-// Tests the sample inputs from the ModExp EIP 198.
+// Tests the sample inputs from the ModExp CIP 198.
 func TestPrecompiledModExp(t *testing.T) {
 	for _, test := range modexpTests {
 		testPrecompiled("05", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the ModExp EIP 198.
+// Benchmarks the sample inputs from the ModExp CIP 198.
 func BenchmarkPrecompiledModExp(bench *testing.B) {
 	for _, test := range modexpTests {
 		benchmarkPrecompiled("05", test, bench)
 	}
 }
 
-// Tests the sample inputs from the elliptic curve addition EIP 213.
+// Tests the sample inputs from the elliptic curve addition CIP 213.
 func TestPrecompiledBn256Add(t *testing.T) {
 	for _, test := range bn256AddTests {
 		testPrecompiled("06", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the elliptic curve addition EIP 213.
+// Benchmarks the sample inputs from the elliptic curve addition CIP 213.
 func BenchmarkPrecompiledBn256Add(bench *testing.B) {
 	for _, test := range bn256AddTests {
 		benchmarkPrecompiled("06", test, bench)
@@ -565,28 +565,28 @@ func TestPrecompiledModExpOOG(t *testing.T) {
 	}
 }
 
-// Tests the sample inputs from the elliptic curve scalar multiplication EIP 213.
+// Tests the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func TestPrecompiledBn256ScalarMul(t *testing.T) {
 	for _, test := range bn256ScalarMulTests {
 		testPrecompiled("07", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the elliptic curve scalar multiplication EIP 213.
+// Benchmarks the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func BenchmarkPrecompiledBn256ScalarMul(bench *testing.B) {
 	for _, test := range bn256ScalarMulTests {
 		benchmarkPrecompiled("07", test, bench)
 	}
 }
 
-// Tests the sample inputs from the elliptic curve pairing check EIP 197.
+// Tests the sample inputs from the elliptic curve pairing check CIP 197.
 func TestPrecompiledBn256Pairing(t *testing.T) {
 	for _, test := range bn256PairingTests {
 		testPrecompiled("08", test, t)
 	}
 }
 
-// Behcnmarks the sample inputs from the elliptic curve pairing check EIP 197.
+// Behcnmarks the sample inputs from the elliptic curve pairing check CIP 197.
 func BenchmarkPrecompiledBn256Pairing(bench *testing.B) {
 	for _, test := range bn256PairingTests {
 		benchmarkPrecompiled("08", test, bench)

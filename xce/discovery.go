@@ -28,7 +28,7 @@ import (
 // xceEntry is the "xce" ENR entry which advertises xce protocol
 // on the discovery network.
 type xceEntry struct {
-	ForkID forkid.ID // Fork identifier per EIP-2124
+	ForkID forkid.ID // Fork identifier per CIP-2124
 
 	// Ignore additional fields (for forward compatibility).
 	Rest []rlp.RawValue `rlp:"tail"`

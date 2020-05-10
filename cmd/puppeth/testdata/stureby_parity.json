@@ -17,7 +17,7 @@
           "0x9c40": "0x1e8480"
         },
         "homesteadTransition": "0x2710",
-        "eip100bTransition": "0x7530"
+        "cip100bTransition": "0x7530"
       }
     }
   },
@@ -30,25 +30,25 @@
     "chainID": "0x4cb2e",
     "maxCodeSize": "0x6000",
     "maxCodeSizeTransition": "0x0",
-    "eip98Transition": "0x7fffffffffffffff",
-    "eip150Transition": "0x3a98",
-    "eip160Transition": "0x59d8",
-    "eip161abcTransition": "0x59d8",
-    "eip161dTransition": "0x59d8",
-    "eip155Transition": "0x59d8",
-    "eip140Transition": "0x7530",
-    "eip211Transition": "0x7530",
-    "eip214Transition": "0x7530",
-    "eip658Transition": "0x7530",
-    "eip145Transition": "0x9c40",
-    "eip1014Transition": "0x9c40",
-    "eip1052Transition": "0x9c40",
-    "eip1283Transition": "0x9c40",
-    "eip1283DisableTransition": "0x9c40",
-    "eip1283ReenableTransition": "0xc350",
-    "eip1344Transition": "0xc350",
-    "eip1884Transition": "0xc350",
-    "eip2028Transition": "0xc350"
+    "cip98Transition": "0x7fffffffffffffff",
+    "cip150Transition": "0x3a98",
+    "cip160Transition": "0x59d8",
+    "cip161abcTransition": "0x59d8",
+    "cip161dTransition": "0x59d8",
+    "cip155Transition": "0x59d8",
+    "cip140Transition": "0x7530",
+    "cip211Transition": "0x7530",
+    "cip214Transition": "0x7530",
+    "cip658Transition": "0x7530",
+    "cip145Transition": "0x9c40",
+    "cip1014Transition": "0x9c40",
+    "cip1052Transition": "0x9c40",
+    "cip1283Transition": "0x9c40",
+    "cip1283DisableTransition": "0x9c40",
+    "cip1283ReenableTransition": "0xc350",
+    "cip1344Transition": "0xc350",
+    "cip1884Transition": "0xc350",
+    "cip2028Transition": "0xc350"
   },
   "genesis": {
     "seal": {

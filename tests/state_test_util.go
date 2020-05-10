@@ -40,7 +40,7 @@ import (
 )
 
 // StateTest checks transaction processing without block context.
-// See https://github.com/core/EIPs/issues/176 for the test format specification.
+// See https://github.com/core/CIPs/issues/176 for the test format specification.
 type StateTest struct {
 	json stJSON
 }
@@ -113,24 +113,24 @@ type stTransactionMarshaling struct {
 // getVMConfig takes a fork definition and returns a chain config.
 // The fork definition can be
 // - a plain forkname, e.g. `Byzantium`,
-// - a fork basename, and a list of EIPs to enable; e.g. `Byzantium+1884+1283`.
-func getVMConfig(forkString string) (baseConfig *params.ChainConfig, eips []int, err error) {
+// - a fork basename, and a list of CIPs to enable; e.g. `Byzantium+1884+1283`.
+func getVMConfig(forkString string) (baseConfig *params.ChainConfig, cips []int, err error) {
 	var (
 		splitForks            = strings.Split(forkString, "+")
 		ok                    bool
-		baseName, eipsStrings = splitForks[0], splitForks[1:]
+		baseName, cipsStrings = splitForks[0], splitForks[1:]
 	)
 	if baseConfig, ok = Forks[baseName]; !ok {
 		return nil, nil, UnsupportedForkError{baseName}
 	}
-	for _, eip := range eipsStrings {
-		if eipNum, err := strconv.Atoi(eip); err != nil {
-			return nil, nil, fmt.Errorf("syntax error, invalid eip number %v", eipNum)
+	for _, cip := range cipsStrings {
+		if cipNum, err := strconv.Atoi(cip); err != nil {
+			return nil, nil, fmt.Errorf("syntax error, invalid cip number %v", cipNum)
 		} else {
-			eips = append(eips, eipNum)
+			cips = append(cips, cipNum)
 		}
 	}
-	return baseConfig, eips, nil
+	return baseConfig, cips, nil
 }
 
 // Subtests returns all valid subtests of the test.
@@ -164,11 +164,11 @@ func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config) (*state.StateD
 
 // RunNoVerify runs a specific subtest and returns the statedb and post-state root
 func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*state.StateDB, common.Hash, error) {
-	config, eips, err := getVMConfig(subtest.Fork)
+	config, cips, err := getVMConfig(subtest.Fork)
 	if err != nil {
 		return nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
 	}
-	vmconfig.ExtraEips = eips
+	vmconfig.ExtraCips = cips
 	block := t.genesis(config).ToBlock(nil)
 	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre)
 
@@ -188,7 +188,7 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 		statedb.RevertToSnapshot(snapshot)
 	}
 	// Commit block
-	statedb.Commit(config.IsEIP158(block.Number()))
+	statedb.Commit(config.IsCIP158(block.Number()))
 	// Add 0-value mining reward. This only makes a difference in the cases
 	// where
 	// - the coinbase suicided, or
@@ -196,7 +196,7 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 	//   the coinbase gets no txfee, so isn't created, and thus needs to be touched
 	statedb.AddBalance(block.Coinbase(), new(big.Int))
 	// And _now_ get the state root
-	root := statedb.IntermediateRoot(config.IsEIP158(block.Number()))
+	root := statedb.IntermediateRoot(config.IsCIP158(block.Number()))
 	return statedb, root, nil
 }
 

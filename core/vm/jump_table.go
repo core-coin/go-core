@@ -71,9 +71,9 @@ type JumpTable [256]operation
 func newIstanbulInstructionSet() JumpTable {
 	instructionSet := newConstantinopleInstructionSet()
 
-	enable1344(&instructionSet) // ChainID opcode - https://eips.coreblockchain.cc/EIPS/eip-1344
-	enable1884(&instructionSet) // Reprice reader opcodes - https://eips.coreblockchain.cc/EIPS/eip-1884
-	enable2200(&instructionSet) // Net metered SSTORE - https://eips.coreblockchain.cc/EIPS/eip-2200
+	enable1344(&instructionSet) // ChainID opcode - https://cips.coreblockchain.cc/CIPS/cip-1344
+	enable1884(&instructionSet) // Reprice reader opcodes - https://cips.coreblockchain.cc/CIPS/cip-1884
+	enable2200(&instructionSet) // Net metered SSTORE - https://cips.coreblockchain.cc/CIPS/cip-2200
 
 	return instructionSet
 }
@@ -130,7 +130,7 @@ func newByzantiumInstructionSet() JumpTable {
 	instructionSet := newSpuriousDragonInstructionSet()
 	instructionSet[STATICCALL] = operation{
 		execute:     opStaticCall,
-		constantEnergy: params.CallEnergyEIP150,
+		constantEnergy: params.CallEnergyCIP150,
 		dynamicEnergy:  energyStaticCall,
 		minStack:    minStack(6, 1),
 		maxStack:    maxStack(6, 1),
@@ -167,24 +167,24 @@ func newByzantiumInstructionSet() JumpTable {
 	return instructionSet
 }
 
-// EIP 158 a.k.a Spurious Dragon
+// CIP 158 a.k.a Spurious Dragon
 func newSpuriousDragonInstructionSet() JumpTable {
 	instructionSet := newTangerineWhistleInstructionSet()
-	instructionSet[EXP].dynamicEnergy = energyExpEIP158
+	instructionSet[EXP].dynamicEnergy = energyExpCIP158
 	return instructionSet
 
 }
 
-// EIP 150 a.k.a Tangerine Whistle
+// CIP 150 a.k.a Tangerine Whistle
 func newTangerineWhistleInstructionSet() JumpTable {
 	instructionSet := newHomesteadInstructionSet()
-	instructionSet[BALANCE].constantEnergy = params.BalanceEnergyEIP150
-	instructionSet[EXTCODESIZE].constantEnergy = params.ExtcodeSizeEnergyEIP150
-	instructionSet[SLOAD].constantEnergy = params.SloadEnergyEIP150
-	instructionSet[EXTCODECOPY].constantEnergy = params.ExtcodeCopyBaseEIP150
-	instructionSet[CALL].constantEnergy = params.CallEnergyEIP150
-	instructionSet[CALLCODE].constantEnergy = params.CallEnergyEIP150
-	instructionSet[DELEGATECALL].constantEnergy = params.CallEnergyEIP150
+	instructionSet[BALANCE].constantEnergy = params.BalanceEnergyCIP150
+	instructionSet[EXTCODESIZE].constantEnergy = params.ExtcodeSizeEnergyCIP150
+	instructionSet[SLOAD].constantEnergy = params.SloadEnergyCIP150
+	instructionSet[EXTCODECOPY].constantEnergy = params.ExtcodeCopyBaseCIP150
+	instructionSet[CALL].constantEnergy = params.CallEnergyCIP150
+	instructionSet[CALLCODE].constantEnergy = params.CallEnergyCIP150
+	instructionSet[DELEGATECALL].constantEnergy = params.CallEnergyCIP150
 	return instructionSet
 }
 

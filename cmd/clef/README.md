@@ -339,7 +339,7 @@ Bash example:
 #### Arguments
   - content type [string]: type of signed data
      - `text/validator`: hex data with custom validator defined in a contract
-     - `application/clique`: [clique](https://github.com/core-coin/EIPs/issues/225) headers
+     - `application/clique`: [clique](https://github.com/core-coin/CIPs/issues/225) headers
      - `text/plain`: simple hex data validated by `account_ecRecover`
   - account [address]: account to sign with
   - data [object]: data to sign
@@ -373,7 +373,7 @@ Response
 ### account_signTypedData
 
 #### Sign data
-   Signs a chunk of structured data conformant to [EIP712]([EIP-712](https://github.com/core-coin/EIPs/blob/master/EIPS/eip-712.md)) and returns the calculated signature.
+   Signs a chunk of structured data conformant to [CIP712]([CIP-712](https://github.com/core-coin/CIPs/blob/master/CIPS/cip-712.md)) and returns the calculated signature.
 
 #### Arguments
   - account [address]: account to sign with
@@ -392,7 +392,7 @@ Response
     "0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826",
     {
       "types": {
-        "EIP712Domain": [
+        "CIP712Domain": [
           {
             "name": "name",
             "type": "string"

@@ -143,7 +143,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core
 
 	genesis.Config.ChainID = big.NewInt(18)
 	genesis.Config.Clique.Period = 1
-	genesis.Config.EIP150Hash = common.Hash{}
+	genesis.Config.CIP150Hash = common.Hash{}
 
 	genesis.Alloc = core.GenesisAlloc{}
 	for _, faucet := range faucets {

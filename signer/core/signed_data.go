@@ -202,7 +202,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		sighash, msg := SignTextValidator(validatorData)
 		messages := []*NameValueType{
 			{
-				Name:  "This is a request to sign data intended for a particular validator (see EIP 191 version 0)",
+				Name:  "This is a request to sign data intended for a particular validator (see CIP 191 version 0)",
 				Typ:   "description",
 				Value: "",
 			},
@@ -311,10 +311,10 @@ func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) 
 	return hash, rlp, err
 }
 
-// SignTypedData signs EIP-712 conformant typed data
+// SignTypedData signs CIP-712 conformant typed data
 // hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
 func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.MixedcaseAddress, typedData TypedData) (hexutil.Bytes, error) {
-	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, err
 	}
@@ -691,7 +691,7 @@ func (typedData *TypedData) Map() map[string]interface{} {
 // Format returns a representation of typedData, which can be easily displayed by a user-interface
 // without in-depth knowledge about 712 rules
 func (typedData *TypedData) Format() ([]*NameValueType, error) {
-	domain, err := typedData.formatData("EIP712Domain", typedData.Domain.Map())
+	domain, err := typedData.formatData("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, err
 	}
@@ -701,7 +701,7 @@ func (typedData *TypedData) Format() ([]*NameValueType, error) {
 	}
 	var nvts []*NameValueType
 	nvts = append(nvts, &NameValueType{
-		Name:  "EIP712Domain",
+		Name:  "CIP712Domain",
 		Value: domain,
 		Typ:   "domain",
 	})
@@ -969,7 +969,7 @@ func isPrimitiveTypeValid(primitiveType string) bool {
 // the minimum viable keys and values
 func (domain *TypedDataDomain) validate() error {
 	if domain.ChainId == nil {
-		return errors.New("chainId must be specified according to EIP-155")
+		return errors.New("chainId must be specified according to CIP-155")
 	}
 
 	if len(domain.Name) == 0 && len(domain.Version) == 0 && len(domain.VerifyingContract) == 0 && len(domain.Salt) == 0 {

@@ -76,7 +76,7 @@ type Message interface {
 }
 
 // IntrinsicEnergy computes the 'intrinsic energy' for a message with the given data.
-func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isEIP2028 bool) (uint64, error) {
+func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isCIP2028 bool) (uint64, error) {
 	// Set the starting energy for the raw transaction
 	var energy uint64
 	if contractCreation && isHomestead {
@@ -95,8 +95,8 @@ func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isEIP2028 
 		}
 		// Make sure we don't exceed uint64 for all data combinations
 		nonZeroEnergy := params.TxDataNonZeroEnergyFrontier
-		if isEIP2028 {
-			nonZeroEnergy = params.TxDataNonZeroEnergyEIP2028
+		if isCIP2028 {
+			nonZeroEnergy = params.TxDataNonZeroEnergyCIP2028
 		}
 		if (math.MaxUint64-energy)/nonZeroEnergy < nz {
 			return 0, vm.ErrOutOfEnergy

@@ -30,10 +30,10 @@ var (
 		HomesteadBlock: big.NewInt(1150000),
 		DAOForkBlock:   big.NewInt(1920000),
 		DAOForkSupport: true,
-		EIP150Block:    big.NewInt(2463000),
-		EIP150Hash:     common.HexToHash("0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"),
-		EIP155Block:    big.NewInt(2675000),
-		EIP158Block:    big.NewInt(2675000),
+		CIP150Block:    big.NewInt(2463000),
+		CIP150Hash:     common.HexToHash("0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"),
+		CIP155Block:    big.NewInt(2675000),
+		CIP158Block:    big.NewInt(2675000),
 		ByzantiumBlock: big.NewInt(4370000),
 	}
 )
@@ -73,7 +73,7 @@ func TestDifficulty(t *testing.T) {
 	dt.config("Constantinople", params.ChainConfig{
 		ConstantinopleBlock: big.NewInt(0),
 	})
-	dt.config("EIP2384", params.ChainConfig{
+	dt.config("CIP2384", params.ChainConfig{
 		MuirGlacierBlock: big.NewInt(0),
 	})
 	dt.config("difficulty.json", mainnetChainConfig)

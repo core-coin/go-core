@@ -42,7 +42,7 @@ const (
 	ProtocolVersionStr = "6.0"     // The same, as a string
 	ProtocolName       = "shh"     // Nickname of the protocol in gcore
 
-	// whisper protocol message codes, according to EIP-627
+	// whisper protocol message codes, according to CIP-627
 	statusCode           = 0   // used by whisper protocol
 	messagesCode         = 1   // normal whisper message
 	powRequirementCode   = 2   // PoW requirement

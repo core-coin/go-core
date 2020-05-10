@@ -215,7 +215,7 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 	}
 	var signer types.Signer = types.HomesteadSigner{}
 	if tx.Protected() {
-		signer = types.NewEIP155Signer(tx.ChainId())
+		signer = types.NewCIP155Signer(tx.ChainId())
 	}
 	from, _ := types.Sender(signer, tx)
 

@@ -161,9 +161,9 @@ func TestForkIDSplit(t *testing.T) {
 		configNoFork  = &params.ChainConfig{HomesteadBlock: big.NewInt(1)}
 		configProFork = &params.ChainConfig{
 			HomesteadBlock: big.NewInt(1),
-			EIP150Block:    big.NewInt(2),
-			EIP155Block:    big.NewInt(2),
-			EIP158Block:    big.NewInt(2),
+			CIP150Block:    big.NewInt(2),
+			CIP155Block:    big.NewInt(2),
+			CIP158Block:    big.NewInt(2),
 			ByzantiumBlock: big.NewInt(3),
 		}
 		dbNoFork  = rawdb.NewMemoryDatabase()

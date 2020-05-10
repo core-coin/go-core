@@ -34,7 +34,7 @@ import (
 )
 
 var typesStandard = core.Types{
-	"EIP712Domain": {
+	"CIP712Domain": {
 		{
 			Name: "name",
 			Type: "string",
@@ -81,7 +81,7 @@ var typesStandard = core.Types{
 var jsonTypedData = `
     {
       "types": {
-        "EIP712Domain": [
+        "CIP712Domain": [
           {
             "name": "name",
             "type": "string"
@@ -233,7 +233,7 @@ func TestSignData(t *testing.T) {
 func TestDomainChainId(t *testing.T) {
 	withoutChainID := core.TypedData{
 		Types: core.Types{
-			"EIP712Domain": []core.Type{
+			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
 			},
 		},
@@ -247,7 +247,7 @@ func TestDomainChainId(t *testing.T) {
 	}
 	withChainID := core.TypedData{
 		Types: core.Types{
-			"EIP712Domain": []core.Type{
+			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
 				{Name: "chainId", Type: "uint256"},
 			},
@@ -273,7 +273,7 @@ func TestHashStruct(t *testing.T) {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
-	hash, err = typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	hash, err = typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		t.Error(err)
 	}
@@ -284,8 +284,8 @@ func TestHashStruct(t *testing.T) {
 }
 
 func TestEncodeType(t *testing.T) {
-	domainTypeEncoding := string(typedData.EncodeType("EIP712Domain"))
-	if domainTypeEncoding != "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)" {
+	domainTypeEncoding := string(typedData.EncodeType("CIP712Domain"))
+	if domainTypeEncoding != "CIP712Domain(string name,string version,uint256 chainId,address verifyingContract)" {
 		t.Errorf("Expected different encodeType result (got %s)", domainTypeEncoding)
 	}
 
@@ -329,7 +329,7 @@ func TestFormatter(t *testing.T) {
 }
 
 func sign(typedData core.TypedData) ([]byte, []byte, error) {
-	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -395,7 +395,7 @@ func TestFuzzerFiles(t *testing.T) {
 			t.Errorf("Test %d, file %v, json unmarshalling failed: %v", i, fInfo.Name(), err)
 			continue
 		}
-		_, err = typedData.EncodeData("EIP712Domain", typedData.Domain.Map(), 1)
+		_, err = typedData.EncodeData("CIP712Domain", typedData.Domain.Map(), 1)
 		if verbose && err != nil {
 			t.Logf("%d, EncodeData[1] err: %v\n", i, err)
 		}

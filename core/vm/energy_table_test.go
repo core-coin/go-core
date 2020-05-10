@@ -48,7 +48,7 @@ func TestMemoryEnergyCost(t *testing.T) {
 	}
 }
 
-var eip2200Tests = []struct {
+var cip2200Tests = []struct {
 	original byte
 	energypool  uint64
 	input    string
@@ -77,8 +77,8 @@ var eip2200Tests = []struct {
 	{1, 2307, "0x6001600055", 806, 0, nil},                                     // 1 -> 1 (2301 sentry + 2xPUSH)
 }
 
-func TestEIP2200(t *testing.T) {
-	for i, tt := range eip2200Tests {
+func TestCIP2200(t *testing.T) {
+	for i, tt := range cip2200Tests {
 		address := common.BytesToAddress([]byte("contract"))
 
 		statedb, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
@@ -91,7 +91,7 @@ func TestEIP2200(t *testing.T) {
 			CanTransfer: func(StateDB, common.Address, *big.Int) bool { return true },
 			Transfer:    func(StateDB, common.Address, common.Address, *big.Int) {},
 		}
-		vmenv := NewCVM(vmctx, statedb, params.AllCryptoreProtocolChanges, Config{ExtraEips: []int{2200}})
+		vmenv := NewCVM(vmctx, statedb, params.AllCryptoreProtocolChanges, Config{ExtraCips: []int{2200}})
 
 		_, energy, err := vmenv.Call(AccountRef(common.Address{}), address, nil, tt.energypool, new(big.Int))
 		if err != tt.failure {

@@ -127,13 +127,13 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err %v", err)
 	}
-	signer := types.NewEIP155Signer(big.NewInt(1))
+	signer := types.NewCIP155Signer(big.NewInt(1))
 	tx, err := types.SignTx(unsignedTx, signer, privateKeyEDDSA)
 	if err != nil {
 		t.Fatalf("err %v", err)
 	}
 	/**
-		This comes from one of the test-vectors on the Skinny Create2 - EIP
+		This comes from one of the test-vectors on the Skinny Create2 - CIP
 
 	    address 0x00000000000000000000000000000000deadbeef
 	    salt 0x00000000000000000000000000000000000000000000000000000000cafebabe

@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package dnsdisc implements node discovery via DNS (EIP-1459).
+// Package dnsdisc implements node discovery via DNS (CIP-1459).
 package dnsdisc

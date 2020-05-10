@@ -21,7 +21,7 @@ Section "Uninstall"
   SimpleFC::AdvRemoveRule "Gcore outgoing peers (TCP:30300)"
   SimpleFC::AdvRemoveRule "Gcore UDP discovery (UDP:30300)"
 
-  # Remove IPC endpoint (https://github.com/core-coin/EIPs/issues/147)
+  # Remove IPC endpoint (https://github.com/core-coin/CIPs/issues/147)
   ${un.EnvVarUpdate} $0 "CORE_SOCKET" "R" "HKLM" "\\.\pipe\gcore.ipc"
 
   # Remove install directory from PATH

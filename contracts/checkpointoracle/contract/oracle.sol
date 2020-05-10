@@ -86,7 +86,7 @@ contract CheckpointOracle {
             return false;
         }
 
-        // EIP 191 style signatures
+        // CIP 191 style signatures
         //
         // Arguments when calculating hash to validate
         // 1: byte(0x19) - the initial 0x19 byte

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package forkid implements EIP-2124 (https://eips.coreblockchain.cc/EIPS/eip-2124).
+// Package forkid implements CIP-2124 (https://cips.coreblockchain.cc/CIPS/cip-2124).
 package forkid
 
 import (
@@ -44,7 +44,7 @@ var (
 	ErrLocalIncompatibleOrStale = errors.New("local incompatible or needs update")
 )
 
-// ID is a fork identifier as defined by EIP-2124.
+// ID is a fork identifier as defined by CIP-2124.
 type ID struct {
 	Hash [4]byte // CRC32 checksum of the genesis block and passed fork block numbers
 	Next uint64  // Block number of the next upcoming fork, or 0 if no forks are known

@@ -692,7 +692,7 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
 		energy          = contract.Energy
 	)
-	if interpreter.cvm.chainRules.IsEIP150 {
+	if interpreter.cvm.chainRules.IsCIP150 {
 		energy -= energy / 64
 	}
 
@@ -727,7 +727,7 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memo
 		energy          = contract.Energy
 	)
 
-	// Apply EIP150
+	// Apply CIP150
 	energy -= energy / 64
 	contract.UseEnergy(energy)
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create2(contract, input, energy, endowment, salt)

@@ -33,7 +33,7 @@ Section "Gcore" Gcore_IDX
   SimpleFC::AdvAddRule "Gcore outgoing peers (TCP:30300)" ""  6 2 1 2147483647 1 "$INSTDIR\gcore.exe" "" "" "Core" "" 30300 "" ""
   SimpleFC::AdvAddRule "Gcore UDP discovery (UDP:30300)" "" 17 2 1 2147483647 1 "$INSTDIR\gcore.exe" "" "" "Core" "" 30300 "" ""
 
-  # Set default IPC endpoint (https://github.com/core/EIPs/issues/147)
+  # Set default IPC endpoint (https://github.com/core/CIPs/issues/147)
   ${EnvVarUpdate} $0 "CORE_SOCKET" "R" "HKLM" "\\.\pipe\gcore.ipc"
   ${EnvVarUpdate} $0 "CORE_SOCKET" "A" "HKLM" "\\.\pipe\gcore.ipc"
 

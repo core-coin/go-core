@@ -42,7 +42,7 @@ type MobileSigner struct {
 }
 
 func (s *MobileSigner) Sign(addr *Address, unsignedTx *Transaction) (signedTx *Transaction, _ error) {
-	sig, err := s.sign(types.EIP155Signer{}, addr.address, unsignedTx.tx)
+	sig, err := s.sign(types.CIP155Signer{}, addr.address, unsignedTx.tx)
 	if err != nil {
 		return nil, err
 	}

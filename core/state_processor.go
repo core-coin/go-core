@@ -105,12 +105,12 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	if config.IsByzantium(header.Number) {
 		statedb.Finalise(true)
 	} else {
-		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
+		root = statedb.IntermediateRoot(config.IsCIP158(header.Number)).Bytes()
 	}
 	*usedEnergy += energy
 
 	// Create a new receipt for the transaction, storing the intermediate root and energy used by the tx
-	// based on the eip phase, we're passing whether the root touch-delete accounts.
+	// based on the cip phase, we're passing whether the root touch-delete accounts.
 	receipt := types.NewReceipt(root, failed, *usedEnergy)
 	receipt.TxHash = tx.Hash()
 	receipt.EnergyUsed = energy

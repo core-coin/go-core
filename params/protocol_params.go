@@ -52,14 +52,14 @@ const (
 	NetSstoreResetRefund      uint64 = 4800  // Once per SSTORE operation for resetting to the original non-zero value
 	NetSstoreResetClearRefund uint64 = 19800 // Once per SSTORE operation for resetting to the original zero value
 
-	SstoreSentryEnergyEIP2200   uint64 = 2300  // Minimum energy required to be present for an SSTORE call, not consumed
-	SstoreNoopEnergyEIP2200     uint64 = 800   // Once per SSTORE operation if the value doesn't change.
-	SstoreDirtyEnergyEIP2200    uint64 = 800   // Once per SSTORE operation if a dirty value is changed.
-	SstoreInitEnergyEIP2200     uint64 = 20000 // Once per SSTORE operation from clean zero to non-zero
-	SstoreInitRefundEIP2200  uint64 = 19200 // Once per SSTORE operation for resetting to the original zero value
-	SstoreCleanEnergyEIP2200    uint64 = 5000  // Once per SSTORE operation from clean non-zero to something else
-	SstoreCleanRefundEIP2200 uint64 = 4200  // Once per SSTORE operation for resetting to the original non-zero value
-	SstoreClearRefundEIP2200 uint64 = 15000 // Once per SSTORE operation for clearing an originally existing storage slot
+	SstoreSentryEnergyCIP2200   uint64 = 2300  // Minimum energy required to be present for an SSTORE call, not consumed
+	SstoreNoopEnergyCIP2200     uint64 = 800   // Once per SSTORE operation if the value doesn't change.
+	SstoreDirtyEnergyCIP2200    uint64 = 800   // Once per SSTORE operation if a dirty value is changed.
+	SstoreInitEnergyCIP2200     uint64 = 20000 // Once per SSTORE operation from clean zero to non-zero
+	SstoreInitRefundCIP2200  uint64 = 19200 // Once per SSTORE operation for resetting to the original zero value
+	SstoreCleanEnergyCIP2200    uint64 = 5000  // Once per SSTORE operation from clean non-zero to something else
+	SstoreCleanRefundCIP2200 uint64 = 4200  // Once per SSTORE operation for resetting to the original non-zero value
+	SstoreClearRefundCIP2200 uint64 = 15000 // Once per SSTORE operation for clearing an originally existing storage slot
 
 	JumpdestEnergy   uint64 = 1     // Once per JUMPDEST operation.
 	EpochDuration uint64 = 30000 // Duration between proof-of-work epochs.
@@ -77,36 +77,36 @@ const (
 	SelfdestructRefundEnergy    uint64 = 24000 // Refunded following a selfdestruct operation.
 	MemoryEnergy                uint64 = 3     // Times the address of the (highest referenced byte in memory + 1). NOTE: referencing happens on read, write and in instructions such as RETURN and CALL.
 	TxDataNonZeroEnergyFrontier uint64 = 68    // Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.
-	TxDataNonZeroEnergyEIP2028  uint64 = 16    // Per byte of non zero data attached to a transaction after EIP 2028 (part in Istanbul)
+	TxDataNonZeroEnergyCIP2028  uint64 = 16    // Per byte of non zero data attached to a transaction after CIP 2028 (part in Istanbul)
 
 	// These have been changed during the course of the chain
 	CallEnergyFrontier              uint64 = 40  // Once per CALL operation & message call transaction.
-	CallEnergyEIP150                uint64 = 700 // Static portion of energy for CALL-derivates after EIP 150 (Tangerine)
+	CallEnergyCIP150                uint64 = 700 // Static portion of energy for CALL-derivates after CIP 150 (Tangerine)
 	BalanceEnergyFrontier           uint64 = 20  // The cost of a BALANCE operation
-	BalanceEnergyEIP150             uint64 = 400 // The cost of a BALANCE operation after Tangerine
-	BalanceEnergyEIP1884            uint64 = 700 // The cost of a BALANCE operation after EIP 1884 (part of Istanbul)
-	ExtcodeSizeEnergyFrontier       uint64 = 20  // Cost of EXTCODESIZE before EIP 150 (Tangerine)
-	ExtcodeSizeEnergyEIP150         uint64 = 700 // Cost of EXTCODESIZE after EIP 150 (Tangerine)
+	BalanceEnergyCIP150             uint64 = 400 // The cost of a BALANCE operation after Tangerine
+	BalanceEnergyCIP1884            uint64 = 700 // The cost of a BALANCE operation after CIP 1884 (part of Istanbul)
+	ExtcodeSizeEnergyFrontier       uint64 = 20  // Cost of EXTCODESIZE before CIP 150 (Tangerine)
+	ExtcodeSizeEnergyCIP150         uint64 = 700 // Cost of EXTCODESIZE after CIP 150 (Tangerine)
 	SloadEnergyFrontier             uint64 = 50
-	SloadEnergyEIP150               uint64 = 200
-	SloadEnergyEIP1884              uint64 = 800  // Cost of SLOAD after EIP 1884 (part of Istanbul)
-	SloadEnergyEIP2200              uint64 = 800  // Cost of SLOAD after EIP 2200 (part of Istanbul)
+	SloadEnergyCIP150               uint64 = 200
+	SloadEnergyCIP1884              uint64 = 800  // Cost of SLOAD after CIP 1884 (part of Istanbul)
+	SloadEnergyCIP2200              uint64 = 800  // Cost of SLOAD after CIP 2200 (part of Istanbul)
 	ExtcodeHashEnergyConstantinople uint64 = 400  // Cost of EXTCODEHASH (introduced in Constantinople)
-	ExtcodeHashEnergyEIP1884        uint64 = 700  // Cost of EXTCODEHASH after EIP 1884 (part in Istanbul)
-	SelfdestructEnergyEIP150        uint64 = 5000 // Cost of SELFDESTRUCT post EIP 150 (Tangerine)
+	ExtcodeHashEnergyCIP1884        uint64 = 700  // Cost of EXTCODEHASH after CIP 1884 (part in Istanbul)
+	SelfdestructEnergyCIP150        uint64 = 5000 // Cost of SELFDESTRUCT post CIP 150 (Tangerine)
 
 	// EXP has a dynamic portion depending on the size of the exponent
 	ExpByteFrontier uint64 = 10 // was set to 10 in Frontier
-	ExpByteEIP158   uint64 = 50 // was raised to 50 during Eip158 (Spurious Dragon)
+	ExpByteCIP158   uint64 = 50 // was raised to 50 during Cip158 (Spurious Dragon)
 
 	// Extcodecopy has a dynamic AND a static cost. This represents only the
-	// static portion of the energy. It was changed during EIP 150 (Tangerine)
+	// static portion of the energy. It was changed during CIP 150 (Tangerine)
 	ExtcodeCopyBaseFrontier uint64 = 20
-	ExtcodeCopyBaseEIP150   uint64 = 700
+	ExtcodeCopyBaseCIP150   uint64 = 700
 
 	// CreateBySelfdestructEnergy is used when the refunded account is one that does
 	// not exist. This logic is similar to call.
-	// Introduced in Tangerine Whistle (Eip 150)
+	// Introduced in Tangerine Whistle (Cip 150)
 	CreateBySelfdestructEnergy uint64 = 25000
 
 	MaxCodeSize = 24576 // Maximum bytecode to permit for a contract

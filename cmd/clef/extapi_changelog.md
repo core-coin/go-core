@@ -24,7 +24,7 @@ The addition of `contentType` makes it possible to use the method for different 
   * signing data with an intended validator (not yet implemented)
   * signing clique headers,
   * signing plain personal messages,
-* The external method `account_signTypedData` implements [EIP-712](https://github.com/core-coin/EIPs/blob/master/EIPS/eip-712.md) and makes it possible to sign typed data.
+* The external method `account_signTypedData` implements [CIP-712](https://github.com/core-coin/CIPs/blob/master/CIPS/cip-712.md) and makes it possible to sign typed data.
 
 #### 4.0.0
 

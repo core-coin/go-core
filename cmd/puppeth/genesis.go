@@ -40,8 +40,8 @@ type alxceGenesisSpec struct {
 		MaximumExtraDataSize       hexutil.Uint64         `json:"maximumExtraDataSize"`
 		HomesteadForkBlock         *hexutil.Big           `json:"homesteadForkBlock,omitempty"`
 		DaoHardforkBlock           math2.HexOrDecimal64   `json:"daoHardforkBlock"`
-		EIP150ForkBlock            *hexutil.Big           `json:"EIP150ForkBlock,omitempty"`
-		EIP158ForkBlock            *hexutil.Big           `json:"EIP158ForkBlock,omitempty"`
+		CIP150ForkBlock            *hexutil.Big           `json:"CIP150ForkBlock,omitempty"`
+		CIP158ForkBlock            *hexutil.Big           `json:"CIP158ForkBlock,omitempty"`
 		ByzantiumForkBlock         *hexutil.Big           `json:"byzantiumForkBlock,omitempty"`
 		ConstantinopleForkBlock    *hexutil.Big           `json:"constantinopleForkBlock,omitempty"`
 		ConstantinopleFixForkBlock *hexutil.Big           `json:"constantinopleFixForkBlock,omitempty"`
@@ -117,11 +117,11 @@ func newAlxceGenesisSpec(network string, genesis *core.Genesis) (*alxceGenesisSp
 	if num := genesis.Config.HomesteadBlock; num != nil {
 		spec.Params.HomesteadForkBlock = (*hexutil.Big)(num)
 	}
-	if num := genesis.Config.EIP150Block; num != nil {
-		spec.Params.EIP150ForkBlock = (*hexutil.Big)(num)
+	if num := genesis.Config.CIP150Block; num != nil {
+		spec.Params.CIP150ForkBlock = (*hexutil.Big)(num)
 	}
-	if num := genesis.Config.EIP158Block; num != nil {
-		spec.Params.EIP158ForkBlock = (*hexutil.Big)(num)
+	if num := genesis.Config.CIP158Block; num != nil {
+		spec.Params.CIP158ForkBlock = (*hexutil.Big)(num)
 	}
 	if num := genesis.Config.ByzantiumBlock; num != nil {
 		spec.Params.ByzantiumForkBlock = (*hexutil.Big)(num)
@@ -238,7 +238,7 @@ type parityChainSpec struct {
 				BlockReward            map[string]string `json:"blockReward"`
 				DifficultyBombDelays   map[string]string `json:"difficultyBombDelays"`
 				HomesteadTransition    hexutil.Uint64    `json:"homesteadTransition"`
-				EIP100bTransition      hexutil.Uint64    `json:"eip100bTransition"`
+				CIP100bTransition      hexutil.Uint64    `json:"cip100bTransition"`
 			} `json:"params"`
 		} `json:"Cryptore"`
 	} `json:"engine"`
@@ -252,25 +252,25 @@ type parityChainSpec struct {
 		ChainID                   hexutil.Uint64       `json:"chainID"`
 		MaxCodeSize               hexutil.Uint64       `json:"maxCodeSize"`
 		MaxCodeSizeTransition     hexutil.Uint64       `json:"maxCodeSizeTransition"`
-		EIP98Transition           hexutil.Uint64       `json:"eip98Transition"`
-		EIP150Transition          hexutil.Uint64       `json:"eip150Transition"`
-		EIP160Transition          hexutil.Uint64       `json:"eip160Transition"`
-		EIP161abcTransition       hexutil.Uint64       `json:"eip161abcTransition"`
-		EIP161dTransition         hexutil.Uint64       `json:"eip161dTransition"`
-		EIP155Transition          hexutil.Uint64       `json:"eip155Transition"`
-		EIP140Transition          hexutil.Uint64       `json:"eip140Transition"`
-		EIP211Transition          hexutil.Uint64       `json:"eip211Transition"`
-		EIP214Transition          hexutil.Uint64       `json:"eip214Transition"`
-		EIP658Transition          hexutil.Uint64       `json:"eip658Transition"`
-		EIP145Transition          hexutil.Uint64       `json:"eip145Transition"`
-		EIP1014Transition         hexutil.Uint64       `json:"eip1014Transition"`
-		EIP1052Transition         hexutil.Uint64       `json:"eip1052Transition"`
-		EIP1283Transition         hexutil.Uint64       `json:"eip1283Transition"`
-		EIP1283DisableTransition  hexutil.Uint64       `json:"eip1283DisableTransition"`
-		EIP1283ReenableTransition hexutil.Uint64       `json:"eip1283ReenableTransition"`
-		EIP1344Transition         hexutil.Uint64       `json:"eip1344Transition"`
-		EIP1884Transition         hexutil.Uint64       `json:"eip1884Transition"`
-		EIP2028Transition         hexutil.Uint64       `json:"eip2028Transition"`
+		CIP98Transition           hexutil.Uint64       `json:"cip98Transition"`
+		CIP150Transition          hexutil.Uint64       `json:"cip150Transition"`
+		CIP160Transition          hexutil.Uint64       `json:"cip160Transition"`
+		CIP161abcTransition       hexutil.Uint64       `json:"cip161abcTransition"`
+		CIP161dTransition         hexutil.Uint64       `json:"cip161dTransition"`
+		CIP155Transition          hexutil.Uint64       `json:"cip155Transition"`
+		CIP140Transition          hexutil.Uint64       `json:"cip140Transition"`
+		CIP211Transition          hexutil.Uint64       `json:"cip211Transition"`
+		CIP214Transition          hexutil.Uint64       `json:"cip214Transition"`
+		CIP658Transition          hexutil.Uint64       `json:"cip658Transition"`
+		CIP145Transition          hexutil.Uint64       `json:"cip145Transition"`
+		CIP1014Transition         hexutil.Uint64       `json:"cip1014Transition"`
+		CIP1052Transition         hexutil.Uint64       `json:"cip1052Transition"`
+		CIP1283Transition         hexutil.Uint64       `json:"cip1283Transition"`
+		CIP1283DisableTransition  hexutil.Uint64       `json:"cip1283DisableTransition"`
+		CIP1283ReenableTransition hexutil.Uint64       `json:"cip1283ReenableTransition"`
+		CIP1344Transition         hexutil.Uint64       `json:"cip1344Transition"`
+		CIP1884Transition         hexutil.Uint64       `json:"cip1884Transition"`
+		CIP2028Transition         hexutil.Uint64       `json:"cip2028Transition"`
 	} `json:"params"`
 
 	Genesis struct {
@@ -386,15 +386,15 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Engine.Cryptore.Params.HomesteadTransition = hexutil.Uint64(genesis.Config.HomesteadBlock.Uint64())
 
 	// Tangerine Whistle : 150
-	// https://github.com/core-coin/EIPs/blob/master/EIPS/eip-608.md
-	spec.Params.EIP150Transition = hexutil.Uint64(genesis.Config.EIP150Block.Uint64())
+	// https://github.com/core-coin/CIPs/blob/master/CIPS/cip-608.md
+	spec.Params.CIP150Transition = hexutil.Uint64(genesis.Config.CIP150Block.Uint64())
 
 	// Spurious Dragon: 155, 160, 161, 170
-	// https://github.com/core-coin/EIPs/blob/master/EIPS/eip-607.md
-	spec.Params.EIP155Transition = hexutil.Uint64(genesis.Config.EIP155Block.Uint64())
-	spec.Params.EIP160Transition = hexutil.Uint64(genesis.Config.EIP155Block.Uint64())
-	spec.Params.EIP161abcTransition = hexutil.Uint64(genesis.Config.EIP158Block.Uint64())
-	spec.Params.EIP161dTransition = hexutil.Uint64(genesis.Config.EIP158Block.Uint64())
+	// https://github.com/core-coin/CIPs/blob/master/CIPS/cip-607.md
+	spec.Params.CIP155Transition = hexutil.Uint64(genesis.Config.CIP155Block.Uint64())
+	spec.Params.CIP160Transition = hexutil.Uint64(genesis.Config.CIP155Block.Uint64())
+	spec.Params.CIP161abcTransition = hexutil.Uint64(genesis.Config.CIP158Block.Uint64())
+	spec.Params.CIP161dTransition = hexutil.Uint64(genesis.Config.CIP158Block.Uint64())
 
 	// Byzantium
 	if num := genesis.Config.ByzantiumBlock; num != nil {
@@ -404,7 +404,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	if num := genesis.Config.ConstantinopleBlock; num != nil {
 		spec.setConstantinople(num)
 	}
-	// ConstantinopleFix (remove eip-1283)
+	// ConstantinopleFix (remove cip-1283)
 	if num := genesis.Config.PetersburgBlock; num != nil {
 		spec.setConstantinopleFix(num)
 	}
@@ -422,7 +422,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Params.MaxCodeSizeTransition = 0
 
 	// Disable this one
-	spec.Params.EIP98Transition = math.MaxInt64
+	spec.Params.CIP98Transition = math.MaxInt64
 
 	spec.Genesis.Seal.Core.Nonce = types.EncodeNonce(genesis.Nonce)
 	spec.Genesis.Seal.Core.MixHash = (genesis.Mixhash[:])
@@ -562,32 +562,32 @@ func (spec *parityChainSpec) setByzantium(num *big.Int) {
 	spec.Engine.Cryptore.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(cryptore.ByzantiumBlockReward)
 	spec.Engine.Cryptore.Params.DifficultyBombDelays[hexutil.EncodeBig(num)] = hexutil.EncodeUint64(3000000)
 	n := hexutil.Uint64(num.Uint64())
-	spec.Engine.Cryptore.Params.EIP100bTransition = n
-	spec.Params.EIP140Transition = n
-	spec.Params.EIP211Transition = n
-	spec.Params.EIP214Transition = n
-	spec.Params.EIP658Transition = n
+	spec.Engine.Cryptore.Params.CIP100bTransition = n
+	spec.Params.CIP140Transition = n
+	spec.Params.CIP211Transition = n
+	spec.Params.CIP214Transition = n
+	spec.Params.CIP658Transition = n
 }
 
 func (spec *parityChainSpec) setConstantinople(num *big.Int) {
 	spec.Engine.Cryptore.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(cryptore.ConstantinopleBlockReward)
 	spec.Engine.Cryptore.Params.DifficultyBombDelays[hexutil.EncodeBig(num)] = hexutil.EncodeUint64(2000000)
 	n := hexutil.Uint64(num.Uint64())
-	spec.Params.EIP145Transition = n
-	spec.Params.EIP1014Transition = n
-	spec.Params.EIP1052Transition = n
-	spec.Params.EIP1283Transition = n
+	spec.Params.CIP145Transition = n
+	spec.Params.CIP1014Transition = n
+	spec.Params.CIP1052Transition = n
+	spec.Params.CIP1283Transition = n
 }
 
 func (spec *parityChainSpec) setConstantinopleFix(num *big.Int) {
-	spec.Params.EIP1283DisableTransition = hexutil.Uint64(num.Uint64())
+	spec.Params.CIP1283DisableTransition = hexutil.Uint64(num.Uint64())
 }
 
 func (spec *parityChainSpec) setIstanbul(num *big.Int) {
-	spec.Params.EIP1344Transition = hexutil.Uint64(num.Uint64())
-	spec.Params.EIP1884Transition = hexutil.Uint64(num.Uint64())
-	spec.Params.EIP2028Transition = hexutil.Uint64(num.Uint64())
-	spec.Params.EIP1283ReenableTransition = hexutil.Uint64(num.Uint64())
+	spec.Params.CIP1344Transition = hexutil.Uint64(num.Uint64())
+	spec.Params.CIP1884Transition = hexutil.Uint64(num.Uint64())
+	spec.Params.CIP2028Transition = hexutil.Uint64(num.Uint64())
+	spec.Params.CIP1283ReenableTransition = hexutil.Uint64(num.Uint64())
 }
 
 // pyCoreGenesisSpec represents the genesis specification format used by the
