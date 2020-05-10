@@ -18,8 +18,8 @@ func (s StructLog) MarshalJSON() ([]byte, error) {
 	type StructLog struct {
 		Pc            uint64                      `json:"pc"`
 		Op            OpCode                      `json:"op"`
-		Energy           math.HexOrDecimal64         `json:"energy"`
-		EnergyCost       math.HexOrDecimal64         `json:"energyCost"`
+		Energy        math.HexOrDecimal64         `json:"energy"`
+		EnergyCost    math.HexOrDecimal64         `json:"energyCost"`
 		Memory        hexutil.Bytes               `json:"memory"`
 		MemorySize    int                         `json:"memSize"`
 		Stack         []*math.HexOrDecimal256     `json:"stack"`
@@ -57,8 +57,8 @@ func (s *StructLog) UnmarshalJSON(input []byte) error {
 	type StructLog struct {
 		Pc            *uint64                     `json:"pc"`
 		Op            *OpCode                     `json:"op"`
-		Energy           *math.HexOrDecimal64        `json:"energy"`
-		EnergyCost       *math.HexOrDecimal64        `json:"energyCost"`
+		Energy        *math.HexOrDecimal64        `json:"energy"`
+		EnergyCost    *math.HexOrDecimal64        `json:"energyCost"`
 		Memory        *hexutil.Bytes              `json:"memory"`
 		MemorySize    *int                        `json:"memSize"`
 		Stack         []*math.HexOrDecimal256     `json:"stack"`

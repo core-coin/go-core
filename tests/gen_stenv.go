@@ -13,13 +13,14 @@ import (
 
 var _ = (*stEnvMarshaling)(nil)
 
+// MarshalJSON marshals as JSON.
 func (s stEnv) MarshalJSON() ([]byte, error) {
 	type stEnv struct {
-		Coinbase   common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
-		Difficulty *math.HexOrDecimal256    `json:"currentDifficulty" gencodec:"required"`
-		EnergyLimit   math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
-		Number     math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
-		Timestamp  math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
+		Coinbase    common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
+		Difficulty  *math.HexOrDecimal256    `json:"currentDifficulty" gencodec:"required"`
+		EnergyLimit math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
+		Number      math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
+		Timestamp   math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
 	}
 	var enc stEnv
 	enc.Coinbase = common.UnprefixedAddress(s.Coinbase)
@@ -30,13 +31,14 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (s *stEnv) UnmarshalJSON(input []byte) error {
 	type stEnv struct {
-		Coinbase   *common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
-		Difficulty *math.HexOrDecimal256     `json:"currentDifficulty" gencodec:"required"`
-		EnergyLimit   *math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
-		Number     *math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
-		Timestamp  *math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
+		Coinbase    *common.UnprefixedAddress `json:"currentCoinbase"   gencodec:"required"`
+		Difficulty  *math.HexOrDecimal256     `json:"currentDifficulty" gencodec:"required"`
+		EnergyLimit *math.HexOrDecimal64      `json:"currentEnergyLimit"   gencodec:"required"`
+		Number      *math.HexOrDecimal64      `json:"currentNumber"     gencodec:"required"`
+		Timestamp   *math.HexOrDecimal64      `json:"currentTimestamp"  gencodec:"required"`
 	}
 	var dec stEnv
 	if err := json.Unmarshal(input, &dec); err != nil {

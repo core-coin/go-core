@@ -16,17 +16,17 @@ var _ = (*receiptMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (r Receipt) MarshalJSON() ([]byte, error) {
 	type Receipt struct {
-		PostState         hexutil.Bytes  `json:"root"`
-		Status            hexutil.Uint64 `json:"status"`
+		PostState            hexutil.Bytes  `json:"root"`
+		Status               hexutil.Uint64 `json:"status"`
 		CumulativeEnergyUsed hexutil.Uint64 `json:"cumulativeEnergyUsed" gencodec:"required"`
-		Bloom             Bloom          `json:"logsBloom"         gencodec:"required"`
-		Logs              []*Log         `json:"logs"              gencodec:"required"`
-		TxHash            common.Hash    `json:"transactionHash" gencodec:"required"`
-		ContractAddress   common.Address `json:"contractAddress"`
+		Bloom                Bloom          `json:"logsBloom"         gencodec:"required"`
+		Logs                 []*Log         `json:"logs"              gencodec:"required"`
+		TxHash               common.Hash    `json:"transactionHash" gencodec:"required"`
+		ContractAddress      common.Address `json:"contractAddress"`
 		EnergyUsed           hexutil.Uint64 `json:"energyUsed" gencodec:"required"`
-		BlockHash         common.Hash    `json:"blockHash,omitempty"`
-		BlockNumber       *hexutil.Big   `json:"blockNumber,omitempty"`
-		TransactionIndex  hexutil.Uint   `json:"transactionIndex"`
+		BlockHash            common.Hash    `json:"blockHash,omitempty"`
+		BlockNumber          *hexutil.Big   `json:"blockNumber,omitempty"`
+		TransactionIndex     hexutil.Uint   `json:"transactionIndex"`
 	}
 	var enc Receipt
 	enc.PostState = r.PostState
@@ -46,17 +46,17 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (r *Receipt) UnmarshalJSON(input []byte) error {
 	type Receipt struct {
-		PostState         *hexutil.Bytes  `json:"root"`
-		Status            *hexutil.Uint64 `json:"status"`
+		PostState            *hexutil.Bytes  `json:"root"`
+		Status               *hexutil.Uint64 `json:"status"`
 		CumulativeEnergyUsed *hexutil.Uint64 `json:"cumulativeEnergyUsed" gencodec:"required"`
-		Bloom             *Bloom          `json:"logsBloom"         gencodec:"required"`
-		Logs              []*Log          `json:"logs"              gencodec:"required"`
-		TxHash            *common.Hash    `json:"transactionHash" gencodec:"required"`
-		ContractAddress   *common.Address `json:"contractAddress"`
+		Bloom                *Bloom          `json:"logsBloom"         gencodec:"required"`
+		Logs                 []*Log          `json:"logs"              gencodec:"required"`
+		TxHash               *common.Hash    `json:"transactionHash" gencodec:"required"`
+		ContractAddress      *common.Address `json:"contractAddress"`
 		EnergyUsed           *hexutil.Uint64 `json:"energyUsed" gencodec:"required"`
-		BlockHash         *common.Hash    `json:"blockHash,omitempty"`
-		BlockNumber       *hexutil.Big    `json:"blockNumber,omitempty"`
-		TransactionIndex  *hexutil.Uint   `json:"transactionIndex"`
+		BlockHash            *common.Hash    `json:"blockHash,omitempty"`
+		BlockNumber          *hexutil.Big    `json:"blockNumber,omitempty"`
+		TransactionIndex     *hexutil.Uint   `json:"transactionIndex"`
 	}
 	var dec Receipt
 	if err := json.Unmarshal(input, &dec); err != nil {

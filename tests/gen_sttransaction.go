@@ -12,15 +12,16 @@ import (
 
 var _ = (*stTransactionMarshaling)(nil)
 
+// MarshalJSON marshals as JSON.
 func (s stTransaction) MarshalJSON() ([]byte, error) {
 	type stTransaction struct {
-		EnergyPrice   *math.HexOrDecimal256 `json:"energyPrice"`
-		Nonce      math.HexOrDecimal64   `json:"nonce"`
-		To         string                `json:"to"`
-		Data       []string              `json:"data"`
-		EnergyLimit   []math.HexOrDecimal64 `json:"energyLimit"`
-		Value      []string              `json:"value"`
-		PrivateKey hexutil.Bytes         `json:"secretKey"`
+		EnergyPrice *math.HexOrDecimal256 `json:"energyPrice"`
+		Nonce       math.HexOrDecimal64   `json:"nonce"`
+		To          string                `json:"to"`
+		Data        []string              `json:"data"`
+		EnergyLimit []math.HexOrDecimal64 `json:"energyLimit"`
+		Value       []string              `json:"value"`
+		PrivateKey  hexutil.Bytes         `json:"secretKey"`
 	}
 	var enc stTransaction
 	enc.EnergyPrice = (*math.HexOrDecimal256)(s.EnergyPrice)
@@ -38,15 +39,16 @@ func (s stTransaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (s *stTransaction) UnmarshalJSON(input []byte) error {
 	type stTransaction struct {
-		EnergyPrice   *math.HexOrDecimal256 `json:"energyPrice"`
-		Nonce      *math.HexOrDecimal64  `json:"nonce"`
-		To         *string               `json:"to"`
-		Data       []string              `json:"data"`
-		EnergyLimit   []math.HexOrDecimal64 `json:"energyLimit"`
-		Value      []string              `json:"value"`
-		PrivateKey *hexutil.Bytes        `json:"secretKey"`
+		EnergyPrice *math.HexOrDecimal256 `json:"energyPrice"`
+		Nonce       *math.HexOrDecimal64  `json:"nonce"`
+		To          *string               `json:"to"`
+		Data        []string              `json:"data"`
+		EnergyLimit []math.HexOrDecimal64 `json:"energyLimit"`
+		Value       []string              `json:"value"`
+		PrivateKey  *hexutil.Bytes        `json:"secretKey"`
 	}
 	var dec stTransaction
 	if err := json.Unmarshal(input, &dec); err != nil {

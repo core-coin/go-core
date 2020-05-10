@@ -30,8 +30,8 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 		UncleHash        common.Hash
 		ExtraData        hexutil.Bytes
 		Difficulty       *math.HexOrDecimal256
-		EnergyLimit         math.HexOrDecimal64
-		EnergyUsed          math.HexOrDecimal64
+		EnergyLimit      math.HexOrDecimal64
+		EnergyUsed       math.HexOrDecimal64
 		Timestamp        math.HexOrDecimal64
 	}
 	var enc btHeader
@@ -70,8 +70,8 @@ func (b *btHeader) UnmarshalJSON(input []byte) error {
 		UncleHash        *common.Hash
 		ExtraData        *hexutil.Bytes
 		Difficulty       *math.HexOrDecimal256
-		EnergyLimit         *math.HexOrDecimal64
-		EnergyUsed          *math.HexOrDecimal64
+		EnergyLimit      *math.HexOrDecimal64
+		EnergyUsed       *math.HexOrDecimal64
 		Timestamp        *math.HexOrDecimal64
 	}
 	var dec btHeader

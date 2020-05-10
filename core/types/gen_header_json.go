@@ -25,8 +25,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
 		Difficulty  *hexutil.Big   `json:"difficulty"       gencodec:"required"`
 		Number      *hexutil.Big   `json:"number"           gencodec:"required"`
-		EnergyLimit    hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
-		EnergyUsed     hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
+		EnergyLimit hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
+		EnergyUsed  hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
 		Time        hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   common.Hash    `json:"mixHash"`
@@ -65,8 +65,8 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		Bloom       *Bloom          `json:"logsBloom"        gencodec:"required"`
 		Difficulty  *hexutil.Big    `json:"difficulty"       gencodec:"required"`
 		Number      *hexutil.Big    `json:"number"           gencodec:"required"`
-		EnergyLimit    *hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
-		EnergyUsed     *hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
+		EnergyLimit *hexutil.Uint64 `json:"energyLimit"         gencodec:"required"`
+		EnergyUsed  *hexutil.Uint64 `json:"energyUsed"          gencodec:"required"`
 		Time        *hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
 		Extra       *hexutil.Bytes  `json:"extraData"        gencodec:"required"`
 		MixDigest   *common.Hash    `json:"mixHash"`

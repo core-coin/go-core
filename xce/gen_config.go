@@ -9,10 +9,10 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
 )
 
 // MarshalTOML marshals as TOML.
@@ -22,6 +22,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		NetworkId               uint64
 		SyncMode                downloader.SyncMode
 		DiscoveryURLs           []string
+		NtpServer               string
 		NoPruning               bool
 		NoPrefetch              bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
@@ -40,14 +41,14 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		TrieDirtyCache          int
 		TrieTimeout             time.Duration
 		Miner                   miner.Config
-		Cryptore                  cryptore.Config
+		Cryptore                cryptore.Config
 		TxPool                  core.TxPoolConfig
 		GPO                     energyprice.Config
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
 		EWASMInterpreter        string
 		CVMInterpreter          string
-		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap            *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
@@ -58,6 +59,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.NetworkId = c.NetworkId
 	enc.SyncMode = c.SyncMode
 	enc.DiscoveryURLs = c.DiscoveryURLs
+	enc.NtpServer = c.NtpServer
 	enc.NoPruning = c.NoPruning
 	enc.NoPrefetch = c.NoPrefetch
 	enc.Whitelist = c.Whitelist
@@ -98,6 +100,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		NetworkId               *uint64
 		SyncMode                *downloader.SyncMode
 		DiscoveryURLs           []string
+		NtpServer               *string
 		NoPruning               *bool
 		NoPrefetch              *bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
@@ -116,14 +119,14 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		TrieDirtyCache          *int
 		TrieTimeout             *time.Duration
 		Miner                   *miner.Config
-		Cryptore                  *cryptore.Config
+		Cryptore                *cryptore.Config
 		TxPool                  *core.TxPoolConfig
 		GPO                     *energyprice.Config
 		EnablePreimageRecording *bool
 		DocRoot                 *string `toml:"-"`
 		EWASMInterpreter        *string
 		CVMInterpreter          *string
-		RPCEnergyCap               *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap            *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
@@ -144,6 +147,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.DiscoveryURLs != nil {
 		c.DiscoveryURLs = dec.DiscoveryURLs
+	}
+	if dec.NtpServer != nil {
+		c.NtpServer = *dec.NtpServer
 	}
 	if dec.NoPruning != nil {
 		c.NoPruning = *dec.NoPruning
