@@ -47,8 +47,8 @@ import (
 // call trace run, assembling all the gathered information into a test case.
 var makeTest = function(tx, rewind) {
   // Generate the genesis block from the block, transaction and prestate data
-  var block   = eth.getBlock(eth.getTransaction(tx).blockHash);
-  var genesis = eth.getBlock(block.parentHash);
+  var block   = xce.getBlock(xce.getTransaction(tx).blockHash);
+  var genesis = xce.getBlock(block.parentHash);
 
   delete genesis.energyUsed;
   delete genesis.logsBloom;
@@ -68,7 +68,7 @@ var makeTest = function(tx, rewind) {
   for (var key in genesis.alloc) {
     genesis.alloc[key].nonce = genesis.alloc[key].nonce.toString();
   }
-  genesis.config = admin.nodeInfo.protocols.eth.config;
+  genesis.config = admin.nodeInfo.protocols.xce.config;
 
   // Generate the call trace and produce the test input
   var result = debug.traceTransaction(tx, {tracer: "callTracer", rewind: rewind});
@@ -83,7 +83,7 @@ var makeTest = function(tx, rewind) {
       energyLimit:   block.energyLimit.toString(),
       miner:      block.miner,
     },
-    input:  eth.getRawTransaction(tx),
+    input:  xce.getRawTransaction(tx),
     result: result,
   }, null, 2));
 }

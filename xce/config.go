@@ -133,7 +133,7 @@ type Config struct {
 	// Type of the CVM interpreter ("" for default)
 	CVMInterpreter string
 
-	// RPCEnergyCap is the global energy cap for eth-call variants.
+	// RPCEnergyCap is the global energy cap for xce-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.

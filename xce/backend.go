@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the Core protocol.
+// Package xce implements the Core protocol.
 package xce
 
 import (
@@ -87,7 +87,7 @@ type Core struct {
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
 
-	APIBackend *EthAPIBackend
+	APIBackend *XceAPIBackend
 
 	miner     *miner.Miner
 	energyPrice  *big.Int
@@ -117,7 +117,7 @@ func (s *Core) SetContractBackend(backend bind.ContractBackend) {
 func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	// Ensure configuration values are compatible and sane
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run eth.Core in light sync mode, use les.LightCore")
+		return nil, errors.New("can't run xce.Core in light sync mode, use les.LightCore")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -133,7 +133,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	log.Info("Allocated trie memory caches", "clean", common.StorageSize(config.TrieCleanCache)*1024*1024, "dirty", common.StorageSize(config.TrieDirtyCache)*1024*1024)
 
 	// Assemble the Core object
-	chainDb, err := ctx.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "eth/db/chaindata/")
+	chainDb, err := ctx.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "xce/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	eth := &Core{
+	xce := &Core{
 		config:         config,
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
@@ -186,22 +186,22 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 			TrieTimeLimit:       config.TrieTimeout,
 		}
 	)
-	eth.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, eth.engine, vmConfig, eth.shouldPreserve)
+	xce.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xce.engine, vmConfig, xce.shouldPreserve)
 	if err != nil {
 		return nil, err
 	}
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		eth.blockchain.SetHead(compat.RewindTo)
+		xce.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
-	eth.bloomIndexer.Start(eth.blockchain)
+	xce.bloomIndexer.Start(xce.blockchain)
 
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
 	}
-	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
+	xce.txPool = core.NewTxPool(config.TxPool, chainConfig, xce.blockchain)
 
 	// Permit the downloader to use the trie cache allowance during fast sync
 	cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit
@@ -209,25 +209,25 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}
-	if eth.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, eth.eventMux, eth.txPool, eth.engine, eth.blockchain, chainDb, cacheLimit, config.Whitelist); err != nil {
+	if xce.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, xce.eventMux, xce.txPool, xce.engine, xce.blockchain, chainDb, cacheLimit, config.Whitelist); err != nil {
 		return nil, err
 	}
-	eth.miner = miner.New(eth, &config.Miner, chainConfig, eth.EventMux(), eth.engine, eth.isLocalBlock)
-	eth.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
+	xce.miner = miner.New(xce, &config.Miner, chainConfig, xce.EventMux(), xce.engine, xce.isLocalBlock)
+	xce.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
 
-	eth.APIBackend = &EthAPIBackend{ctx.ExtRPCEnabled(), eth, nil}
+	xce.APIBackend = &XceAPIBackend{ctx.ExtRPCEnabled(), xce, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
-	eth.APIBackend.gpo = energyprice.NewOracle(eth.APIBackend, gpoParams)
+	xce.APIBackend.gpo = energyprice.NewOracle(xce.APIBackend, gpoParams)
 
-	eth.dialCandiates, err = eth.setupDiscovery(&ctx.Config.P2P)
+	xce.dialCandiates, err = xce.setupDiscovery(&ctx.Config.P2P)
 	if err != nil {
 		return nil, err
 	}
 
-	return eth, nil
+	return xce, nil
 }
 
 func makeExtraData(extra []byte) []byte {
@@ -291,17 +291,17 @@ func (s *Core) APIs() []rpc.API {
 	// Append all the local APIs and return
 	return append(apis, []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicCoreAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicMinerAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
 			Public:    true,
@@ -311,7 +311,7 @@ func (s *Core) APIs() []rpc.API {
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.APIBackend, false),
 			Public:    true,
@@ -497,7 +497,7 @@ func (s *Core) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Core) Engine() consensus.Engine           { return s.engine }
 func (s *Core) ChainDb() xcedb.Database            { return s.chainDb }
 func (s *Core) IsListening() bool                  { return true } // Always listening
-func (s *Core) EthVersion() int                    { return int(ProtocolVersions[0]) }
+func (s *Core) XceVersion() int                    { return int(ProtocolVersions[0]) }
 func (s *Core) NetVersion() uint64                 { return s.networkID }
 func (s *Core) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 func (s *Core) Synced() bool                       { return atomic.LoadUint32(&s.protocolManager.acceptTxs) == 1 }
@@ -509,7 +509,7 @@ func (s *Core) Protocols() []p2p.Protocol {
 	protos := make([]p2p.Protocol, len(ProtocolVersions))
 	for i, vsn := range ProtocolVersions {
 		protos[i] = s.protocolManager.makeProtocol(vsn)
-		protos[i].Attributes = []enr.Entry{s.currentEthEntry()}
+		protos[i].Attributes = []enr.Entry{s.currentXceEntry()}
 		protos[i].DialCandidates = s.dialCandiates
 	}
 	if s.lesServer != nil {
@@ -521,7 +521,7 @@ func (s *Core) Protocols() []p2p.Protocol {
 // Start implements node.Service, starting all internal goroutines needed by the
 // Core protocol implementation.
 func (s *Core) Start(srvr *p2p.Server) error {
-	s.startEthEntryUpdate(srvr.LocalNode())
+	s.startXceEntryUpdate(srvr.LocalNode())
 
 	// Start the bloom bits servicing goroutines
 	s.startBloomHandlers(params.BloomBitsBlocks)

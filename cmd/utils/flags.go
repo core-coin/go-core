@@ -1369,8 +1369,8 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetEthConfig applies xce-related command line flags to the config.
-func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
+// SetXceConfig applies xce-related command line flags to the config.
+func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, DeveloperFlag, TestnetFlag, RinkebyFlag, KolibaFlag)
 	CheckExclusive(ctx, LightLegacyServFlag, LightServeFlag, SyncModeFlag, "light")
@@ -1508,8 +1508,8 @@ func setDNSDiscoveryDefaults(cfg *xce.Config, url string) {
 	cfg.DiscoveryURLs = []string{url}
 }
 
-// RegisterEthService adds an Core client to the stack.
-func RegisterEthService(stack *node.Node, cfg *xce.Config) {
+// RegisterXceService adds an Core client to the stack.
+func RegisterXceService(stack *node.Node, cfg *xce.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {

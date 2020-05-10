@@ -181,11 +181,11 @@ func TestForkIDSplit(t *testing.T) {
 		blocksNoFork, _  = core.GenerateChain(configNoFork, genesisNoFork, engine, dbNoFork, 2, nil)
 		blocksProFork, _ = core.GenerateChain(configProFork, genesisProFork, engine, dbProFork, 2, nil)
 
-		ethNoFork, _  = NewProtocolManager(configNoFork, nil, downloader.FullSync, 1, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, engine, chainNoFork, dbNoFork, 1, nil)
-		ethProFork, _ = NewProtocolManager(configProFork, nil, downloader.FullSync, 1, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, engine, chainProFork, dbProFork, 1, nil)
+		xceNoFork, _  = NewProtocolManager(configNoFork, nil, downloader.FullSync, 1, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, engine, chainNoFork, dbNoFork, 1, nil)
+		xceProFork, _ = NewProtocolManager(configProFork, nil, downloader.FullSync, 1, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, engine, chainProFork, dbProFork, 1, nil)
 	)
-	ethNoFork.Start(1000)
-	ethProFork.Start(1000)
+	xceNoFork.Start(1000)
+	xceProFork.Start(1000)
 
 	// Both nodes should allow the other to connect (same genesis, next fork is the same)
 	p2pNoFork, p2pProFork := p2p.MsgPipe()
@@ -193,8 +193,8 @@ func TestForkIDSplit(t *testing.T) {
 	peerProFork := newPeer(64, p2p.NewPeer(enode.ID{2}, "", nil), p2pProFork, nil)
 
 	errc := make(chan error, 2)
-	go func() { errc <- ethNoFork.handle(peerProFork) }()
-	go func() { errc <- ethProFork.handle(peerNoFork) }()
+	go func() { errc <- xceNoFork.handle(peerProFork) }()
+	go func() { errc <- xceProFork.handle(peerNoFork) }()
 
 	select {
 	case err := <-errc:
@@ -212,8 +212,8 @@ func TestForkIDSplit(t *testing.T) {
 	peerProFork = newPeer(64, p2p.NewPeer(enode.ID{2}, "", nil), p2pProFork, nil)
 
 	errc = make(chan error, 2)
-	go func() { errc <- ethNoFork.handle(peerProFork) }()
-	go func() { errc <- ethProFork.handle(peerNoFork) }()
+	go func() { errc <- xceNoFork.handle(peerProFork) }()
+	go func() { errc <- xceProFork.handle(peerNoFork) }()
 
 	select {
 	case err := <-errc:
@@ -231,8 +231,8 @@ func TestForkIDSplit(t *testing.T) {
 	peerProFork = newPeer(64, p2p.NewPeer(enode.ID{2}, "", nil), p2pProFork, nil)
 
 	errc = make(chan error, 2)
-	go func() { errc <- ethNoFork.handle(peerProFork) }()
-	go func() { errc <- ethProFork.handle(peerNoFork) }()
+	go func() { errc <- xceNoFork.handle(peerProFork) }()
+	go func() { errc <- xceProFork.handle(peerNoFork) }()
 
 	select {
 	case err := <-errc:

@@ -99,8 +99,8 @@ func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
-	cfg.HTTPModules = append(cfg.HTTPModules, "eth")
-	cfg.WSModules = append(cfg.WSModules, "eth")
+	cfg.HTTPModules = append(cfg.HTTPModules, "xce")
+	cfg.WSModules = append(cfg.WSModules, "xce")
 	cfg.IPCPath = "gcore.ipc"
 	return cfg
 }
@@ -126,7 +126,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetEthConfig(ctx, stack, &cfg.Xce)
+	utils.SetXceConfig(ctx, stack, &cfg.Xce)
 	if ctx.GlobalIsSet(utils.XceStatsURLFlag.Name) {
 		cfg.Xcestats.URL = ctx.GlobalString(utils.XceStatsURLFlag.Name)
 	}
@@ -153,7 +153,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if ctx.GlobalIsSet(utils.OverrideMuirGlacierFlag.Name) {
 		cfg.Xce.OverrideMuirGlacier = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideMuirGlacierFlag.Name))
 	}
-	utils.RegisterEthService(stack, &cfg.Xce)
+	utils.RegisterXceService(stack, &cfg.Xce)
 
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
 	shhEnabled := enableWhisper(ctx)

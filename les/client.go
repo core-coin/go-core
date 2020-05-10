@@ -82,7 +82,7 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	peers := newServerPeerSet()
-	leth := &LightCore{
+	lxce := &LightCore{
 		lesCommons: lesCommons{
 			genesis:     genesisHash,
 			config:      config,
@@ -100,13 +100,13 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 		bloomIndexer:   xce.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		serverPool:     newServerPool(chainDb, config.UltraLightServers),
 	}
-	leth.retriever = newRetrieveManager(peers, leth.reqDist, leth.serverPool)
-	leth.relay = newLesTxRelay(peers, leth.retriever)
+	lxce.retriever = newRetrieveManager(peers, lxce.reqDist, lxce.serverPool)
+	lxce.relay = newLesTxRelay(peers, lxce.retriever)
 
-	leth.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, leth.retriever)
-	leth.chtIndexer = light.NewChtIndexer(chainDb, leth.odr, params.CHTFrequency, params.HelperTrieConfirmations)
-	leth.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, leth.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency)
-	leth.odr.SetIndexers(leth.chtIndexer, leth.bloomTrieIndexer, leth.bloomIndexer)
+	lxce.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lxce.retriever)
+	lxce.chtIndexer = light.NewChtIndexer(chainDb, lxce.odr, params.CHTFrequency, params.HelperTrieConfirmations)
+	lxce.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lxce.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency)
+	lxce.odr.SetIndexers(lxce.chtIndexer, lxce.bloomTrieIndexer, lxce.bloomIndexer)
 
 	checkpoint := config.Checkpoint
 	if checkpoint == nil {
@@ -114,44 +114,44 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 	}
 	// Note: NewLightChain adds the trusted checkpoint so it needs an ODR with
 	// indexers already set but not started yet
-	if leth.blockchain, err = light.NewLightChain(leth.odr, leth.chainConfig, leth.engine, checkpoint); err != nil {
+	if lxce.blockchain, err = light.NewLightChain(lxce.odr, lxce.chainConfig, lxce.engine, checkpoint); err != nil {
 		return nil, err
 	}
-	leth.chainReader = leth.blockchain
-	leth.txPool = light.NewTxPool(leth.chainConfig, leth.blockchain, leth.relay)
+	lxce.chainReader = lxce.blockchain
+	lxce.txPool = light.NewTxPool(lxce.chainConfig, lxce.blockchain, lxce.relay)
 
 	// Set up checkpoint oracle.
 	oracle := config.CheckpointOracle
 	if oracle == nil {
 		oracle = params.CheckpointOracles[genesisHash]
 	}
-	leth.oracle = checkpointoracle.New(oracle, leth.localCheckpoint)
+	lxce.oracle = checkpointoracle.New(oracle, lxce.localCheckpoint)
 
 	// Note: AddChildIndexer starts the update process for the child
-	leth.bloomIndexer.AddChildIndexer(leth.bloomTrieIndexer)
-	leth.chtIndexer.Start(leth.blockchain)
-	leth.bloomIndexer.Start(leth.blockchain)
+	lxce.bloomIndexer.AddChildIndexer(lxce.bloomTrieIndexer)
+	lxce.chtIndexer.Start(lxce.blockchain)
+	lxce.bloomIndexer.Start(lxce.blockchain)
 
-	leth.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, leth)
-	if leth.handler.ulc != nil {
-		log.Warn("Ultra light client is enabled", "trustedNodes", len(leth.handler.ulc.keys), "minTrustedFraction", leth.handler.ulc.fraction)
-		leth.blockchain.DisableCheckFreq()
+	lxce.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxce)
+	if lxce.handler.ulc != nil {
+		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxce.handler.ulc.keys), "minTrustedFraction", lxce.handler.ulc.fraction)
+		lxce.blockchain.DisableCheckFreq()
 	}
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		leth.blockchain.SetHead(compat.RewindTo)
+		lxce.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	leth.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), leth, nil}
+	lxce.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), lxce, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
-	leth.ApiBackend.gpo = energyprice.NewOracle(leth.ApiBackend, gpoParams)
+	lxce.ApiBackend.gpo = energyprice.NewOracle(lxce.ApiBackend, gpoParams)
 
-	return leth, nil
+	return lxce, nil
 }
 
 type LightDummyAPI struct{}

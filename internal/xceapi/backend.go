@@ -45,7 +45,7 @@ type Backend interface {
 	ChainDb() xcedb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
-	RPCEnergyCap() *big.Int // global energy cap for eth_call over rpc: DoS protection
+	RPCEnergyCap() *big.Int // global energy cap for xce_call over rpc: DoS protection
 
 	// Blockchain API
 	SetHead(number uint64)
@@ -90,17 +90,17 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 	nonceLock := new(AddrLocker)
 	return []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicCoreAPI(apiBackend),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicBlockChainAPI(apiBackend),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicTransactionPoolAPI(apiBackend, nonceLock),
 			Public:    true,
@@ -119,7 +119,7 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateDebugAPI(apiBackend),
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   NewPublicAccountAPI(apiBackend.AccountManager()),
 			Public:    true,

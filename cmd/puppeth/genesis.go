@@ -31,9 +31,9 @@ import (
 	"github.com/core-coin/go-core/params"
 )
 
-// alethGenesisSpec represents the genesis specification format used by the
+// alxceGenesisSpec represents the genesis specification format used by the
 // C++ Core implementation.
-type alethGenesisSpec struct {
+type alxceGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
 	Params     struct {
 		AccountStartNonce          math2.HexOrDecimal64   `json:"accountStartNonce"`
@@ -70,38 +70,38 @@ type alethGenesisSpec struct {
 		EnergyLimit   hexutil.Uint64   `json:"energyLimit"`
 	} `json:"genesis"`
 
-	Accounts map[common.UnprefixedAddress]*alethGenesisSpecAccount `json:"accounts"`
+	Accounts map[common.UnprefixedAddress]*alxceGenesisSpecAccount `json:"accounts"`
 }
 
-// alethGenesisSpecAccount is the prefunded genesis account and/or precompiled
+// alxceGenesisSpecAccount is the prefunded genesis account and/or precompiled
 // contract definition.
-type alethGenesisSpecAccount struct {
+type alxceGenesisSpecAccount struct {
 	Balance     *math2.HexOrDecimal256   `json:"balance,omitempty"`
 	Nonce       uint64                   `json:"nonce,omitempty"`
-	Precompiled *alethGenesisSpecBuiltin `json:"precompiled,omitempty"`
+	Precompiled *alxceGenesisSpecBuiltin `json:"precompiled,omitempty"`
 }
 
-// alethGenesisSpecBuiltin is the precompiled contract definition.
-type alethGenesisSpecBuiltin struct {
+// alxceGenesisSpecBuiltin is the precompiled contract definition.
+type alxceGenesisSpecBuiltin struct {
 	Name          string                         `json:"name,omitempty"`
 	StartingBlock *hexutil.Big                   `json:"startingBlock,omitempty"`
-	Linear        *alethGenesisSpecLinearPricing `json:"linear,omitempty"`
+	Linear        *alxceGenesisSpecLinearPricing `json:"linear,omitempty"`
 }
 
-type alethGenesisSpecLinearPricing struct {
+type alxceGenesisSpecLinearPricing struct {
 	Base uint64 `json:"base"`
 	Word uint64 `json:"word"`
 }
 
-// newAlethGenesisSpec converts a go-core genesis block into a Aleth-specific
+// newAlxceGenesisSpec converts a go-core genesis block into a Alxce-specific
 // chain specification format.
-func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSpec, error) {
-	// Only cryptore is currently supported between go-core and aleth
+func newAlxceGenesisSpec(network string, genesis *core.Genesis) (*alxceGenesisSpec, error) {
+	// Only cryptore is currently supported between go-core and alxce
 	if genesis.Config.Cryptore == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
-	// Reconstruct the chain spec in Aleth format
-	spec := &alethGenesisSpec{
+	// Reconstruct the chain spec in Alxce format
+	spec := &alxceGenesisSpec{
 		SealEngine: "Cryptore",
 	}
 	// Some defaults
@@ -110,7 +110,7 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	spec.Params.AllowFutureBlocks = false
 
 	// Dao hardfork block is a special one. The fork block is listed as 0 in the
-	// config but aleth will sync with ETC clients up until the actual dao hard
+	// config but alxce will sync with ETC clients up until the actual dao hard
 	// fork block.
 	spec.Params.DaoHardforkBlock = 0
 
@@ -159,39 +159,39 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 		spec.setAccount(address, account)
 	}
 
-	spec.setPrecompile(1, &alethGenesisSpecBuiltin{Name: "ecrecover",
-		Linear: &alethGenesisSpecLinearPricing{Base: 3000}})
-	spec.setPrecompile(2, &alethGenesisSpecBuiltin{Name: "sha256",
-		Linear: &alethGenesisSpecLinearPricing{Base: 60, Word: 12}})
-	spec.setPrecompile(3, &alethGenesisSpecBuiltin{Name: "ripemd160",
-		Linear: &alethGenesisSpecLinearPricing{Base: 600, Word: 120}})
-	spec.setPrecompile(4, &alethGenesisSpecBuiltin{Name: "identity",
-		Linear: &alethGenesisSpecLinearPricing{Base: 15, Word: 3}})
+	spec.setPrecompile(1, &alxceGenesisSpecBuiltin{Name: "ecrecover",
+		Linear: &alxceGenesisSpecLinearPricing{Base: 3000}})
+	spec.setPrecompile(2, &alxceGenesisSpecBuiltin{Name: "sha256",
+		Linear: &alxceGenesisSpecLinearPricing{Base: 60, Word: 12}})
+	spec.setPrecompile(3, &alxceGenesisSpecBuiltin{Name: "ripemd160",
+		Linear: &alxceGenesisSpecLinearPricing{Base: 600, Word: 120}})
+	spec.setPrecompile(4, &alxceGenesisSpecBuiltin{Name: "identity",
+		Linear: &alxceGenesisSpecLinearPricing{Base: 15, Word: 3}})
 	if genesis.Config.ByzantiumBlock != nil {
-		spec.setPrecompile(5, &alethGenesisSpecBuiltin{Name: "modexp",
+		spec.setPrecompile(5, &alxceGenesisSpecBuiltin{Name: "modexp",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock)})
-		spec.setPrecompile(6, &alethGenesisSpecBuiltin{Name: "alt_bn128_G1_add",
+		spec.setPrecompile(6, &alxceGenesisSpecBuiltin{Name: "alt_bn128_G1_add",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-			Linear:        &alethGenesisSpecLinearPricing{Base: 500}})
-		spec.setPrecompile(7, &alethGenesisSpecBuiltin{Name: "alt_bn128_G1_mul",
+			Linear:        &alxceGenesisSpecLinearPricing{Base: 500}})
+		spec.setPrecompile(7, &alxceGenesisSpecBuiltin{Name: "alt_bn128_G1_mul",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-			Linear:        &alethGenesisSpecLinearPricing{Base: 40000}})
-		spec.setPrecompile(8, &alethGenesisSpecBuiltin{Name: "alt_bn128_pairing_product",
+			Linear:        &alxceGenesisSpecLinearPricing{Base: 40000}})
+		spec.setPrecompile(8, &alxceGenesisSpecBuiltin{Name: "alt_bn128_pairing_product",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock)})
 	}
 	if genesis.Config.IstanbulBlock != nil {
 		if genesis.Config.ByzantiumBlock == nil {
 			return nil, errors.New("invalid genesis, istanbul fork is enabled while byzantium is not")
 		}
-		spec.setPrecompile(6, &alethGenesisSpecBuiltin{
+		spec.setPrecompile(6, &alxceGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_add",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the energy policy
-		spec.setPrecompile(7, &alethGenesisSpecBuiltin{
+		}) // Alxce hardcoded the energy policy
+		spec.setPrecompile(7, &alxceGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_mul",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the energy policy
-		spec.setPrecompile(9, &alethGenesisSpecBuiltin{
+		}) // Alxce hardcoded the energy policy
+		spec.setPrecompile(9, &alxceGenesisSpecBuiltin{
 			Name:          "blake2_compression",
 			StartingBlock: (*hexutil.Big)(genesis.Config.IstanbulBlock),
 		})
@@ -199,25 +199,25 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	return spec, nil
 }
 
-func (spec *alethGenesisSpec) setPrecompile(address byte, data *alethGenesisSpecBuiltin) {
+func (spec *alxceGenesisSpec) setPrecompile(address byte, data *alxceGenesisSpecBuiltin) {
 	if spec.Accounts == nil {
-		spec.Accounts = make(map[common.UnprefixedAddress]*alethGenesisSpecAccount)
+		spec.Accounts = make(map[common.UnprefixedAddress]*alxceGenesisSpecAccount)
 	}
 	addr := common.UnprefixedAddress(common.BytesToAddress([]byte{address}))
 	if _, exist := spec.Accounts[addr]; !exist {
-		spec.Accounts[addr] = &alethGenesisSpecAccount{}
+		spec.Accounts[addr] = &alxceGenesisSpecAccount{}
 	}
 	spec.Accounts[addr].Precompiled = data
 }
 
-func (spec *alethGenesisSpec) setAccount(address common.Address, account core.GenesisAccount) {
+func (spec *alxceGenesisSpec) setAccount(address common.Address, account core.GenesisAccount) {
 	if spec.Accounts == nil {
-		spec.Accounts = make(map[common.UnprefixedAddress]*alethGenesisSpecAccount)
+		spec.Accounts = make(map[common.UnprefixedAddress]*alxceGenesisSpecAccount)
 	}
 
 	a, exist := spec.Accounts[common.UnprefixedAddress(address)]
 	if !exist {
-		a = &alethGenesisSpecAccount{}
+		a = &alxceGenesisSpecAccount{}
 		spec.Accounts[common.UnprefixedAddress(address)] = a
 	}
 	a.Balance = (*math2.HexOrDecimal256)(account.Balance)

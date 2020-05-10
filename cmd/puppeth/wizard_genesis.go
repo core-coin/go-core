@@ -244,7 +244,7 @@ func (w *wizard) manageGenesis() {
 		// Save whatever genesis configuration we currently have
 		fmt.Println()
 		fmt.Printf("Which folder to save the genesis specs into? (default = current)\n")
-		fmt.Printf("  Will create %s.json, %s-aleth.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
+		fmt.Printf("  Will create %s.json, %s-alxce.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
 
 		folder := w.readDefaultString(".")
 		if err := os.MkdirAll(folder, 0755); err != nil {
@@ -253,7 +253,7 @@ func (w *wizard) manageGenesis() {
 		}
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
 
-		// Export the native genesis spec used by puppeth and Gcore
+		// Export the native genesis spec used by puppxce and Gcore
 		gcoreJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
 		if err := ioutil.WriteFile((gcoreJson), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
@@ -261,11 +261,11 @@ func (w *wizard) manageGenesis() {
 		}
 		log.Info("Saved native genesis chain spec", "path", gcoreJson)
 
-		// Export the genesis spec used by Aleth (formerly C++ Core)
-		if spec, err := newAlethGenesisSpec(w.network, w.conf.Genesis); err != nil {
-			log.Error("Failed to create Aleth chain spec", "err", err)
+		// Export the genesis spec used by Alxce (formerly C++ Core)
+		if spec, err := newAlxceGenesisSpec(w.network, w.conf.Genesis); err != nil {
+			log.Error("Failed to create Alxce chain spec", "err", err)
 		} else {
-			saveGenesis(folder, w.network, "aleth", spec)
+			saveGenesis(folder, w.network, "alxce", spec)
 		}
 		// Export the genesis spec used by Parity
 		if spec, err := newParityChainSpec(w.network, w.conf.Genesis, []string{}); err != nil {

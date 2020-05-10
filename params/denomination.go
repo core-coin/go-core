@@ -16,7 +16,7 @@
 
 package params
 
-// These are the multipliers for ether denominations.
+// These are the multipliers for core denominations.
 // Example: To get the ore value of an amount in 'nucle', use
 //
 //    new(big.Int).Mul(value, big.NewInt(params.Nucle))

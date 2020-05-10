@@ -347,7 +347,7 @@ func (b *bridge) SleepBlocks(call jsre.Call) (goja.Value, error) {
 	)
 	for time.Now().Before(deadline) {
 		var number hexutil.Uint64
-		err := b.client.Call(&number, "eth_blockNumber")
+		err := b.client.Call(&number, "xce_blockNumber")
 		if err != nil {
 			return nil, err
 		}

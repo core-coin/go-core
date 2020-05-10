@@ -76,7 +76,7 @@ type RetestxceTestAPI interface {
 	GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error)
 }
 
-type RetestxceEthAPI interface {
+type RetestxceXceAPI interface {
 	SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error)
@@ -850,7 +850,7 @@ func retestxce(ctx *cli.Context) error {
 	)
 	apiImpl := &RetestxceAPI{}
 	var testApi RetestxceTestAPI = apiImpl
-	var ethApi RetestxceEthAPI = apiImpl
+	var xceApi RetestxceXceAPI = apiImpl
 	var debugApi RetestxceDebugAPI = apiImpl
 	var web3Api RetestWeb3API = apiImpl
 	rpcAPI := []rpc.API{
@@ -861,9 +861,9 @@ func retestxce(ctx *cli.Context) error {
 			Version:   "1.0",
 		},
 		{
-			Namespace: "eth",
+			Namespace: "xce",
 			Public:    true,
-			Service:   ethApi,
+			Service:   xceApi,
 			Version:   "1.0",
 		},
 		{
@@ -889,7 +889,7 @@ func retestxce(ctx *cli.Context) error {
 		IdleTimeout:  120 * time.Second,
 	}
 	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.RPCListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
-	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "eth", "debug", "web3"}, cors, vhosts, RetestxceHTTPTimeouts)
+	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "xce", "debug", "web3"}, cors, vhosts, RetestxceHTTPTimeouts)
 	if err != nil {
 		utils.Fatalf("Could not start RPC api: %v", err)
 	}

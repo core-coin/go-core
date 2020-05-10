@@ -43,19 +43,19 @@ const (
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (eth *LightCore) startBloomHandlers(sectionSize uint64) {
+func (xce *LightCore) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
-			defer eth.wg.Done()
+			defer xce.wg.Done()
 			for {
 				select {
-				case <-eth.closeCh:
+				case <-xce.closeCh:
 					return
 
-				case request := <-eth.bloomRequests:
+				case request := <-xce.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
-					compVectors, err := light.GetBloomBits(task.Context, eth.odr, task.Bit, task.Sections)
+					compVectors, err := light.GetBloomBits(task.Context, xce.odr, task.Bit, task.Sections)
 					if err == nil {
 						for i := range task.Sections {
 							if blob, err := bitutil.DecompressBytes(compVectors[i], int(sectionSize/8)); err == nil {

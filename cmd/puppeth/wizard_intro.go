@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/log"
 )
 
-// makeWizard creates and returns a new puppeth wizard.
+// makeWizard creates and returns a new puppxce wizard.
 func makeWizard(network string) *wizard {
 	return &wizard{
 		network: network,
@@ -143,7 +143,7 @@ func (w *wizard) run() {
 				case choice == "2":
 					w.importGenesis()
 				default:
-					log.Error("That's not something I can do")
+					log.Error("That's not somxceing I can do")
 				}
 			} else {
 				w.manageGenesis()

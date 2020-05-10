@@ -25,9 +25,9 @@ import (
 	"github.com/core-coin/go-core/rlp"
 )
 
-// ethEntry is the "eth" ENR entry which advertises eth protocol
+// xceEntry is the "xce" ENR entry which advertises xce protocol
 // on the discovery network.
-type ethEntry struct {
+type xceEntry struct {
 	ForkID forkid.ID // Fork identifier per EIP-2124
 
 	// Ignore additional fields (for forward compatibility).
@@ -35,23 +35,23 @@ type ethEntry struct {
 }
 
 // ENRKey implements enr.Entry.
-func (e ethEntry) ENRKey() string {
-	return "eth"
+func (e xceEntry) ENRKey() string {
+	return "xce"
 }
 
-// startEthEntryUpdate starts the ENR updater loop.
-func (eth *Core) startEthEntryUpdate(ln *enode.LocalNode) {
+// startXceEntryUpdate starts the ENR updater loop.
+func (xce *Core) startXceEntryUpdate(ln *enode.LocalNode) {
 	var newHead = make(chan core.ChainHeadEvent, 10)
-	sub := eth.blockchain.SubscribeChainHeadEvent(newHead)
+	sub := xce.blockchain.SubscribeChainHeadEvent(newHead)
 
 	go func() {
 		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-newHead:
-				ln.Set(eth.currentEthEntry())
+				ln.Set(xce.currentXceEntry())
 			case <-sub.Err():
-				// Would be nice to sync with eth.Stop, but there is no
+				// Would be nice to sync with xce.Stop, but there is no
 				// good way to do that.
 				return
 			}
@@ -59,15 +59,15 @@ func (eth *Core) startEthEntryUpdate(ln *enode.LocalNode) {
 	}()
 }
 
-func (eth *Core) currentEthEntry() *ethEntry {
-	return &ethEntry{ForkID: forkid.NewID(eth.blockchain)}
+func (xce *Core) currentXceEntry() *xceEntry {
+	return &xceEntry{ForkID: forkid.NewID(xce.blockchain)}
 }
 
-// setupDiscovery creates the node discovery source for the eth protocol.
-func (eth *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
-	if cfg.NoDiscovery || len(eth.config.DiscoveryURLs) == 0 {
+// setupDiscovery creates the node discovery source for the xce protocol.
+func (xce *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
+	if cfg.NoDiscovery || len(xce.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}
 	client := dnsdisc.NewClient(dnsdisc.Config{})
-	return client.NewIterator(eth.config.DiscoveryURLs...)
+	return client.NewIterator(xce.config.DiscoveryURLs...)
 }

@@ -157,7 +157,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 	files[filepath.Join(workdir, network+".json")] = genesis
 
 	if conf.Genesis.Config.Cryptore != nil {
-		cppSpec, err := newAlethGenesisSpec(network, conf.Genesis)
+		cppSpec, err := newAlxceGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err
 		}
@@ -174,12 +174,12 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		paritySpecJSON, _ := json.Marshal(paritySpec)
 		files[filepath.Join(workdir, network+"-parity.json")] = paritySpecJSON
 
-		pyethSpec, err := newPyCoreGenesisSpec(network, conf.Genesis)
+		pyxceSpec, err := newPyCoreGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err
 		}
-		pyethSpecJSON, _ := json.Marshal(pyethSpec)
-		files[filepath.Join(workdir, network+"-python.json")] = pyethSpecJSON
+		pyxceSpecJSON, _ := json.Marshal(pyxceSpec)
+		files[filepath.Join(workdir, network+"-python.json")] = pyxceSpecJSON
 	} else {
 		for _, client := range []string{"cpp", "harmony", "parity", "python"} {
 			files[filepath.Join(workdir, network+"-"+client+".json")] = []byte{}
