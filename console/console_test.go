@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/internal/jsre"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
@@ -76,7 +76,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	core  *eth.Core
+	core  *xce.Core
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -84,7 +84,7 @@ type tester struct {
 
 // newTester creates a test environment based on which the console can operate.
 // Please ensure you call Close() on the returned tester to avoid leaks.
-func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
+func newTester(t *testing.T, confOverride func(*xce.Config)) *tester {
 	// Create a temporary storage for the node keys and initialize it
 	workspace, err := ioutil.TempDir("", "console-tester-")
 	if err != nil {
@@ -96,7 +96,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	ethConf := &eth.Config{
+	xceConf := &xce.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
 			Corebase: common.HexToAddress(testAddress),
@@ -106,9 +106,9 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		},
 	}
 	if confOverride != nil {
-		confOverride(ethConf)
+		confOverride(xceConf)
 	}
-	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return eth.New(ctx, ethConf) }); err != nil {
+	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return xce.New(ctx, xceConf) }); err != nil {
 		t.Fatalf("failed to register Core protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
@@ -134,7 +134,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var core *eth.Core
+	var core *xce.Core
 	stack.Service(&core)
 
 	return &tester{

@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/p2p"
@@ -186,8 +186,8 @@ func (p *peerCommons) String() string {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peerCommons) Info() *eth.PeerInfo {
-	return &eth.PeerInfo{
+func (p *peerCommons) Info() *xce.PeerInfo {
+	return &xce.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
 		Head:       fmt.Sprintf("%x", p.Head()),

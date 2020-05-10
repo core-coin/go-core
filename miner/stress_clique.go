@@ -34,7 +34,7 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
@@ -97,7 +97,7 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	for _, node := range nodes {
-		var core *eth.Core
+		var core *xce.Core
 		if err := node.Service(&core); err != nil {
 			panic(err)
 		}
@@ -113,7 +113,7 @@ func main() {
 		index := rand.Intn(len(faucets))
 
 		// Fetch the accessor for the relevant signer
-		var core *eth.Core
+		var core *xce.Core
 		if err := nodes[index%len(nodes)].Service(&core); err != nil {
 			panic(err)
 		}
@@ -192,14 +192,14 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 		return nil, err
 	}
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return eth.New(ctx, &eth.Config{
+		return xce.New(ctx, &xce.Config{
 			Genesis:         genesis,
 			NetworkId:       genesis.Config.ChainID.Uint64(),
 			SyncMode:        downloader.FullSync,
 			DatabaseCache:   256,
 			DatabaseHandles: 256,
 			TxPool:          core.DefaultTxPoolConfig,
-			GPO:             eth.DefaultConfig.GPO,
+			GPO:             xce.DefaultConfig.GPO,
 			Miner: miner.Config{
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
