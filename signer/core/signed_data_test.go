@@ -278,7 +278,7 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f" {
+	if domainHash != "0x37f0f9f326c789c63f59b158767f2d015acbe170193fc74863f80e6abf51b47b" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
