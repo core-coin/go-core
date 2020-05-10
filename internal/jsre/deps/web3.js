@@ -2972,7 +2972,7 @@ var ContractFactory = function (xce, abi) {
     this.new = function () {
         /*jshint maxcomplexity: 7 */
         
-        var contract = new Contract(this.eth, this.abi);
+        var contract = new Contract(this.xce, this.abi);
 
         // parse arguments
         var options = {}; // required!
