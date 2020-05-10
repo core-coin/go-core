@@ -19,7 +19,7 @@ package types
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -80,8 +80,8 @@ func decodeTx(data []byte) (*Transaction, error) {
 	return t, err
 }
 
-func defaultTestKey() (*ecdsa.PrivateKey, common.Address) {
-	key, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
+func defaultTestKey() (*eddsa.PrivateKey, common.Address) {
+	key, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	return key, addr
 }
@@ -124,7 +124,7 @@ func TestRecipientNormal(t *testing.T) {
 // the same account.
 func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*ecdsa.PrivateKey, 25)
+	keys := make([]*eddsa.PrivateKey, 25)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}

@@ -17,7 +17,7 @@
 package les
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io"
 	"math"
@@ -746,11 +746,11 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-func encodePubkey64(pub *ecdsa.PublicKey) []byte {
-	return crypto.FromECDSAPub(pub)
+func encodePubkey64(pub *eddsa.PublicKey) []byte {
+	return crypto.FromEDDSAPub(pub)
 }
 
-func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
+func decodePubkey64(b []byte) (*eddsa.PublicKey, error) {
 	return crypto.UnmarshalPubkey(b)
 }
 

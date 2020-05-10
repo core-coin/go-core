@@ -18,7 +18,7 @@ package discover
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
@@ -61,7 +61,7 @@ type udpTest struct {
 	db                  *enode.DB
 	udp                 *UDPv4
 	sent                [][]byte
-	localkey, remotekey *ecdsa.PrivateKey
+	localkey, remotekey *eddsa.PrivateKey
 	remoteaddr          *net.UDPAddr
 }
 
@@ -99,7 +99,7 @@ func (test *udpTest) packetIn(wantError error, data packetV4) {
 }
 
 // handles a packet as if it had been sent to the transport by the key/endpoint.
-func (test *udpTest) packetInFrom(wantError error, key *ecdsa.PrivateKey, addr *net.UDPAddr, data packetV4) {
+func (test *udpTest) packetInFrom(wantError error, key *eddsa.PrivateKey, addr *net.UDPAddr, data packetV4) {
 	test.t.Helper()
 
 	enc, _, err := test.udp.encode(key, data)
@@ -591,7 +591,7 @@ var testPackets = []struct {
 }
 
 func TestUDPv4_forwardCompatibility(t *testing.T) {
-	testkey, _ := crypto.HexToECDSA("835bbff17efac2c97895784041c507959cdb9e45c599cc205e453a962c11c09ac8834f6524d0842cc469db2afcc0424ca4afc42968d3441846cdbc7b6001d869d622e93baa4004f9895c274b0199262afc2311fdf6c302e288fe75965253c0df585c19ca1cc3adbf4130c667a9d658f459d242e82ba3981fb7004b02568a6750a604e54bd592b5b95aabc553bfde613f")
+	testkey, _ := crypto.HexToEDDSA("835bbff17efac2c97895784041c507959cdb9e45c599cc205e453a962c11c09ac8834f6524d0842cc469db2afcc0424ca4afc42968d3441846cdbc7b6001d869d622e93baa4004f9895c274b0199262afc2311fdf6c302e288fe75965253c0df585c19ca1cc3adbf4130c667a9d658f459d242e82ba3981fb7004b02568a6750a604e54bd592b5b95aabc553bfde613f")
 	wantNodeKey := encodePubkey(&testkey.PublicKey)
 
 	for _, test := range testPackets {

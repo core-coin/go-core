@@ -17,7 +17,7 @@
 package whisperv6
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"sync"
 	"bytes"
@@ -29,8 +29,8 @@ import (
 
 // Filter represents a Whisper message filter
 type Filter struct {
-	Src        *ecdsa.PublicKey  // Sender of the message
-	KeyAsym    *ecdsa.PrivateKey // Private Key of recipient
+	Src        *eddsa.PublicKey  // Sender of the message
+	KeyAsym    *eddsa.PrivateKey // Private Key of recipient
 	KeySym     []byte            // Key associated with the Topic
 	Topics     [][]byte          // Topics to filter messages with
 	PoW        float64           // Proof of work as described in the Whisper spec
@@ -252,7 +252,7 @@ func (f *Filter) MatchEnvelope(envelope *Envelope) bool {
 }
 
 // IsPubKeyEqual checks that two public keys are equal
-func IsPubKeyEqual(a, b *ecdsa.PublicKey) bool {
+func IsPubKeyEqual(a, b *eddsa.PublicKey) bool {
 	if !ValidatePublicKey(a) {
 		return false
 	} else if !ValidatePublicKey(b) {

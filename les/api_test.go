@@ -31,8 +31,8 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -493,18 +493,18 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 }
 
 func newLesClientService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := eth.DefaultConfig
+	config := xce.DefaultConfig
 	config.SyncMode = downloader.LightSync
 	config.Cryptore.PowMode = cryptore.ModeFake
 	return New(ctx.NodeContext, &config)
 }
 
 func newLesServerService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := eth.DefaultConfig
+	config := xce.DefaultConfig
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	core, err := eth.New(ctx.NodeContext, &config)
+	core, err := xce.New(ctx.NodeContext, &config)
 	if err != nil {
 		return nil, err
 	}

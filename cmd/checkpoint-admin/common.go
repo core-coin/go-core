@@ -25,15 +25,15 @@ import (
 	"github.com/core-coin/go-core/cmd/utils"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/contracts/checkpointoracle"
-	"github.com/core-coin/go-core/ethclient"
+	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 
 // newClient creates a client with specified remote URL.
-func newClient(ctx *cli.Context) *ethclient.Client {
-	client, err := ethclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
+func newClient(ctx *cli.Context) *xceclient.Client {
+	client, err := xceclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
 	if err != nil {
 		utils.Fatalf("Failed to connect to Core node: %v", err)
 	}
@@ -103,7 +103,7 @@ func newContract(client *rpc.Client) (common.Address, *checkpointoracle.Checkpoi
 	if addr == (common.Address{}) {
 		utils.Fatalf("No specified registrar contract address")
 	}
-	contract, err := checkpointoracle.NewCheckpointOracle(addr, ethclient.NewClient(client))
+	contract, err := checkpointoracle.NewCheckpointOracle(addr, xceclient.NewClient(client))
 	if err != nil {
 		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
 	}

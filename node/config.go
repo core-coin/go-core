@@ -18,7 +18,7 @@ package node
 
 import (
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -357,7 +357,7 @@ func (c *Config) instanceDir() string {
 // NodeKey retrieves the currently configured private key of the node, checking
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
-func (c *Config) NodeKey() *ecdsa.PrivateKey {
+func (c *Config) NodeKey() *eddsa.PrivateKey {
 	// Use any specifically configured key.
 	if c.P2P.PrivateKey != nil {
 		return c.P2P.PrivateKey
@@ -372,7 +372,7 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	}
 
 	keyfile := c.ResolvePath(datadirPrivateKey)
-	if key, err := crypto.LoadECDSA(keyfile); err == nil {
+	if key, err := crypto.LoadEDDSA(keyfile); err == nil {
 		return key
 	}
 	// No persistent key found, generate and store a new one.
@@ -386,7 +386,7 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 		return key
 	}
 	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
-	if err := crypto.SaveECDSA(keyfile, key); err != nil {
+	if err := crypto.SaveEDDSA(keyfile, key); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
 	return key

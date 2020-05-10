@@ -200,7 +200,7 @@ func TestV1_2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	privHex := hex.EncodeToString(crypto.FromECDSA(k.PrivateKey))
+	privHex := hex.EncodeToString(crypto.FromEDDSA(k.PrivateKey))
 	expectedHex := "acdd196ee8fb24916e5de015a9b0228e027607dfdf05ca324c24bbceec431a9aaf159c0059a6b559d3ec223dda7cae2ef08ff4b4bb5ad418e2255a7b50548747e89ef575bae40ae1107f2199ea66ed5c70b126e15188a2d7e5d59ec04c109ffd3c38353689fb686bcdb5faee4cafc37106da5f84dbf2995ad28d99021f646582373af34c8e095bd9ac067e5904613e4b"
 	if privHex != expectedHex {
 		t.Fatal(fmt.Errorf("Unexpected privkey: %v, expected %v", privHex, expectedHex))

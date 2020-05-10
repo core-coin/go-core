@@ -21,7 +21,7 @@
 package keystore
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -254,7 +254,7 @@ func (ks *KeyStore) Delete(a accounts.Account, passphrase string) error {
 	return err
 }
 
-// SignHash calculates a ECDSA signature for the given hash. The produced
+// SignHash calculates a EDDSA signature for the given hash. The produced
 // signature is in the [R || S || V] format where V is 0 or 1.
 func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 	// Look up the key to sign with and abort if it cannot be found
@@ -265,7 +265,7 @@ func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 	if !found {
 		return nil, ErrLocked
 	}
-	// Sign the hash using plain ECDSA operations
+	// Sign the hash using plain EDDSA operations
 	return crypto.Sign(hash, unlockedKey.PrivateKey)
 }
 
@@ -446,9 +446,9 @@ func (ks *KeyStore) Import(keyJSON []byte, passphrase, newPassphrase string) (ac
 	return ks.importKey(key, newPassphrase)
 }
 
-// ImportECDSA stores the given key into the key directory, encrypting it with the passphrase.
-func (ks *KeyStore) ImportECDSA(priv *ecdsa.PrivateKey, passphrase string) (accounts.Account, error) {
-	key := newKeyFromECDSA(priv)
+// ImportEDDSA stores the given key into the key directory, encrypting it with the passphrase.
+func (ks *KeyStore) ImportEDDSA(priv *eddsa.PrivateKey, passphrase string) (accounts.Account, error) {
+	key := newKeyFromEDDSA(priv)
 	if ks.cache.hasAddress(key.Address) {
 		return accounts.Account{}, fmt.Errorf("account already exists")
 	}
@@ -487,6 +487,6 @@ func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (account
 }
 
 // zeroKey zeroes a private key in memory.
-func zeroKey(k *ecdsa.PrivateKey) {
+func zeroKey(k *eddsa.PrivateKey) {
 	k.D = k.D[:0]
 }

@@ -237,7 +237,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	// Derive sender from private key if present.
 	var from common.Address
 	if len(tx.PrivateKey) > 0 {
-		key, err := crypto.ToECDSA(tx.PrivateKey)
+		key, err := crypto.ToEDDSA(tx.PrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("invalid private key: %v", err)
 		}

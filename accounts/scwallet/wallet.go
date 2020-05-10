@@ -917,13 +917,13 @@ func (s *Session) initialize(seed []byte) error {
 	mac.Write(seed)
 	seed = mac.Sum(nil)
 
-	key, err := crypto.ToECDSA(seed[:32])
+	key, err := crypto.ToEDDSA(seed[:32])
 	if err != nil {
 		return err
 	}
 
 	id := initializeData{}
-	id.PublicKey = crypto.FromECDSAPub(&key.PublicKey)
+	id.PublicKey = crypto.FromEDDSAPub(&key.PublicKey)
 	id.PrivateKey = seed[:32]
 	id.ChainCode = seed[32:]
 	data, err := asn1.Marshal(id)

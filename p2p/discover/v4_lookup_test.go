@@ -17,7 +17,7 @@
 package discover
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"net"
 	"sort"
@@ -160,7 +160,7 @@ func serveTestnet(test *udpTest, testnet *preminedTestnet) {
 // The nodes were obtained by running lookupTestnet.mine with a random NodeID as target.
 var lookupTestnet = &preminedTestnet{
 	target: hexEncPubkey("5d485bdcbe9bc89314a10ae9231e429d33853e3a8fa2af39f5f827370a2e4185e344ace5d16237491dad41f278f1d3785210d29ace76cd62"),
-	dists: [257][]*ecdsa.PrivateKey{
+	dists: [257][]*eddsa.PrivateKey{
 		251: {
 			hexEncPrivkey("4ec11de85d5eae2185956f08e214dad13b77643cc68fdc78cd91d6f7a641ab8f4e3ec37d0a58aaafb77fd37723e021b2303b45f42f848b17e82c8cc056266762a202371c972318cb1afe3772a6fb9640a01ea2aba1156b503fabf83aa7792c06585ada8fbfcdeee15f2b83a9bbe57a1eea13a7beccb024bd57ad6d0cdf2930b519d3d2b3941e8ff05e33cf374612692c"),
 			hexEncPrivkey("8572729f472bd32f4e4cfdca7d8d9c1d1869cd24c4bfee25f3d80033aba409bfddc37a2a7d41b5df7af7acbf8efe64bbbbd320f268faf929f6265e47b3a5b3b2c9a89a8a877f510f6942400eb18b12301c7a2796a1fd2f38407b07bff41dacb401d18f757e76a5ba5d9401d71f0532fe177dac7ac10ba9f846ac052e2ffa7e72f92b5b859633a31542485db293c76968"),
@@ -218,7 +218,7 @@ var lookupTestnet = &preminedTestnet{
 
 type preminedTestnet struct {
 	target encPubkey
-	dists  [hashBits + 1][]*ecdsa.PrivateKey
+	dists  [hashBits + 1][]*eddsa.PrivateKey
 }
 
 func (tn *preminedTestnet) len() int {
@@ -246,7 +246,7 @@ func (tn *preminedTestnet) node(dist, index int) *enode.Node {
 	return enode.NewV4(&key.PublicKey, ip, 0, 5000)
 }
 
-func (tn *preminedTestnet) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *ecdsa.PrivateKey) {
+func (tn *preminedTestnet) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.PrivateKey) {
 	dist := int(addr.IP[1])<<8 + int(addr.IP[2])
 	index := int(addr.IP[3])
 	key := tn.dists[dist][index]
@@ -296,14 +296,14 @@ func (tn *preminedTestnet) mine() {
 	}
 	fmt.Printf("&preminedTestnet{\n")
 	fmt.Printf("	target: hexEncPubkey(\"%x\"),\n", tn.target[:])
-	fmt.Printf("	dists: [%d][]*ecdsa.PrivateKey{\n", len(tn.dists))
+	fmt.Printf("	dists: [%d][]*eddsa.PrivateKey{\n", len(tn.dists))
 	for ld, ns := range tn.dists {
 		if len(ns) == 0 {
 			continue
 		}
 		fmt.Printf("		%d: {\n", ld)
 		for _, key := range ns {
-			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", crypto.FromECDSA(key))
+			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", crypto.FromEDDSA(key))
 		}
 		fmt.Printf("		},\n")
 	}

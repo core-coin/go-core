@@ -21,7 +21,7 @@ package main
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
@@ -49,11 +49,11 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*ecdsa.PrivateKey, 128)
+	faucets := make([]*eddsa.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	sealers := make([]*ecdsa.PrivateKey, 4)
+	sealers := make([]*eddsa.PrivateKey, 4)
 	for i := 0; i < len(sealers); i++ {
 		sealers[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -85,7 +85,7 @@ func main() {
 
 		// Inject the signer key and start sealing with it
 		store := node.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
-		signer, err := store.ImportECDSA(sealer, "")
+		signer, err := store.ImportEDDSA(sealer, "")
 		if err != nil {
 			panic(err)
 		}
@@ -136,7 +136,7 @@ func main() {
 
 // makeGenesis creates a custom Clique genesis block based on some pre-defined
 // signer and faucet accounts.
-func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core.Genesis {
+func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core.Genesis {
 	// Create a Clique network based off of the Rinkeby config
 	genesis := core.DefaultRinkebyGenesisBlock()
 	genesis.EnergyLimit = 25000000

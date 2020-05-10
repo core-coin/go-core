@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/ethclient"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/internal/debug"
 	"github.com/core-coin/go-core/les"
@@ -156,13 +156,13 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 	// Register the Core protocol if requested
 	if config.CoreEnabled {
-		ethConf := eth.DefaultConfig
-		ethConf.Genesis = genesis
-		ethConf.SyncMode = downloader.LightSync
-		ethConf.NetworkId = uint64(config.CoreNetworkID)
-		ethConf.DatabaseCache = config.CoreDatabaseCache
+		xceConf := xce.DefaultConfig
+		xceConf.Genesis = genesis
+		xceConf.SyncMode = downloader.LightSync
+		xceConf.NetworkId = uint64(config.CoreNetworkID)
+		xceConf.DatabaseCache = config.CoreDatabaseCache
 		if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, &ethConf)
+			return les.New(ctx, &xceConf)
 		}); err != nil {
 			return nil, fmt.Errorf("core init: %v", err)
 		}
@@ -212,7 +212,7 @@ func (n *Node) GetCoreClient() (client *CoreClient, _ error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CoreClient{ethclient.NewClient(rpc)}, nil
+	return &CoreClient{xceclient.NewClient(rpc)}, nil
 }
 
 // GetNodeInfo gathers and returns a collection of metadata known about the host.

@@ -23,7 +23,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 )

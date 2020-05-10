@@ -34,9 +34,9 @@ import (
 	"github.com/core-coin/go-core/cmd/utils"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/ethclient"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/internal/debug"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
@@ -321,16 +321,16 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	if err != nil {
 		utils.Fatalf("Failed to attach to self: %v", err)
 	}
-	ethClient := ethclient.NewClient(rpcClient)
+	xceClient := xceclient.NewClient(rpcClient)
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
 	if ctx.GlobalInt(utils.LightLegacyServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var ethService *eth.Core
-		if err := stack.Service(&ethService); err != nil {
+		var xceService *xce.Core
+		if err := stack.Service(&xceService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
 		}
-		ethService.SetContractBackend(ethClient)
+		xceService.SetContractBackend(xceClient)
 	}
 	// Set contract backend for les service if local node is
 	// running as a light client.
@@ -339,7 +339,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err := stack.Service(&lesService); err != nil {
 			utils.Fatalf("Failed to retrieve light core service: %v", err)
 		}
-		lesService.SetContractBackend(ethClient)
+		lesService.SetContractBackend(xceClient)
 	}
 
 	go func() {
@@ -366,7 +366,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 				}
 				derivationPaths = append(derivationPaths, accounts.DefaultBaseDerivationPath)
 
-				event.Wallet.SelfDerive(derivationPaths, ethClient)
+				event.Wallet.SelfDerive(derivationPaths, xceClient)
 
 			case accounts.WalletDropped:
 				log.Info("Old wallet dropped", "url", event.Wallet.URL())
@@ -405,7 +405,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var core *eth.Core
+		var core *xce.Core
 		if err := stack.Service(&core); err != nil {
 			utils.Fatalf("Core service not running: %v", err)
 		}

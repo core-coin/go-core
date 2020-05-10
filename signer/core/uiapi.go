@@ -114,12 +114,12 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
 
-// ImportRawKey stores the given hex encoded ECDSA key into the key directory,
+// ImportRawKey stores the given hex encoded EDDSA key into the key directory,
 // encrypting it with the passphrase.
 // Example call (should fail on password too short)
 // {"jsonrpc":"2.0","method":"clef_importRawKey","params":["1111111111111111111111111111111111111111111111111111111111111111","test"], "id":6}
 func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Account, error) {
-	key, err := crypto.HexToECDSA(privkey)
+	key, err := crypto.HexToEDDSA(privkey)
 	if err != nil {
 		return accounts.Account{}, err
 	}
@@ -127,7 +127,7 @@ func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Ac
 		return accounts.Account{}, fmt.Errorf("password requirements not met: %v", err)
 	}
 	// No error
-	return fetchKeystore(s.am).ImportECDSA(key, password)
+	return fetchKeystore(s.am).ImportEDDSA(key, password)
 }
 
 // OpenWallet initiates a hardware wallet opening procedure, establishing a USB

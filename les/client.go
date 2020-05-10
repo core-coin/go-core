@@ -30,10 +30,10 @@ import (
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/eth/filters"
-	"github.com/core-coin/go-core/eth/energyprice"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/filters"
+	"github.com/core-coin/go-core/xce/energyprice"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/les/checkpointoracle"
@@ -69,8 +69,8 @@ type LightCore struct {
 	netRPCService  *xceapi.PublicNetAPI
 }
 
-func New(ctx *node.ServiceContext, config *eth.Config) (*LightCore, error) {
-	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "eth/db/chaindata/")
+func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
+	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xce/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -95,9 +95,9 @@ func New(ctx *node.ServiceContext, config *eth.Config) (*LightCore, error) {
 		eventMux:       ctx.EventMux,
 		reqDist:        newRequestDistributor(peers, &mclock.System{}),
 		accountManager: ctx.AccountManager,
-		engine:         eth.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
+		engine:         xce.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
-		bloomIndexer:   eth.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
+		bloomIndexer:   xce.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		serverPool:     newServerPool(chainDb, config.UltraLightServers),
 	}
 	leth.retriever = newRetrieveManager(peers, leth.reqDist, leth.serverPool)
@@ -183,17 +183,17 @@ func (s *LightCore) APIs() []rpc.API {
 	apis = append(apis, s.engine.APIs(s.BlockChain().HeaderChain())...)
 	return append(apis, []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   &LightDummyAPI{},
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.handler.downloader, s.eventMux),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "xce",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
 			Public:    true,

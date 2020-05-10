@@ -368,7 +368,7 @@ func accountImport(ctx *cli.Context) error {
 	if len(keyfile) == 0 {
 		utils.Fatalf("keyfile must be given as argument")
 	}
-	key, err := crypto.LoadECDSA(keyfile)
+	key, err := crypto.LoadEDDSA(keyfile)
 	if err != nil {
 		utils.Fatalf("Failed to load the private key: %v", err)
 	}
@@ -376,7 +376,7 @@ func accountImport(ctx *cli.Context) error {
 	passphrase := getPassPhrase("Your new account is locked with a password. Please give a password. Do not forget this password.", true, 0, utils.MakePasswordList(ctx))
 
 	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
-	acct, err := ks.ImportECDSA(key, passphrase)
+	acct, err := ks.ImportEDDSA(key, passphrase)
 	if err != nil {
 		utils.Fatalf("Could not create the account: %v", err)
 	}

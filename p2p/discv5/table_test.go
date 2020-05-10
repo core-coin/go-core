@@ -17,7 +17,7 @@
 package discv5
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"math/rand"
 	crand "crypto/rand"
@@ -230,7 +230,7 @@ func gen(typ interface{}, rand *rand.Rand) interface{} {
 	return v.Interface()
 }
 
-func newkey() *ecdsa.PrivateKey {
+func newkey() *eddsa.PrivateKey {
 	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())

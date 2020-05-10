@@ -20,7 +20,7 @@
 package main
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -34,7 +34,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
@@ -48,7 +48,7 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*ecdsa.PrivateKey, 128)
+	faucets := make([]*eddsa.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -127,7 +127,7 @@ func main() {
 
 // makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
-func makeGenesis(faucets []*ecdsa.PrivateKey) *core.Genesis {
+func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
 	genesis := core.DefaultTestnetGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000

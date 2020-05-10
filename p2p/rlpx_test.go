@@ -18,7 +18,7 @@ package p2p
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -40,16 +40,16 @@ import (
 )
 
 func TestSharedSecret(t *testing.T) {
-	prv0, _ := crypto.GenerateKey(rand.Reader) // = ecdsa.GenerateKey(crypto.S256(), rand.Reader)
+	prv0, _ := crypto.GenerateKey(rand.Reader) // = eddsa.GenerateKey(crypto.S256(), rand.Reader)
 	pub0 := &prv0.PublicKey
 	prv1, _ := crypto.GenerateKey(rand.Reader)
 	pub1 := &prv1.PublicKey
 
-	ss0, err := ecies.ImportECDSA(prv0).GenerateShared(ecies.ImportECDSAPublic(pub1), sskLen, sskLen)
+	ss0, err := ecies.ImportEDDSA(prv0).GenerateShared(ecies.ImportEDDSAPublic(pub1), sskLen, sskLen)
 	if err != nil {
 		return
 	}
-	ss1, err := ecies.ImportECDSA(prv1).GenerateShared(ecies.ImportECDSAPublic(pub0), sskLen, sskLen)
+	ss1, err := ecies.ImportEDDSA(prv1).GenerateShared(ecies.ImportEDDSAPublic(pub0), sskLen, sskLen)
 	if err != nil {
 		return
 	}
@@ -81,7 +81,7 @@ func TestEncHandshake(t *testing.T) {
 func testEncHandshake(token []byte) error {
 	type result struct {
 		side   string
-		pubkey *ecdsa.PublicKey
+		pubkey *eddsa.PublicKey
 		err    error
 	}
 	var (
@@ -147,11 +147,11 @@ func testEncHandshake(token []byte) error {
 func TestProtocolHandshake(t *testing.T) {
 	var (
 		prv0, _ = crypto.GenerateKey(rand.Reader)
-		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)
+		pub0    = crypto.FromEDDSAPub(&prv0.PublicKey)
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
 		prv1, _ = crypto.GenerateKey(rand.Reader)
-		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)
+		pub1    = crypto.FromEDDSAPub(&prv1.PublicKey)
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
@@ -431,14 +431,14 @@ var eip8HandshakeRespTests = []handshakeAckTest{
 
 func TestHandshakeForwardCompatibility(t *testing.T) {
 	var (
-		keyA, _       = crypto.HexToECDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383e6c839b66f15fd1b172bd0ccf0a00e5a4ca1f8675a9aa1251c5375d2dd8eccb3d637820a0204faf8e110911a25501a6a8200c633d5b7f8553c5662abd270756f096b04e0a834a49cf218c5fce341ec9af5e47d1fe7bf6d")
-		keyB, _       = crypto.HexToECDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
-		pubA          = crypto.FromECDSAPub(&keyA.PublicKey)
-		pubB          = crypto.FromECDSAPub(&keyB.PublicKey)
-		ephA, _       = crypto.HexToECDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a5280ba4b5fd3f28a70138c81a4334eb1d16a35b09f0e272667f320a26c40fe22117f34d131d217b3b172a04532a33eb0cf148d501887293956ab04737a0d08e21fc151203a8ab402afa497899d16b2a84c7736ef1d07b1")
-		ephB, _       = crypto.HexToECDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b98ac408e75d35449de00b8fc89c042f3cea4dfdd3dcc7878a836edb2a5516163ee5218a0af44e80c7d4ad114d5302109289c29925de77c82fb0e081f0732c15dbe54440ea719327d13acbbb3aaebd58dbc6e0a5c83c5c06")
-		ephPubA       = crypto.FromECDSAPub(&ephA.PublicKey)
-		ephPubB       = crypto.FromECDSAPub(&ephB.PublicKey)
+		keyA, _       = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383e6c839b66f15fd1b172bd0ccf0a00e5a4ca1f8675a9aa1251c5375d2dd8eccb3d637820a0204faf8e110911a25501a6a8200c633d5b7f8553c5662abd270756f096b04e0a834a49cf218c5fce341ec9af5e47d1fe7bf6d")
+		keyB, _       = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
+		pubA          = crypto.FromEDDSAPub(&keyA.PublicKey)
+		pubB          = crypto.FromEDDSAPub(&keyB.PublicKey)
+		ephA, _       = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a5280ba4b5fd3f28a70138c81a4334eb1d16a35b09f0e272667f320a26c40fe22117f34d131d217b3b172a04532a33eb0cf148d501887293956ab04737a0d08e21fc151203a8ab402afa497899d16b2a84c7736ef1d07b1")
+		ephB, _       = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b98ac408e75d35449de00b8fc89c042f3cea4dfdd3dcc7878a836edb2a5516163ee5218a0af44e80c7d4ad114d5302109289c29925de77c82fb0e081f0732c15dbe54440ea719327d13acbbb3aaebd58dbc6e0a5c83c5c06")
+		ephPubA       = crypto.FromEDDSAPub(&ephA.PublicKey)
+		ephPubB       = crypto.FromEDDSAPub(&ephB.PublicKey)
 		nonceA        = unhex("7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6")
 		nonceB        = unhex("559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd")
 		_, _, _, _    = pubA, pubB, ephPubA, ephPubB
@@ -501,7 +501,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		hs = &encHandshake{
 			initiator:     false,
 			respNonce:     nonceB,
-			randomPrivKey: ecies.ImportECDSA(ephB),
+			randomPrivKey: ecies.ImportEDDSA(ephB),
 		}
 		authCiphertext     = unhex(eip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(eip8HandshakeRespTests[1].input)

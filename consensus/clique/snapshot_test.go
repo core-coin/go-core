@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"sort"
 	"testing"
 
@@ -36,12 +36,12 @@ import (
 // mapped from textual names used in the tests below to actual Core private
 // keys capable of signing transactions.
 type testerAccountPool struct {
-	accounts map[string]*ecdsa.PrivateKey
+	accounts map[string]*eddsa.PrivateKey
 }
 
 func newTesterAccountPool() *testerAccountPool {
 	return &testerAccountPool{
-		accounts: make(map[string]*ecdsa.PrivateKey),
+		accounts: make(map[string]*eddsa.PrivateKey),
 	}
 }
 

@@ -18,7 +18,7 @@ package main
 
 import (
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -70,11 +70,11 @@ If you want to encrypt an existing private key, it can be specified by setting
 			utils.Fatalf("Error checking if keyfile exists: %v", err)
 		}
 
-		var privateKey *ecdsa.PrivateKey
+		var privateKey *eddsa.PrivateKey
 		var err error
 		if file := ctx.String("privatekey"); file != "" {
 			// Load private key from file.
-			privateKey, err = crypto.LoadECDSA(file)
+			privateKey, err = crypto.LoadEDDSA(file)
 			if err != nil {
 				utils.Fatalf("Can't load private key: %v", err)
 			}

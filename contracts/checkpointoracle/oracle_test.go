@@ -19,7 +19,7 @@ package checkpointoracle
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
 	"math/big"
@@ -122,7 +122,7 @@ func validateEvents(target int, sink interface{}) (bool, []reflect.Value) {
 	return chose == 1, recv
 }
 
-func signCheckpoint(addr common.Address, privateKey *ecdsa.PrivateKey, index uint64, hash common.Hash) []byte {
+func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uint64, hash common.Hash) []byte {
 	// EIP 191 style signatures
 	//
 	// Arguments when calculating hash to validate
@@ -156,7 +156,7 @@ func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]
 }
 
 type Account struct {
-	key  *ecdsa.PrivateKey
+	key  *eddsa.PrivateKey
 	addr common.Address
 }
 type Accounts []Account
@@ -196,7 +196,7 @@ func TestCheckpointRegister(t *testing.T) {
 		return parentNumber, parentHash
 	}
 	// collectSig generates specified number signatures.
-	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *ecdsa.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
+	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *eddsa.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
 		for i := 0; i < n; i++ {
 			_ = signCheckpoint(contractAddr, accounts[i].key, index, hash)
 			if unauthorized != nil {

@@ -295,14 +295,14 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
 
-// ImportRawKey stores the given hex encoded ECDSA key into the key directory,
+// ImportRawKey stores the given hex encoded EDDSA key into the key directory,
 // encrypting it with the passphrase.
 func (s *PrivateAccountAPI) ImportRawKey(privkey string, password string) (common.Address, error) {
-	key, err := crypto.HexToECDSA(privkey)
+	key, err := crypto.HexToEDDSA(privkey)
 	if err != nil {
 		return common.Address{}, err
 	}
-	acc, err := fetchKeystore(s.am).ImportECDSA(key, password)
+	acc, err := fetchKeystore(s.am).ImportEDDSA(key, password)
 	return acc.Address, err
 }
 
@@ -404,7 +404,7 @@ func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs
 	return &SignTransactionResult{data, signed}, nil
 }
 
-// Sign calculates an Core ECDSA signature for:
+// Sign calculates an Core EDDSA signature for:
 // keccack256("\x19Core Signed Message:\n" + len(message) + message))
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,
@@ -1510,7 +1510,7 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 	return SubmitTransaction(ctx, s.b, tx)
 }
 
-// Sign calculates an ECDSA signature for:
+// Sign calculates an EDDSA signature for:
 // keccack256("\x19Core Signed Message:\n" + len(message) + message).
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,

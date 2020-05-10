@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"fmt"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	mrand "math/rand"
 	"sync"
 	"testing"
@@ -79,7 +79,7 @@ type TestData struct {
 
 type TestNode struct {
 	shh     *Whisper
-	id      *ecdsa.PrivateKey
+	id      *eddsa.PrivateKey
 	server  *p2p.Server
 	filerID string
 }
@@ -193,7 +193,7 @@ func initialize(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to install the filter: %s.", err)
 		}
-		node.id, err = crypto.HexToECDSA(keys[i])
+		node.id, err = crypto.HexToEDDSA(keys[i])
 		if err != nil {
 			t.Fatalf("failed convert the key: %s.", keys[i])
 		}

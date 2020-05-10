@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/eth/filters"
+	"github.com/core-coin/go-core/xce/filters"
 	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"

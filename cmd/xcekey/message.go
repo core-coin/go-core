@@ -117,7 +117,7 @@ It is possible to refer to a file containing the message.`,
 		if err != nil || recoveredPubkey == nil {
 			utils.Fatalf("Signature verification failed: %v", err)
 		}
-		recoveredPubkeyBytes := crypto.FromECDSAPub(recoveredPubkey)
+		recoveredPubkeyBytes := crypto.FromEDDSAPub(recoveredPubkey)
 		recoveredAddress := crypto.PubkeyToAddress(*recoveredPubkey)
 		success := address == recoveredAddress
 

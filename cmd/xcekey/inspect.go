@@ -71,10 +71,10 @@ make sure to use this feature with great caution!`,
 		out := outputInspect{
 			Address: key.Address.Hex(),
 			PublicKey: hex.EncodeToString(
-				crypto.FromECDSAPub(&key.PrivateKey.PublicKey)),
+				crypto.FromEDDSAPub(&key.PrivateKey.PublicKey)),
 		}
 		if showPrivate {
-			out.PrivateKey = hex.EncodeToString(crypto.FromECDSA(key.PrivateKey))
+			out.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(key.PrivateKey))
 		}
 
 		if ctx.Bool(jsonFlag.Name) {

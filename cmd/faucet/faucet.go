@@ -46,9 +46,9 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
-	"github.com/core-coin/go-core/ethclient"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -199,7 +199,7 @@ type request struct {
 type faucet struct {
 	config *params.ChainConfig // Chain configurations for signing
 	stack  *node.Node          // Core protocol stack
-	client *ethclient.Client   // Client connection to the Core chain
+	client *xceclient.Client   // Client connection to the Core chain
 	index  []byte              // Index page to serve up on the web
 
 	keystore *keystore.KeyStore // Keystore containing the single signer
@@ -237,7 +237,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}
 	// Assemble the Core light client protocol
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		cfg := eth.DefaultConfig
+		cfg := xce.DefaultConfig
 		cfg.SyncMode = downloader.LightSync
 		cfg.NetworkId = network
 		cfg.Genesis = genesis
@@ -271,7 +271,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 		stack.Stop()
 		return nil, err
 	}
-	client := ethclient.NewClient(api)
+	client := xceclient.NewClient(api)
 
 	return &faucet{
 		config:   genesis.Config,

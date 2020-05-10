@@ -19,7 +19,7 @@
 package crypto
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"crypto/elliptic"
 	"errors"
 	"fmt"
@@ -39,17 +39,17 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 }
 
 // SigToPub returns the public key that created the given signature.
-func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
+func SigToPub(hash, sig []byte) (*eddsa.PublicKey, error) {
 	// Convert to btcec input format with 'recovery id' v at the beginning.
 	btcsig := make([]byte, SignatureLength)
 	//btcsig[0] = sig[64] + 27
 	copy(btcsig, sig)
 
 	pub, _, err := btcec.RecoverCompact(btcec.S256(), btcsig, hash)
-	return (*ecdsa.PublicKey)(pub), err
+	return (*eddsa.PublicKey)(pub), err
 }
 
-// Sign calculates an ECDSA signature.
+// Sign calculates an EDDSA signature.
 //
 // This function is susceptible to chosen plaintext attacks that can leak
 // information about the private key that is used for signing. Callers must
@@ -57,7 +57,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 // solution is to hash any input before calculating the signature.
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
-func Sign(hash []byte, prv *ecdsa.PrivateKey) ([]byte, error) {
+func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	if len(hash) != 32 {
 		return nil, fmt.Errorf("hash is required to be exactly 32 bytes (%d)", len(hash))
 	}
@@ -95,7 +95,7 @@ func VerifySignature(pubkey, hash, signature []byte) bool {
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
-func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
+func DecompressPubkey(pubkey []byte) (*eddsa.PublicKey, error) {
 	if len(pubkey) != 33 {
 		return nil, errors.New("invalid compressed public key length")
 	}
@@ -103,11 +103,11 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return key.ToECDSA(), nil
+	return key.ToEDDSA(), nil
 }
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
-func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
+func CompressPubkey(pubkey *eddsa.PublicKey) []byte {
 	return (*btcec.PublicKey)(pubkey).SerializeCompressed()
 }
 

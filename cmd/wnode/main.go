@@ -21,7 +21,7 @@ package main
 
 import (
 	"bufio"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
@@ -66,9 +66,9 @@ var (
 // encryption
 var (
 	symKey  []byte
-	pub     *ecdsa.PublicKey
-	asymKey *ecdsa.PrivateKey
-	nodeid  *ecdsa.PrivateKey
+	pub     *eddsa.PublicKey
+	asymKey *eddsa.PrivateKey
+	nodeid  *eddsa.PrivateKey
 	topic   whisper.TopicType
 
 	asymKeyID    string
@@ -119,7 +119,7 @@ func processArgs() {
 
 	if len(*argIDFile) > 0 {
 		var err error
-		nodeid, err = crypto.LoadECDSA(*argIDFile)
+		nodeid, err = crypto.LoadEDDSA(*argIDFile)
 		if err != nil {
 			utils.Fatalf("Failed to load file [%s]: %s.", *argIDFile, err)
 		}
@@ -166,7 +166,7 @@ func echo() {
 	fmt.Printf("pow = %f \n", *argPoW)
 	fmt.Printf("mspow = %f \n", *argServerPoW)
 	fmt.Printf("ip = %s \n", *argIP)
-	fmt.Printf("pub = %s \n", hexutil.Encode(crypto.FromECDSAPub(pub)))
+	fmt.Printf("pub = %s \n", hexutil.Encode(crypto.FromEDDSAPub(pub)))
 	fmt.Printf("idfile = %s \n", *argIDFile)
 	fmt.Printf("dbpath = %s \n", *argDBPath)
 	fmt.Printf("boot = %s \n", *argEnode)
@@ -184,7 +184,7 @@ func initialize() {
 		if err != nil {
 			utils.Fatalf("Failed to generate private key: %s", err)
 		}
-		k := hex.EncodeToString(crypto.FromECDSA(key))
+		k := hex.EncodeToString(crypto.FromEDDSA(key))
 		fmt.Printf("Random private key: %s \n", k)
 		os.Exit(0)
 	}
@@ -299,7 +299,7 @@ func startServer() error {
 		return err
 	}
 
-	fmt.Printf("my public key: %s \n", hexutil.Encode(crypto.FromECDSAPub(&asymKey.PublicKey)))
+	fmt.Printf("my public key: %s \n", hexutil.Encode(crypto.FromEDDSAPub(&asymKey.PublicKey)))
 	fmt.Println(server.NodeInfo().Enode)
 
 	if *bootstrapMode {

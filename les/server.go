@@ -17,13 +17,13 @@
 package les
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/light"
@@ -43,7 +43,7 @@ type LesServer struct {
 	peers       *clientPeerSet
 	handler     *serverHandler
 	lesTopics   []discv5.Topic
-	privateKey  *ecdsa.PrivateKey
+	privateKey  *eddsa.PrivateKey
 
 	// Flow control and capacity management
 	fcManager    *flowcontrol.ClientManager
@@ -57,7 +57,7 @@ type LesServer struct {
 	threadsBusy                            int // Request serving threads count when system is busy(block insertion).
 }
 
-func NewLesServer(e *eth.Core, config *eth.Config) (*LesServer, error) {
+func NewLesServer(e *xce.Core, config *xce.Config) (*LesServer, error) {
 	// Collect les protocol version information supported by local node.
 	lesTopics := make([]discv5.Topic, len(AdvertiseProtocolVersions))
 	for i, pv := range AdvertiseProtocolVersions {

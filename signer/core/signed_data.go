@@ -260,7 +260,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		useCoreV = false
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
 	default: // also case TextPlain.Mime:
-		// Calculates an Core ECDSA signature for:
+		// Calculates an Core EDDSA signature for:
 		// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 		// We expect it to be a string
 		if stringData, ok := data.(string); !ok {

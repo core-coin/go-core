@@ -28,7 +28,7 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
@@ -74,7 +74,7 @@ type xcestatsConfig struct {
 }
 
 type gcoreConfig struct {
-	Eth      eth.Config
+	Xce      xce.Config
 	Shh      whisper.Config
 	Node     node.Config
 	Xcestats xcestatsConfig
@@ -108,7 +108,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	// Load defaults.
 	cfg := gcoreConfig{
-		Eth:  eth.DefaultConfig,
+		Xce:  xce.DefaultConfig,
 		Shh:  whisper.DefaultConfig,
 		Node: defaultNodeConfig(),
 	}
@@ -126,7 +126,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetEthConfig(ctx, stack, &cfg.Eth)
+	utils.SetEthConfig(ctx, stack, &cfg.Xce)
 	if ctx.GlobalIsSet(utils.XceStatsURLFlag.Name) {
 		cfg.Xcestats.URL = ctx.GlobalString(utils.XceStatsURLFlag.Name)
 	}
@@ -148,12 +148,12 @@ func enableWhisper(ctx *cli.Context) bool {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 	if ctx.GlobalIsSet(utils.OverrideIstanbulFlag.Name) {
-		cfg.Eth.OverrideIstanbul = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideIstanbulFlag.Name))
+		cfg.Xce.OverrideIstanbul = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideIstanbulFlag.Name))
 	}
 	if ctx.GlobalIsSet(utils.OverrideMuirGlacierFlag.Name) {
-		cfg.Eth.OverrideMuirGlacier = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideMuirGlacierFlag.Name))
+		cfg.Xce.OverrideMuirGlacier = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideMuirGlacierFlag.Name))
 	}
-	utils.RegisterEthService(stack, &cfg.Eth)
+	utils.RegisterEthService(stack, &cfg.Xce)
 
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
 	shhEnabled := enableWhisper(ctx)
@@ -186,8 +186,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.Eth.Genesis != nil {
-		cfg.Eth.Genesis = nil
+	if cfg.Xce.Genesis != nil {
+		cfg.Xce.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"context"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"errors"
 	"math/rand"
 	"reflect"
@@ -330,9 +330,9 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 }
 
 // testKeys creates deterministic private keys for testing.
-func testKeys(seed int64, n int) []*ecdsa.PrivateKey {
+func testKeys(seed int64, n int) []*eddsa.PrivateKey {
 	randSeed := rand.New(rand.NewSource(seed))
-	keys := make([]*ecdsa.PrivateKey, n)
+	keys := make([]*eddsa.PrivateKey, n)
 	for i := 0; i < n; i++ {
 		key, err := crypto.GenerateKey(randSeed)
 		if err != nil {
@@ -343,7 +343,7 @@ func testKeys(seed int64, n int) []*ecdsa.PrivateKey {
 	return keys
 }
 
-func testKey(seed int64) *ecdsa.PrivateKey {
+func testKey(seed int64) *eddsa.PrivateKey {
 	return testKeys(seed, 1)[0]
 }
 

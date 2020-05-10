@@ -17,7 +17,7 @@
 package discv5
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
 	"math/rand"
@@ -300,7 +300,7 @@ type simTransport struct {
 	senderAddr *net.UDPAddr
 	sim        *simulation
 	hashctr    uint64
-	priv       *ecdsa.PrivateKey
+	priv       *eddsa.PrivateKey
 }
 
 func (st *simTransport) localAddr() *net.UDPAddr {

@@ -21,7 +21,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha512"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
@@ -175,7 +175,7 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 // messages. the protocol handshake is the first authenticated message
 // and also verifies whether the encryption handshake 'worked' and the
 // remote side actually provided the right public key.
-func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ecdsa.PublicKey, error) {
+func (t *rlpx) doEncHandshake(prv *eddsa.PrivateKey, dial *eddsa.PublicKey) (*eddsa.PublicKey, error) {
 	var (
 		sec secrets
 		err error
@@ -191,7 +191,7 @@ func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ec
 	t.wmu.Lock()
 	t.rw = newRLPXFrameRW(t.fd, sec)
 	t.wmu.Unlock()
-	return sec.Remote.ExportECDSA(), nil
+	return sec.Remote.ExportEDDSA(), nil
 }
 
 // encHandshake contains the state of the encryption handshake.
@@ -270,16 +270,16 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 
 // staticSharedSecret returns the static shared secret, the result
 // of key agreement between the local and remote static node key.
-func (h *encHandshake) staticSharedSecret(prv *ecdsa.PrivateKey) ([]byte, error) {
-	return ecies.ImportECDSA(prv).GenerateShared(h.remote, sskLen, sskLen)
+func (h *encHandshake) staticSharedSecret(prv *eddsa.PrivateKey) ([]byte, error) {
+	return ecies.ImportEDDSA(prv).GenerateShared(h.remote, sskLen, sskLen)
 }
 
 // initiatorEncHandshake negotiates a session token on conn.
 // it should be called on the dialing side of the connection.
 //
 // prv is the local client's private key.
-func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
-	h := &encHandshake{initiator: true, remote: ecies.ImportECDSAPublic(remote)}
+func initiatorEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey, remote *eddsa.PublicKey) (s secrets, err error) {
+	h := &encHandshake{initiator: true, remote: ecies.ImportEDDSAPublic(remote)}
 	authMsg, err := h.makeAuthMsg(prv)
 	if err != nil {
 		return s, err
@@ -304,7 +304,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ec
 }
 
 // makeAuthMsg creates the initiator handshake message.
-func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
+func (h *encHandshake) makeAuthMsg(prv *eddsa.PrivateKey) (*authMsgV4, error) {
 	// Generate random initiator nonce.
 	h.initNonce = make([]byte, shaLen)
 	_, err := rand.Read(h.initNonce)
@@ -323,14 +323,14 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 		return nil, err
 	}
 	signed := xor(token, h.initNonce)
-	signature, err := crypto.Sign(signed, h.randomPrivKey.ExportECDSA())
+	signature, err := crypto.Sign(signed, h.randomPrivKey.ExportEDDSA())
 	if err != nil {
 		return nil, err
 	}
 
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
-	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[:])
+	copy(msg.InitiatorPubkey[:], crypto.FromEDDSAPub(&prv.PublicKey)[:])
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = 4
 	return msg, nil
@@ -346,7 +346,7 @@ func (h *encHandshake) handleAuthResp(msg *authRespV4) (err error) {
 // it should be called on the listening side of the connection.
 //
 // prv is the local client's private key.
-func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets, err error) {
+func receiverEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey) (s secrets, err error) {
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
 	if err != nil {
@@ -376,7 +376,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets,
 	return h.secrets(authPacket, authRespPacket)
 }
 
-func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *ecdsa.PrivateKey) error {
+func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *eddsa.PrivateKey) error {
 	// Import the remote identity.
 	rpub, err := importPublicKey(msg.InitiatorPubkey[:])
 	if err != nil {
@@ -466,13 +466,13 @@ type plainDecoder interface {
 	decodePlain([]byte)
 }
 
-func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r io.Reader) ([]byte, error) {
+func readHandshakeMsg(msg plainDecoder, plainSize int, prv *eddsa.PrivateKey, r io.Reader) ([]byte, error) {
 	buf := make([]byte, plainSize)
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return buf, err
 	}
 	// Attempt decoding pre-EIP-8 "plain" format.
-	key := ecies.ImportECDSA(prv)
+	key := ecies.ImportEDDSA(prv)
 	if dec, err := key.Decrypt(buf, nil, nil); err == nil {
 		msg.decodePlain(dec)
 		return buf, nil
@@ -503,7 +503,7 @@ func importPublicKey(pubKey []byte) (*ecies.PublicKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ecies.ImportECDSAPublic(pub), nil
+	return ecies.ImportEDDSAPublic(pub), nil
 }
 
 func exportPubkey(pub *ecies.PublicKey) []byte {

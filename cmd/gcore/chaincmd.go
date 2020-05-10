@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/trie"
@@ -477,7 +477,7 @@ func removeDB(ctx *cli.Context) error {
 		log.Info("Full node state database missing", "path", path)
 	}
 	// Remove the full node ancient database
-	path = config.Eth.DatabaseFreezer
+	path = config.Xce.DatabaseFreezer
 	switch {
 	case path == "":
 		path = filepath.Join(stack.ResolvePath("chaindata"), "ancient")

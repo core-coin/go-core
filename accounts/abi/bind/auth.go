@@ -17,7 +17,7 @@
 package bind
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -64,7 +64,7 @@ func NewKeyStoreTransactor(keystore *keystore.KeyStore, account accounts.Account
 
 // NewKeyedTransactor is a utility method to easily create a transaction signer
 // from a single private key.
-func NewKeyedTransactor(key *ecdsa.PrivateKey) *TransactOpts {
+func NewKeyedTransactor(key *eddsa.PrivateKey) *TransactOpts {
 	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
 	return &TransactOpts{
 		From: keyAddr,

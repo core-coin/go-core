@@ -17,7 +17,7 @@
 package core
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -69,16 +69,16 @@ func (bc *testBlockChain) SubscribeChainHeadEvent(ch chan<- ChainHeadEvent) even
 	return bc.chainHeadFeed.Subscribe(ch)
 }
 
-func transaction(nonce uint64, energylimit uint64, key *ecdsa.PrivateKey) *types.Transaction {
+func transaction(nonce uint64, energylimit uint64, key *eddsa.PrivateKey) *types.Transaction {
 	return pricedTransaction(nonce, energylimit, big.NewInt(1), key)
 }
 
-func pricedTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *ecdsa.PrivateKey) *types.Transaction {
+func pricedTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *eddsa.PrivateKey) *types.Transaction {
 	tx, _ := types.SignTx(types.NewTransaction(nonce, common.Address{}, big.NewInt(100), energylimit, energyprice, nil), types.HomesteadSigner{}, key)
 	return tx
 }
 
-func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *ecdsa.PrivateKey, bytes uint64) *types.Transaction {
+func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *eddsa.PrivateKey, bytes uint64) *types.Transaction {
 	data := make([]byte, bytes)
 	rand.Read(data)
 
@@ -86,7 +86,7 @@ func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.In
 	return tx
 }
 
-func setupTxPool() (*TxPool, *ecdsa.PrivateKey) {
+func setupTxPool() (*TxPool, *eddsa.PrivateKey) {
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
 	blockchain := &testBlockChain{statedb, 10000000, new(event.Feed)}
 
@@ -573,7 +573,7 @@ func TestTransactionPostponing(t *testing.T) {
 	defer pool.Stop()
 
 	// Create two test accounts to produce different gap profiles with
-	keys := make([]*ecdsa.PrivateKey, 2)
+	keys := make([]*eddsa.PrivateKey, 2)
 	accs := make([]common.Address, len(keys))
 
 	for i := 0; i < len(keys); i++ {
@@ -790,7 +790,7 @@ func testTransactionQueueGlobalLimiting(t *testing.T, nolocals bool) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them (last one will be the local)
-	keys := make([]*ecdsa.PrivateKey, 5)
+	keys := make([]*eddsa.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -980,7 +980,7 @@ func TestTransactionPendingGlobalLimiting(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 5)
+	keys := make([]*eddsa.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -1116,7 +1116,7 @@ func TestTransactionPendingMinimumAllowance(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 5)
+	keys := make([]*eddsa.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -1166,7 +1166,7 @@ func TestTransactionPoolRepricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 4)
+	keys := make([]*eddsa.PrivateKey, 4)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -1282,7 +1282,7 @@ func TestTransactionPoolRepricingKeepsLocals(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 3)
+	keys := make([]*eddsa.PrivateKey, 3)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000*1000000))
@@ -1353,7 +1353,7 @@ func TestTransactionPoolUnderpricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 4)
+	keys := make([]*eddsa.PrivateKey, 4)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -1459,7 +1459,7 @@ func TestTransactionPoolStableUnderpricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*ecdsa.PrivateKey, 2)
+	keys := make([]*eddsa.PrivateKey, 2)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))
@@ -1774,7 +1774,7 @@ func TestTransactionStatusCheck(t *testing.T) {
 	defer pool.Stop()
 
 	// Create the test accounts to check various transaction statuses with
-	keys := make([]*ecdsa.PrivateKey, 3)
+	keys := make([]*eddsa.PrivateKey, 3)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(keys[i].PublicKey), big.NewInt(1000000))

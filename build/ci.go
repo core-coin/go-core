@@ -647,7 +647,7 @@ func (d debExecutable) Package() string {
 func newDebMetadata(distro, goboot, author string, env build.Environment, t time.Time, name string, version string, exes []debExecutable) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "Core Builds <fjl@coreblockchain.cc>"
+		author = "Core Builds <build@coreblockchain.cc>"
 	}
 	return debMetadata{
 		GoBootPackage: goboot,

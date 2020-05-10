@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"crypto/sha256"
 	mrand "math/rand"
 	"testing"
@@ -113,7 +113,7 @@ func TestWhisperBasic(t *testing.T) {
 func TestWhisperAsymmetricKeyImport(t *testing.T) {
 	var (
 		w           = New(&DefaultConfig)
-		privateKeys []*ecdsa.PrivateKey
+		privateKeys []*eddsa.PrivateKey
 	)
 
 	for i := 0; i < 50; i++ {

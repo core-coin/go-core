@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth"
+	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
@@ -57,7 +57,7 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *eth.Config
+	config                       *xce.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
 	chainDb                      xcedb.Database

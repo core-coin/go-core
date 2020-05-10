@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"net"
@@ -215,13 +215,13 @@ type conn interface {
 // udp implements the RPC protocol.
 type udp struct {
 	conn        conn
-	priv        *ecdsa.PrivateKey
+	priv        *eddsa.PrivateKey
 	ourEndpoint rpcEndpoint
 	net         *Network
 }
 
 // ListenUDP returns a new table that listens for UDP packets on laddr.
-func ListenUDP(priv *ecdsa.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func ListenUDP(priv *eddsa.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	transport, err := listenUDP(priv, conn, realaddr)
 	if err != nil {
@@ -237,7 +237,7 @@ func ListenUDP(priv *ecdsa.PrivateKey, conn conn, nodeDBPath string, netrestrict
 	return net, nil
 }
 
-func listenUDP(priv *ecdsa.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
+func listenUDP(priv *eddsa.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
 	return &udp{conn: conn, priv: priv, ourEndpoint: makeEndpoint(realaddr, uint16(realaddr.Port))}, nil
 }
 
@@ -331,7 +331,7 @@ func (t *udp) sendPacket(toid NodeID, toaddr *net.UDPAddr, ptype byte, req inter
 // zeroed padding space for encodePacket.
 var headSpace = make([]byte, headSize)
 
-func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
+func encodePacket(priv *eddsa.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
