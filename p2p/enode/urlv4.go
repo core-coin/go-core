@@ -17,7 +17,7 @@
 package enode
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -81,7 +81,7 @@ func ParseV4(rawurl string) (*Node, error) {
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey *eddsa.PublicKey, ip net.IP, tcp, udp int) *Node {
 	var r enr.Record
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
@@ -108,7 +108,7 @@ func isNewV4(n *Node) bool {
 
 func parseComplete(rawurl string) (*Node, error) {
 	var (
-		id               *ecdsa.PublicKey
+		id               *eddsa.PublicKey
 		tcpPort, udpPort uint64
 	)
 	u, err := url.Parse(rawurl)
@@ -154,7 +154,7 @@ func parseComplete(rawurl string) (*Node, error) {
 }
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
-func parsePubkey(in string) (*ecdsa.PublicKey, error) {
+func parsePubkey(in string) (*eddsa.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
@@ -168,15 +168,15 @@ func (n *Node) URLv4() string {
 	var (
 		scheme enr.ID
 		nodeid string
-		key    ecdsa.PublicKey
+		key    eddsa.PublicKey
 	)
 	n.Load(&scheme)
 	n.Load((*Secp256k1)(&key))
 	switch {
 	case scheme == "v4":
-		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[:])
+		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key)[:])
 	case scheme == "":
-		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key))
+		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key))
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
@@ -195,7 +195,7 @@ func (n *Node) URLv4() string {
 }
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
-func PubkeyToIDV4(key *ecdsa.PublicKey) ID {
+func PubkeyToIDV4(key *eddsa.PublicKey) ID {
 	e := key.X[:]
 	return ID(crypto.Keccak256Hash(e))
 }

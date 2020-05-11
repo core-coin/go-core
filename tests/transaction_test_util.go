@@ -33,8 +33,8 @@ type TransactionTest struct {
 	Byzantium      ttFork
 	Constantinople ttFork
 	Istanbul       ttFork
-	EIP150         ttFork
-	EIP158         ttFork
+	CIP150         ttFork
+	CIP158         ttFork
 	Frontier       ttFork
 	Homestead      ttFork
 }
@@ -55,13 +55,13 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 		if err != nil {
 			return nil, nil, err
 		}
-		// Intrinsic gas
-		requiredGas, err := core.IntrinsicGas(tx.Data(), tx.To() == nil, isHomestead, isIstanbul)
+		// Intrinsic energy
+		requiredEnergy, err := core.IntrinsicEnergy(tx.Data(), tx.To() == nil, isHomestead, isIstanbul)
 		if err != nil {
 			return nil, nil, err
 		}
-		if requiredGas > tx.Gas() {
-			return nil, nil, fmt.Errorf("insufficient gas ( %d < %d )", tx.Gas(), requiredGas)
+		if requiredEnergy > tx.Energy() {
+			return nil, nil, fmt.Errorf("insufficient energy ( %d < %d )", tx.Energy(), requiredEnergy)
 		}
 		h := tx.Hash()
 		return &sender, &h, nil
@@ -76,11 +76,11 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 	}{
 		{"Frontier", types.FrontierSigner{}, tt.Frontier, false, false},
 		{"Homestead", types.HomesteadSigner{}, tt.Homestead, true, false},
-		{"EIP150", types.HomesteadSigner{}, tt.EIP150, true, false},
-		{"EIP158", types.NewEIP155Signer(config.ChainID), tt.EIP158, true, false},
-		{"Byzantium", types.NewEIP155Signer(config.ChainID), tt.Byzantium, true, false},
-		{"Constantinople", types.NewEIP155Signer(config.ChainID), tt.Constantinople, true, false},
-		{"Istanbul", types.NewEIP155Signer(config.ChainID), tt.Istanbul, true, true},
+		{"CIP150", types.HomesteadSigner{}, tt.CIP150, true, false},
+		{"CIP158", types.NewCIP155Signer(config.ChainID), tt.CIP158, true, false},
+		{"Byzantium", types.NewCIP155Signer(config.ChainID), tt.Byzantium, true, false},
+		{"Constantinople", types.NewCIP155Signer(config.ChainID), tt.Constantinople, true, false},
+		{"Istanbul", types.NewCIP155Signer(config.ChainID), tt.Istanbul, true, true},
 	} {
 		sender, txhash, err := validateTx(tt.RLP, testcase.signer, testcase.isHomestead, testcase.isIstanbul)
 

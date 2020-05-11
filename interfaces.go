@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethereum defines interfaces for interacting with Ethereum.
-package ethereum
+// Package core defines interfaces for interacting with Core.
+package core
 
 import (
 	"context"
@@ -96,7 +96,7 @@ type ChainStateReader interface {
 }
 
 // SyncProgress gives progress indications when the node is synchronising with
-// the Ethereum network.
+// the Core network.
 type SyncProgress struct {
 	StartingBlock uint64 // Block number where sync began
 	CurrentBlock  uint64 // Current block number where sync is at
@@ -115,14 +115,14 @@ type ChainSyncReader interface {
 type CallMsg struct {
 	From     common.Address  // the sender of the 'transaction'
 	To       *common.Address // the destination contract (nil for contract creation)
-	Gas      uint64          // if 0, the call executes with near-infinite gas
-	GasPrice *big.Int        // wei <-> gas exchange ratio
-	Value    *big.Int        // amount of wei sent along with the call
+	Energy      uint64          // if 0, the call executes with near-infinite energy
+	EnergyPrice *big.Int        // ore <-> energy exchange ratio
+	Value    *big.Int        // amount of ore sent along with the call
 	Data     []byte          // input data, usually an ABI-encoded contract method invocation
 }
 
 // A ContractCaller provides contract calls, essentially transactions that are executed by
-// the EVM but not mined into the blockchain. ContractCall is a low-level method to
+// the CVM but not mined into the blockchain. ContractCall is a low-level method to
 // execute such calls. For applications which are structured around specific contracts,
 // the abigen tool provides a nicer, properly typed way to perform calls.
 type ContractCaller interface {
@@ -131,7 +131,7 @@ type ContractCaller interface {
 
 // FilterQuery contains options for contract log filtering.
 type FilterQuery struct {
-	BlockHash *common.Hash     // used by eth_getLogs, return logs only from block with this hash
+	BlockHash *common.Hash     // used by xce_getLogs, return logs only from block with this hash
 	FromBlock *big.Int         // beginning of the queried range, nil means genesis block
 	ToBlock   *big.Int         // end of the range, nil means latest block
 	Addresses []common.Address // restricts matches to events created by specific contracts
@@ -172,10 +172,10 @@ type TransactionSender interface {
 	SendTransaction(ctx context.Context, tx *types.Transaction) error
 }
 
-// GasPricer wraps the gas price oracle, which monitors the blockchain to determine the
-// optimal gas price given current fee market conditions.
-type GasPricer interface {
-	SuggestGasPrice(ctx context.Context) (*big.Int, error)
+// EnergyPricer wraps the energy price oracle, which monitors the blockchain to determine the
+// optimal energy price given current fee market conditions.
+type EnergyPricer interface {
+	SuggestEnergyPrice(ctx context.Context) (*big.Int, error)
 }
 
 // A PendingStateReader provides access to the pending state, which is the result of all
@@ -196,12 +196,12 @@ type PendingContractCaller interface {
 	PendingCallContract(ctx context.Context, call CallMsg) ([]byte, error)
 }
 
-// GasEstimator wraps EstimateGas, which tries to estimate the gas needed to execute a
+// EnergyEstimator wraps EstimateEnergy, which tries to estimate the energy needed to execute a
 // specific transaction based on the pending state. There is no guarantee that this is the
-// true gas limit requirement as other transactions may be added or removed by miners, but
+// true energy limit requirement as other transactions may be added or removed by miners, but
 // it should provide a basis for setting a reasonable default.
-type GasEstimator interface {
-	EstimateGas(ctx context.Context, call CallMsg) (uint64, error)
+type EnergyEstimator interface {
+	EstimateEnergy(ctx context.Context, call CallMsg) (uint64, error)
 }
 
 // A PendingStateEventer provides access to real time notifications about changes to the

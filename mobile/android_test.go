@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package geth
+package gcore
 
 import (
 	"io/ioutil"
@@ -40,14 +40,14 @@ import android.test.MoreAsserts;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.ethereum.geth.*;
+import cc.coreblockchain.gcore.*;
 
 public class AndroidTest extends InstrumentationTestCase {
 	public AndroidTest() {}
 
 	public void testAccountManagement() {
 		// Create an encrypted keystore with light crypto parameters.
-		KeyStore ks = new KeyStore(getInstrumentation().getContext().getFilesDir() + "/keystore", Geth.LightScryptN, Geth.LightScryptP);
+		KeyStore ks = new KeyStore(getInstrumentation().getContext().getFilesDir() + "/keystore", Gcore.LightScryptN, Gcore.LightScryptP);
 
 		try {
 			// Create a new account with the specified encryption passphrase.
@@ -96,7 +96,7 @@ public class AndroidTest extends InstrumentationTestCase {
 
 		try {
 			// Start up a new inprocess node
-			Node node = new Node(getInstrumentation().getContext().getFilesDir() + "/.ethereum", new NodeConfig());
+			Node node = new Node(getInstrumentation().getContext().getFilesDir() + "/.core", new NodeConfig());
 			node.start();
 
 			// Retrieve some data via function calls (we don't really care about the results)
@@ -106,7 +106,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			info.getProtocols();
 
 			// Retrieve some data via the APIs (we don't really care about the results)
-			EthereumClient ec = node.getEthereumClient();
+			CoreClient ec = node.getCoreClient();
 			ec.getBlockByNumber(ctx, -1).getNumber();
 
 			NewHeadHandler handler = new NewHeadHandler() {
@@ -119,26 +119,26 @@ public class AndroidTest extends InstrumentationTestCase {
 		}
 	}
 
-	// Tests that recovering transaction signers works for both Homestead and EIP155
+	// Tests that recovering transaction signers works for both Homestead and CIP155
 	// signatures too. Regression test for go-core issue #14599.
 	public void testIssue14599() {
 		try {
-			byte[] preEIP155RLP = new BigInteger("f901fc8032830138808080b901ae60056013565b6101918061001d6000396000f35b3360008190555056006001600060e060020a6000350480630a874df61461003a57806341c0e1b514610058578063a02b161e14610066578063dbbdf0831461007757005b610045600435610149565b80600160a060020a031660005260206000f35b610060610161565b60006000f35b6100716004356100d4565b60006000f35b61008560043560243561008b565b60006000f35b600054600160a060020a031632600160a060020a031614156100ac576100b1565b6100d0565b8060018360005260205260406000208190555081600060005260206000a15b5050565b600054600160a060020a031633600160a060020a031614158015610118575033600160a060020a0316600182600052602052604060002054600160a060020a031614155b61012157610126565b610146565b600060018260005260205260406000208190555080600060005260206000a15b50565b60006001826000526020526040600020549050919050565b600054600160a060020a031633600160a060020a0316146101815761018f565b600054600160a060020a0316ff5b561ca0c5689ed1ad124753d54576dfb4b571465a41900a1dff4058d8adf16f752013d0a01221cbd70ec28c94a3b55ec771bcbc70778d6ee0b51ca7ea9514594c861b1884", 16).toByteArray();
-			preEIP155RLP = Arrays.copyOfRange(preEIP155RLP, 1, preEIP155RLP.length);
+			byte[] preCIP155RLP = new BigInteger("f901fc8032830138808080b901ae60056013565b6101918061001d6000396000f35b3360008190555056006001600060e060020a6000350480630a874df61461003a57806341c0e1b514610058578063a02b161e14610066578063dbbdf0831461007757005b610045600435610149565b80600160a060020a031660005260206000f35b610060610161565b60006000f35b6100716004356100d4565b60006000f35b61008560043560243561008b565b60006000f35b600054600160a060020a031632600160a060020a031614156100ac576100b1565b6100d0565b8060018360005260205260406000208190555081600060005260206000a15b5050565b600054600160a060020a031633600160a060020a031614158015610118575033600160a060020a0316600182600052602052604060002054600160a060020a031614155b61012157610126565b610146565b600060018260005260205260406000208190555080600060005260206000a15b50565b60006001826000526020526040600020549050919050565b600054600160a060020a031633600160a060020a0316146101815761018f565b600054600160a060020a0316ff5b561ca0c5689ed1ad124753d54576dfb4b571465a41900a1dff4058d8adf16f752013d0a01221cbd70ec28c94a3b55ec771bcbc70778d6ee0b51ca7ea9514594c861b1884", 16).toByteArray();
+			preCIP155RLP = Arrays.copyOfRange(preCIP155RLP, 1, preCIP155RLP.length);
 
-			byte[] postEIP155RLP = new BigInteger("f86b80847735940082520894ef5bbb9bba2e1ca69ef81b23a8727d889f3ef0a1880de0b6b3a7640000802ba06fef16c44726a102e6d55a651740636ef8aec6df3ebf009e7b0c1f29e4ac114aa057e7fbc69760b522a78bb568cfc37a58bfdcf6ea86cb8f9b550263f58074b9cc", 16).toByteArray();
-			postEIP155RLP = Arrays.copyOfRange(postEIP155RLP, 1, postEIP155RLP.length);
+			byte[] postCIP155RLP = new BigInteger("f86b80847735940082520894ef5bbb9bba2e1ca69ef81b23a8727d889f3ef0a1880de0b6b3a7640000802ba06fef16c44726a102e6d55a651740636ef8aec6df3ebf009e7b0c1f29e4ac114aa057e7fbc69760b522a78bb568cfc37a58bfdcf6ea86cb8f9b550263f58074b9cc", 16).toByteArray();
+			postCIP155RLP = Arrays.copyOfRange(postCIP155RLP, 1, postCIP155RLP.length);
 
-			Transaction preEIP155 =  new Transaction(preEIP155RLP);
-			Transaction postEIP155 = new Transaction(postEIP155RLP);
+			Transaction preCIP155 =  new Transaction(preCIP155RLP);
+			Transaction postCIP155 = new Transaction(postCIP155RLP);
 
-			preEIP155.getFrom(null);           // Homestead should accept homestead
-			preEIP155.getFrom(new BigInt(4));  // EIP155 should accept homestead (missing chain ID)
-			postEIP155.getFrom(new BigInt(4)); // EIP155 should accept EIP 155
+			preCIP155.getFrom(null);           // Homestead should accept homestead
+			preCIP155.getFrom(new BigInt(4));  // CIP155 should accept homestead (missing chain ID)
+			postCIP155.getFrom(new BigInt(4)); // CIP155 should accept CIP 155
 
 			try {
-				postEIP155.getFrom(null);
-				fail("EIP155 transaction accepted by Homestead");
+				postCIP155.getFrom(null);
+				fail("CIP155 transaction accepted by Homestead");
 			} catch (Exception e) {}
 		} catch (Exception e) {
 			fail(e.toString());
@@ -185,7 +185,7 @@ func TestAndroid(t *testing.T) {
 		t.Logf("initialization took %v", time.Since(start))
 	}
 	// Create and switch to a temporary workspace
-	workspace, err := ioutil.TempDir("", "geth-android-")
+	workspace, err := ioutil.TempDir("", "gcore-android-")
 	if err != nil {
 		t.Fatalf("failed to create temporary workspace: %v", err)
 	}
@@ -201,21 +201,21 @@ func TestAndroid(t *testing.T) {
 	defer os.Chdir(pwd)
 
 	// Create the skeleton of the Android project
-	for _, dir := range []string{"src/main", "src/androidTest/java/org/ethereum/gethtest", "libs"} {
+	for _, dir := range []string{"src/main", "src/androidTest/java/org/core/gcoretest", "libs"} {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
-	// Generate the mobile bindings for Geth and add the tester class
-	gobind := exec.Command("gomobile", "bind", "-javapkg", "org.ethereum", "github.com/core-coin/go-core/mobile")
+	// Generate the mobile bindings for Gcore and add the tester class
+	gobind := exec.Command("gomobile", "bind", "-javapkg", "cc.coreblockchain", "github.com/core-coin/go-core/mobile")
 	if output, err := gobind.CombinedOutput(); err != nil {
 		t.Logf("%s", output)
 		t.Fatalf("failed to run gomobile bind: %v", err)
 	}
-	cp.CopyFile(filepath.Join("libs", "geth.aar"), "geth.aar")
+	cp.CopyFile(filepath.Join("libs", "gcore.aar"), "gcore.aar")
 
-	if err = ioutil.WriteFile(filepath.Join("src", "androidTest", "java", "org", "ethereum", "gethtest", "AndroidTest.java"), []byte(androidTestClass), os.ModePerm); err != nil {
+	if err = ioutil.WriteFile(filepath.Join("src", "androidTest", "java", "org", "core", "gcoretest", "AndroidTest.java"), []byte(androidTestClass), os.ModePerm); err != nil {
 		t.Fatalf("failed to write Android test class: %v", err)
 	}
 	// Finish creating the project and run the tests via gradle
@@ -233,7 +233,7 @@ func TestAndroid(t *testing.T) {
 
 const androidManifest = `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.ethereum.gethtest"
+          package="cc.coreblockchain.gcoretest"
 	  android:versionCode="1"
 	  android:versionName="1.0">
 
@@ -262,6 +262,6 @@ repositories {
 }
 dependencies {
     compile 'com.android.support:appcompat-v7:19.0.0'
-    compile(name: "geth", ext: "aar")
+    compile(name: "gcore", ext: "aar")
 }
 `

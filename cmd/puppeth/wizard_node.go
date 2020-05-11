@@ -33,8 +33,8 @@ func (w *wizard) deployNode(boot bool) {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.ethstats == "" {
-		log.Error("No ethstats server configured")
+	if w.conf.xcestats == "" {
+		log.Error("No xcestats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -50,7 +50,7 @@ func (w *wizard) deployNode(boot bool) {
 		if boot {
 			infos = &nodeInfos{port: 30300, peersTotal: 512, peersLight: 256}
 		} else {
-			infos = &nodeInfos{port: 30300, peersTotal: 50, peersLight: 0, gasTarget: 7.5, gasLimit: 10, gasPrice: 1}
+			infos = &nodeInfos{port: 30300, peersTotal: 50, peersLight: 0, energyTarget: 7.5, energyLimit: 10, energyPrice: 1}
 		}
 	}
 	existed := err == nil
@@ -84,29 +84,29 @@ func (w *wizard) deployNode(boot bool) {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.ethstats == "" {
+	if infos.xcestats == "" {
 		fmt.Printf("What should the node be called on the stats page?\n")
-		infos.ethstats = w.readString() + ":" + w.conf.ethstats
+		infos.xcestats = w.readString() + ":" + w.conf.xcestats
 	} else {
-		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.ethstats)
-		infos.ethstats = w.readDefaultString(infos.ethstats) + ":" + w.conf.ethstats
+		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.xcestats)
+		infos.xcestats = w.readDefaultString(infos.xcestats) + ":" + w.conf.xcestats
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
-		if w.conf.Genesis.Config.Ethash != nil {
-			// Ethash based miners only need an etherbase to mine against
+		if w.conf.Genesis.Config.Cryptore != nil {
+			// Cryptore based miners only need an corebase to mine against
 			fmt.Println()
-			if infos.etherbase == "" {
+			if infos.corebase == "" {
 				fmt.Printf("What address should the miner use?\n")
 				for {
 					if address := w.readAddress(); address != nil {
-						infos.etherbase = address.Hex()
+						infos.corebase = address.Hex()
 						break
 					}
 				}
 			} else {
-				fmt.Printf("What address should the miner use? (default = %s)\n", infos.etherbase)
-				infos.etherbase = w.readDefaultAddress(common.HexToAddress(infos.etherbase)).Hex()
+				fmt.Printf("What address should the miner use? (default = %s)\n", infos.corebase)
+				infos.corebase = w.readDefaultAddress(common.HexToAddress(infos.corebase)).Hex()
 			}
 		} else if w.conf.Genesis.Config.Clique != nil {
 			// If a previous signer was already set, offer to reuse it
@@ -137,18 +137,18 @@ func (w *wizard) deployNode(boot bool) {
 				}
 			}
 		}
-		// Establish the gas dynamics to be enforced by the signer
+		// Establish the energy dynamics to be enforced by the signer
 		fmt.Println()
-		fmt.Printf("What gas limit should empty blocks target (MGas)? (default = %0.3f)\n", infos.gasTarget)
-		infos.gasTarget = w.readDefaultFloat(infos.gasTarget)
+		fmt.Printf("What energy limit should empty blocks target (MEnergy)? (default = %0.3f)\n", infos.energyTarget)
+		infos.energyTarget = w.readDefaultFloat(infos.energyTarget)
 
 		fmt.Println()
-		fmt.Printf("What gas limit should full blocks target (MGas)? (default = %0.3f)\n", infos.gasLimit)
-		infos.gasLimit = w.readDefaultFloat(infos.gasLimit)
+		fmt.Printf("What energy limit should full blocks target (MEnergy)? (default = %0.3f)\n", infos.energyLimit)
+		infos.energyLimit = w.readDefaultFloat(infos.energyLimit)
 
 		fmt.Println()
-		fmt.Printf("What gas price should the signer require (GWei)? (default = %0.3f)\n", infos.gasPrice)
-		infos.gasPrice = w.readDefaultFloat(infos.gasPrice)
+		fmt.Printf("What energy price should the signer require (Nucle)? (default = %0.3f)\n", infos.energyPrice)
+		infos.energyPrice = w.readDefaultFloat(infos.energyPrice)
 	}
 	// Try to deploy the full node on the host
 	nocache := false
@@ -158,7 +158,7 @@ func (w *wizard) deployNode(boot bool) {
 		nocache = w.readDefaultYesNo(false)
 	}
 	if out, err := deployNode(client, w.network, w.conf.bootnodes, infos, nocache); err != nil {
-		log.Error("Failed to deploy Ethereum node container", "err", err)
+		log.Error("Failed to deploy Core node container", "err", err)
 		if len(out) > 0 {
 			fmt.Printf("%s\n", out)
 		}

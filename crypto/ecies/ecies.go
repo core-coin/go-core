@@ -32,7 +32,7 @@ package ecies
 import (
 	"crypto/cipher"
 	"crypto/elliptic"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/crypto"
 	"crypto/hmac"
 	"crypto/subtle"
@@ -58,14 +58,14 @@ type PublicKey struct {
 	Params *ECIESParams
 }
 
-// Export an ECIES public key as an ECDSA public key.
-func (pub *PublicKey) ExportECDSA() *ecdsa.PublicKey {
+// Export an ECIES public key as an EDDSA public key.
+func (pub *PublicKey) ExportEDDSA() *eddsa.PublicKey {
 	key, _ := crypto.UnmarshalPubkey(pub.X)
 	return key
 }
 
-// Import an ECDSA public key as an ECIES public key.
-func ImportECDSAPublic(pub *ecdsa.PublicKey) *PublicKey {
+// Import an EDDSA public key as an ECIES public key.
+func ImportEDDSAPublic(pub *eddsa.PublicKey) *PublicKey {
 	return &PublicKey{
 		X:      pub.X,
 		Curve:  crypto.S256(),
@@ -79,15 +79,15 @@ type PrivateKey struct {
 	D []byte
 }
 
-// Export an ECIES private key as an ECDSA private key.
-func (prv *PrivateKey) ExportECDSA() *ecdsa.PrivateKey {
-	privkey, _ := crypto.ToECDSA(prv.D)
+// Export an ECIES private key as an EDDSA private key.
+func (prv *PrivateKey) ExportEDDSA() *eddsa.PrivateKey {
+	privkey, _ := crypto.ToEDDSA(prv.D)
 	return privkey
 }
 
-// Import an ECDSA private key as an ECIES private key.
-func ImportECDSA(prv *ecdsa.PrivateKey) *PrivateKey {
-	pub := ImportECDSAPublic(&prv.PublicKey)
+// Import an EDDSA private key as an ECIES private key.
+func ImportEDDSA(prv *eddsa.PrivateKey) *PrivateKey {
+	pub := ImportEDDSAPublic(&prv.PublicKey)
 	return &PrivateKey{*pub, prv.D}
 }
 
@@ -108,7 +108,7 @@ func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv
 
 // ECDH key agreement method used to establish secret keys for encryption.
 func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []byte, err error) {
-	privkey, err := crypto.ToECDSA(prv.D)
+	privkey, err := crypto.ToEDDSA(prv.D)
 	if err != nil {
 		return nil, err
 	}

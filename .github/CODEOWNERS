@@ -9,7 +9,7 @@ cmd/puppeth                     @karalabe
 consensus                       @karalabe
 core/                           @karalabe @holiman @rjl493456442
 dashboard/                      @kurkomisi
-eth/                            @karalabe @holiman @rjl493456442
+xce/                            @karalabe @holiman @rjl493456442
 graphql/                        @gballet
 les/                            @zsfelfoldi @rjl493456442
 light/                          @zsfelfoldi @rjl493456442

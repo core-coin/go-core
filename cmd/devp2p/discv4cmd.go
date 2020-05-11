@@ -51,7 +51,7 @@ var (
 	}
 	discv4RequestRecordCommand = cli.Command{
 		Name:      "requestenr",
-		Usage:     "Requests a node record using EIP-868 enrRequest",
+		Usage:     "Requests a node record using CIP-868 enrRequest",
 		Action:    discv4RequestRecord,
 		ArgsUsage: "<node>",
 	}

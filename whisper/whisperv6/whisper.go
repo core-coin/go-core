@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/sha256"
 	"fmt"
 	"math"
@@ -60,13 +60,13 @@ const (
 	restrictConnectionBetweenLightClientsIdx        // Restrict connection between two light clients
 )
 
-// Whisper represents a dark communication interface through the Ethereum
+// Whisper represents a dark communication interface through the Core
 // network, using its very own P2P communication layer.
 type Whisper struct {
 	protocol p2p.Protocol // Protocol description and parameters
 	filters  *Filters     // Message filters installed with Subscribe function
 
-	privateKeys map[string]*ecdsa.PrivateKey // Private key storage
+	privateKeys map[string]*eddsa.PrivateKey // Private key storage
 	symKeys     map[string][]byte            // Symmetric key storage
 	keyMu       sync.RWMutex                 // Mutex associated with key storages
 
@@ -91,14 +91,14 @@ type Whisper struct {
 	mailServer MailServer // MailServer interface
 }
 
-// New creates a Whisper client ready to communicate through the Ethereum P2P network.
+// New creates a Whisper client ready to communicate through the Core P2P network.
 func New(cfg *Config) *Whisper {
 	if cfg == nil {
 		cfg = &DefaultConfig
 	}
 
 	whisper := &Whisper{
-		privateKeys:   make(map[string]*ecdsa.PrivateKey),
+		privateKeys:   make(map[string]*eddsa.PrivateKey),
 		symKeys:       make(map[string][]byte),
 		envelopes:     make(map[common.Hash]*Envelope),
 		expirations:   make(map[uint32]mapset.Set),
@@ -437,7 +437,7 @@ func (whisper *Whisper) DeleteKeyPair(key string) bool {
 }
 
 // AddKeyPair imports a asymmetric private key and returns it identifier.
-func (whisper *Whisper) AddKeyPair(key *ecdsa.PrivateKey) (string, error) {
+func (whisper *Whisper) AddKeyPair(key *eddsa.PrivateKey) (string, error) {
 	id, err := GenerateRandomID()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate ID: %s", err)
@@ -459,7 +459,7 @@ func (whisper *Whisper) HasKeyPair(id string) bool {
 }
 
 // GetPrivateKey retrieves the private key of the specified identity.
-func (whisper *Whisper) GetPrivateKey(id string) (*ecdsa.PrivateKey, error) {
+func (whisper *Whisper) GetPrivateKey(id string) (*eddsa.PrivateKey, error) {
 	whisper.keyMu.RLock()
 	defer whisper.keyMu.RUnlock()
 	key := whisper.privateKeys[id]
@@ -974,12 +974,12 @@ func (s *Statistics) reset() {
 }
 
 // ValidatePublicKey checks the format of the given public key.
-func ValidatePublicKey(k *ecdsa.PublicKey) bool {
+func ValidatePublicKey(k *eddsa.PublicKey) bool {
 	return k != nil && k.X != nil && len(k.X) > 0
 }
 
 // validatePrivateKey checks the format of the given private key.
-func validatePrivateKey(k *ecdsa.PrivateKey) bool {
+func validatePrivateKey(k *eddsa.PrivateKey) bool {
 	if k == nil || k.D == nil {
 		return false
 	}

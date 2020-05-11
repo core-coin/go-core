@@ -30,7 +30,7 @@ import (
 )
 
 // Config is a basic type specifying certain configuration flags for running
-// the EVM.
+// the CVM.
 type Config struct {
 	ChainConfig *params.ChainConfig
 	Difficulty  *big.Int
@@ -38,11 +38,11 @@ type Config struct {
 	Coinbase    common.Address
 	BlockNumber *big.Int
 	Time        *big.Int
-	GasLimit    uint64
-	GasPrice    *big.Int
+	EnergyLimit    uint64
+	EnergyPrice    *big.Int
 	Value       *big.Int
 	Debug       bool
-	EVMConfig   vm.Config
+	CVMConfig   vm.Config
 
 	State     *state.StateDB
 	GetHashFn func(n uint64) common.Hash
@@ -56,9 +56,9 @@ func setDefaults(cfg *Config) {
 			HomesteadBlock: new(big.Int),
 			DAOForkBlock:   new(big.Int),
 			DAOForkSupport: false,
-			EIP150Block:    new(big.Int),
-			EIP155Block:    new(big.Int),
-			EIP158Block:    new(big.Int),
+			CIP150Block:    new(big.Int),
+			CIP155Block:    new(big.Int),
+			CIP158Block:    new(big.Int),
 		}
 	}
 
@@ -68,11 +68,11 @@ func setDefaults(cfg *Config) {
 	if cfg.Time == nil {
 		cfg.Time = big.NewInt(time.Now().Unix())
 	}
-	if cfg.GasLimit == 0 {
-		cfg.GasLimit = math.MaxUint64
+	if cfg.EnergyLimit == 0 {
+		cfg.EnergyLimit = math.MaxUint64
 	}
-	if cfg.GasPrice == nil {
-		cfg.GasPrice = new(big.Int)
+	if cfg.EnergyPrice == nil {
+		cfg.EnergyPrice = new(big.Int)
 	}
 	if cfg.Value == nil {
 		cfg.Value = new(big.Int)
@@ -88,7 +88,7 @@ func setDefaults(cfg *Config) {
 }
 
 // Execute executes the code using the input as call data during the execution.
-// It returns the EVM's return value, the new state and an error if it failed.
+// It returns the CVM's return value, the new state and an error if it failed.
 //
 // Execute sets up an in-memory, temporary, environment for the execution of
 // the given code. It makes sure that it's restored to its original state afterwards.
@@ -114,14 +114,14 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *state.StateDB, error) {
 		sender,
 		common.BytesToAddress([]byte("contract")),
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
 
 	return ret, cfg.State, err
 }
 
-// Create executes the code using the EVM create method
+// Create executes the code using the CVM create method
 func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 	if cfg == nil {
 		cfg = new(Config)
@@ -137,17 +137,17 @@ func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 	)
 
 	// Call the code with the given configuration.
-	code, address, leftOverGas, err := vmenv.Create(
+	code, address, leftOverEnergy, err := vmenv.Create(
 		sender,
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
-	return code, address, leftOverGas, err
+	return code, address, leftOverEnergy, err
 }
 
 // Call executes the code given by the contract's address. It will return the
-// EVM's return value or an error if it failed.
+// CVM's return value or an error if it failed.
 //
 // Call, unlike Execute, requires a config and also requires the State field to
 // be set.
@@ -158,13 +158,13 @@ func Call(address common.Address, input []byte, cfg *Config) ([]byte, uint64, er
 
 	sender := cfg.State.GetOrNewStateObject(cfg.Origin)
 	// Call the code with the given configuration.
-	ret, leftOverGas, err := vmenv.Call(
+	ret, leftOverEnergy, err := vmenv.Call(
 		sender,
 		address,
 		input,
-		cfg.GasLimit,
+		cfg.EnergyLimit,
 		cfg.Value,
 	)
 
-	return ret, leftOverGas, err
+	return ret, leftOverEnergy, err
 }

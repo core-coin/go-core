@@ -24,7 +24,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb/memorydb"
+	"github.com/core-coin/go-core/xcedb/memorydb"
 )
 
 func newEmptySecure() *SecureTrie {
@@ -67,11 +67,11 @@ func TestSecureDelete(t *testing.T) {
 	trie := newEmptySecure()
 	vals := []struct{ k, v string }{
 		{"do", "verb"},
-		{"ether", "wookiedoo"},
+		{"core", "wookiedoo"},
 		{"horse", "stallion"},
 		{"shaman", "horse"},
 		{"doge", "coin"},
-		{"ether", ""},
+		{"core", ""},
 		{"dog", "puppy"},
 		{"shaman", ""},
 	}

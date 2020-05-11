@@ -17,7 +17,7 @@
 package enode
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -130,8 +130,8 @@ func (n *Node) TCP() int {
 }
 
 // Pubkey returns the secp256k1 public key of the node, if present.
-func (n *Node) Pubkey() *ecdsa.PublicKey {
-	var key ecdsa.PublicKey
+func (n *Node) Pubkey() *eddsa.PublicKey {
+	var key eddsa.PublicKey
 	if n.Load((*Secp256k1)(&key)) != nil {
 		return nil
 	}

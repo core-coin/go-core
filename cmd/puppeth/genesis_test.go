@@ -28,9 +28,9 @@ import (
 	"github.com/core-coin/go-core/core"
 )
 
-// Tests the go-core to Aleth chainspec conversion for the Stureby testnet.
-func TestAlethSturebyConverter(t *testing.T) {
-	blob, err := ioutil.ReadFile("testdata/stureby_geth.json")
+// Tests the go-core to Alxce chainspec conversion for the Stureby testnet.
+func TestAlxceSturebyConverter(t *testing.T) {
+	blob, err := ioutil.ReadFile("testdata/stureby_gcore.json")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
 	}
@@ -38,16 +38,16 @@ func TestAlethSturebyConverter(t *testing.T) {
 	if err := json.Unmarshal(blob, &genesis); err != nil {
 		t.Fatalf("failed parsing genesis: %v", err)
 	}
-	spec, err := newAlethGenesisSpec("stureby", &genesis)
+	spec, err := newAlxceGenesisSpec("stureby", &genesis)
 	if err != nil {
 		t.Fatalf("failed creating chainspec: %v", err)
 	}
 
-	expBlob, err := ioutil.ReadFile("testdata/stureby_aleth.json")
+	expBlob, err := ioutil.ReadFile("testdata/stureby_alxce.json")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
 	}
-	expspec := &alethGenesisSpec{}
+	expspec := &alxceGenesisSpec{}
 	if err := json.Unmarshal(expBlob, expspec); err != nil {
 		t.Fatalf("failed parsing genesis: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestAlethSturebyConverter(t *testing.T) {
 
 // Tests the go-core to Parity chainspec conversion for the Stureby testnet.
 func TestParitySturebyConverter(t *testing.T) {
-	blob, err := ioutil.ReadFile("testdata/stureby_geth.json")
+	blob, err := ioutil.ReadFile("testdata/stureby_gcore.json")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
 	}

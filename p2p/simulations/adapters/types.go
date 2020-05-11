@@ -18,7 +18,7 @@ package adapters
 
 import (
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -86,7 +86,7 @@ type NodeConfig struct {
 
 	// PrivateKey is the node's private key which is used by the devp2p
 	// stack to encrypt communications
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *eddsa.PrivateKey
 
 	// Enable peer events for Msgs
 	EnableMsgEvents bool
@@ -144,7 +144,7 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 		EnableMsgEvents: n.EnableMsgEvents,
 	}
 	if n.PrivateKey != nil {
-		confJSON.PrivateKey = hex.EncodeToString(crypto.FromECDSA(n.PrivateKey))
+		confJSON.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(n.PrivateKey))
 	}
 	return json.Marshal(confJSON)
 }
@@ -168,7 +168,7 @@ func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		privKey, err := crypto.ToECDSA(key)
+		privKey, err := crypto.ToEDDSA(key)
 		if err != nil {
 			return err
 		}
@@ -241,7 +241,7 @@ type ServiceContext struct {
 
 // RPCDialer is used when initialising services which need to connect to
 // other nodes in the network (for example a simulated Swarm node which needs
-// to connect to a Geth node to resolve ENS names)
+// to connect to a Gcore node to resolve ENS names)
 type RPCDialer interface {
 	DialRPC(id enode.ID) (*rpc.Client, error)
 }

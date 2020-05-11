@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"context"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"sync"
@@ -118,7 +118,7 @@ func (api *PublicWhisperAPI) NewKeyPair(ctx context.Context) (string, error) {
 
 // AddPrivateKey imports the given private key.
 func (api *PublicWhisperAPI) AddPrivateKey(ctx context.Context, privateKey hexutil.Bytes) (string, error) {
-	key, err := crypto.ToECDSA(privateKey)
+	key, err := crypto.ToEDDSA(privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +145,7 @@ func (api *PublicWhisperAPI) GetPublicKey(ctx context.Context, id string) (hexut
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return crypto.FromECDSAPub(&key.PublicKey), nil
+	return crypto.FromEDDSAPub(&key.PublicKey), nil
 }
 
 // GetPrivateKey returns the private key associated with the given key. The key is the hex
@@ -155,7 +155,7 @@ func (api *PublicWhisperAPI) GetPrivateKey(ctx context.Context, id string) (hexu
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return crypto.FromECDSA(key), nil
+	return crypto.FromEDDSA(key), nil
 }
 
 // NewSymKey generate a random symmetric key.
@@ -466,14 +466,14 @@ func ToWhisperMessage(message *ReceivedMessage) *Message {
 	}
 
 	if message.Dst != nil {
-		b := crypto.FromECDSAPub(message.Dst)
+		b := crypto.FromEDDSAPub(message.Dst)
 		if b != nil {
 			msg.Dst = b
 		}
 	}
 
 	if isMessageSigned(message.Raw[0]) {
-		b := crypto.FromECDSAPub(message.SigToPubKey())
+		b := crypto.FromEDDSAPub(message.SigToPubKey())
 		if b != nil {
 			msg.Sig = b
 		}
@@ -525,9 +525,9 @@ func (api *PublicWhisperAPI) DeleteMessageFilter(id string) (bool, error) {
 // (new) messages that satisfy the given criteria.
 func (api *PublicWhisperAPI) NewMessageFilter(req Criteria) (string, error) {
 	var (
-		src     *ecdsa.PublicKey
+		src     *eddsa.PublicKey
 		keySym  []byte
-		keyAsym *ecdsa.PrivateKey
+		keyAsym *eddsa.PrivateKey
 		topics  [][]byte
 
 		symKeyGiven  = len(req.SymKeyID) > 0

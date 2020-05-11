@@ -17,7 +17,7 @@
 package discover
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"net"
 	"time"
 
@@ -35,12 +35,12 @@ type node struct {
 
 type encPubkey [56]byte
 
-func encodePubkey(pub *ecdsa.PublicKey) (key encPubkey) {
+func encodePubkey(pub *eddsa.PublicKey) (key encPubkey) {
 	copy(key[:], pub.X[:])
 	return key
 }
 
-func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
+func decodePubkey(e encPubkey) (*eddsa.PublicKey, error) {
 	return crypto.UnmarshalPubkey(e[:])
 }
 

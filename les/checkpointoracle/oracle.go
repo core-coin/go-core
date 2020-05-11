@@ -123,7 +123,7 @@ func (oracle *CheckpointOracle) VerifySigners(index uint64, hash [32]byte, signa
 		if len(signatures[i]) != 112 + 56 {
 			continue
 		}
-		// EIP 191 style signatures
+		// CIP 191 style signatures
 		//
 		// Arguments when calculating hash to validate
 		// 1: byte(0x19) - the initial 0x19 byte

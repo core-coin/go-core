@@ -17,7 +17,7 @@
 package main
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -220,8 +220,8 @@ func dnsToRoute53(ctx *cli.Context) error {
 	return client.deploy(domain, t)
 }
 
-// loadSigningKey loads a private key in Ethereum keystore format.
-func loadSigningKey(keyfile string) *ecdsa.PrivateKey {
+// loadSigningKey loads a private key in Core keystore format.
+func loadSigningKey(keyfile string) *eddsa.PrivateKey {
 	keyjson, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		exit(fmt.Errorf("failed to read the keyfile at '%s': %v", keyfile, err))
@@ -331,7 +331,7 @@ func loadTreeDefinitionForExport(dir string) (domain string, t *dnsdisc.Tree, er
 
 // ensureValidTreeSignature checks that sig is valid for tree and assigns it as the
 // tree's signature if valid.
-func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey *ecdsa.PublicKey, sig string) error {
+func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey *eddsa.PublicKey, sig string) error {
 	if sig == "" {
 		return fmt.Errorf("missing signature, run 'devp2p dns sign' first")
 	}

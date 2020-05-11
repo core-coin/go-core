@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
-// bootnode runs a bootstrap node for the Ethereum Discovery Protocol.
+// bootnode runs a bootstrap node for the Core Discovery Protocol.
 package main
 
 import (
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
 	"net"
@@ -48,7 +48,7 @@ func main() {
 		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
 
-		nodeKey *ecdsa.PrivateKey
+		nodeKey *eddsa.PrivateKey
 		err     error
 	)
 	flag.Parse()
@@ -68,7 +68,7 @@ func main() {
 		if err != nil {
 			utils.Fatalf("could not generate key: %v", err)
 		}
-		if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
+		if err = crypto.SaveEDDSA(*genKey, nodeKey); err != nil {
 			utils.Fatalf("%v", err)
 		}
 	case *nodeKeyFile == "" && *nodeKeyHex == "":
@@ -76,18 +76,18 @@ func main() {
 	case *nodeKeyFile != "" && *nodeKeyHex != "":
 		utils.Fatalf("Options -nodekey and -nodekeyhex are mutually exclusive")
 	case *nodeKeyFile != "":
-		if nodeKey, err = crypto.LoadECDSA(*nodeKeyFile); err != nil {
+		if nodeKey, err = crypto.LoadEDDSA(*nodeKeyFile); err != nil {
 			utils.Fatalf("-nodekey: %v", err)
 		}
 	case *nodeKeyHex != "":
-		if nodeKey, err = crypto.HexToECDSA(*nodeKeyHex); err != nil {
+		if nodeKey, err = crypto.HexToEDDSA(*nodeKeyHex); err != nil {
 			utils.Fatalf("-nodekeyhex: %v", err)
 		}
 	}
 
 	if *genKey != "" || *writeAddr {
-		fmt.Printf("%x\n", crypto.FromECDSA(nodeKey))
-		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey))
+		fmt.Printf("%x\n", crypto.FromEDDSA(nodeKey))
+		fmt.Printf("%x\n", crypto.FromEDDSAPub(&nodeKey.PublicKey))
 		fmt.Printf("%x\n", crypto.PubkeyToAddress(nodeKey.PublicKey))
 		return
 	}
@@ -112,7 +112,7 @@ func main() {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	if natm != nil {
 		if !realaddr.IP.IsLoopback() {
-			go nat.Map(natm, nil, "udp", realaddr.Port, realaddr.Port, "ethereum discovery")
+			go nat.Map(natm, nil, "udp", realaddr.Port, realaddr.Port, "core discovery")
 		}
 		if ext, err := natm.ExternalIP(); err == nil {
 			realaddr = &net.UDPAddr{IP: ext, Port: realaddr.Port}
@@ -140,7 +140,7 @@ func main() {
 	select {}
 }
 
-func printNotice(nodeKey *ecdsa.PublicKey, addr net.UDPAddr) {
+func printNotice(nodeKey *eddsa.PublicKey, addr net.UDPAddr) {
 	if addr.IP.IsUnspecified() {
 		addr.IP = net.IP{127, 0, 0, 1}
 	}

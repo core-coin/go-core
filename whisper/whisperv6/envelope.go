@@ -19,7 +19,7 @@
 package whisperv6
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
 	gmath "math"
@@ -184,7 +184,7 @@ func (e *Envelope) DecodeRLP(s *rlp.Stream) error {
 }
 
 // OpenAsymmetric tries to decrypt an envelope, potentially encrypted with a particular key.
-func (e *Envelope) OpenAsymmetric(key *ecdsa.PrivateKey) (*ReceivedMessage, error) {
+func (e *Envelope) OpenAsymmetric(key *eddsa.PrivateKey) (*ReceivedMessage, error) {
 	message := &ReceivedMessage{Raw: e.Data}
 	err := message.decryptAsymmetric(key)
 	switch err {

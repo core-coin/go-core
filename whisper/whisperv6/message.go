@@ -21,7 +21,7 @@ package whisperv6
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
@@ -38,8 +38,8 @@ import (
 // into an Envelope.
 type MessageParams struct {
 	TTL      uint32
-	Src      *ecdsa.PrivateKey
-	Dst      *ecdsa.PublicKey
+	Src      *eddsa.PrivateKey
+	Dst      *eddsa.PublicKey
 	KeySym   []byte
 	Topic    TopicType
 	WorkTime uint32
@@ -68,8 +68,8 @@ type ReceivedMessage struct {
 	PoW   float64          // Proof of work as described in the Whisper spec
 	Sent  uint32           // Time when the message was posted into the network
 	TTL   uint32           // Maximum time to live allowed for the message
-	Src   *ecdsa.PublicKey // Message recipient (identity used to decode the message)
-	Dst   *ecdsa.PublicKey // Message recipient (identity used to decode the message)
+	Src   *eddsa.PublicKey // Message recipient (identity used to decode the message)
+	Dst   *eddsa.PublicKey // Message recipient (identity used to decode the message)
 	Topic TopicType
 
 	SymKeyHash   common.Hash // The Keccak256Hash of the key
@@ -149,7 +149,7 @@ func (msg *sentMessage) appendPadding(params *MessageParams) error {
 
 // sign calculates and sets the cryptographic signature for the message,
 // also setting the sign flag.
-func (msg *sentMessage) sign(key *ecdsa.PrivateKey) error {
+func (msg *sentMessage) sign(key *eddsa.PrivateKey) error {
 	if isMessageSigned(msg.Raw[0]) {
 		// this should not happen, but no reason to panic
 		log.Error("failed to sign the message: already signed")
@@ -168,11 +168,11 @@ func (msg *sentMessage) sign(key *ecdsa.PrivateKey) error {
 }
 
 // encryptAsymmetric encrypts a message with a public key.
-func (msg *sentMessage) encryptAsymmetric(key *ecdsa.PublicKey) error {
+func (msg *sentMessage) encryptAsymmetric(key *eddsa.PublicKey) error {
 	if !ValidatePublicKey(key) {
 		return errors.New("invalid public key provided for asymmetric encryption")
 	}
-	encrypted, err := ecies.Encrypt(crand.Reader, ecies.ImportECDSAPublic(key), msg.Raw, nil, nil)
+	encrypted, err := ecies.Encrypt(crand.Reader, ecies.ImportEDDSAPublic(key), msg.Raw, nil, nil)
 	if err == nil {
 		msg.Raw = encrypted
 	}
@@ -288,8 +288,8 @@ func (msg *ReceivedMessage) decryptSymmetric(key []byte) error {
 }
 
 // decryptAsymmetric decrypts an encrypted payload with a private key.
-func (msg *ReceivedMessage) decryptAsymmetric(key *ecdsa.PrivateKey) error {
-	decrypted, err := ecies.ImportECDSA(key).Decrypt(msg.Raw, nil, nil)
+func (msg *ReceivedMessage) decryptAsymmetric(key *eddsa.PrivateKey) error {
+	decrypted, err := ecies.ImportEDDSA(key).Decrypt(msg.Raw, nil, nil)
 	if err == nil {
 		msg.Raw = decrypted
 	}
@@ -334,7 +334,7 @@ func (msg *ReceivedMessage) ValidateAndParse() bool {
 
 // SigToPubKey returns the public key associated to the message's
 // signature.
-func (msg *ReceivedMessage) SigToPubKey() *ecdsa.PublicKey {
+func (msg *ReceivedMessage) SigToPubKey() *eddsa.PublicKey {
 	defer func() { recover() }() // in case of invalid signature
 
 	pub, err := crypto.SigToPub(msg.hash(), msg.Signature)

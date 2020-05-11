@@ -17,7 +17,7 @@
 // Contains all the wrappers from the accounts package to support client side key
 // management on mobile platforms.
 
-package geth
+package gcore
 
 import (
 	"errors"
@@ -109,7 +109,7 @@ func (ks *KeyStore) DeleteAccount(account *Account, passphrase string) error {
 	return ks.keystore.Delete(account.account, passphrase)
 }
 
-// SignHash calculates a ECDSA signature for the given hash. The produced signature
+// SignHash calculates a EDDSA signature for the given hash. The produced signature
 // is in the [R || S || V] format where V is 0 or 1.
 func (ks *KeyStore) SignHash(address *Address, hash []byte) (signature []byte, _ error) {
 	return ks.keystore.SignHash(accounts.Account{Address: address.address}, common.CopyBytes(hash))
@@ -197,20 +197,20 @@ func (ks *KeyStore) ImportKey(keyJSON []byte, passphrase, newPassphrase string) 
 	return &Account{acc}, nil
 }
 
-// ImportECDSAKey stores the given encrypted JSON key into the key directory.
-func (ks *KeyStore) ImportECDSAKey(key []byte, passphrase string) (account *Account, _ error) {
-	privkey, err := crypto.ToECDSA(common.CopyBytes(key))
+// ImportEDDSAKey stores the given encrypted JSON key into the key directory.
+func (ks *KeyStore) ImportEDDSAKey(key []byte, passphrase string) (account *Account, _ error) {
+	privkey, err := crypto.ToEDDSA(common.CopyBytes(key))
 	if err != nil {
 		return nil, err
 	}
-	acc, err := ks.keystore.ImportECDSA(privkey, passphrase)
+	acc, err := ks.keystore.ImportEDDSA(privkey, passphrase)
 	if err != nil {
 		return nil, err
 	}
 	return &Account{acc}, nil
 }
 
-// ImportPreSaleKey decrypts the given Ethereum presale wallet and stores
+// ImportPreSaleKey decrypts the given Core presale wallet and stores
 // a key file in the key directory. The key file is encrypted with the same passphrase.
 func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (ccount *Account, _ error) {
 	account, err := ks.keystore.ImportPreSaleKey(common.CopyBytes(keyJSON), passphrase)

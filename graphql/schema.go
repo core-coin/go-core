@@ -19,7 +19,7 @@ package graphql
 const schema string = `
     # Bytes32 is a 32 byte binary string, represented as 0x-prefixed hexadecimal.
     scalar Bytes32
-    # Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal.
+    # Address is a 20 byte Core address, represented as 0x-prefixed hexadecimal.
     scalar Address
     # Bytes is an arbitrary length binary string, represented as 0x-prefixed hexadecimal.
     # An empty byte string is represented as '0x'. Byte strings must have an even number of hexadecimal nybbles.
@@ -36,11 +36,11 @@ const schema string = `
         mutation: Mutation
     }
 
-    # Account is an Ethereum account at a particular block.
+    # Account is an Core account at a particular block.
     type Account {
         # Address is the address owning the account.
         address: Address!
-        # Balance is the balance of the account, in wei.
+        # Balance is the balance of the account, in ore.
         balance: BigInt!
         # TransactionCount is the number of transactions sent from this account,
         # or in the case of a contract, the number of contracts created. Otherwise
@@ -54,7 +54,7 @@ const schema string = `
         storage(slot: Bytes32!): Bytes32!
     }
 
-    # Log is an Ethereum event log.
+    # Log is an Core event log.
     type Log {
         # Index is the index of this log in the block.
         index: Int!
@@ -69,7 +69,7 @@ const schema string = `
         transaction: Transaction!
     }
 
-    # Transaction is an Ethereum transaction.
+    # Transaction is an Core transaction.
     type Transaction {
         # Hash is the hash of this transaction.
         hash: Bytes32!
@@ -84,12 +84,12 @@ const schema string = `
         # To is the account the transaction was sent to. This is null for
         # contract-creating transactions.
         to(block: Long): Account
-        # Value is the value, in wei, sent along with this transaction.
+        # Value is the value, in ore, sent along with this transaction.
         value: BigInt!
-        # GasPrice is the price offered to miners for gas, in wei per unit.
-        gasPrice: BigInt!
-        # Gas is the maximum amount of gas this transaction can consume.
-        gas: Long!
+        # EnergyPrice is the price offered to miners for energy, in ore per unit.
+        energyPrice: BigInt!
+        # Energy is the maximum amount of energy this transaction can consume.
+        energy: Long!
         # InputData is the data supplied to the target of the transaction.
         inputData: Bytes!
         # Block is the block this transaction was mined in. This will be null if
@@ -98,16 +98,16 @@ const schema string = `
 
         # Status is the return status of the transaction. This will be 1 if the
         # transaction succeeded, or 0 if it failed (due to a revert, or due to
-        # running out of gas). If the transaction has not yet been mined, this
+        # running out of energy). If the transaction has not yet been mined, this
         # field will be null.
         status: Long
-        # GasUsed is the amount of gas that was used processing this transaction.
+        # EnergyUsed is the amount of energy that was used processing this transaction.
         # If the transaction has not yet been mined, this field will be null.
-        gasUsed: Long
-        # CumulativeGasUsed is the total gas used in the block up to and including
+        energyUsed: Long
+        # CumulativeEnergyUsed is the total energy used in the block up to and including
         # this transaction. If the transaction has not yet been mined, this field
         # will be null.
-        cumulativeGasUsed: Long
+        cumulativeEnergyUsed: Long
         # CreatedContract is the account that was created by a contract creation
         # transaction. If the transaction was not a contract creation transaction,
         # or it has not yet been mined, this field will be null.
@@ -140,7 +140,7 @@ const schema string = `
         topics: [[Bytes32!]!]
     }
 
-    # Block is an Ethereum block.
+    # Block is an Core block.
     type Block {
         # Number is the number of this block, starting at 0 for the genesis block.
         number: Long!
@@ -163,10 +163,10 @@ const schema string = `
         miner(block: Long): Account!
         # ExtraData is an arbitrary data field supplied by the miner.
         extraData: Bytes!
-        # GasLimit is the maximum amount of gas that was available to transactions in this block.
-        gasLimit: Long!
-        # GasUsed is the amount of gas that was used executing transactions in this block.
-        gasUsed: Long!
+        # EnergyLimit is the maximum amount of energy that was available to transactions in this block.
+        energyLimit: Long!
+        # EnergyUsed is the amount of energy that was used executing transactions in this block.
+        energyUsed: Long!
         # Timestamp is the unix timestamp at which this block was mined.
         timestamp: Long!
         # LogsBloom is a bloom filter that can be used to check if a block may
@@ -202,13 +202,13 @@ const schema string = `
         transactionAt(index: Int!): Transaction
         # Logs returns a filtered set of logs from this block.
         logs(filter: BlockFilterCriteria!): [Log!]!
-        # Account fetches an Ethereum account at the current block's state.
+        # Account fetches an Core account at the current block's state.
         account(address: Address!): Account!
         # Call executes a local call operation at the current block's state.
         call(data: CallData!): CallResult
-        # EstimateGas estimates the amount of gas that will be required for
+        # EstimateEnergy estimates the amount of energy that will be required for
         # successful execution of a transaction at the current block's state.
-        estimateGas(data: CallData!): Long!
+        estimateEnergy(data: CallData!): Long!
     }
 
     # CallData represents the data associated with a local contract call.
@@ -218,11 +218,11 @@ const schema string = `
         from: Address
         # To is the address the call is sent to.
         to: Address
-        # Gas is the amount of gas sent with the call.
-        gas: Long
-        # GasPrice is the price, in wei, offered for each unit of gas.
-        gasPrice: BigInt
-        # Value is the value, in wei, sent along with the call.
+        # Energy is the amount of energy sent with the call.
+        energy: Long
+        # EnergyPrice is the price, in ore, offered for each unit of energy.
+        energyPrice: BigInt
+        # Value is the value, in ore, sent along with the call.
         value: BigInt
         # Data is the data sent to the callee.
         data: Bytes
@@ -232,8 +232,8 @@ const schema string = `
     type CallResult {
         # Data is the return data of the called contract.
         data: Bytes!
-        # GasUsed is the amount of gas used by the call, after any refunds.
-        gasUsed: Long!
+        # EnergyUsed is the amount of energy used by the call, after any refunds.
+        energyUsed: Long!
         # Status is the result of the call - 1 for success or 0 for failure.
         status: Long!
     }
@@ -285,17 +285,17 @@ const schema string = `
       transactionCount: Int!
       # Transactions is a list of transactions in the current pending state.
       transactions: [Transaction!]
-      # Account fetches an Ethereum account for the pending state.
+      # Account fetches an Core account for the pending state.
       account(address: Address!): Account!
       # Call executes a local call operation for the pending state.
       call(data: CallData!): CallResult
-      # EstimateGas estimates the amount of gas that will be required for
+      # EstimateEnergy estimates the amount of energy that will be required for
       # successful execution of a transaction for the pending state.
-      estimateGas(data: CallData!): Long!
+      estimateEnergy(data: CallData!): Long!
     }
 
     type Query {
-        # Block fetches an Ethereum block by number or by hash. If neither is
+        # Block fetches an Core block by number or by hash. If neither is
         # supplied, the most recent known block is returned.
         block(number: Long, hash: Bytes32): Block
         # Blocks returns all the blocks between two numbers, inclusive. If
@@ -307,9 +307,9 @@ const schema string = `
         transaction(hash: Bytes32!): Transaction
         # Logs returns log entries matching the provided filter.
         logs(filter: FilterCriteria!): [Log!]!
-        # GasPrice returns the node's estimate of a gas price sufficient to
+        # EnergyPrice returns the node's estimate of a energy price sufficient to
         # ensure a transaction is mined in a timely fashion.
-        gasPrice: BigInt!
+        energyPrice: BigInt!
         # ProtocolVersion returns the current wire protocol version number.
         protocolVersion: Int!
         # Syncing returns information on the current synchronisation state.

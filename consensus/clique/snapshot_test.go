@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"sort"
 	"testing"
 
@@ -33,15 +33,15 @@ import (
 )
 
 // testerAccountPool is a pool to maintain currently active tester accounts,
-// mapped from textual names used in the tests below to actual Ethereum private
+// mapped from textual names used in the tests below to actual Core private
 // keys capable of signing transactions.
 type testerAccountPool struct {
-	accounts map[string]*ecdsa.PrivateKey
+	accounts map[string]*eddsa.PrivateKey
 }
 
 func newTesterAccountPool() *testerAccountPool {
 	return &testerAccountPool{
-		accounts: make(map[string]*ecdsa.PrivateKey),
+		accounts: make(map[string]*eddsa.PrivateKey),
 	}
 }
 
@@ -58,7 +58,7 @@ func (ap *testerAccountPool) checkpoint(header *types.Header, signers []string) 
 	}
 }
 
-// address retrieves the Ethereum address of a tester account by label, creating
+// address retrieves the Core address of a tester account by label, creating
 // a new account if no previous one exists yet.
 func (ap *testerAccountPool) address(account string) common.Address {
 	// Return the zero account for non-addresses
@@ -69,7 +69,7 @@ func (ap *testerAccountPool) address(account string) common.Address {
 	if ap.accounts[account] == nil {
 		ap.accounts[account], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Resolve and return the Ethereum address
+	// Resolve and return the Core address
 	return crypto.PubkeyToAddress(ap.accounts[account].PublicKey)
 }
 
@@ -424,7 +424,7 @@ func TestClique(t *testing.T) {
 		})
 		// Iterate through the blocks and seal them individually
 		for j, block := range blocks {
-			// Geth the header and prepare it for signing
+			// Gcore the header and prepare it for signing
 			header := block.Header()
 			if j > 0 {
 				header.ParentHash = blocks[j-1].Hash()

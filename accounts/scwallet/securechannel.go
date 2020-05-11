@@ -51,7 +51,7 @@ const (
 // SecureChannelSession enables secure communication with a hardware wallet.
 type SecureChannelSession struct {
 	card          *pcsc.Card // A handle to the smartcard for communication
-	secret        []byte     // A shared secret generated from our ECDSA keys
+	secret        []byte     // A shared secret generated from our EDDSA keys
 	publicKey     []byte     // Our own ephemeral public key
 	PairingKey    []byte     // A permanent shared secret for a pairing, if present
 	sessionEncKey []byte     // The current session encryption key
@@ -62,7 +62,7 @@ type SecureChannelSession struct {
 
 // NewSecureChannelSession creates a new secure channel for the given card and public key.
 func NewSecureChannelSession(card *pcsc.Card, keyData []byte) (*SecureChannelSession, error) {
-	// Generate an ECDSA keypair for ourselves
+	// Generate an EDDSA keypair for ourselves
 	gen := ecdh.NewEllipticECDH(crypto.S256())
 	private, public, err := gen.GenerateKey(rand.Reader)
 	if err != nil {

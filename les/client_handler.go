@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
@@ -39,14 +39,14 @@ type clientHandler struct {
 	checkpoint *params.TrustedCheckpoint
 	fetcher    *lightFetcher
 	downloader *downloader.Downloader
-	backend    *LightEthereum
+	backend    *LightCore
 
 	closeCh  chan struct{}
 	wg       sync.WaitGroup // WaitGroup used to track all connected peers.
 	syncDone func()         // Test hooks when syncing is done.
 }
 
-func newClientHandler(ulcServers []string, ulcFraction int, checkpoint *params.TrustedCheckpoint, backend *LightEthereum) *clientHandler {
+func newClientHandler(ulcServers []string, ulcFraction int, checkpoint *params.TrustedCheckpoint, backend *LightCore) *clientHandler {
 	handler := &clientHandler{
 		checkpoint: checkpoint,
 		backend:    backend,
@@ -100,7 +100,7 @@ func (h *clientHandler) handle(p *serverPeer) error {
 	if h.backend.peers.len() >= h.backend.config.LightPeers && !p.Peer.Info().Network.Trusted {
 		return p2p.DiscTooManyPeers
 	}
-	p.Log().Debug("Light Ethereum peer connected", "name", p.Name())
+	p.Log().Debug("Light Core peer connected", "name", p.Name())
 
 	// Execute the LES handshake
 	var (
@@ -110,12 +110,12 @@ func (h *clientHandler) handle(p *serverPeer) error {
 		td     = h.backend.blockchain.GetTd(hash, number)
 	)
 	if err := p.Handshake(td, hash, number, h.backend.blockchain.Genesis().Hash(), nil); err != nil {
-		p.Log().Debug("Light Ethereum handshake failed", "err", err)
+		p.Log().Debug("Light Core handshake failed", "err", err)
 		return err
 	}
 	// Register the peer locally
 	if err := h.backend.peers.register(p); err != nil {
-		p.Log().Error("Light Ethereum peer registration failed", "err", err)
+		p.Log().Error("Light Core peer registration failed", "err", err)
 		return err
 	}
 	serverConnectionGauge.Update(int64(h.backend.peers.len()))
@@ -140,7 +140,7 @@ func (h *clientHandler) handle(p *serverPeer) error {
 	// Spawn a main loop to handle all incoming messages.
 	for {
 		if err := h.handleMsg(p); err != nil {
-			p.Log().Debug("Light Ethereum message handling failed", "err", err)
+			p.Log().Debug("Light Core message handling failed", "err", err)
 			p.fcServer.DumpLogs()
 			return err
 		}
@@ -155,7 +155,7 @@ func (h *clientHandler) handleMsg(p *serverPeer) error {
 	if err != nil {
 		return err
 	}
-	p.Log().Trace("Light Ethereum message arrived", "code", msg.Code, "bytes", msg.Size)
+	p.Log().Trace("Light Core message arrived", "code", msg.Code, "bytes", msg.Size)
 
 	if msg.Size > ProtocolMaxMsgSize {
 		return errResp(ErrMsgTooLarge, "%v > %v", msg.Size, ProtocolMaxMsgSize)
@@ -400,7 +400,7 @@ func (d *downloaderPeerNotify) registerPeer(p *serverPeer) {
 		handler: h,
 		peer:    p,
 	}
-	h.downloader.RegisterLightPeer(p.id, ethVersion, pc)
+	h.downloader.RegisterLightPeer(p.id, xceVersion, pc)
 }
 
 func (d *downloaderPeerNotify) unregisterPeer(p *serverPeer) {

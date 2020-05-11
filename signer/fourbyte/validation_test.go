@@ -40,8 +40,8 @@ func dummyTxArgs(t txtestcase) *core.SendTxArgs {
 	to, _ := mixAddr(t.to)
 	from, _ := mixAddr(t.from)
 	n := toHexUint(t.n)
-	gas := toHexUint(t.g)
-	gasPrice := toHexBig(t.gp)
+	energy := toHexUint(t.g)
+	energyPrice := toHexBig(t.gp)
 	value := toHexBig(t.value)
 	var (
 		data, input *hexutil.Bytes
@@ -60,8 +60,8 @@ func dummyTxArgs(t txtestcase) *core.SendTxArgs {
 		To:       to,
 		Value:    value,
 		Nonce:    n,
-		GasPrice: gasPrice,
-		Gas:      gas,
+		EnergyPrice: energyPrice,
+		Energy:      energy,
 		Data:     data,
 		Input:    input,
 	}

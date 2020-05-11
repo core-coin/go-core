@@ -29,7 +29,7 @@ type ContractRef interface {
 
 // AccountRef implements ContractRef.
 //
-// Account references are used during EVM initialisation and
+// Account references are used during CVM initialisation and
 // it's primary use is to fetch addresses. Removing this object
 // proves difficult because of the cached jump destinations which
 // are fetched from the parent contract (i.e. the caller), which
@@ -39,7 +39,7 @@ type AccountRef common.Address
 // Address casts AccountRef to a Address
 func (ar AccountRef) Address() common.Address { return (common.Address)(ar) }
 
-// Contract represents an ethereum contract in the state database. It contains
+// Contract represents an core contract in the state database. It contains
 // the contract code, calling arguments. Contract implements ContractRef
 type Contract struct {
 	// CallerAddress is the result of the caller which initialised this
@@ -57,12 +57,12 @@ type Contract struct {
 	CodeAddr *common.Address
 	Input    []byte
 
-	Gas   uint64
+	Energy   uint64
 	value *big.Int
 }
 
-// NewContract returns a new contract environment for the execution of EVM.
-func NewContract(caller ContractRef, object ContractRef, value *big.Int, gas uint64) *Contract {
+// NewContract returns a new contract environment for the execution of CVM.
+func NewContract(caller ContractRef, object ContractRef, value *big.Int, energy uint64) *Contract {
 	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object}
 
 	if parent, ok := caller.(*Contract); ok {
@@ -72,9 +72,9 @@ func NewContract(caller ContractRef, object ContractRef, value *big.Int, gas uin
 		c.jumpdests = make(map[common.Hash]bitvec)
 	}
 
-	// Gas should be a pointer so it can safely be reduced through the run
+	// Energy should be a pointer so it can safely be reduced through the run
 	// This pointer will be off the state transition
-	c.Gas = gas
+	c.Energy = energy
 	// ensures a value is set
 	c.value = value
 
@@ -148,12 +148,12 @@ func (c *Contract) Caller() common.Address {
 	return c.CallerAddress
 }
 
-// UseGas attempts the use gas and subtracts it and returns true on success
-func (c *Contract) UseGas(gas uint64) (ok bool) {
-	if c.Gas < gas {
+// UseEnergy attempts the use energy and subtracts it and returns true on success
+func (c *Contract) UseEnergy(energy uint64) (ok bool) {
+	if c.Energy < energy {
 		return false
 	}
-	c.Gas -= gas
+	c.Energy -= energy
 	return true
 }
 
