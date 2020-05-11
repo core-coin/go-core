@@ -21,7 +21,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha512"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"

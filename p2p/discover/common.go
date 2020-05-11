@@ -17,7 +17,7 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"net"
 
 	"github.com/core-coin/go-core/log"

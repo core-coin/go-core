@@ -18,7 +18,7 @@ package keystore
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"

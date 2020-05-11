@@ -17,7 +17,7 @@
 package crypto
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"io"

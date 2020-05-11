@@ -32,7 +32,7 @@ package ecies
 import (
 	"crypto/cipher"
 	"crypto/elliptic"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/crypto"
 	"crypto/hmac"
 	"crypto/subtle"

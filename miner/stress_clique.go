@@ -21,7 +21,7 @@ package main
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"

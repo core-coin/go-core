@@ -17,7 +17,7 @@
 package types
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"math/big"

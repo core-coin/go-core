@@ -17,7 +17,7 @@
 package core
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"fmt"
 	"io/ioutil"
 	"math/big"

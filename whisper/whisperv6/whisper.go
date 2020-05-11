@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/sha256"
 	"fmt"
 	"math"

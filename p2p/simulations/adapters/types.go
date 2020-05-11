@@ -18,7 +18,7 @@ package adapters
 
 import (
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"

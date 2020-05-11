@@ -18,7 +18,7 @@
 package utils
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"io"

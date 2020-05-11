@@ -20,7 +20,7 @@
 package main
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"math/rand"

@@ -19,7 +19,7 @@
 package crypto
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/elliptic"
 	"github.com/core-coin/go-core/crypto/secp256k1"
 )

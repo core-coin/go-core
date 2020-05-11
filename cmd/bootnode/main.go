@@ -19,7 +19,7 @@ package main
 
 import (
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
 	"net"

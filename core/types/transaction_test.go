@@ -19,7 +19,7 @@ package types
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/json"
 	"math/big"
 	"testing"

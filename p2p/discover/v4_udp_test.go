@@ -18,7 +18,7 @@ package discover
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"

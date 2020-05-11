@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"context"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"math/rand"
 	"reflect"

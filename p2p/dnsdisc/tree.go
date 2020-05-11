@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"

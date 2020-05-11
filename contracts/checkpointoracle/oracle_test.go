@@ -19,7 +19,7 @@ package checkpointoracle
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
 	"math/big"

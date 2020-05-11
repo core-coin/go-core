@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"net"

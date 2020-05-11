@@ -17,7 +17,7 @@
 package discv5
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
 	"math/rand"

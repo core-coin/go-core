@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"context"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"sync"

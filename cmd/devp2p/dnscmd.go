@@ -17,7 +17,7 @@
 package main
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"

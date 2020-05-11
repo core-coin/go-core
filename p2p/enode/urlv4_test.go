@@ -17,7 +17,7 @@
 package enode
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"net"
 	"reflect"

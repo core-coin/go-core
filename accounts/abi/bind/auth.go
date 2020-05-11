@@ -17,7 +17,7 @@
 package bind
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"io"
 	"io/ioutil"

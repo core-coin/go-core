@@ -17,7 +17,7 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"fmt"
 	"net"
 	"sort"

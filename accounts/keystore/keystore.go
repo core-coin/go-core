@@ -21,7 +21,7 @@
 package keystore
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"

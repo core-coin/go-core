@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"sort"
 	"testing"
 

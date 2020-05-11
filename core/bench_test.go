@@ -18,7 +18,7 @@ package core
 
 import (
 	"crypto/rand"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"os"

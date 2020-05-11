@@ -20,7 +20,7 @@
 package xce
 
 import (
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/rand"
 	"fmt"
 	"math/big"

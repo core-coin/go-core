@@ -18,7 +18,7 @@ package p2p
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"crypto/rand"
 	"errors"
 	"fmt"

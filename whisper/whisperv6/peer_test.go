@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"fmt"
-	eddsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	mrand "math/rand"
 	"sync"
 	"testing"
