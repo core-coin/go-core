@@ -25,13 +25,11 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/consensus/ethash"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
@@ -54,10 +52,7 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Pre-generate the ethash mining DAG so we don't race
-	ethash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".ethash"))
-
-	// Create an Ethash network based off of the Ropsten config
+	// Create an Ethash network based off of the Testnet config
 	genesis := makeGenesis(faucets)
 
 	var (
