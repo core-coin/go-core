@@ -238,9 +238,9 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			return nil, useCoreV, err
 		}
 		// The incoming clique header is already truncated, sent to us with a extradata already shortened
-		if len(header.Extra) < 112 + 56 {
+		if len(header.Extra) < crypto.SignatureLength {
 			// Need to add it back, to get a suitable length for hashing
-			newExtra := make([]byte, len(header.Extra)+ 112 + 56)
+			newExtra := make([]byte, len(header.Extra) + crypto.SignatureLength)
 			copy(newExtra, header.Extra)
 			header.Extra = newExtra
 		}
@@ -295,15 +295,13 @@ func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 }
 
 // cliqueHeaderHashAndRlp returns the hash which is used as input for the proof-of-authority
-// signing. It is the hash of the entire header apart from the 112 + 56 byte signature
-// contained at the end of the extra data.
 //
 // The method requires the extra data to be at least 65 bytes -- the original implementation
 // in clique.go panics if this is the case, thus it's been reimplemented here to avoid the panic
 // and simply return an error instead
 func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
-	if len(header.Extra) < 112 + 56 {
-		err = fmt.Errorf("clique header extradata too short, %d < 112 + 56", len(header.Extra))
+	if len(header.Extra) < crypto.SignatureLength {
+		err = fmt.Errorf("clique header extradata too short, %d < %d", len(header.Extra), crypto.SignatureLength)
 		return
 	}
 	rlp = clique.CliqueRLP(header)
@@ -609,19 +607,6 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
 	//
-	// Note, the signature must conform to the secp256k1 curve R, S and V values, where
-	// the V value must be be 27 or 28 for legacy reasons.
-	//
-	// https://developer.coreblockchain.cc/Management-APIs#personal_ecRecover
-	if len(sig) != 112 + 56 {
-		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
-	}
-    /*
-	if sig[64] != 27 && sig[64] != 28 {
-		return common.Address{}, fmt.Errorf("invalid Core signature (V is not 27 or 28)")
-	}
-	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
-    */
 	hash := accounts.TextHash(data)
 	rpk, err := crypto.SigToPub(hash, sig)
 	if err != nil {

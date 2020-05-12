@@ -18,17 +18,11 @@ package types
 
 import (
 	"github.com/core-coin/eddsa"
-	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/params"
-)
-
-var (
-	ErrInvalidChainId = errors.New("invalid chain id for signer")
 )
 
 // sigCache is used to cache the derived sender and contains
@@ -42,8 +36,6 @@ type sigCache struct {
 func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 	var signer Signer
 	switch {
-	case config.IsCIP155(blockNumber):
-		signer = NewCIP155Signer(config.ChainID)
 	case config.IsHomestead(blockNumber):
 		signer = HomesteadSigner{}
 	default:
@@ -62,10 +54,6 @@ func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, err
 	return tx.WithSignature(s, sig)
 }
 
-// Sender returns the address derived from the signature (V, R, S) using secp256k1
-// elliptic curve and an error if it failed deriving or upon an incorrect
-// signature.
-//
 // Sender may cache the address, allowing it to be used regardless of
 // signing method. The cache is invalidated if the cached signer does
 // not match the signer used in the current call.
@@ -93,9 +81,6 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 type Signer interface {
 	// Sender returns the sender address of the transaction.
 	Sender(tx *Transaction) (common.Address, error)
-	// SignatureValues returns the raw R, S, V values corresponding to the
-	// given signature.
-	SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error)
 	// Hash returns the hash to be signed.
 	Hash(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
@@ -104,7 +89,7 @@ type Signer interface {
 
 // CIP155Transaction implements Signer using the CIP155 rules.
 type CIP155Signer struct {
-	chainId, chainIdMul *big.Int
+	chainId *big.Int
 }
 
 func NewCIP155Signer(chainId *big.Int) CIP155Signer {
@@ -112,8 +97,7 @@ func NewCIP155Signer(chainId *big.Int) CIP155Signer {
 		chainId = new(big.Int)
 	}
 	return CIP155Signer{
-		chainId:    chainId,
-		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
+		chainId: chainId,
 	}
 }
 
@@ -122,32 +106,8 @@ func (s CIP155Signer) Equal(s2 Signer)bool {
 	return ok && cip155.chainId.Cmp(s.chainId) == 0
 }
 
-var big8 = big.NewInt(8)
-
 func (s CIP155Signer) Sender(tx *Transaction) (common.Address, error) {
-	if !tx.Protected() {
-		return HomesteadSigner{}.Sender(tx)
-	}
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
-	V.Sub(V, big8)
 	return tx.data.Spender, nil
-}
-
-// SignatureValues returns signature values. This signature
-// needs to be in the [R || S || V] format where V is 0 or 1.
-func (s CIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
-	R, S, V, err = HomesteadSigner{}.SignatureValues(tx, sig)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	if s.chainId.Sign() != 0 {
-		V = big.NewInt(int64(0 + 35))
-		V.Add(V, s.chainIdMul)
-	}
-	return R, S, V, nil
 }
 
 // Hash returns the hash to be signed by the sender.
@@ -173,12 +133,6 @@ func (s HomesteadSigner) Equal(s2 Signer) bool {
 	return ok
 }
 
-// SignatureValues returns signature values. This signature
-// needs to be in the [R || S || V] format where V is 0 or 1.
-func (hs HomesteadSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	return hs.FrontierSigner.SignatureValues(tx, sig)
-}
-
 func (hs HomesteadSigner) Sender(tx *Transaction) (common.Address, error) {
 	return tx.data.Spender, nil
 }
@@ -188,18 +142,6 @@ type FrontierSigner struct{}
 func (s FrontierSigner) Equal(s2 Signer) bool {
 	_, ok := s2.(FrontierSigner)
 	return ok
-}
-
-// SignatureValues returns signature values. This signature
-// needs to be in the [R || S || V] format where V is 0 or 1.
-func (fs FrontierSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	if len(sig) != crypto.SignatureLength {
-		panic(fmt.Sprintf("wrong size for signature: got %d, want %d", len(sig), crypto.SignatureLength))
-	}
-	r = new(big.Int).SetBytes(sig[:56])
-	s = new(big.Int).SetBytes(sig[56:112])
-	v = new(big.Int).SetBytes([]byte{0 + 27})
-	return r, s, v, nil
 }
 
 // Hash returns the hash to be signed by the sender.
@@ -217,38 +159,4 @@ func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
 
 func (fs FrontierSigner) Sender(tx *Transaction) (common.Address, error) {
 	return tx.data.Spender, nil
-}
-
-func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (common.Address, error) {
-	if Vb.BitLen() > 8 {
-		return common.Address{}, ErrInvalidSig
-	}
-	// V := byte(Vb.Uint64() - 27)
-	// encode the signature in uncompressed format
-	sig := make([]byte, crypto.SignatureLength)
-	//sig[64] = V
-	// recover the public key from the signature
-	pub, err := crypto.Ecrecover(sighash[:], sig)
-	if err != nil {
-		return common.Address{}, err
-	}
-	if len(pub) == 0 {
-		return common.Address{}, errors.New("invalid public key")
-	}
-	var addr common.Address
-	copy(addr[:], crypto.Keccak256(pub)[12:])
-	return addr, nil
-}
-
-// deriveChainId derives the chain id from the given v parameter
-func deriveChainId(v *big.Int) *big.Int {
-	if v.BitLen() <= 64 {
-		v := v.Uint64()
-		if v == 27 || v == 28 {
-			return new(big.Int)
-		}
-		return new(big.Int).SetUint64((v - 35) / 2)
-	}
-	v = new(big.Int).Sub(v, big.NewInt(35))
-	return v.Div(v, big.NewInt(2))
 }
