@@ -34,7 +34,7 @@ import (
 )
 
 var typesStandard = core.Types{
-	"EIP712Domain": {
+	"CIP712Domain": {
 		{
 			Name: "name",
 			Type: "string",
@@ -81,7 +81,7 @@ var typesStandard = core.Types{
 var jsonTypedData = `
     {
       "types": {
-        "EIP712Domain": [
+        "CIP712Domain": [
           {
             "name": "name",
             "type": "string"
@@ -130,7 +130,7 @@ var jsonTypedData = `
       },
       "primaryType": "Mail",
       "domain": {
-        "name": "Ether Mail",
+        "name": "Core Mail",
         "version": "1",
         "chainId": "1",
         "verifyingContract": "0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
@@ -153,7 +153,7 @@ var jsonTypedData = `
 const primaryType = "Mail"
 
 var domainStandard = core.TypedDataDomain{
-	"Ether Mail",
+	"Core Mail",
 	"1",
 	math.NewHexOrDecimal256(1),
 	"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
@@ -215,8 +215,8 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != 112 + 56 {
-		t.Errorf("Expected 112 + 56 byte signature (got %d bytes)", len(signature))
+	if signature == nil || len(signature) != crypto.SignatureLength {
+		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.SignatureLength, len(signature))
 	}
 	// data/typed
 	control.approveCh <- "Y"
@@ -225,15 +225,15 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != 112 + 56 {
-		t.Errorf("Expected 112 + 56 byte signature (got %d bytes)", len(signature))
+	if signature == nil || len(signature) != crypto.SignatureLength {
+		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.SignatureLength, len(signature))
 	}
 }
 
 func TestDomainChainId(t *testing.T) {
 	withoutChainID := core.TypedData{
 		Types: core.Types{
-			"EIP712Domain": []core.Type{
+			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
 			},
 		},
@@ -247,7 +247,7 @@ func TestDomainChainId(t *testing.T) {
 	}
 	withChainID := core.TypedData{
 		Types: core.Types{
-			"EIP712Domain": []core.Type{
+			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
 				{Name: "chainId", Type: "uint256"},
 			},
@@ -273,19 +273,19 @@ func TestHashStruct(t *testing.T) {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
-	hash, err = typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	hash, err = typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f" {
+	if domainHash != "0x2a5cc2ac22d2501a7f915c61d43990d699ca51ab4547cfa438db036fbd67ddcb" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
 
 func TestEncodeType(t *testing.T) {
-	domainTypeEncoding := string(typedData.EncodeType("EIP712Domain"))
-	if domainTypeEncoding != "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)" {
+	domainTypeEncoding := string(typedData.EncodeType("CIP712Domain"))
+	if domainTypeEncoding != "CIP712Domain(string name,string version,uint256 chainId,address verifyingContract)" {
 		t.Errorf("Expected different encodeType result (got %s)", domainTypeEncoding)
 	}
 
@@ -329,7 +329,7 @@ func TestFormatter(t *testing.T) {
 }
 
 func sign(typedData core.TypedData) ([]byte, []byte, error) {
-	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -395,7 +395,7 @@ func TestFuzzerFiles(t *testing.T) {
 			t.Errorf("Test %d, file %v, json unmarshalling failed: %v", i, fInfo.Name(), err)
 			continue
 		}
-		_, err = typedData.EncodeData("EIP712Domain", typedData.Domain.Map(), 1)
+		_, err = typedData.EncodeData("CIP712Domain", typedData.Domain.Map(), 1)
 		if verbose && err != nil {
 			t.Logf("%d, EncodeData[1] err: %v\n", i, err)
 		}

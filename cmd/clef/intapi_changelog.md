@@ -35,7 +35,7 @@ If `clef` requires a password, the `OnInputRequired` will be used to collect it.
 
 ### 5.0.0
 
-Changed the namespace format to adhere to the legacy ethereum format: `name_methodName`. Changes:
+Changed the namespace format to adhere to the legacy core format: `name_methodName`. Changes:
 
 * `ApproveTx` -> `ui_approveTx`
 * `ApproveSignData` -> `ui_approveSignData`
@@ -68,7 +68,7 @@ Changed the namespace format to adhere to the legacy ethereum format: `name_meth
 
 ```go
 type Account struct {
-	Address common.Address `json:"address"` // Ethereum account address derived from the key
+	Address common.Address `json:"address"` // Core account address derived from the key
 	URL     URL            `json:"url"`     // Optional resource locator within a backend
 }
 ```
@@ -83,7 +83,7 @@ type Account struct {
 >  Notifications are not confirmable by definition, since they do not have a Response object to be returned. As such, the Client would not be aware of any errors (like e.g. "Invalid params","Internal error"
 ### 3.1.0
 
-* Add `ContentType` `string` to `SignDataRequest` to accommodate the latest EIP-191 and EIP-712 implementations.
+* Add `ContentType` `string` to `SignDataRequest` to accommodate the latest CIP-191 and CIP-712 implementations.
 
 ### 3.0.0
 
@@ -120,8 +120,8 @@ UserInputResponse struct {
       "transaction": {
         "from": "0x82A2A876D39022B3019932D30Cd9c97ad5616813",
         "to": "0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
-        "gas": "0x333",
-        "gasPrice": "0x123",
+        "energy": "0x333",
+        "energyPrice": "0x123",
         "value": "0x10",
         "nonce": "0x0",
         "data": "0x4401a6e40000000000000000000000000000000000000000000000000000000000000012",

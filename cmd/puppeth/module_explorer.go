@@ -34,9 +34,9 @@ FROM corehub/explorer:latest
 
 ADD genesis.json /genesis.json
 RUN \
-  echo 'geth --cache 512 init /genesis.json' > explorer.sh && \
-  echo $'geth --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.EthPort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Ethstats}}\' --cache=512 --rpc --rpcapi "net,web3,eth,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
-  echo $'exec geth --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.EthPort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Ethstats}}\' --cache=512 --rpc --rpcapi "net,web3,eth,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
+  echo 'gcore --cache 512 init /genesis.json' > explorer.sh && \
+  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcePort}} --bootnodes {{.Bootnodes}} --xcestats \'{{.Xcestats}}\' --cache=512 --rpc --rpcapi "net,web3,xce,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
+  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcePort}} --bootnodes {{.Bootnodes}} --xcestats \'{{.Xcestats}}\' --cache=512 --rpc --rpcapi "net,web3,xce,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
   echo '/usr/local/bin/docker-entrypoint.sh postgres &' >> explorer.sh && \
   echo 'sleep 5' >> explorer.sh && \
   echo 'mix do ecto.drop --force, ecto.create, ecto.migrate' >> explorer.sh && \
@@ -55,17 +55,17 @@ services:
         image: {{.Network}}/explorer
         container_name: {{.Network}}_explorer_1
         ports:
-            - "{{.EthPort}}:{{.EthPort}}"
-            - "{{.EthPort}}:{{.EthPort}}/udp"{{if not .VHost}}
+            - "{{.XcePort}}:{{.XcePort}}"
+            - "{{.XcePort}}:{{.XcePort}}/udp"{{if not .VHost}}
             - "{{.WebPort}}:4000"{{end}}
         environment:
-            - ETH_PORT={{.EthPort}}
-            - ETH_NAME={{.EthName}}
+            - XCE_PORT={{.XcePort}}
+            - XCE_NAME={{.XceName}}
             - BLOCK_TRANSFORMER={{.Transformer}}{{if .VHost}}
             - VIRTUAL_HOST={{.VHost}}
             - VIRTUAL_PORT=4000{{end}}
         volumes:
-            - {{.Datadir}}:/opt/app/.ethereum
+            - {{.Datadir}}:/opt/app/core
             - {{.DBDir}}:/var/lib/postgresql/data
         logging:
           driver: "json-file"
@@ -87,8 +87,8 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerDockerfile)).Execute(dockerfile, map[string]interface{}{
 		"NetworkID": config.node.network,
 		"Bootnodes": strings.Join(bootnodes, ","),
-		"Ethstats":  config.node.ethstats,
-		"EthPort":   config.node.port,
+		"Xcestats":  config.node.xcestats,
+		"XcePort":   config.node.port,
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
 
@@ -100,11 +100,11 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerComposefile)).Execute(composefile, map[string]interface{}{
 		"Network":     network,
 		"VHost":       config.host,
-		"Ethstats":    config.node.ethstats,
+		"Xcestats":    config.node.xcestats,
 		"Datadir":     config.node.datadir,
 		"DBDir":       config.dbdir,
-		"EthPort":     config.node.port,
-		"EthName":     config.node.ethstats[:strings.Index(config.node.ethstats, ":")],
+		"XcePort":     config.node.port,
+		"XceName":     config.node.xcestats[:strings.Index(config.node.xcestats, ":")],
 		"WebPort":     config.port,
 		"Transformer": transformer,
 	})
@@ -139,8 +139,8 @@ func (info *explorerInfos) Report() map[string]string {
 	report := map[string]string{
 		"Website address ":        info.host,
 		"Website listener port ":  strconv.Itoa(info.port),
-		"Ethereum listener port ": strconv.Itoa(info.node.port),
-		"Ethstats username":       info.node.ethstats,
+		"Core listener port ": strconv.Itoa(info.node.port),
+		"Xcestats username":       info.node.xcestats,
 	}
 	return report
 }
@@ -172,7 +172,7 @@ func checkExplorer(client *sshClient, network string) (*explorerInfos, error) {
 		host = client.server
 	}
 	// Run a sanity check to see if the devp2p is reachable
-	p2pPort := infos.portmap[infos.envvars["ETH_PORT"]+"/tcp"]
+	p2pPort := infos.portmap[infos.envvars["XCE_PORT"]+"/tcp"]
 	if err = checkPort(host, p2pPort); err != nil {
 		log.Warn("Explorer node seems unreachable", "server", host, "port", p2pPort, "err", err)
 	}
@@ -182,9 +182,9 @@ func checkExplorer(client *sshClient, network string) (*explorerInfos, error) {
 	// Assemble and return the useful infos
 	stats := &explorerInfos{
 		node: &nodeInfos{
-			datadir:  infos.volumes["/opt/app/.ethereum"],
-			port:     infos.portmap[infos.envvars["ETH_PORT"]+"/tcp"],
-			ethstats: infos.envvars["ETH_NAME"],
+			datadir:  infos.volumes["/opt/app/core"],
+			port:     infos.portmap[infos.envvars["XCE_PORT"]+"/tcp"],
+			xcestats: infos.envvars["XCE_NAME"],
 		},
 		dbdir: infos.volumes["/var/lib/postgresql/data"],
 		host:  host,

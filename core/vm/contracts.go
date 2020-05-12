@@ -34,14 +34,14 @@ import (
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
-// requires a deterministic gas count based on the input size of the Run method of the
+// requires a deterministic energy count based on the input size of the Run method of the
 // contract.
 type PrecompiledContract interface {
-	RequiredGas(input []byte) uint64  // RequiredPrice calculates the contract gas use
+	RequiredEnergy(input []byte) uint64  // RequiredPrice calculates the contract energy use
 	Run(input []byte) ([]byte, error) // Run runs the precompiled contract
 }
 
-// PrecompiledContractsHomestead contains the default set of pre-compiled Ethereum
+// PrecompiledContractsHomestead contains the default set of pre-compiled Core
 // contracts used in the Frontier and Homestead releases.
 var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}): &ecrecover{},
@@ -50,7 +50,7 @@ var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{4}): &dataCopy{},
 }
 
-// PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
+// PrecompiledContractsByzantium contains the default set of pre-compiled Core
 // contracts used in the Byzantium release.
 var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}): &ecrecover{},
@@ -63,7 +63,7 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
 }
 
-// PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
+// PrecompiledContractsIstanbul contains the default set of pre-compiled Core
 // contracts used in the Istanbul release.
 var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}): &ecrecover{},
@@ -79,29 +79,26 @@ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
 func RunPrecompiledContract(p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
-	gas := p.RequiredGas(input)
-	if contract.UseGas(gas) {
+	energy := p.RequiredEnergy(input)
+	if contract.UseEnergy(energy) {
 		return p.Run(input)
 	}
-	return nil, ErrOutOfGas
+	return nil, ErrOutOfEnergy
 }
 
 // ECRECOVER implemented as a native contract.
 type ecrecover struct{}
 
-func (c *ecrecover) RequiredGas(input []byte) uint64 {
-	return params.EcrecoverGas
+func (c *ecrecover) RequiredEnergy(input []byte) uint64 {
+	return params.EcrecoverEnergy
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = 112 + 56
+	const ecRecoverInputLength = crypto.SignatureLength
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
-	// "input" is (hash, signarure)
 
 	/*
-	v := input[63] - 27
-
 	// tighter sig s values input homestead only apply to tx sigs
 	if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
 		return nil, nil
@@ -127,12 +124,12 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 // SHA256 implemented as a native contract.
 type sha256hash struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size energy costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *sha256hash) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.Sha256PerWordGas + params.Sha256BaseGas
+func (c *sha256hash) RequiredEnergy(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.Sha256PerWordEnergy + params.Sha256BaseEnergy
 }
 func (c *sha256hash) Run(input []byte) ([]byte, error) {
 	h := sha256.Sum256(input)
@@ -142,12 +139,12 @@ func (c *sha256hash) Run(input []byte) ([]byte, error) {
 // RIPEMD160 implemented as a native contract.
 type ripemd160hash struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size energy costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *ripemd160hash) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.Ripemd160PerWordGas + params.Ripemd160BaseGas
+func (c *ripemd160hash) RequiredEnergy(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.Ripemd160PerWordEnergy + params.Ripemd160BaseEnergy
 }
 func (c *ripemd160hash) Run(input []byte) ([]byte, error) {
 	ripemd := ripemd160.New()
@@ -158,12 +155,12 @@ func (c *ripemd160hash) Run(input []byte) ([]byte, error) {
 // data copy implemented as a native contract.
 type dataCopy struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size energy costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *dataCopy) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.IdentityPerWordGas + params.IdentityBaseGas
+func (c *dataCopy) RequiredEnergy(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.IdentityPerWordEnergy + params.IdentityBaseEnergy
 }
 func (c *dataCopy) Run(in []byte) ([]byte, error) {
 	return in, nil
@@ -186,8 +183,8 @@ var (
 	big199680 = big.NewInt(199680)
 )
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bigModExp) RequiredGas(input []byte) uint64 {
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bigModExp) RequiredEnergy(input []byte) uint64 {
 	var (
 		baseLen = new(big.Int).SetBytes(getData(input, 0, 32))
 		expLen  = new(big.Int).SetBytes(getData(input, 32, 32))
@@ -221,29 +218,29 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 	}
 	adjExpLen.Add(adjExpLen, big.NewInt(int64(msb)))
 
-	// Calculate the gas cost of the operation
-	gas := new(big.Int).Set(math.BigMax(modLen, baseLen))
+	// Calculate the energy cost of the operation
+	energy := new(big.Int).Set(math.BigMax(modLen, baseLen))
 	switch {
-	case gas.Cmp(big64) <= 0:
-		gas.Mul(gas, gas)
-	case gas.Cmp(big1024) <= 0:
-		gas = new(big.Int).Add(
-			new(big.Int).Div(new(big.Int).Mul(gas, gas), big4),
-			new(big.Int).Sub(new(big.Int).Mul(big96, gas), big3072),
+	case energy.Cmp(big64) <= 0:
+		energy.Mul(energy, energy)
+	case energy.Cmp(big1024) <= 0:
+		energy = new(big.Int).Add(
+			new(big.Int).Div(new(big.Int).Mul(energy, energy), big4),
+			new(big.Int).Sub(new(big.Int).Mul(big96, energy), big3072),
 		)
 	default:
-		gas = new(big.Int).Add(
-			new(big.Int).Div(new(big.Int).Mul(gas, gas), big16),
-			new(big.Int).Sub(new(big.Int).Mul(big480, gas), big199680),
+		energy = new(big.Int).Add(
+			new(big.Int).Div(new(big.Int).Mul(energy, energy), big16),
+			new(big.Int).Sub(new(big.Int).Mul(big480, energy), big199680),
 		)
 	}
-	gas.Mul(gas, math.BigMax(adjExpLen, big1))
-	gas.Div(gas, new(big.Int).SetUint64(params.ModExpQuadCoeffDiv))
+	energy.Mul(energy, math.BigMax(adjExpLen, big1))
+	energy.Div(energy, new(big.Int).SetUint64(params.ModExpQuadCoeffDiv))
 
-	if gas.BitLen() > 64 {
+	if energy.BitLen() > 64 {
 		return math.MaxUint64
 	}
-	return gas.Uint64()
+	return energy.Uint64()
 }
 
 func (c *bigModExp) Run(input []byte) ([]byte, error) {
@@ -314,9 +311,9 @@ func runBn256Add(input []byte) ([]byte, error) {
 // Istanbul consensus rules.
 type bn256AddIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256AddIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256AddGasIstanbul
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256AddIstanbul) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256AddEnergyIstanbul
 }
 
 func (c *bn256AddIstanbul) Run(input []byte) ([]byte, error) {
@@ -327,9 +324,9 @@ func (c *bn256AddIstanbul) Run(input []byte) ([]byte, error) {
 // conforming to Byzantium consensus rules.
 type bn256AddByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256AddByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256AddGasByzantium
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256AddByzantium) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256AddEnergyByzantium
 }
 
 func (c *bn256AddByzantium) Run(input []byte) ([]byte, error) {
@@ -352,9 +349,9 @@ func runBn256ScalarMul(input []byte) ([]byte, error) {
 // multiplication conforming to Istanbul consensus rules.
 type bn256ScalarMulIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256ScalarMulIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256ScalarMulGasIstanbul
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256ScalarMulIstanbul) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256ScalarMulEnergyIstanbul
 }
 
 func (c *bn256ScalarMulIstanbul) Run(input []byte) ([]byte, error) {
@@ -365,9 +362,9 @@ func (c *bn256ScalarMulIstanbul) Run(input []byte) ([]byte, error) {
 // multiplication conforming to Byzantium consensus rules.
 type bn256ScalarMulByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256ScalarMulByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256ScalarMulGasByzantium
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256ScalarMulByzantium) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256ScalarMulEnergyByzantium
 }
 
 func (c *bn256ScalarMulByzantium) Run(input []byte) ([]byte, error) {
@@ -420,9 +417,9 @@ func runBn256Pairing(input []byte) ([]byte, error) {
 // conforming to Istanbul consensus rules.
 type bn256PairingIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256PairingIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256PairingBaseGasIstanbul + uint64(len(input)/192)*params.Bn256PairingPerPointGasIstanbul
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256PairingIstanbul) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256PairingBaseEnergyIstanbul + uint64(len(input)/192)*params.Bn256PairingPerPointEnergyIstanbul
 }
 
 func (c *bn256PairingIstanbul) Run(input []byte) ([]byte, error) {
@@ -433,9 +430,9 @@ func (c *bn256PairingIstanbul) Run(input []byte) ([]byte, error) {
 // conforming to Byzantium consensus rules.
 type bn256PairingByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256PairingByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256PairingBaseGasByzantium + uint64(len(input)/192)*params.Bn256PairingPerPointGasByzantium
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256PairingByzantium) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256PairingBaseEnergyByzantium + uint64(len(input)/192)*params.Bn256PairingPerPointEnergyByzantium
 }
 
 func (c *bn256PairingByzantium) Run(input []byte) ([]byte, error) {
@@ -444,8 +441,8 @@ func (c *bn256PairingByzantium) Run(input []byte) ([]byte, error) {
 
 type blake2F struct{}
 
-func (c *blake2F) RequiredGas(input []byte) uint64 {
-	// If the input is malformed, we can't calculate the gas, return 0 and let the
+func (c *blake2F) RequiredEnergy(input []byte) uint64 {
+	// If the input is malformed, we can't calculate the energy, return 0 and let the
 	// actual call choke and fault.
 	if len(input) != blake2FInputLength {
 		return 0

@@ -55,8 +55,8 @@ class StdIOHandler():
             "params": [{
                 "transaction": {
                     "to": "0xae967917c465db8578ca9024c205720b1a3651A9",
-                    "gas": "0x333",
-                    "gasPrice": "0x123",
+                    "energy": "0x333",
+                    "energyPrice": "0x123",
                     "value": "0x10",
                     "data": "0xd7a5865800000000000000000000000000000000000000000000000000000000000000ff",
                     "nonce": "0x0"

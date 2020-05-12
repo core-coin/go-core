@@ -67,7 +67,7 @@ services:
     ports:
       - "{{.Port}}:80"{{end}}
     environment:
-      - ETHSTATS_PAGE={{.EthstatsPage}}
+      - XCESTATS_PAGE={{.CorestatsPage}}
       - EXPLORER_PAGE={{.ExplorerPage}}
       - WALLET_PAGE={{.WalletPage}}
       - FAUCET_PAGE={{.FaucetPage}}{{if .VHost}}
@@ -99,14 +99,14 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Network":      network,
 		"Port":         config.port,
 		"VHost":        config.host,
-		"EthstatsPage": config.ethstats,
+		"CorestatsPage": config.xcestats,
 		"ExplorerPage": config.explorer,
 		"WalletPage":   config.wallet,
 		"FaucetPage":   config.faucet,
 	})
 	files[filepath.Join(workdir, "docker-compose.yaml")] = composefile.Bytes()
 
-	statsLogin := fmt.Sprintf("yournode:%s", conf.ethstats)
+	statsLogin := fmt.Sprintf("yournode:%s", conf.xcestats)
 	if !config.trusted {
 		statsLogin = ""
 	}
@@ -127,15 +127,15 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Network":           network,
 		"NetworkID":         conf.Genesis.Config.ChainID,
 		"NetworkTitle":      strings.Title(network),
-		"EthstatsPage":      config.ethstats,
+		"CorestatsPage":      config.xcestats,
 		"ExplorerPage":      config.explorer,
 		"WalletPage":        config.wallet,
 		"FaucetPage":        config.faucet,
-		"GethGenesis":       network + ".json",
+		"GcoreGenesis":       network + ".json",
 		"Bootnodes":         conf.bootnodes,
 		"BootnodesFlat":     strings.Join(conf.bootnodes, ","),
-		"Ethstats":          statsLogin,
-		"Ethash":            conf.Genesis.Config.Ethash != nil,
+		"Xcestats":          statsLogin,
+		"Cryptore":            conf.Genesis.Config.Cryptore != nil,
 		"CppGenesis":        network + "-cpp.json",
 		"CppBootnodes":      strings.Join(bootCpp, " "),
 		"HarmonyGenesis":    network + "-harmony.json",
@@ -144,8 +144,8 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"PythonGenesis":     network + "-python.json",
 		"PythonBootnodes":   strings.Join(bootPython, ","),
 		"Homestead":         conf.Genesis.Config.HomesteadBlock,
-		"Tangerine":         conf.Genesis.Config.EIP150Block,
-		"Spurious":          conf.Genesis.Config.EIP155Block,
+		"Tangerine":         conf.Genesis.Config.CIP150Block,
+		"Spurious":          conf.Genesis.Config.CIP155Block,
 		"Byzantium":         conf.Genesis.Config.ByzantiumBlock,
 		"Constantinople":    conf.Genesis.Config.ConstantinopleBlock,
 		"ConstantinopleFix": conf.Genesis.Config.PetersburgBlock,
@@ -156,8 +156,8 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 	genesis, _ := conf.Genesis.MarshalJSON()
 	files[filepath.Join(workdir, network+".json")] = genesis
 
-	if conf.Genesis.Config.Ethash != nil {
-		cppSpec, err := newAlethGenesisSpec(network, conf.Genesis)
+	if conf.Genesis.Config.Cryptore != nil {
+		cppSpec, err := newAlxceGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err
 		}
@@ -174,12 +174,12 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		paritySpecJSON, _ := json.Marshal(paritySpec)
 		files[filepath.Join(workdir, network+"-parity.json")] = paritySpecJSON
 
-		pyethSpec, err := newPyEthereumGenesisSpec(network, conf.Genesis)
+		pyxceSpec, err := newPyCoreGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err
 		}
-		pyethSpecJSON, _ := json.Marshal(pyethSpec)
-		files[filepath.Join(workdir, network+"-python.json")] = pyethSpecJSON
+		pyxceSpecJSON, _ := json.Marshal(pyxceSpec)
+		files[filepath.Join(workdir, network+"-python.json")] = pyxceSpecJSON
 	} else {
 		for _, client := range []string{"cpp", "harmony", "parity", "python"} {
 			files[filepath.Join(workdir, network+"-"+client+".json")] = []byte{}
@@ -206,7 +206,7 @@ type dashboardInfos struct {
 	port    int
 	trusted bool
 
-	ethstats string
+	xcestats string
 	explorer string
 	wallet   string
 	faucet   string
@@ -218,7 +218,7 @@ func (info *dashboardInfos) Report() map[string]string {
 	return map[string]string{
 		"Website address":       info.host,
 		"Website listener port": strconv.Itoa(info.port),
-		"Ethstats service":      info.ethstats,
+		"Xcestats service":      info.xcestats,
 		"Explorer service":      info.explorer,
 		"Wallet service":        info.wallet,
 		"Faucet service":        info.faucet,
@@ -228,7 +228,7 @@ func (info *dashboardInfos) Report() map[string]string {
 // checkDashboard does a health-check against a dashboard container to verify if
 // it's running, and if yes, gathering a collection of useful infos about it.
 func checkDashboard(client *sshClient, network string) (*dashboardInfos, error) {
-	// Inspect a possible ethstats container on the host
+	// Inspect a possible xcestats container on the host
 	infos, err := inspectContainer(client, fmt.Sprintf("%s_dashboard_1", network))
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func checkDashboard(client *sshClient, network string) (*dashboardInfos, error) 
 	return &dashboardInfos{
 		host:     host,
 		port:     port,
-		ethstats: infos.envvars["ETHSTATS_PAGE"],
+		xcestats: infos.envvars["XCESTATS_PAGE"],
 		explorer: infos.envvars["EXPLORER_PAGE"],
 		wallet:   infos.envvars["WALLET_PAGE"],
 		faucet:   infos.envvars["FAUCET_PAGE"],

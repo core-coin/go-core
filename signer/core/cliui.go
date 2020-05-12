@@ -25,7 +25,7 @@ import (
 	"sync"
 
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -95,7 +95,7 @@ func showMetadata(metadata Metadata) {
 func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, error) {
 	ui.mu.Lock()
 	defer ui.mu.Unlock()
-	weival := request.Transaction.Value.ToInt()
+	oreval := request.Transaction.Value.ToInt()
 	fmt.Printf("--------- Transaction request-------------\n")
 	if to := request.Transaction.To; to != nil {
 		fmt.Printf("to:    %v\n", to.Original())
@@ -106,9 +106,9 @@ func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, erro
 		fmt.Printf("to:    <contact creation>\n")
 	}
 	fmt.Printf("from:     %v\n", request.Transaction.From.String())
-	fmt.Printf("value:    %v wei\n", weival)
-	fmt.Printf("gas:      %v (%v)\n", request.Transaction.Gas, uint64(request.Transaction.Gas))
-	fmt.Printf("gasprice: %v wei\n", request.Transaction.GasPrice.ToInt())
+	fmt.Printf("value:    %v ore\n", oreval)
+	fmt.Printf("energy:      %v (%v)\n", request.Transaction.Energy, uint64(request.Transaction.Energy))
+	fmt.Printf("energyprice: %v ore\n", request.Transaction.EnergyPrice.ToInt())
 	fmt.Printf("nonce:    %v (%v)\n", request.Transaction.Nonce, uint64(request.Transaction.Nonce))
 	if request.Transaction.Data != nil {
 		d := *request.Transaction.Data
@@ -204,7 +204,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("## Info \n%s\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	if jsn, err := json.MarshalIndent(tx.Tx, "  ", "  "); err != nil {
 		fmt.Printf("WARN: marshalling error %v\n", err)

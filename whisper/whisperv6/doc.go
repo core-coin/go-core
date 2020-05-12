@@ -34,15 +34,16 @@ package whisperv6
 
 import (
 	"time"
+	"github.com/core-coin/go-core/crypto"
 )
 
 // Whisper protocol parameters
 const (
 	ProtocolVersion    = uint64(6) // Protocol version number
 	ProtocolVersionStr = "6.0"     // The same, as a string
-	ProtocolName       = "shh"     // Nickname of the protocol in geth
+	ProtocolName       = "shh"     // Nickname of the protocol in gcore
 
-	// whisper protocol message codes, according to EIP-627
+	// whisper protocol message codes, according to CIP-627
 	statusCode           = 0   // used by whisper protocol
 	messagesCode         = 1   // normal whisper message
 	powRequirementCode   = 2   // PoW requirement
@@ -55,7 +56,7 @@ const (
 	signatureFlag = byte(4)
 
 	TopicLength     = 4  // in bytes
-	signatureLength = 112 + 56 // in bytes
+	signatureLength = crypto.SignatureLength // in bytes
 	aesKeyLength    = 32 // in bytes
 	aesNonceLength  = 12 // in bytes; for more info please see cipher.gcmStandardNonceSize & aesgcm.NonceSize()
 	keyIDSize       = 32 // in bytes

@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the bind package.
 
-package geth
+package gcore
 
 import (
 	"errors"
@@ -42,7 +42,7 @@ type MobileSigner struct {
 }
 
 func (s *MobileSigner) Sign(addr *Address, unsignedTx *Transaction) (signedTx *Transaction, _ error) {
-	sig, err := s.sign(types.EIP155Signer{}, addr.address, unsignedTx.tx)
+	sig, err := s.sign(types.CIP155Signer{}, addr.address, unsignedTx.tx)
 	if err != nil {
 		return nil, err
 	}
@@ -60,19 +60,19 @@ func NewCallOpts() *CallOpts {
 }
 
 func (opts *CallOpts) IsPending() bool    { return opts.opts.Pending }
-func (opts *CallOpts) GetGasLimit() int64 { return 0 /* TODO(karalabe) */ }
+func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(karalabe) */ }
 
 // GetContext cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // Even then it's awkward to unpack the subtleties of a Go context out to Java.
 // func (opts *CallOpts) GetContext() *Context { return &Context{opts.opts.Context} }
 
 func (opts *CallOpts) SetPending(pending bool)     { opts.opts.Pending = pending }
-func (opts *CallOpts) SetGasLimit(limit int64)     { /* TODO(karalabe) */ }
+func (opts *CallOpts) SetEnergyLimit(limit int64)     { /* TODO(karalabe) */ }
 func (opts *CallOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 func (opts *CallOpts) SetFrom(addr *Address)       { opts.opts.From = addr.address }
 
 // TransactOpts is the collection of authorization data required to create a
-// valid Ethereum transaction.
+// valid Core transaction.
 type TransactOpts struct {
 	opts bind.TransactOpts
 }
@@ -109,8 +109,8 @@ func NewKeyedTransactOpts(keyJson []byte, passphrase string) (*TransactOpts, err
 func (opts *TransactOpts) GetFrom() *Address    { return &Address{opts.opts.From} }
 func (opts *TransactOpts) GetNonce() int64      { return opts.opts.Nonce.Int64() }
 func (opts *TransactOpts) GetValue() *BigInt    { return &BigInt{opts.opts.Value} }
-func (opts *TransactOpts) GetGasPrice() *BigInt { return &BigInt{opts.opts.GasPrice} }
-func (opts *TransactOpts) GetGasLimit() int64   { return int64(opts.opts.GasLimit) }
+func (opts *TransactOpts) GetEnergyPrice() *BigInt { return &BigInt{opts.opts.EnergyPrice} }
+func (opts *TransactOpts) GetEnergyLimit() int64   { return int64(opts.opts.EnergyLimit) }
 
 // GetSigner cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // func (opts *TransactOpts) GetSigner() Signer { return &signer{opts.opts.Signer} }
@@ -131,12 +131,12 @@ func (opts *TransactOpts) SetSigner(s Signer) {
 	}
 }
 func (opts *TransactOpts) SetValue(value *BigInt)      { opts.opts.Value = value.bigint }
-func (opts *TransactOpts) SetGasPrice(price *BigInt)   { opts.opts.GasPrice = price.bigint }
-func (opts *TransactOpts) SetGasLimit(limit int64)     { opts.opts.GasLimit = uint64(limit) }
+func (opts *TransactOpts) SetEnergyPrice(price *BigInt)   { opts.opts.EnergyPrice = price.bigint }
+func (opts *TransactOpts) SetEnergyLimit(limit int64)     { opts.opts.EnergyLimit = uint64(limit) }
 func (opts *TransactOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 
 // BoundContract is the base wrapper object that reflects a contract on the
-// Ethereum network. It contains a collection of methods that are used by the
+// Core network. It contains a collection of methods that are used by the
 // higher level contract bindings to operate.
 type BoundContract struct {
 	contract *bind.BoundContract
@@ -144,9 +144,9 @@ type BoundContract struct {
 	deployer *types.Transaction
 }
 
-// DeployContract deploys a contract onto the Ethereum blockchain and binds the
+// DeployContract deploys a contract onto the Core blockchain and binds the
 // deployment address with a wrapper.
-func DeployContract(opts *TransactOpts, abiJSON string, bytecode []byte, client *EthereumClient, args *Interfaces) (contract *BoundContract, _ error) {
+func DeployContract(opts *TransactOpts, abiJSON string, bytecode []byte, client *CoreClient, args *Interfaces) (contract *BoundContract, _ error) {
 	// Deploy the contract to the network
 	parsed, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
@@ -165,7 +165,7 @@ func DeployContract(opts *TransactOpts, abiJSON string, bytecode []byte, client 
 
 // BindContract creates a low level contract interface through which calls and
 // transactions may be made through.
-func BindContract(address *Address, abiJSON string, client *EthereumClient) (contract *BoundContract, _ error) {
+func BindContract(address *Address, abiJSON string, client *CoreClient) (contract *BoundContract, _ error) {
 	parsed, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
 		return nil, err

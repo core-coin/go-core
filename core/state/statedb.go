@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package state provides a caching layer atop the Ethereum state trie.
+// Package state provides a caching layer atop the Core state trie.
 package state
 
 import (
@@ -42,7 +42,7 @@ var (
 	// emptyRoot is the known root hash of an empty trie.
 	emptyRoot = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
-	// emptyCode is the known hash of the empty EVM bytecode.
+	// emptyCode is the known hash of the empty CVM bytecode.
 	emptyCode = crypto.Keccak256Hash(nil)
 )
 
@@ -57,7 +57,7 @@ func (n *proofList) Delete(key []byte) error {
 	panic("not supported")
 }
 
-// StateDBs within the ethereum protocol are used to store anything
+// StateDBs within the core protocol are used to store anything
 // within the merkle trie. StateDBs take care of caching and storing
 // nested states. It's the general query interface to retrieve:
 // * Contracts
@@ -193,20 +193,20 @@ func (s *StateDB) Preimages() map[common.Hash][]byte {
 	return s.preimages
 }
 
-// AddRefund adds gas to the refund counter
-func (s *StateDB) AddRefund(gas uint64) {
+// AddRefund adds energy to the refund counter
+func (s *StateDB) AddRefund(energy uint64) {
 	s.journal.append(refundChange{prev: s.refund})
-	s.refund += gas
+	s.refund += energy
 }
 
-// SubRefund removes gas from the refund counter.
+// SubRefund removes energy from the refund counter.
 // This method will panic if the refund counter goes below zero
-func (s *StateDB) SubRefund(gas uint64) {
+func (s *StateDB) SubRefund(energy uint64) {
 	s.journal.append(refundChange{prev: s.refund})
-	if gas > s.refund {
-		panic(fmt.Sprintf("Refund counter below zero (gas: %d > refund: %d)", gas, s.refund))
+	if energy > s.refund {
+		panic(fmt.Sprintf("Refund counter below zero (energy: %d > refund: %d)", energy, s.refund))
 	}
-	s.refund -= gas
+	s.refund -= energy
 }
 
 // Exist reports whether the given account address exists in the state.
@@ -216,7 +216,7 @@ func (s *StateDB) Exist(addr common.Address) bool {
 }
 
 // Empty returns whether the state object is either non-existent
-// or empty according to the EIP161 specification (balance = nonce = code = 0)
+// or empty according to the CIP161 specification (balance = nonce = code = 0)
 func (s *StateDB) Empty(addr common.Address) bool {
 	so := s.getStateObject(addr)
 	return so == nil || so.empty()
@@ -523,13 +523,13 @@ func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) 
 // CreateAccount explicitly creates a state object. If a state object with the address
 // already exists the balance is carried over to the new account.
 //
-// CreateAccount is called during the EVM CREATE operation. The situation might arise that
+// CreateAccount is called during the CVM CREATE operation. The situation might arise that
 // a contract does the following:
 //
 //   1. sends funds to sha(account ++ (nonce + 1))
 //   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
-// Carrying over the balance ensures that Ether doesn't disappear.
+// Carrying over the balance ensures that Core doesn't disappear.
 func (s *StateDB) CreateAccount(addr common.Address) {
 	newObj, prev := s.createObject(addr)
 	if prev != nil {
@@ -664,7 +664,7 @@ func (s *StateDB) Finalise(deleteEmptyObjects bool) {
 		obj, exist := s.stateObjects[addr]
 		if !exist {
 			// ripeMD is 'touched' at block 1714175, in tx 0x1237f737031e40bcde4a8b7e717b2d15e3ecadfe49bb1bbc71ee9deb09c6fcf2
-			// That tx goes out of gas, and although the notion of 'touched' does not exist there, the
+			// That tx goes out of energy, and although the notion of 'touched' does not exist there, the
 			// touch-event will still be recorded in the journal. Since ripeMD is a special snowflake,
 			// it will persist in the journal even though the journal is reverted. In this special circumstance,
 			// it may exist in `s.journal.dirties` but not in `s.stateObjects`.
@@ -710,7 +710,7 @@ func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash {
 }
 
 // Prepare sets the current transaction hash and index and block hash which is
-// used when the EVM emits new state logs.
+// used when the CVM emits new state logs.
 func (s *StateDB) Prepare(thash, bhash common.Hash, ti int) {
 	s.thash = thash
 	s.bhash = bhash

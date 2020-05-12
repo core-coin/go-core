@@ -30,8 +30,8 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 		UncleHash        common.Hash
 		ExtraData        hexutil.Bytes
 		Difficulty       *math.HexOrDecimal256
-		GasLimit         math.HexOrDecimal64
-		GasUsed          math.HexOrDecimal64
+		EnergyLimit      math.HexOrDecimal64
+		EnergyUsed       math.HexOrDecimal64
 		Timestamp        math.HexOrDecimal64
 	}
 	var enc btHeader
@@ -48,8 +48,8 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 	enc.UncleHash = b.UncleHash
 	enc.ExtraData = b.ExtraData
 	enc.Difficulty = (*math.HexOrDecimal256)(b.Difficulty)
-	enc.GasLimit = math.HexOrDecimal64(b.GasLimit)
-	enc.GasUsed = math.HexOrDecimal64(b.GasUsed)
+	enc.EnergyLimit = math.HexOrDecimal64(b.EnergyLimit)
+	enc.EnergyUsed = math.HexOrDecimal64(b.EnergyUsed)
 	enc.Timestamp = math.HexOrDecimal64(b.Timestamp)
 	return json.Marshal(&enc)
 }
@@ -70,8 +70,8 @@ func (b *btHeader) UnmarshalJSON(input []byte) error {
 		UncleHash        *common.Hash
 		ExtraData        *hexutil.Bytes
 		Difficulty       *math.HexOrDecimal256
-		GasLimit         *math.HexOrDecimal64
-		GasUsed          *math.HexOrDecimal64
+		EnergyLimit      *math.HexOrDecimal64
+		EnergyUsed       *math.HexOrDecimal64
 		Timestamp        *math.HexOrDecimal64
 	}
 	var dec btHeader
@@ -117,11 +117,11 @@ func (b *btHeader) UnmarshalJSON(input []byte) error {
 	if dec.Difficulty != nil {
 		b.Difficulty = (*big.Int)(dec.Difficulty)
 	}
-	if dec.GasLimit != nil {
-		b.GasLimit = uint64(*dec.GasLimit)
+	if dec.EnergyLimit != nil {
+		b.EnergyLimit = uint64(*dec.EnergyLimit)
 	}
-	if dec.GasUsed != nil {
-		b.GasUsed = uint64(*dec.GasUsed)
+	if dec.EnergyUsed != nil {
+		b.EnergyUsed = uint64(*dec.EnergyUsed)
 	}
 	if dec.Timestamp != nil {
 		b.Timestamp = uint64(*dec.Timestamp)

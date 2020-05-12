@@ -17,7 +17,7 @@
 package les
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"io"
@@ -158,7 +158,7 @@ func (a *announceData) sanityCheck() error {
 }
 
 // sign adds a signature to the block announcement by the given privKey
-func (a *announceData) sign(privKey *ecdsa.PrivateKey) {
+func (a *announceData) sign(privKey *eddsa.PrivateKey) {
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
 	sig, _ := crypto.Sign(crypto.Keccak256(rlp), privKey)
 	a.Update = a.Update.add("sign", sig)

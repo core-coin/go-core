@@ -86,15 +86,15 @@ func TestIPCPathResolution(t *testing.T) {
 	}{
 		{"", "", false, ""},
 		{"data", "", false, ""},
-		{"", "geth.ipc", false, filepath.Join(os.TempDir(), "geth.ipc")},
-		{"data", "geth.ipc", false, "data/geth.ipc"},
-		{"data", "./geth.ipc", false, "./geth.ipc"},
-		{"data", "/geth.ipc", false, "/geth.ipc"},
+		{"", "gcore.ipc", false, filepath.Join(os.TempDir(), "gcore.ipc")},
+		{"data", "gcore.ipc", false, "data/gcore.ipc"},
+		{"data", "./gcore.ipc", false, "./gcore.ipc"},
+		{"data", "/gcore.ipc", false, "/gcore.ipc"},
 		{"", "", true, ``},
 		{"data", "", true, ``},
-		{"", "geth.ipc", true, `\\.\pipe\geth.ipc`},
-		{"data", "geth.ipc", true, `\\.\pipe\geth.ipc`},
-		{"data", `\\.\pipe\geth.ipc`, true, `\\.\pipe\geth.ipc`},
+		{"", "gcore.ipc", true, `\\.\pipe\gcore.ipc`},
+		{"data", "gcore.ipc", true, `\\.\pipe\gcore.ipc`},
+		{"data", `\\.\pipe\gcore.ipc`, true, `\\.\pipe\gcore.ipc`},
 	}
 	for i, test := range tests {
 		// Only run when platform/test match
@@ -135,7 +135,7 @@ func TestNodeKeyPersistency(t *testing.T) {
 	if _, err := os.Stat(keyfile); err != nil {
 		t.Fatalf("node key not persisted to data directory: %v", err)
 	}
-	if _, err = crypto.LoadECDSA(keyfile); err != nil {
+	if _, err = crypto.LoadEDDSA(keyfile); err != nil {
 		t.Fatalf("failed to load freshly persisted node key: %v", err)
 	}
 	blob1, err := ioutil.ReadFile(keyfile)

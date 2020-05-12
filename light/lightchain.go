@@ -15,7 +15,7 @@
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package light implements on-demand retrieval capable state and chain objects
-// for the Ethereum Light Client.
+// for the Core Light Client.
 package light
 
 import (
@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
@@ -51,7 +51,7 @@ var (
 type LightChain struct {
 	hc            *core.HeaderChain
 	indexerConfig *IndexerConfig
-	chainDb       ethdb.Database
+	chainDb       xcedb.Database
 	engine        consensus.Engine
 	odr           OdrBackend
 	chainFeed     event.Feed
@@ -75,7 +75,7 @@ type LightChain struct {
 }
 
 // NewLightChain returns a fully initialised light chain using information
-// available in the database. It initialises the default Ethereum header
+// available in the database. It initialises the default Core header
 // validator.
 func NewLightChain(odr OdrBackend, config *params.ChainConfig, engine consensus.Engine, checkpoint *params.TrustedCheckpoint) (*LightChain, error) {
 	bodyCache, _ := lru.New(bodyCacheLimit)
@@ -177,9 +177,9 @@ func (lc *LightChain) SetHead(head uint64) error {
 	return lc.loadLastState()
 }
 
-// GasLimit returns the gas limit of the current HEAD block.
-func (lc *LightChain) GasLimit() uint64 {
-	return lc.hc.CurrentHeader().GasLimit
+// EnergyLimit returns the energy limit of the current HEAD block.
+func (lc *LightChain) EnergyLimit() uint64 {
+	return lc.hc.CurrentHeader().EnergyLimit
 }
 
 // Reset purges the entire blockchain, restoring it to its genesis state.

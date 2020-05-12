@@ -2,7 +2,7 @@
   "name": "stureby",
   "dataDir": "stureby",
   "engine": {
-    "Ethash": {
+    "Cryptore": {
       "params": {
         "minimumDifficulty": "0x20",
         "difficultyBoundDivisor": "0x2",
@@ -17,42 +17,42 @@
           "0x9c40": "0x1e8480"
         },
         "homesteadTransition": "0x2710",
-        "eip100bTransition": "0x7530"
+        "cip100bTransition": "0x7530"
       }
     }
   },
   "params": {
     "accountStartNonce": "0x0",
     "maximumExtraDataSize": "0x20",
-    "minGasLimit": "0x1388",
-    "gasLimitBoundDivisor": "0x400",
+    "minEnergyLimit": "0x1388",
+    "energyLimitBoundDivisor": "0x400",
     "networkID": "0x4cb2e",
     "chainID": "0x4cb2e",
     "maxCodeSize": "0x6000",
     "maxCodeSizeTransition": "0x0",
-    "eip98Transition": "0x7fffffffffffffff",
-    "eip150Transition": "0x3a98",
-    "eip160Transition": "0x59d8",
-    "eip161abcTransition": "0x59d8",
-    "eip161dTransition": "0x59d8",
-    "eip155Transition": "0x59d8",
-    "eip140Transition": "0x7530",
-    "eip211Transition": "0x7530",
-    "eip214Transition": "0x7530",
-    "eip658Transition": "0x7530",
-    "eip145Transition": "0x9c40",
-    "eip1014Transition": "0x9c40",
-    "eip1052Transition": "0x9c40",
-    "eip1283Transition": "0x9c40",
-    "eip1283DisableTransition": "0x9c40",
-    "eip1283ReenableTransition": "0xc350",
-    "eip1344Transition": "0xc350",
-    "eip1884Transition": "0xc350",
-    "eip2028Transition": "0xc350"
+    "cip98Transition": "0x7fffffffffffffff",
+    "cip150Transition": "0x3a98",
+    "cip160Transition": "0x59d8",
+    "cip161abcTransition": "0x59d8",
+    "cip161dTransition": "0x59d8",
+    "cip155Transition": "0x59d8",
+    "cip140Transition": "0x7530",
+    "cip211Transition": "0x7530",
+    "cip214Transition": "0x7530",
+    "cip658Transition": "0x7530",
+    "cip145Transition": "0x9c40",
+    "cip1014Transition": "0x9c40",
+    "cip1052Transition": "0x9c40",
+    "cip1283Transition": "0x9c40",
+    "cip1283DisableTransition": "0x9c40",
+    "cip1283ReenableTransition": "0xc350",
+    "cip1344Transition": "0xc350",
+    "cip1884Transition": "0xc350",
+    "cip2028Transition": "0xc350"
   },
   "genesis": {
     "seal": {
-      "ethereum": {
+      "core": {
         "nonce": "0x0000000000000000",
         "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
       }
@@ -62,7 +62,7 @@
     "timestamp": "0x59a4e76d",
     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "extraData": "0x0000000000000000000000000000000000000000000000000000000b4dc0ffee",
-    "gasLimit": "0x47b760"
+    "energyLimit": "0x47b760"
   },
   "nodes": [],
   "accounts": {
@@ -203,7 +203,7 @@
         "name": "blake2_f",
         "pricing": {
           "blake2_f": {
-            "gas_per_round": 1
+            "energy_per_round": 1
           }
         },
         "activate_at": "0xc350"

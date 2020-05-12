@@ -19,7 +19,7 @@
 This key store behaves as KeyStorePlain with the difference that
 the private key is encrypted and on disk uses another JSON encoding.
 
-The crypto is documented at https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
+The crypto is documented at https://github.com/core-coin/wiki/wiki/Web3-Secret-Storage-Definition
 
 */
 
@@ -226,7 +226,7 @@ func DecryptKey(keyjson []byte, auth string) (*Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	key := crypto.ToECDSAUnsafe(keyBytes)
+	key := crypto.ToEDDSAUnsafe(keyBytes)
 
 	return &Key{
 		Id:         uuid.UUID(keyId),

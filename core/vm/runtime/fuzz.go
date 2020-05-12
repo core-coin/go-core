@@ -24,7 +24,7 @@ package runtime
 // for invalid opcode.
 func Fuzz(input []byte) int {
 	_, _, err := Execute(input, input, &Config{
-		GasLimit: 3000000,
+		EnergyLimit: 3000000,
 	})
 
 	// invalid opcode

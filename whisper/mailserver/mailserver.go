@@ -173,7 +173,7 @@ func (s *WMailServer) validateRequest(peerID []byte, request *whisper.Envelope) 
 		return false, 0, 0, nil
 	}
 
-	src := crypto.FromECDSAPub(decrypted.Src)
+	src := crypto.FromEDDSAPub(decrypted.Src)
 
 	// if you want to check the signature, you can do it here. e.g.:
 	// if !bytes.Equal(peerID, src) {

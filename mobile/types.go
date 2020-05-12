@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the core/types package.
 
-package geth
+package gcore
 
 import (
 	"encoding/json"
@@ -60,7 +60,7 @@ func (b *Bloom) GetHex() string {
 	return fmt.Sprintf("0x%x", b.bloom[:])
 }
 
-// Header represents a block header in the Ethereum blockchain.
+// Header represents a block header in the Core blockchain.
 type Header struct {
 	header *types.Header
 }
@@ -107,8 +107,8 @@ func (h *Header) GetReceiptHash() *Hash  { return &Hash{h.header.ReceiptHash} }
 func (h *Header) GetBloom() *Bloom       { return &Bloom{h.header.Bloom} }
 func (h *Header) GetDifficulty() *BigInt { return &BigInt{h.header.Difficulty} }
 func (h *Header) GetNumber() int64       { return h.header.Number.Int64() }
-func (h *Header) GetGasLimit() int64     { return int64(h.header.GasLimit) }
-func (h *Header) GetGasUsed() int64      { return int64(h.header.GasUsed) }
+func (h *Header) GetEnergyLimit() int64     { return int64(h.header.EnergyLimit) }
+func (h *Header) GetEnergyUsed() int64      { return int64(h.header.EnergyUsed) }
 func (h *Header) GetTime() int64         { return int64(h.header.Time) }
 func (h *Header) GetExtra() []byte       { return h.header.Extra }
 func (h *Header) GetMixDigest() *Hash    { return &Hash{h.header.MixDigest} }
@@ -131,7 +131,7 @@ func (h *Headers) Get(index int) (header *Header, _ error) {
 	return &Header{h.headers[index]}, nil
 }
 
-// Block represents an entire block in the Ethereum blockchain.
+// Block represents an entire block in the Core blockchain.
 type Block struct {
 	block *types.Block
 }
@@ -178,8 +178,8 @@ func (b *Block) GetReceiptHash() *Hash          { return &Hash{b.block.ReceiptHa
 func (b *Block) GetBloom() *Bloom               { return &Bloom{b.block.Bloom()} }
 func (b *Block) GetDifficulty() *BigInt         { return &BigInt{b.block.Difficulty()} }
 func (b *Block) GetNumber() int64               { return b.block.Number().Int64() }
-func (b *Block) GetGasLimit() int64             { return int64(b.block.GasLimit()) }
-func (b *Block) GetGasUsed() int64              { return int64(b.block.GasUsed()) }
+func (b *Block) GetEnergyLimit() int64             { return int64(b.block.EnergyLimit()) }
+func (b *Block) GetEnergyUsed() int64              { return int64(b.block.EnergyUsed()) }
 func (b *Block) GetTime() int64                 { return int64(b.block.Time()) }
 func (b *Block) GetExtra() []byte               { return b.block.Extra() }
 func (b *Block) GetMixDigest() *Hash            { return &Hash{b.block.MixDigest()} }
@@ -192,24 +192,24 @@ func (b *Block) GetTransaction(hash *Hash) *Transaction {
 	return &Transaction{b.block.Transaction(hash.hash)}
 }
 
-// Transaction represents a single Ethereum transaction.
+// Transaction represents a single Core transaction.
 type Transaction struct {
 	tx *types.Transaction
 }
 
 // NewContractCreation creates a new transaction for deploying a new contract with
 // the given properties.
-func NewContractCreation(nonce int64, amount *BigInt, gasLimit int64, gasPrice *BigInt, data []byte) *Transaction {
-	return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+func NewContractCreation(nonce int64, amount *BigInt, energyLimit int64, energyPrice *BigInt, data []byte) *Transaction {
+	return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(energyLimit), energyPrice.bigint, common.CopyBytes(data))}
 }
 
 // NewTransaction creates a new transaction with the given properties. Contracts
 // can be created by transacting with a nil recipient.
-func NewTransaction(nonce int64, to *Address, amount *BigInt, gasLimit int64, gasPrice *BigInt, data []byte) *Transaction {
+func NewTransaction(nonce int64, to *Address, amount *BigInt, energyLimit int64, energyPrice *BigInt, data []byte) *Transaction {
 	if to == nil {
-		return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+		return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(energyLimit), energyPrice.bigint, common.CopyBytes(data))}
 	}
-	return &Transaction{types.NewTransaction(uint64(nonce), to.address, amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+	return &Transaction{types.NewTransaction(uint64(nonce), to.address, amount.bigint, uint64(energyLimit), energyPrice.bigint, common.CopyBytes(data))}
 }
 
 // NewTransactionFromRLP parses a transaction from an RLP data dump.
@@ -246,8 +246,8 @@ func (tx *Transaction) EncodeJSON() (string, error) {
 }
 
 func (tx *Transaction) GetData() []byte      { return tx.tx.Data() }
-func (tx *Transaction) GetGas() int64        { return int64(tx.tx.Gas()) }
-func (tx *Transaction) GetGasPrice() *BigInt { return &BigInt{tx.tx.GasPrice()} }
+func (tx *Transaction) GetEnergy() int64        { return int64(tx.tx.Energy()) }
+func (tx *Transaction) GetEnergyPrice() *BigInt { return &BigInt{tx.tx.EnergyPrice()} }
 func (tx *Transaction) GetValue() *BigInt    { return &BigInt{tx.tx.Value()} }
 func (tx *Transaction) GetNonce() int64      { return int64(tx.tx.Nonce()) }
 
@@ -257,11 +257,11 @@ func (tx *Transaction) GetCost() *BigInt { return &BigInt{tx.tx.Cost()} }
 // Deprecated: GetSigHash cannot know which signer to use.
 func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.HomesteadSigner{}.Hash(tx.tx)} }
 
-// Deprecated: use EthereumClient.TransactionSender
+// Deprecated: use CoreClient.TransactionSender
 func (tx *Transaction) GetFrom(chainID *BigInt) (address *Address, _ error) {
 	var signer types.Signer = types.HomesteadSigner{}
 	if chainID != nil {
-		signer = types.NewEIP155Signer(chainID.bigint)
+		signer = types.NewCIP155Signer(chainID.bigint)
 	}
 	from, err := types.Sender(signer, tx.tx)
 	return &Address{from}, err
@@ -277,7 +277,7 @@ func (tx *Transaction) GetTo() *Address {
 func (tx *Transaction) WithSignature(sig []byte, chainID *BigInt) (signedTx *Transaction, _ error) {
 	var signer types.Signer = types.HomesteadSigner{}
 	if chainID != nil {
-		signer = types.NewEIP155Signer(chainID.bigint)
+		signer = types.NewCIP155Signer(chainID.bigint)
 	}
 	rawTx, err := tx.tx.WithSignature(signer, common.CopyBytes(sig))
 	return &Transaction{rawTx}, err
@@ -339,12 +339,12 @@ func (r *Receipt) EncodeJSON() (string, error) {
 
 func (r *Receipt) GetStatus() int               { return int(r.receipt.Status) }
 func (r *Receipt) GetPostState() []byte         { return r.receipt.PostState }
-func (r *Receipt) GetCumulativeGasUsed() int64  { return int64(r.receipt.CumulativeGasUsed) }
+func (r *Receipt) GetCumulativeEnergyUsed() int64  { return int64(r.receipt.CumulativeEnergyUsed) }
 func (r *Receipt) GetBloom() *Bloom             { return &Bloom{r.receipt.Bloom} }
 func (r *Receipt) GetLogs() *Logs               { return &Logs{r.receipt.Logs} }
 func (r *Receipt) GetTxHash() *Hash             { return &Hash{r.receipt.TxHash} }
 func (r *Receipt) GetContractAddress() *Address { return &Address{r.receipt.ContractAddress} }
-func (r *Receipt) GetGasUsed() int64            { return int64(r.receipt.GasUsed) }
+func (r *Receipt) GetEnergyUsed() int64            { return int64(r.receipt.EnergyUsed) }
 
 // Info represents a diagnostic information about the whisper node.
 type Info struct {

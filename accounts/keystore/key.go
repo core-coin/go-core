@@ -18,7 +18,7 @@ package keystore
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -45,7 +45,7 @@ type Key struct {
 	Address common.Address
 	// we only store privkey as pubkey/address can be derived from it
 	// privkey in this struct is always in plaintext
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *eddsa.PrivateKey
 }
 
 type keyStore interface {
@@ -94,7 +94,7 @@ type cipherparamsJSON struct {
 func (k *Key) MarshalJSON() (j []byte, err error) {
 	jStruct := plainKeyJSON{
 		hex.EncodeToString(k.Address[:]),
-		hex.EncodeToString(crypto.FromECDSA(k.PrivateKey)),
+		hex.EncodeToString(crypto.FromEDDSA(k.PrivateKey)),
 		k.Id.String(),
 		version,
 	}
@@ -116,7 +116,7 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	privkey, err := crypto.HexToECDSA(keyJSON.PrivateKey)
+	privkey, err := crypto.HexToEDDSA(keyJSON.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -127,12 +127,12 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	return nil
 }
 
-func newKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *Key {
+func newKeyFromEDDSA(privateKeyEDDSA *eddsa.PrivateKey) *Key {
 	id := uuid.NewRandom()
 	key := &Key{
 		Id:         id,
-		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),
-		PrivateKey: privateKeyECDSA,
+		Address:    crypto.PubkeyToAddress(privateKeyEDDSA.PublicKey),
+		PrivateKey: privateKeyEDDSA,
 	}
 	return key
 }
@@ -147,11 +147,11 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 		panic("key generation: could not read from random source: " + err.Error())
 	}
 	reader := bytes.NewReader(randBytes)
-	privateKeyECDSA, err := ecdsa.Ed448().GenerateKey(reader)
+	privateKeyEDDSA, err := eddsa.Ed448().GenerateKey(reader)
 	if err != nil {
-		panic("key generation: ecdsa.GenerateKey failed: " + err.Error())
+		panic("key generation: eddsa.GenerateKey failed: " + err.Error())
 	}
-	key := newKeyFromECDSA(privateKeyECDSA)
+	key := newKeyFromEDDSA(privateKeyEDDSA)
 	if !strings.HasPrefix(key.Address.Hex(), "0x00") {
 		return NewKeyForDirectICAP(rand)
 	}
@@ -159,11 +159,11 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 }
 
 func newKey(rand io.Reader) (*Key, error) {
-	privateKeyECDSA, err := ecdsa.Ed448().GenerateKey(rand)
+	privateKeyEDDSA, err := eddsa.Ed448().GenerateKey(rand)
 	if err != nil {
 		return nil, err
 	}
-	return newKeyFromECDSA(privateKeyECDSA), nil
+	return newKeyFromEDDSA(privateKeyEDDSA), nil
 }
 
 func storeNewKey(ks keyStore, rand io.Reader, auth string) (*Key, accounts.Account, error) {

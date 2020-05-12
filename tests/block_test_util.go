@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package tests implements execution of Ethereum JSON tests.
+// Package tests implements execution of Core JSON tests.
 package tests
 
 import (
@@ -28,7 +28,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
@@ -80,8 +80,8 @@ type btHeader struct {
 	UncleHash        common.Hash
 	ExtraData        []byte
 	Difficulty       *big.Int
-	GasLimit         uint64
-	GasUsed          uint64
+	EnergyLimit         uint64
+	EnergyUsed          uint64
 	Timestamp        uint64
 }
 
@@ -89,8 +89,8 @@ type btHeaderMarshaling struct {
 	ExtraData  hexutil.Bytes
 	Number     *math.HexOrDecimal256
 	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
-	GasUsed    math.HexOrDecimal64
+	EnergyLimit   math.HexOrDecimal64
+	EnergyUsed    math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 }
 
@@ -114,9 +114,9 @@ func (t *BlockTest) Run() error {
 	}
 	var engine consensus.Engine
 	if t.json.SealEngine == "NoProof" {
-		engine = ethash.NewFaker()
+		engine = cryptore.NewFaker()
 	} else {
-		engine = ethash.NewShared()
+		engine = cryptore.NewShared()
 	}
 	chain, err := core.NewBlockChain(db, &core.CacheConfig{TrieCleanLimit: 0}, config, engine, vm.Config{}, nil)
 	if err != nil {
@@ -149,8 +149,8 @@ func (t *BlockTest) genesis(config *params.ChainConfig) *core.Genesis {
 		Timestamp:  t.json.Genesis.Timestamp,
 		ParentHash: t.json.Genesis.ParentHash,
 		ExtraData:  t.json.Genesis.ExtraData,
-		GasLimit:   t.json.Genesis.GasLimit,
-		GasUsed:    t.json.Genesis.GasUsed,
+		EnergyLimit:   t.json.Genesis.EnergyLimit,
+		EnergyUsed:    t.json.Genesis.EnergyUsed,
 		Difficulty: t.json.Genesis.Difficulty,
 		Mixhash:    t.json.Genesis.MixHash,
 		Coinbase:   t.json.Genesis.Coinbase,
@@ -158,7 +158,7 @@ func (t *BlockTest) genesis(config *params.ChainConfig) *core.Genesis {
 	}
 }
 
-/* See https://github.com/ethereum/tests/wiki/Blockchain-Tests-II
+/* See https://github.com/core-coin/tests/wiki/Blockchain-Tests-II
 
    Whether a block is valid or not is a bit subtle, it's defined by presence of
    blockHeader, transactions and uncleHeaders fields. If they are missing, the block is
@@ -242,11 +242,11 @@ func validateHeader(h *btHeader, h2 *types.Header) error {
 	if h.Difficulty.Cmp(h2.Difficulty) != 0 {
 		return fmt.Errorf("difficulty: want: %v have: %v", h.Difficulty, h2.Difficulty)
 	}
-	if h.GasLimit != h2.GasLimit {
-		return fmt.Errorf("gasLimit: want: %d have: %d", h.GasLimit, h2.GasLimit)
+	if h.EnergyLimit != h2.EnergyLimit {
+		return fmt.Errorf("energyLimit: want: %d have: %d", h.EnergyLimit, h2.EnergyLimit)
 	}
-	if h.GasUsed != h2.GasUsed {
-		return fmt.Errorf("gasUsed: want: %d have: %d", h.GasUsed, h2.GasUsed)
+	if h.EnergyUsed != h2.EnergyUsed {
+		return fmt.Errorf("energyUsed: want: %d have: %d", h.EnergyUsed, h2.EnergyUsed)
 	}
 	if h.Timestamp != h2.Time {
 		return fmt.Errorf("timestamp: want: %v have: %v", h.Timestamp, h2.Time)

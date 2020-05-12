@@ -34,14 +34,14 @@ func TestBlockchain(t *testing.T) {
 	bt.slow(`.*bcExploitTest/ShanghaiLove.json`)
 	bt.slow(`.*bcExploitTest/SuicideIssue.json`)
 	bt.slow(`.*/bcForkStressTest/`)
-	bt.slow(`.*/bcGasPricerTest/RPC_API_Test.json`)
+	bt.slow(`.*/bcEnergyPricerTest/RPC_API_Test.json`)
 	bt.slow(`.*/bcWalletTest/`)
 
 	// Very slow test
 	bt.skipLoad(`.*/stTimeConsuming/.*`)
 
 	// test takes a lot for time and goes easily OOM because of sha3 calculation on a huge range,
-	// using 4.6 TGas
+	// using 4.6 TEnergy
 	bt.skipLoad(`.*randomStatetest94.json.*`)
 
 	bt.walk(t, blockTestDir, func(t *testing.T, name string, test *BlockTest) {
