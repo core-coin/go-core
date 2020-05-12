@@ -19,8 +19,8 @@ package types
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"encoding/json"
+	"github.com/core-coin/eddsa"
 	"math/big"
 	"testing"
 
@@ -67,7 +67,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f8a803018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a8211231bb83826ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef5b8386cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da408941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
+	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
