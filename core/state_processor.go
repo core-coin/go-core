@@ -19,7 +19,6 @@ package core
 import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/consensus/misc"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
@@ -61,10 +60,6 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		allLogs  []*types.Log
 		gp       = new(EnergyPool).AddEnergy(block.EnergyLimit())
 	)
-	// Mutate the block and state according to any hard-fork specs
-	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
-		misc.ApplyDAOHardFork(statedb)
-	}
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
@@ -86,7 +81,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, energy used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *EnergyPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedEnergy *uint64, cfg vm.Config) (*types.Receipt, error) {
-	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
+	msg, err := tx.AsMessage(types.MakeSigner())
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +97,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	}
 	// Update the state with pending changes
 	var root []byte
-	if config.IsByzantium(header.Number) {
-		statedb.Finalise(true)
-	} else {
-		root = statedb.IntermediateRoot(config.IsCIP158(header.Number)).Bytes()
-	}
+	statedb.Finalise(true)
 	*usedEnergy += energy
 
 	// Create a new receipt for the transaction, storing the intermediate root and energy used by the tx

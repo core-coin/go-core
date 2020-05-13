@@ -69,9 +69,8 @@ func (api *PublicCoreAPI) Hashrate() hexutil.Uint64 {
 // ChainId is the CIP-155 replay-protection chain id for the current core chain config.
 func (api *PublicCoreAPI) ChainId() hexutil.Uint64 {
 	chainID := new(big.Int)
-	if config := api.e.blockchain.Config(); config.IsCIP155(api.e.blockchain.CurrentBlock().Number()) {
-		chainID = config.ChainID
-	}
+	config := api.e.blockchain.Config()
+	chainID = config.ChainID
 	return (hexutil.Uint64)(chainID.Uint64())
 }
 

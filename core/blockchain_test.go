@@ -1325,7 +1325,7 @@ func TestCIP155Transition(t *testing.T) {
 		funds      = big.NewInt(1000000000)
 		deleteAddr = common.Address{1}
 		gspec      = &Genesis{
-			Config: &params.ChainConfig{ChainID: big.NewInt(1), CIP150Block: big.NewInt(0), CIP155Block: big.NewInt(2), HomesteadBlock: new(big.Int)},
+			Config: &params.ChainConfig{ChainID: big.NewInt(1)},
 			Alloc:  GenesisAlloc{address: {Balance: funds}, deleteAddr: {Balance: new(big.Int)}},
 		}
 		genesis = gspec.MustCommit(db)
@@ -1344,13 +1344,13 @@ func TestCIP155Transition(t *testing.T) {
 		)
 		switch i {
 		case 0:
-			tx, err = basicTx(types.HomesteadSigner{})
+			tx, err = basicTx(types.NucleusSigner{})
 			if err != nil {
 				t.Fatal(err)
 			}
 			block.AddTx(tx)
 		case 2:
-			tx, err = basicTx(types.HomesteadSigner{})
+			tx, err = basicTx(types.NucleusSigner{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1362,7 +1362,7 @@ func TestCIP155Transition(t *testing.T) {
 			}
 			block.AddTx(tx)
 		case 3:
-			tx, err = basicTx(types.HomesteadSigner{})
+			tx, err = basicTx(types.NucleusSigner{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1384,7 +1384,7 @@ func TestCIP155Transition(t *testing.T) {
 	}
 
 	// generate an invalid chain id transaction
-	config := &params.ChainConfig{ChainID: big.NewInt(2), CIP150Block: big.NewInt(0), CIP155Block: big.NewInt(2), HomesteadBlock: new(big.Int)}
+	config := &params.ChainConfig{ChainID: big.NewInt(2)}
 	blocks, _ = GenerateChain(config, blocks[len(blocks)-1], cryptore.NewFaker(), db, 4, func(i int, block *BlockGen) {
 		var (
 			tx      *types.Transaction
@@ -1418,10 +1418,6 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		gspec   = &Genesis{
 			Config: &params.ChainConfig{
 				ChainID:        big.NewInt(1),
-				HomesteadBlock: new(big.Int),
-				CIP155Block:    new(big.Int),
-				CIP150Block:    new(big.Int),
-				CIP158Block:    big.NewInt(2),
 			},
 			Alloc: GenesisAlloc{address: {Balance: funds}},
 		}
@@ -1449,15 +1445,12 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		}
 		block.AddTx(tx)
 	})
-	// account must exist pre cip 161
+
 	if _, err := blockchain.InsertChain(types.Blocks{blocks[0]}); err != nil {
 		t.Fatal(err)
 	}
-	if st, _ := blockchain.State(); !st.Exist(theAddr) {
-		t.Error("expected account to exist")
-	}
 
-	// account needs to be deleted post cip 161
+	// account needs to be deleted
 	if _, err := blockchain.InsertChain(types.Blocks{blocks[1]}); err != nil {
 		t.Fatal(err)
 	}
@@ -1465,7 +1458,7 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		t.Error("account should not exist")
 	}
 
-	// account musn't be created post cip 161
+	// account musn't be created
 	if _, err := blockchain.InsertChain(types.Blocks{blocks[2]}); err != nil {
 		t.Fatal(err)
 	}
@@ -2126,7 +2119,7 @@ func TestReorgToShorterRemovesCanonMappingHeaderChain(t *testing.T) {
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
 	var (
-		signer          = types.HomesteadSigner{}
+		signer          = types.NucleusSigner{}
 		testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
 		bankFunds       = big.NewInt(100000000000000000)
@@ -2333,11 +2326,11 @@ func TestDeleteCreateRevert(t *testing.T) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to AAAA
 		tx, _ := types.SignTx(types.NewTransaction(0, aa,
-			big.NewInt(0), 50000, big.NewInt(1), nil), types.HomesteadSigner{}, key)
+			big.NewInt(0), 50000, big.NewInt(1), nil), types.NucleusSigner{}, key)
 		b.AddTx(tx)
 		// One transaction to BBBB
 		tx, _ = types.SignTx(types.NewTransaction(1, bb,
-			big.NewInt(0), 100000, big.NewInt(1), nil), types.HomesteadSigner{}, key)
+			big.NewInt(0), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
 		b.AddTx(tx)
 	})
 	// Import the canonical chain

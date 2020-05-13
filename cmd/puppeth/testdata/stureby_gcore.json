@@ -1,15 +1,6 @@
 {
   "config": {
     "chainId": 314158,
-    "homesteadBlock": 10000,
-    "cip150Block": 15000,
-    "cip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "cip155Block": 23000,
-    "cip158Block": 23000,
-    "byzantiumBlock": 30000,
-    "constantinopleBlock": 40000,
-    "petersburgBlock": 40000,
-    "istanbulBlock": 50000,
     "cryptore": {}
   },
   "nonce": "0x0",

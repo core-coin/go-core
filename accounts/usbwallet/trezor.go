@@ -253,7 +253,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 	// Create the correct signer and signature transform based on the chain ID
 	var signer types.Signer
 	if chainID == nil {
-		signer = new(types.HomesteadSigner)
+		signer = new(types.NucleusSigner)
 	} else {
 		signer = types.NewCIP155Signer(chainID)
 		//signature[64] -= byte(chainID.Uint64()*2 + 35)

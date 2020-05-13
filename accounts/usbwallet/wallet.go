@@ -540,7 +540,7 @@ func (w *wallet) SignText(account accounts.Account, text []byte) ([]byte, error)
 //
 // Note, if the version of the Core application running on the Ledger wallet is
 // too old to sign CIP-155 transactions, but such is requested nonetheless, an error
-// will be returned opposed to silently signing in Homestead mode.
+// will be returned opposed to silently signing.
 func (w *wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	w.stateLock.RLock() // Comms have own mutex, this is for the state fields
 	defer w.stateLock.RUnlock()
