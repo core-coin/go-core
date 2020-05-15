@@ -30,10 +30,6 @@ import (
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/xce/energyprice"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/les/checkpointoracle"
@@ -44,6 +40,10 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
+	"github.com/core-coin/go-core/xce/filters"
 )
 
 type LightCore struct {
@@ -74,8 +74,7 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 	if err != nil {
 		return nil, err
 	}
-	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis,
-		config.OverrideIstanbul, config.OverrideMuirGlacier)
+	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, isCompat := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !isCompat {
 		return nil, genesisErr
 	}

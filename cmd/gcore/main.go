@@ -28,20 +28,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/gosigar"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/cmd/utils"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/internal/debug"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/node"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xceclient"
+	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -69,8 +69,6 @@ var (
 		utils.ExternalSignerFlag,
 		utils.NoUSBFlag,
 		utils.SmartCardDaemonPathFlag,
-		utils.OverrideIstanbulFlag,
-		utils.OverrideMuirGlacierFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,

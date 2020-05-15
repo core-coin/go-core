@@ -25,16 +25,16 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
 )
 
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
-	SyncMode: downloader.FastSync,
-	Cryptore: cryptore.Config{},
+	SyncMode:           downloader.FastSync,
+	Cryptore:           cryptore.Config{},
 	NetworkId:          1,
 	LightPeers:         100,
 	UltraLightFraction: 75,
@@ -46,7 +46,7 @@ var DefaultConfig = Config{
 		EnergyFloor: 8000000,
 		EnergyCeil:  8000000,
 		EnergyPrice: big.NewInt(params.Nucle),
-		Recommit: 3 * time.Second,
+		Recommit:    3 * time.Second,
 	},
 	TxPool: core.DefaultTxPoolConfig,
 	GPO: energyprice.Config{
@@ -141,10 +141,4 @@ type Config struct {
 
 	// CheckpointOracle is the configuration for checkpoint oracle.
 	CheckpointOracle *params.CheckpointOracleConfig `toml:",omitempty"`
-
-	// Istanbul block override (TODO: remove after the fork)
-	OverrideIstanbul *big.Int `toml:",omitempty"`
-
-	// MuirGlacier block override (TODO: remove after the fork)
-	OverrideMuirGlacier *big.Int `toml:",omitempty"`
 }

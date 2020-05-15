@@ -18,7 +18,6 @@
 package utils
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"io"
@@ -32,6 +31,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/core-coin/eddsa"
+
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
@@ -42,11 +43,6 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
-	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/graphql"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
@@ -62,6 +58,11 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
+	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcestats"
 	pcsclite "github.com/gballet/go-libpcsclite"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -232,14 +233,6 @@ var (
 	WhitelistFlag = cli.StringFlag{
 		Name:  "whitelist",
 		Usage: "Comma separated block number-to-hash mappings to enforce (<number>=<hash>)",
-	}
-	OverrideIstanbulFlag = cli.Uint64Flag{
-		Name:  "override.istanbul",
-		Usage: "Manually specify Istanbul fork-block, overriding the bundled setting",
-	}
-	OverrideMuirGlacierFlag = cli.Uint64Flag{
-		Name:  "override.muirglacier",
-		Usage: "Manually specify Muir Glacier fork-block, overriding the bundled setting",
 	}
 	// Light server and client settings
 	LightLegacyServFlag = cli.IntFlag{ // Deprecated in favor of light.serve, remove in 2021
