@@ -162,7 +162,7 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,2=Morden (disused), 3=Testnet, 4=Rinkeby)",
+		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Testnet, 4=Rinkeby)",
 		Value: xce.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{

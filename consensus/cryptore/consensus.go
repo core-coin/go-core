@@ -36,7 +36,7 @@ import (
 
 // Cryptore proof-of-work protocol constants.
 var (
-	BlockReward = big.NewInt(2e+18) // Block reward in ore for successfully mining a block
+	BlockReward = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
 	maxUncles                 = 2                 // Maximum number of uncles allowed in a single block
 	allowedFutureBlockTime    = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
 
