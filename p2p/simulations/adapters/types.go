@@ -18,7 +18,6 @@ package adapters
 
 import (
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -26,7 +25,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/docker/docker/pkg/reexec"
+	"github.com/core-coin/eddsa"
+
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -34,6 +34,7 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/docker/docker/pkg/reexec"
 	"github.com/gorilla/websocket"
 )
 
@@ -301,5 +302,5 @@ func (n *NodeConfig) initEnode(ip net.IP, tcpport int, udpport int) error {
 }
 
 func (n *NodeConfig) initDummyEnode() error {
-	return n.initEnode(net.IPv4(127, 0, 0, 1), 0, 0)
+	return n.initEnode(net.IPv4(127, 0, 0, 1), int(n.Port), 0)
 }
