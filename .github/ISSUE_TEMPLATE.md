@@ -1,14 +1,13 @@
-Hi there,
-
+<!--
+Thank you for contribution, we appreciate your willingness to help.
 Please note that this is an issue tracker reserved for bug reports and feature requests.
-
-For general questions please use the gitter channel or the Core stack exchange at https://core.stackexchange.com.
-
+For general questions please use the Core Talk at https://coretalk.info.
+-->
 #### System information
 
-Gcore version: `gcore version`
+Go-core version: `go-core version`
 OS & Version: Windows/Linux/OSX
-Commit hash : (if `develop`)
+Commit hash: (if `develop`)
 
 #### Expected behaviour
 
