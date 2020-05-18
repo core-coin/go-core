@@ -37,13 +37,13 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcedb"
 
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -125,10 +125,10 @@ type CParamsParams struct {
 	AccountStartNonce          math.HexOrDecimal64   `json:"accountStartNonce"`
 	ChainID                    *math.HexOrDecimal256 `json:"chainID"`
 	MaximumExtraDataSize       math.HexOrDecimal64   `json:"maximumExtraDataSize"`
-	TieBreakingEnergy             bool                  `json:"tieBreakingEnergy"`
-	MinEnergyLimit                math.HexOrDecimal64   `json:"minEnergyLimit"`
-	MaxEnergyLimit                math.HexOrDecimal64   `json:"maxEnergyLimit"`
-	EnergyLimitBoundDivisor       math.HexOrDecimal64   `json:"energyLimitBoundDivisor"`
+	TieBreakingEnergy          bool                  `json:"tieBreakingEnergy"`
+	MinEnergyLimit             math.HexOrDecimal64   `json:"minEnergyLimit"`
+	MaxEnergyLimit             math.HexOrDecimal64   `json:"maxEnergyLimit"`
+	EnergyLimitBoundDivisor    math.HexOrDecimal64   `json:"energyLimitBoundDivisor"`
 	MinimumDifficulty          math.HexOrDecimal256  `json:"minimumDifficulty"`
 	DifficultyBoundDivisor     math.HexOrDecimal256  `json:"difficultyBoundDivisor"`
 	DurationLimit              math.HexOrDecimal256  `json:"durationLimit"`
@@ -137,14 +137,14 @@ type CParamsParams struct {
 }
 
 type CParamsGenesis struct {
-	Nonce      math.HexOrDecimal64   `json:"nonce"`
-	Difficulty *math.HexOrDecimal256 `json:"difficulty"`
-	MixHash    *math.HexOrDecimal256 `json:"mixHash"`
-	Author     common.Address        `json:"author"`
-	Timestamp  math.HexOrDecimal64   `json:"timestamp"`
-	ParentHash common.Hash           `json:"parentHash"`
-	ExtraData  hexutil.Bytes         `json:"extraData"`
-	EnergyLimit   math.HexOrDecimal64   `json:"energyLimit"`
+	Nonce       math.HexOrDecimal64   `json:"nonce"`
+	Difficulty  *math.HexOrDecimal256 `json:"difficulty"`
+	MixHash     *math.HexOrDecimal256 `json:"mixHash"`
+	Author      common.Address        `json:"author"`
+	Timestamp   math.HexOrDecimal64   `json:"timestamp"`
+	ParentHash  common.Hash           `json:"parentHash"`
+	ExtraData   hexutil.Bytes         `json:"extraData"`
+	EnergyLimit math.HexOrDecimal64   `json:"energyLimit"`
 }
 
 type CParamsAccount struct {
@@ -306,15 +306,15 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 		Config: &params.ChainConfig{
 			ChainID:             chainId,
 		},
-		Nonce:      uint64(chainParams.Genesis.Nonce),
-		Timestamp:  uint64(chainParams.Genesis.Timestamp),
-		ExtraData:  chainParams.Genesis.ExtraData,
-		EnergyLimit:   uint64(chainParams.Genesis.EnergyLimit),
-		Difficulty: big.NewInt(0).Set((*big.Int)(chainParams.Genesis.Difficulty)),
-		Mixhash:    common.BigToHash((*big.Int)(chainParams.Genesis.MixHash)),
-		Coinbase:   chainParams.Genesis.Author,
-		ParentHash: chainParams.Genesis.ParentHash,
-		Alloc:      accounts,
+		Nonce:       uint64(chainParams.Genesis.Nonce),
+		Timestamp:   uint64(chainParams.Genesis.Timestamp),
+		ExtraData:   chainParams.Genesis.ExtraData,
+		EnergyLimit: uint64(chainParams.Genesis.EnergyLimit),
+		Difficulty:  big.NewInt(0).Set((*big.Int)(chainParams.Genesis.Difficulty)),
+		Mixhash:     common.BigToHash((*big.Int)(chainParams.Genesis.MixHash)),
+		Coinbase:    chainParams.Genesis.Author,
+		ParentHash:  chainParams.Genesis.ParentHash,
+		Alloc:       accounts,
 	}
 	chainConfig, genesisHash, err := core.SetupGenesisBlock(xceDb, genesis)
 	if err != nil {
@@ -403,11 +403,11 @@ func (api *RetestxceAPI) mineBlock() error {
 	}
 	energyLimit := core.CalcEnergyLimit(parent, 9223372036854775807, 9223372036854775807)
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     big.NewInt(int64(number + 1)),
-		EnergyLimit:   energyLimit,
-		Extra:      api.extraData,
-		Time:       timestamp,
+		ParentHash:  parent.Hash(),
+		Number:      big.NewInt(int64(number + 1)),
+		EnergyLimit: energyLimit,
+		Extra:       api.extraData,
+		Time:        timestamp,
 	}
 	header.Coinbase = api.author
 	if api.engine != nil {
@@ -802,8 +802,8 @@ func retestxce(ctx *cli.Context) error {
 			Version:   "1.0",
 		},
 	}
-	vhosts := splitAndTrim(ctx.GlobalString(utils.RPCVirtualHostsFlag.Name))
-	cors := splitAndTrim(ctx.GlobalString(utils.RPCCORSDomainFlag.Name))
+	vhosts := splitAndTrim(ctx.GlobalString(utils.HTTPVirtualHostsFlag.Name))
+	cors := splitAndTrim(ctx.GlobalString(utils.HTTPCORSDomainFlag.Name))
 
 	// start http server
 	var RetestxceHTTPTimeouts = rpc.HTTPTimeouts{
@@ -811,7 +811,7 @@ func retestxce(ctx *cli.Context) error {
 		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.RPCListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
+	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.HTTPListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
 	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "xce", "debug", "web3"}, cors, vhosts, RetestxceHTTPTimeouts)
 	if err != nil {
 		utils.Fatalf("Could not start RPC api: %v", err)
