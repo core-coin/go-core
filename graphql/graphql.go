@@ -213,7 +213,7 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 	if err != nil || tx == nil {
 		return nil, err
 	}
-	var signer types.Signer = types.HomesteadSigner{}
+	var signer types.Signer = types.NucleusSigner{}
 	from, _ := types.Sender(signer, tx)
 
 	return &Account{

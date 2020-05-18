@@ -112,8 +112,8 @@ type stTransactionMarshaling struct {
 
 // getVMConfig takes a fork definition and returns a chain config.
 // The fork definition can be
-// - a plain forkname, e.g. `Byzantium`,
-// - a fork basename, and a list of CIPs to enable; e.g. `Byzantium+1884+1283`.
+// - a plain forkname, e.g. `Nucleus`,
+// - a fork basename, and a list of CIPs to enable; e.g. `Nucleus+1884+1283`.
 func getVMConfig(forkString string) (baseConfig *params.ChainConfig, cips []int, err error) {
 	var (
 		splitForks            = strings.Split(forkString, "+")
@@ -188,7 +188,7 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 		statedb.RevertToSnapshot(snapshot)
 	}
 	// Commit block
-	statedb.Commit(config.IsCIP158(block.Number()))
+	statedb.Commit(true)
 	// Add 0-value mining reward. This only makes a difference in the cases
 	// where
 	// - the coinbase suicided, or
@@ -196,7 +196,7 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*stat
 	//   the coinbase gets no txfee, so isn't created, and thus needs to be touched
 	statedb.AddBalance(block.Coinbase(), new(big.Int))
 	// And _now_ get the state root
-	root := statedb.IntermediateRoot(config.IsCIP158(block.Number()))
+	root := statedb.IntermediateRoot(true)
 	return statedb, root, nil
 }
 

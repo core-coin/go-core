@@ -162,7 +162,7 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer, 1=Frontier, 2=Morden (disused), 3=Testnet, 4=Rinkeby)",
+		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Testnet, 4=Rinkeby)",
 		Value: xce.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{
@@ -232,14 +232,6 @@ var (
 	WhitelistFlag = cli.StringFlag{
 		Name:  "whitelist",
 		Usage: "Comma separated block number-to-hash mappings to enforce (<number>=<hash>)",
-	}
-	OverrideIstanbulFlag = cli.Uint64Flag{
-		Name:  "override.istanbul",
-		Usage: "Manually specify Istanbul fork-block, overriding the bundled setting",
-	}
-	OverrideMuirGlacierFlag = cli.Uint64Flag{
-		Name:  "override.muirglacier",
-		Usage: "Manually specify Muir Glacier fork-block, overriding the bundled setting",
 	}
 	// Light server and client settings
 	LightLegacyServFlag = cli.IntFlag{ // Deprecated in favor of light.serve, remove in 2021

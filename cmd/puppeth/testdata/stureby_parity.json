@@ -16,7 +16,6 @@
           "0x7530": "0x2dc6c0",
           "0x9c40": "0x1e8480"
         },
-        "homesteadTransition": "0x2710",
         "cip100bTransition": "0x7530"
       }
     }

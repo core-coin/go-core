@@ -171,14 +171,6 @@ func benchmarkCVM_Create(bench *testing.B, code string) {
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
 			ChainID:             big.NewInt(1),
-			HomesteadBlock:      new(big.Int),
-			ByzantiumBlock:      new(big.Int),
-			ConstantinopleBlock: new(big.Int),
-			DAOForkBlock:        new(big.Int),
-			DAOForkSupport:      false,
-			CIP150Block:         new(big.Int),
-			CIP155Block:         new(big.Int),
-			CIP158Block:         new(big.Int),
 		},
 		CVMConfig: vm.Config{},
 	}

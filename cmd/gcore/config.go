@@ -20,18 +20,17 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
 	"reflect"
 	"unicode"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/xce"
 	"github.com/naoina/toml"
 )
 
@@ -147,12 +146,6 @@ func enableWhisper(ctx *cli.Context) bool {
 
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
-	if ctx.GlobalIsSet(utils.OverrideIstanbulFlag.Name) {
-		cfg.Xce.OverrideIstanbul = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideIstanbulFlag.Name))
-	}
-	if ctx.GlobalIsSet(utils.OverrideMuirGlacierFlag.Name) {
-		cfg.Xce.OverrideMuirGlacier = new(big.Int).SetUint64(ctx.GlobalUint64(utils.OverrideMuirGlacierFlag.Name))
-	}
 	utils.RegisterXceService(stack, &cfg.Xce)
 
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode

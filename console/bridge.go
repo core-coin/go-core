@@ -24,12 +24,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dop251/goja"
 	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/accounts/usbwallet"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/internal/jsre"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/dop251/goja"
 )
 
 // bridge is a collection of JavaScript utility methods to bride the .js runtime
@@ -97,7 +96,7 @@ func (b *bridge) NewAccount(call jsre.Call) (goja.Value, error) {
 }
 
 // OpenWallet is a wrapper around personal.openWallet which can interpret and
-// react to certain error messages, such as the Trezor PIN matrix request.
+// react to certain error messages.
 func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 	// Make sure we have a wallet specified to open
 	if call.Argument(0).ToObject(call.VM).ClassName() != "String" {
@@ -123,16 +122,6 @@ func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 
 	// Wallet open failed, report error unless it's a PIN or PUK entry
 	switch {
-	case strings.HasSuffix(err.Error(), usbwallet.ErrTrezorPINNeeded.Error()):
-		val, err = b.readPinAndReopenWallet(call)
-		if err == nil {
-			return val, nil
-		}
-		val, err = b.readPassphraseAndReopenWallet(call)
-		if err != nil {
-			return nil, err
-		}
-
 	case strings.HasSuffix(err.Error(), scwallet.ErrPairingPasswordNeeded.Error()):
 		// PUK input requested, fetch from the user and call open again
 		input, err := b.prompter.PromptPassword("Please enter the pairing password: ")
@@ -193,27 +182,6 @@ func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 func (b *bridge) readPassphraseAndReopenWallet(call jsre.Call) (goja.Value, error) {
 	wallet := call.Argument(0)
 	input, err := b.prompter.PromptPassword("Please enter your passphrase: ")
-	if err != nil {
-		return nil, err
-	}
-	openWallet, callable := goja.AssertFunction(getJcore(call.VM).Get("openWallet"))
-	if !callable {
-		return nil, fmt.Errorf("jcore.openWallet is not callable")
-	}
-	return openWallet(goja.Null(), wallet, call.VM.ToValue(input))
-}
-
-func (b *bridge) readPinAndReopenWallet(call jsre.Call) (goja.Value, error) {
-	wallet := call.Argument(0)
-	// Trezor PIN matrix input requested, display the matrix to the user and fetch the data
-	fmt.Fprintf(b.printer, "Look at the device for number positions\n\n")
-	fmt.Fprintf(b.printer, "7 | 8 | 9\n")
-	fmt.Fprintf(b.printer, "--+---+--\n")
-	fmt.Fprintf(b.printer, "4 | 5 | 6\n")
-	fmt.Fprintf(b.printer, "--+---+--\n")
-	fmt.Fprintf(b.printer, "1 | 2 | 3\n\n")
-
-	input, err := b.prompter.PromptPassword("Please enter current PIN: ")
 	if err != nil {
 		return nil, err
 	}

@@ -96,17 +96,16 @@ contract OpCodes {
 
      //returndatacopy
      assembly { returndatacopy(64, 32, 0) }
-     //byzantium vs const Constantinople
      //staticcall
      assembly { pop(staticcall(10000, 0x123, 64, 0x10, 128, 0x10)) }
 
-     /*//create2 Constantinople
+     /*//
      assembly { pop(create2(10, 0x123, 32, 64)) }*/
 
-     //create Constantinople
+     //create
      assembly { pop(create(10, 0x123, 32)) }
 
-     //shift Constantinople
+     //shift
      /*assembly { pop(shl(10, 32)) }
      assembly { pop(shr(10, 32)) }
      assembly { pop(sar(10, 32)) }*/

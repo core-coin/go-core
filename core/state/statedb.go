@@ -586,8 +586,6 @@ func (s *StateDB) Copy() *StateDB {
 	for addr := range s.journal.dirties {
 		// As documented [here](https://github.com/core-coin/go-core/pull/16485#issuecomment-380438527),
 		// and in the Finalise-method, there is a case where an object is in the journal but not
-		// in the stateObjects: OOG after touch on ripeMD prior to Byzantium. Thus, we need to check for
-		// nil
 		if object, exist := s.stateObjects[addr]; exist {
 			// Even though the original object is dirty, we are not copying the journal,
 			// so we need to make sure that anyside effect the journal would have caused

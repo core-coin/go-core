@@ -51,8 +51,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		RPCEnergyCap            *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
-		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
-		OverrideMuirGlacier     *big.Int                       `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -88,8 +86,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.RPCEnergyCap = c.RPCEnergyCap
 	enc.Checkpoint = c.Checkpoint
 	enc.CheckpointOracle = c.CheckpointOracle
-	enc.OverrideIstanbul = c.OverrideIstanbul
-	enc.OverrideMuirGlacier = c.OverrideMuirGlacier
 	return &enc, nil
 }
 
@@ -129,8 +125,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		RPCEnergyCap            *big.Int                       `toml:",omitempty"`
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
-		OverrideIstanbul        *big.Int                       `toml:",omitempty"`
-		OverrideMuirGlacier     *big.Int                       `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -234,12 +228,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.CheckpointOracle != nil {
 		c.CheckpointOracle = dec.CheckpointOracle
-	}
-	if dec.OverrideIstanbul != nil {
-		c.OverrideIstanbul = dec.OverrideIstanbul
-	}
-	if dec.OverrideMuirGlacier != nil {
-		c.OverrideMuirGlacier = dec.OverrideMuirGlacier
 	}
 	return nil
 }

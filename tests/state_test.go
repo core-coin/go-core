@@ -44,16 +44,7 @@ func TestState(t *testing.T) {
 	// Very time consuming
 	st.skipLoad(`^stTimeConsuming/`)
 
-	// Broken tests:
-	// Expected failures:
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Byzantium/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Byzantium/3`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Constantinople/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Constantinople/3`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/ConstantinopleFix/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/ConstantinopleFix/3`, "bug in test")
-
-	// For Istanbul, older tests were moved into LegacyTests
+	// Older tests were moved into LegacyTests
 	for _, dir := range []string{
 		stateTestDir,
 		legacyStateTestDir,

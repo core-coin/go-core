@@ -692,17 +692,14 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
 		energy          = contract.Energy
 	)
-	if interpreter.cvm.chainRules.IsCIP150 {
-		energy -= energy / 64
-	}
+
+	energy -= energy / 64
 
 	contract.UseEnergy(energy)
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create(contract, input, energy, value)
-	// Push item on the stack based on the returned error. If the ruleset is
-	// homestead we must check for CodeStoreOutOfEnergyError (homestead only
-	// rule) and treat as an error, if the ruleset is frontier we must
+	// Push item on the stack based on the returned error. We must
 	// ignore this error and pretend the operation was successful.
-	if interpreter.cvm.chainRules.IsHomestead && suberr == ErrCodeStoreOutOfEnergy {
+	if suberr == ErrCodeStoreOutOfEnergy {
 		stack.push(interpreter.intPool.getZero())
 	} else if suberr != nil && suberr != ErrCodeStoreOutOfEnergy {
 		stack.push(interpreter.intPool.getZero())

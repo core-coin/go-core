@@ -32,12 +32,12 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xce/downloader"
 )
 
 func init() {
@@ -158,14 +158,8 @@ func TestForkIDSplit(t *testing.T) {
 	var (
 		engine = cryptore.NewFaker()
 
-		configNoFork  = &params.ChainConfig{HomesteadBlock: big.NewInt(1)}
-		configProFork = &params.ChainConfig{
-			HomesteadBlock: big.NewInt(1),
-			CIP150Block:    big.NewInt(2),
-			CIP155Block:    big.NewInt(2),
-			CIP158Block:    big.NewInt(2),
-			ByzantiumBlock: big.NewInt(3),
-		}
+		configNoFork  = &params.ChainConfig{}
+		configProFork = &params.ChainConfig{EWASMBlock:big.NewInt(2)}
 		dbNoFork  = rawdb.NewMemoryDatabase()
 		dbProFork = rawdb.NewMemoryDatabase()
 
@@ -198,12 +192,12 @@ func TestForkIDSplit(t *testing.T) {
 
 	select {
 	case err := <-errc:
-		t.Fatalf("frontier nofork <-> profork failed: %v", err)
+		t.Fatalf("nofork <-> profork failed: %v", err)
 	case <-time.After(250 * time.Millisecond):
 		p2pNoFork.Close()
 		p2pProFork.Close()
 	}
-	// Progress into Homestead. Fork's match, so we don't care what the future holds
+	// Progress. Fork's match, so we don't care what the future holds
 	chainNoFork.InsertChain(blocksNoFork[:1])
 	chainProFork.InsertChain(blocksProFork[:1])
 
@@ -217,7 +211,7 @@ func TestForkIDSplit(t *testing.T) {
 
 	select {
 	case err := <-errc:
-		t.Fatalf("homestead nofork <-> profork failed: %v", err)
+		t.Fatalf("nofork <-> profork failed: %v", err)
 	case <-time.After(250 * time.Millisecond):
 		p2pNoFork.Close()
 		p2pProFork.Close()

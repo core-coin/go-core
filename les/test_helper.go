@@ -105,7 +105,7 @@ contract test {
 func prepare(n int, backend *backends.SimulatedBackend) {
 	var (
 		ctx    = context.Background()
-		signer = types.HomesteadSigner{}
+		signer = types.NucleusSigner{}
 	)
 	for i := 0; i < n; i++ {
 		switch i {
