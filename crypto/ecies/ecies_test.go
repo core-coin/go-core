@@ -31,7 +31,6 @@ package ecies
 
 import (
 	"bytes"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -67,13 +66,13 @@ func cmpParams(p1, p2 *ECIESParams) bool {
 
 // Validate the ECDH component.
 func TestSharedKey(t *testing.T) {
-	prv1, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv1, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	skLen := 16
 
-	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv2, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +123,7 @@ func TestSharedKeyPadding(t *testing.T) {
 
 // Benchmark the generation of S256 shared keys.
 func BenchmarkGenSharedKeyS256(b *testing.B) {
-	prv, err := GenerateKey(rand.Reader, crypto.S256(), nil)
+	prv, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -139,12 +138,12 @@ func BenchmarkGenSharedKeyS256(b *testing.B) {
 
 // Verify that an encrypted message can be successfully decrypted.
 func TestEncryptDecrypt(t *testing.T) {
-	prv1, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv1, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv2, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +170,7 @@ func TestEncryptDecrypt(t *testing.T) {
 }
 
 func TestDecryptShared2(t *testing.T) {
-	prv, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,14 +200,12 @@ func TestDecryptShared2(t *testing.T) {
 }
 
 type testCase struct {
-	Curve    elliptic.Curve
 	Name     string
 	Expected *ECIESParams
 }
 
 var testCases = []testCase{
 	{
-		Curve:    crypto.S256(),
 		Name:     "S256",
 		Expected: ECIES_AES128_SHA256,
 	},
@@ -224,19 +221,19 @@ func TestParamSelection(t *testing.T) {
 }
 
 func testParamSelection(t *testing.T, c testCase) {
-	params := ParamsFromCurve(c.Curve)
+	params := ParamsFromCurve()
 	if params == nil && c.Expected != nil {
 		t.Fatalf("%s (%s)\n", ErrInvalidParams.Error(), c.Name)
 	} else if params != nil && !cmpParams(params, c.Expected) {
 		t.Fatalf("ecies: parameters should be invalid (%s)\n", c.Name)
 	}
 
-	prv1, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv1, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
 	}
 
-	prv2, err := GenerateKey(rand.Reader, DefaultCurve, nil)
+	prv2, err := GenerateKey(rand.Reader, nil)
 	if err != nil {
 		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
 	}

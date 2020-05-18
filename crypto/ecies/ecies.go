@@ -31,7 +31,6 @@ package ecies
 
 import (
 	"crypto/cipher"
-	"crypto/elliptic"
 	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/crypto"
 	"crypto/hmac"
@@ -44,7 +43,6 @@ import (
 
 var (
 	ErrImport                     = fmt.Errorf("ecies: failed to import key")
-	ErrInvalidCurve               = fmt.Errorf("ecies: invalid elliptic curve")
 	ErrInvalidParams              = fmt.Errorf("ecies: invalid ECIES parameters")
 	ErrInvalidPublicKey           = fmt.Errorf("ecies: invalid public key")
 	ErrSharedKeyIsPointAtInfinity = fmt.Errorf("ecies: shared key is point at infinity")
@@ -54,7 +52,6 @@ var (
 // PublicKey is a representation of an elliptic curve public key.
 type PublicKey struct {
 	X []byte
-	elliptic.Curve
 	Params *ECIESParams
 }
 
@@ -68,8 +65,7 @@ func (pub *PublicKey) ExportEDDSA() *eddsa.PublicKey {
 func ImportEDDSAPublic(pub *eddsa.PublicKey) *PublicKey {
 	return &PublicKey{
 		X:      pub.X,
-		Curve:  crypto.S256(),
-		Params: ParamsFromCurve(crypto.S256()),
+		Params: ParamsFromCurve(),
 	}
 }
 
@@ -93,7 +89,7 @@ func ImportEDDSA(prv *eddsa.PrivateKey) *PrivateKey {
 
 // Generate an elliptic curve public / private keypair. If params is nil,
 // the recommended default parameters for the key will be chosen.
-func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv *PrivateKey, err error) {
+func GenerateKey(rand io.Reader, params *ECIESParams) (prv *PrivateKey, err error) {
 	pb, err := crypto.GenerateKey(rand)
 	if err != nil {
 		return
@@ -102,7 +98,6 @@ func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ECIESParams) (prv
 	prv.PublicKey.X = pb.X
 	prv.D = pb.D
 	prv.PublicKey.Params = params
-	prv.PublicKey.Curve = curve
 	return
 }
 
@@ -234,12 +229,13 @@ func symDecrypt(params *ECIESParams, key, ct []byte) (m []byte, err error) {
 func Encrypt(rand io.Reader, pub *PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	params := pub.Params
 	if params == nil {
-		if params = ParamsFromCurve(pub.Curve); params == nil {
+		params = ParamsFromCurve()
+		if params == nil {
 			err = ErrUnsupportedECIESParameters
 			return
 		}
 	}
-	R, err := GenerateKey(rand, pub.Curve, params)
+	R, err := GenerateKey(rand, params)
 	if err != nil {
 		return
 	}
@@ -281,7 +277,8 @@ func (prv *PrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
 	}
 	params := prv.PublicKey.Params
 	if params == nil {
-		if params = ParamsFromCurve(prv.PublicKey.Curve); params == nil {
+		params = ParamsFromCurve()
+		if params == nil{
 			err = ErrUnsupportedECIESParameters
 			return
 		}
