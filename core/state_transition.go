@@ -63,7 +63,6 @@ type StateTransition struct {
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address
-	//FromFrontier() (common.Address, error)
 	To() *common.Address
 
 	EnergyPrice() *big.Int
@@ -76,10 +75,10 @@ type Message interface {
 }
 
 // IntrinsicEnergy computes the 'intrinsic energy' for a message with the given data.
-func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isCIP2028 bool) (uint64, error) {
+func IntrinsicEnergy(data []byte, contractCreation bool) (uint64, error) {
 	// Set the starting energy for the raw transaction
 	var energy uint64
-	if contractCreation && isHomestead {
+	if contractCreation {
 		energy = params.TxEnergyContractCreation
 	} else {
 		energy = params.TxEnergy
@@ -94,10 +93,7 @@ func IntrinsicEnergy(data []byte, contractCreation, isHomestead bool, isCIP2028 
 			}
 		}
 		// Make sure we don't exceed uint64 for all data combinations
-		nonZeroEnergy := params.TxDataNonZeroEnergyFrontier
-		if isCIP2028 {
-			nonZeroEnergy = params.TxDataNonZeroEnergyCIP2028
-		}
+		nonZeroEnergy := params.TxDataNonZeroEnergy
 		if (math.MaxUint64-energy)/nonZeroEnergy < nz {
 			return 0, vm.ErrOutOfEnergy
 		}
@@ -190,12 +186,10 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed
 	}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
-	homestead := st.cvm.ChainConfig().IsHomestead(st.cvm.BlockNumber)
-	istanbul := st.cvm.ChainConfig().IsIstanbul(st.cvm.BlockNumber)
 	contractCreation := msg.To() == nil
 
 	// Pay intrinsic energy
-	energy, err := IntrinsicEnergy(st.data, contractCreation, homestead, istanbul)
+	energy, err := IntrinsicEnergy(st.data, contractCreation)
 	if err != nil {
 		return nil, 0, false, err
 	}

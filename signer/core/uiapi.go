@@ -132,8 +132,7 @@ func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Ac
 
 // OpenWallet initiates a hardware wallet opening procedure, establishing a USB
 // connection and attempting to authenticate via the provided passphrase. Note,
-// the method may return an extra challenge requiring a second open (e.g. the
-// Trezor PIN matrix challenge).
+// the method may return an extra challenge requiring a second open.
 // Example
 // {"jsonrpc":"2.0","method":"clef_openWallet","params":["ledger://",""], "id":6}
 func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {

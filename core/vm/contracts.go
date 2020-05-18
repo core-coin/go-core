@@ -41,39 +41,17 @@ type PrecompiledContract interface {
 	Run(input []byte) ([]byte, error) // Run runs the precompiled contract
 }
 
-// PrecompiledContractsHomestead contains the default set of pre-compiled Core
-// contracts used in the Frontier and Homestead releases.
-var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-}
-
-// PrecompiledContractsByzantium contains the default set of pre-compiled Core
-// contracts used in the Byzantium release.
-var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
+// PrecompiledContracts contains the default set of pre-compiled Core
+// contracts used in the release.
+var PrecompiledContracts = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}): &ecrecover{},
 	common.BytesToAddress([]byte{2}): &sha256hash{},
 	common.BytesToAddress([]byte{3}): &ripemd160hash{},
 	common.BytesToAddress([]byte{4}): &dataCopy{},
 	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
-	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
-}
-
-// PrecompiledContractsIstanbul contains the default set of pre-compiled Core
-// contracts used in the Istanbul release.
-var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
+	common.BytesToAddress([]byte{6}): &bn256Add{},
+	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
+	common.BytesToAddress([]byte{8}): &bn256Pairing{},
 	common.BytesToAddress([]byte{9}): &blake2F{},
 }
 
@@ -97,19 +75,6 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	const ecRecoverInputLength = crypto.SignatureLength
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
-
-	/*
-	// tighter sig s values input homestead only apply to tx sigs
-	if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
-		return nil, nil
-	}
-	// We must make sure not to modify the 'input', so placing the 'v' along with
-	// the signature needs to be done on a new allocation
-	sig := make([]byte, 65)
-	copy(sig, input[64:128])
-	sig[64] = v
-	// v needs to be at the end for libsecp256k1
-	*/
 
 	pubKey, err := crypto.Ecrecover(input[:32], input[32:])
 	// make sure the public key is a valid one
@@ -291,8 +256,7 @@ func newTwistPoint(blob []byte) (*bn256.G2, error) {
 	return p, nil
 }
 
-// runBn256Add implements the Bn256Add precompile, referenced by both
-// Byzantium and Istanbul operations.
+// runBn256Add implements the Bn256Add precompile
 func runBn256Add(input []byte) ([]byte, error) {
 	x, err := newCurvePoint(getData(input, 0, 64))
 	if err != nil {
@@ -308,33 +272,19 @@ func runBn256Add(input []byte) ([]byte, error) {
 }
 
 // bn256Add implements a native elliptic curve point addition conforming to
-// Istanbul consensus rules.
-type bn256AddIstanbul struct{}
+// consensus rules.
+type bn256Add struct{}
 
 // RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256AddIstanbul) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256AddEnergyIstanbul
+func (c *bn256Add) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256AddEnergy
 }
 
-func (c *bn256AddIstanbul) Run(input []byte) ([]byte, error) {
+func (c *bn256Add) Run(input []byte) ([]byte, error) {
 	return runBn256Add(input)
 }
 
-// bn256AddByzantium implements a native elliptic curve point addition
-// conforming to Byzantium consensus rules.
-type bn256AddByzantium struct{}
-
-// RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256AddByzantium) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256AddEnergyByzantium
-}
-
-func (c *bn256AddByzantium) Run(input []byte) ([]byte, error) {
-	return runBn256Add(input)
-}
-
-// runBn256ScalarMul implements the Bn256ScalarMul precompile, referenced by
-// both Byzantium and Istanbul operations.
+// runBn256ScalarMul implements the Bn256ScalarMul precompile
 func runBn256ScalarMul(input []byte) ([]byte, error) {
 	p, err := newCurvePoint(getData(input, 0, 64))
 	if err != nil {
@@ -345,29 +295,16 @@ func runBn256ScalarMul(input []byte) ([]byte, error) {
 	return res.Marshal(), nil
 }
 
-// bn256ScalarMulIstanbul implements a native elliptic curve scalar
-// multiplication conforming to Istanbul consensus rules.
-type bn256ScalarMulIstanbul struct{}
+// bn256ScalarMul implements a native elliptic curve scalar
+// multiplication conforming to consensus rules.
+type bn256ScalarMul struct{}
 
 // RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256ScalarMulIstanbul) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256ScalarMulEnergyIstanbul
+func (c *bn256ScalarMul) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256ScalarMulEnergy
 }
 
-func (c *bn256ScalarMulIstanbul) Run(input []byte) ([]byte, error) {
-	return runBn256ScalarMul(input)
-}
-
-// bn256ScalarMulByzantium implements a native elliptic curve scalar
-// multiplication conforming to Byzantium consensus rules.
-type bn256ScalarMulByzantium struct{}
-
-// RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256ScalarMulByzantium) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256ScalarMulEnergyByzantium
-}
-
-func (c *bn256ScalarMulByzantium) Run(input []byte) ([]byte, error) {
+func (c *bn256ScalarMul) Run(input []byte) ([]byte, error) {
 	return runBn256ScalarMul(input)
 }
 
@@ -382,8 +319,7 @@ var (
 	errBadPairingInput = errors.New("bad elliptic curve pairing size")
 )
 
-// runBn256Pairing implements the Bn256Pairing precompile, referenced by both
-// Byzantium and Istanbul operations.
+// runBn256Pairing implements the Bn256Pairing precompile
 func runBn256Pairing(input []byte) ([]byte, error) {
 	// Handle some corner cases cheaply
 	if len(input)%192 > 0 {
@@ -413,29 +349,15 @@ func runBn256Pairing(input []byte) ([]byte, error) {
 	return false32Byte, nil
 }
 
-// bn256PairingIstanbul implements a pairing pre-compile for the bn256 curve
-// conforming to Istanbul consensus rules.
-type bn256PairingIstanbul struct{}
+// bn256Pairing implements a pairing pre-compile for the bn256 curve
+type bn256Pairing struct{}
 
 // RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256PairingIstanbul) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256PairingBaseEnergyIstanbul + uint64(len(input)/192)*params.Bn256PairingPerPointEnergyIstanbul
+func (c *bn256Pairing) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256PairingBaseEnergy + uint64(len(input)/192)*params.Bn256PairingPerPointEnergy
 }
 
-func (c *bn256PairingIstanbul) Run(input []byte) ([]byte, error) {
-	return runBn256Pairing(input)
-}
-
-// bn256PairingByzantium implements a pairing pre-compile for the bn256 curve
-// conforming to Byzantium consensus rules.
-type bn256PairingByzantium struct{}
-
-// RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256PairingByzantium) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256PairingBaseEnergyByzantium + uint64(len(input)/192)*params.Bn256PairingPerPointEnergyByzantium
-}
-
-func (c *bn256PairingByzantium) Run(input []byte) ([]byte, error) {
+func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 	return runBn256Pairing(input)
 }
 

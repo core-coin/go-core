@@ -18,7 +18,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"math/rand"
@@ -44,10 +43,6 @@ RUN \
 	echo '});'                                                             >> server.js
 
 ADD {{.Network}}.json /dashboard/{{.Network}}.json
-ADD {{.Network}}-cpp.json /dashboard/{{.Network}}-cpp.json
-ADD {{.Network}}-harmony.json /dashboard/{{.Network}}-harmony.json
-ADD {{.Network}}-parity.json /dashboard/{{.Network}}-parity.json
-ADD {{.Network}}-python.json /dashboard/{{.Network}}-python.json
 ADD index.html /dashboard/index.html
 ADD puppeth.png /dashboard/puppeth.png
 
@@ -111,18 +106,6 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		statsLogin = ""
 	}
 	indexfile := new(bytes.Buffer)
-	bootCpp := make([]string, len(conf.bootnodes))
-	for i, boot := range conf.bootnodes {
-		bootCpp[i] = "required:" + strings.TrimPrefix(boot, "enode://")
-	}
-	bootHarmony := make([]string, len(conf.bootnodes))
-	for i, boot := range conf.bootnodes {
-		bootHarmony[i] = fmt.Sprintf("-Dpeer.active.%d.url=%s", i, boot)
-	}
-	bootPython := make([]string, len(conf.bootnodes))
-	for i, boot := range conf.bootnodes {
-		bootPython[i] = "'" + boot + "'"
-	}
 	template.Must(template.New("").ParseFiles("template_dashboard.html")).Execute(indexfile, map[string]interface{}{
 		"Network":           network,
 		"NetworkID":         conf.Genesis.Config.ChainID,
@@ -136,55 +119,12 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"BootnodesFlat":     strings.Join(conf.bootnodes, ","),
 		"Xcestats":          statsLogin,
 		"Cryptore":            conf.Genesis.Config.Cryptore != nil,
-		"CppGenesis":        network + "-cpp.json",
-		"CppBootnodes":      strings.Join(bootCpp, " "),
-		"HarmonyGenesis":    network + "-harmony.json",
-		"HarmonyBootnodes":  strings.Join(bootHarmony, " "),
-		"ParityGenesis":     network + "-parity.json",
-		"PythonGenesis":     network + "-python.json",
-		"PythonBootnodes":   strings.Join(bootPython, ","),
-		"Homestead":         conf.Genesis.Config.HomesteadBlock,
-		"Tangerine":         conf.Genesis.Config.CIP150Block,
-		"Spurious":          conf.Genesis.Config.CIP155Block,
-		"Byzantium":         conf.Genesis.Config.ByzantiumBlock,
-		"Constantinople":    conf.Genesis.Config.ConstantinopleBlock,
-		"ConstantinopleFix": conf.Genesis.Config.PetersburgBlock,
 	})
 	files[filepath.Join(workdir, "index.html")] = indexfile.Bytes()
 
 	// Marshal the genesis spec files for go-core and all the other clients
 	genesis, _ := conf.Genesis.MarshalJSON()
 	files[filepath.Join(workdir, network+".json")] = genesis
-
-	if conf.Genesis.Config.Cryptore != nil {
-		cppSpec, err := newAlxceGenesisSpec(network, conf.Genesis)
-		if err != nil {
-			return nil, err
-		}
-		cppSpecJSON, _ := json.Marshal(cppSpec)
-		files[filepath.Join(workdir, network+"-cpp.json")] = cppSpecJSON
-
-		harmonySpecJSON, _ := conf.Genesis.MarshalJSON()
-		files[filepath.Join(workdir, network+"-harmony.json")] = harmonySpecJSON
-
-		paritySpec, err := newParityChainSpec(network, conf.Genesis, conf.bootnodes)
-		if err != nil {
-			return nil, err
-		}
-		paritySpecJSON, _ := json.Marshal(paritySpec)
-		files[filepath.Join(workdir, network+"-parity.json")] = paritySpecJSON
-
-		pyxceSpec, err := newPyCoreGenesisSpec(network, conf.Genesis)
-		if err != nil {
-			return nil, err
-		}
-		pyxceSpecJSON, _ := json.Marshal(pyxceSpec)
-		files[filepath.Join(workdir, network+"-python.json")] = pyxceSpecJSON
-	} else {
-		for _, client := range []string{"cpp", "harmony", "parity", "python"} {
-			files[filepath.Join(workdir, network+"-"+client+".json")] = []byte{}
-		}
-	}
 
 	// Upload the deployment files to the remote server (and clean up afterwards)
 	if out, err := client.Upload(files); err != nil {

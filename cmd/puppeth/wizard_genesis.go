@@ -43,16 +43,7 @@ func (w *wizard) makeGenesis() {
 		EnergyLimit:   4700000,
 		Difficulty: big.NewInt(524288),
 		Alloc:      make(core.GenesisAlloc),
-		Config: &params.ChainConfig{
-			HomesteadBlock:      big.NewInt(0),
-			CIP150Block:         big.NewInt(0),
-			CIP155Block:         big.NewInt(0),
-			CIP158Block:         big.NewInt(0),
-			ByzantiumBlock:      big.NewInt(0),
-			ConstantinopleBlock: big.NewInt(0),
-			PetersburgBlock:     big.NewInt(0),
-			IstanbulBlock:       big.NewInt(0),
-		},
+		Config: &params.ChainConfig{},
 	}
 	// Figure out which consensus engine to choose
 	fmt.Println()
@@ -201,40 +192,6 @@ func (w *wizard) manageGenesis() {
 	switch choice {
 	case "1":
 		// Fork rule updating requested, iterate over each fork
-		fmt.Println()
-		fmt.Printf("Which block should Homestead come into effect? (default = %v)\n", w.conf.Genesis.Config.HomesteadBlock)
-		w.conf.Genesis.Config.HomesteadBlock = w.readDefaultBigInt(w.conf.Genesis.Config.HomesteadBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should CIP150 (Tangerine Whistle) come into effect? (default = %v)\n", w.conf.Genesis.Config.CIP150Block)
-		w.conf.Genesis.Config.CIP150Block = w.readDefaultBigInt(w.conf.Genesis.Config.CIP150Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should CIP155 (Spurious Dragon) come into effect? (default = %v)\n", w.conf.Genesis.Config.CIP155Block)
-		w.conf.Genesis.Config.CIP155Block = w.readDefaultBigInt(w.conf.Genesis.Config.CIP155Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should CIP158/161 (also Spurious Dragon) come into effect? (default = %v)\n", w.conf.Genesis.Config.CIP158Block)
-		w.conf.Genesis.Config.CIP158Block = w.readDefaultBigInt(w.conf.Genesis.Config.CIP158Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should Byzantium come into effect? (default = %v)\n", w.conf.Genesis.Config.ByzantiumBlock)
-		w.conf.Genesis.Config.ByzantiumBlock = w.readDefaultBigInt(w.conf.Genesis.Config.ByzantiumBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should Constantinople come into effect? (default = %v)\n", w.conf.Genesis.Config.ConstantinopleBlock)
-		w.conf.Genesis.Config.ConstantinopleBlock = w.readDefaultBigInt(w.conf.Genesis.Config.ConstantinopleBlock)
-		if w.conf.Genesis.Config.PetersburgBlock == nil {
-			w.conf.Genesis.Config.PetersburgBlock = w.conf.Genesis.Config.ConstantinopleBlock
-		}
-		fmt.Println()
-		fmt.Printf("Which block should Petersburg come into effect? (default = %v)\n", w.conf.Genesis.Config.PetersburgBlock)
-		w.conf.Genesis.Config.PetersburgBlock = w.readDefaultBigInt(w.conf.Genesis.Config.PetersburgBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should Istanbul come into effect? (default = %v)\n", w.conf.Genesis.Config.IstanbulBlock)
-		w.conf.Genesis.Config.IstanbulBlock = w.readDefaultBigInt(w.conf.Genesis.Config.IstanbulBlock)
-
 		out, _ := json.MarshalIndent(w.conf.Genesis.Config, "", "  ")
 		fmt.Printf("Chain configuration updated:\n\n%s\n", out)
 
@@ -244,7 +201,7 @@ func (w *wizard) manageGenesis() {
 		// Save whatever genesis configuration we currently have
 		fmt.Println()
 		fmt.Printf("Which folder to save the genesis specs into? (default = current)\n")
-		fmt.Printf("  Will create %s.json, %s-alxce.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
+		fmt.Printf("  Will create %s.json\n",  w.network)
 
 		folder := w.readDefaultString(".")
 		if err := os.MkdirAll(folder, 0755); err != nil {
@@ -260,21 +217,6 @@ func (w *wizard) manageGenesis() {
 			return
 		}
 		log.Info("Saved native genesis chain spec", "path", gcoreJson)
-
-		// Export the genesis spec used by Alxce (formerly C++ Core)
-		if spec, err := newAlxceGenesisSpec(w.network, w.conf.Genesis); err != nil {
-			log.Error("Failed to create Alxce chain spec", "err", err)
-		} else {
-			saveGenesis(folder, w.network, "alxce", spec)
-		}
-		// Export the genesis spec used by Parity
-		if spec, err := newParityChainSpec(w.network, w.conf.Genesis, []string{}); err != nil {
-			log.Error("Failed to create Parity chain spec", "err", err)
-		} else {
-			saveGenesis(folder, w.network, "parity", spec)
-		}
-		// Export the genesis spec used by Harmony (formerly CoreJ)
-		saveGenesis(folder, w.network, "harmony", w.conf.Genesis)
 
 	case "3":
 		// Make sure we don't have any services running

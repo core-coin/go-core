@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"unicode"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
 	"github.com/core-coin/go-core/node"

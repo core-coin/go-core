@@ -35,12 +35,12 @@ import (
 	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xce"
 	"github.com/gorilla/websocket"
 )
 
@@ -69,10 +69,10 @@ type blockChain interface {
 // Service implements an Core netstats reporting daemon that pushes local
 // chain statistics up to a monitoring server.
 type Service struct {
-	server *p2p.Server        // Peer-to-peer server to retrieve networking infos
-	xce    *xce.Core      // Full Core service if monitoring a full node
-	les    *les.LightCore // Light Core service if monitoring a light node
-	engine consensus.Engine   // Consensus engine to retrieve variadic block fields
+	server *p2p.Server      // Peer-to-peer server to retrieve networking infos
+	xce    *xce.Core        // Full Core service if monitoring a full node
+	les    *les.LightCore   // Light Core service if monitoring a light node
+	engine consensus.Engine // Consensus engine to retrieve variadic block fields
 
 	node string // Name of the node to display on the monitoring page
 	pass string // Password to authorize access to the monitoring page
@@ -154,7 +154,7 @@ func (s *Service) loop() {
 	txSub := txpool.SubscribeNewTxsEvent(txEventCh)
 	defer txSub.Unsubscribe()
 
-	// Start a goroutine that exhausts the subsciptions to avoid events piling up
+	// Start a goroutine that exhausts the subscriptions to avoid events piling up
 	var (
 		quitCh = make(chan struct{})
 		headCh = make(chan *types.Block, 1)
@@ -194,16 +194,18 @@ func (s *Service) loop() {
 		}
 		close(quitCh)
 	}()
+
+	// Resolve the URL, defaulting to TLS, but falling back to none too
+	path := fmt.Sprintf("%s/api", s.host)
+	urls := []string{path}
+
+	// url.Parse and url.IsAbs is unsuitable (https://github.com/golang/go/issues/19779)
+	if !strings.Contains(path, "://") {
+		urls = []string{"wss://" + path, "ws://" + path}
+	}
+
 	// Loop reporting until termination
 	for {
-		// Resolve the URL, defaulting to TLS, but falling back to none too
-		path := fmt.Sprintf("%s/api", s.host)
-		urls := []string{path}
-
-		// url.Parse and url.IsAbs is unsuitable (https://github.com/golang/go/issues/19779)
-		if !strings.Contains(path, "://") {
-			urls = []string{"wss://" + path, "ws://" + path}
-		}
 		// Establish a websocket connection to the server on any supported URL
 		var (
 			conn *websocket.Conn
@@ -244,6 +246,8 @@ func (s *Service) loop() {
 		for err == nil {
 			select {
 			case <-quitCh:
+				fullReport.Stop()
+				// Make sure the connection is closed
 				conn.Close()
 				return
 
@@ -268,6 +272,7 @@ func (s *Service) loop() {
 				}
 			}
 		}
+		fullReport.Stop()
 		// Make sure the connection is closed
 		conn.Close()
 	}
@@ -468,19 +473,19 @@ func (s *Service) reportLatency(conn *websocket.Conn) error {
 
 // blockStats is the information to report about individual blocks.
 type blockStats struct {
-	Number     *big.Int       `json:"number"`
-	Hash       common.Hash    `json:"hash"`
-	ParentHash common.Hash    `json:"parentHash"`
-	Timestamp  *big.Int       `json:"timestamp"`
-	Miner      common.Address `json:"miner"`
-	EnergyUsed    uint64         `json:"energyUsed"`
-	EnergyLimit   uint64         `json:"energyLimit"`
-	Diff       string         `json:"difficulty"`
-	TotalDiff  string         `json:"totalDifficulty"`
-	Txs        []txStats      `json:"transactions"`
-	TxHash     common.Hash    `json:"transactionsRoot"`
-	Root       common.Hash    `json:"stateRoot"`
-	Uncles     uncleStats     `json:"uncles"`
+	Number      *big.Int       `json:"number"`
+	Hash        common.Hash    `json:"hash"`
+	ParentHash  common.Hash    `json:"parentHash"`
+	Timestamp   *big.Int       `json:"timestamp"`
+	Miner       common.Address `json:"miner"`
+	EnergyUsed  uint64         `json:"energyUsed"`
+	EnergyLimit uint64         `json:"energyLimit"`
+	Diff        string         `json:"difficulty"`
+	TotalDiff   string         `json:"totalDifficulty"`
+	Txs         []txStats      `json:"transactions"`
+	TxHash      common.Hash    `json:"transactionsRoot"`
+	Root        common.Hash    `json:"stateRoot"`
+	Uncles      uncleStats     `json:"uncles"`
 }
 
 // txStats is the information to report about individual transactions.
@@ -554,19 +559,19 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 	author, _ := s.engine.Author(header)
 
 	return &blockStats{
-		Number:     header.Number,
-		Hash:       header.Hash(),
-		ParentHash: header.ParentHash,
-		Timestamp:  new(big.Int).SetUint64(header.Time),
-		Miner:      author,
-		EnergyUsed:    header.EnergyUsed,
-		EnergyLimit:   header.EnergyLimit,
-		Diff:       header.Difficulty.String(),
-		TotalDiff:  td.String(),
-		Txs:        txs,
-		TxHash:     header.TxHash,
-		Root:       header.Root,
-		Uncles:     uncles,
+		Number:      header.Number,
+		Hash:        header.Hash(),
+		ParentHash:  header.ParentHash,
+		Timestamp:   new(big.Int).SetUint64(header.Time),
+		Miner:       author,
+		EnergyUsed:  header.EnergyUsed,
+		EnergyLimit: header.EnergyLimit,
+		Diff:        header.Difficulty.String(),
+		TotalDiff:   td.String(),
+		Txs:         txs,
+		TxHash:      header.TxHash,
+		Root:        header.Root,
+		Uncles:      uncles,
 	}
 }
 
@@ -663,13 +668,13 @@ func (s *Service) reportPending(conn *websocket.Conn) error {
 
 // nodeStats is the information to report about the local node.
 type nodeStats struct {
-	Active   bool `json:"active"`
-	Syncing  bool `json:"syncing"`
-	Mining   bool `json:"mining"`
-	Hashrate int  `json:"hashrate"`
-	Peers    int  `json:"peers"`
+	Active      bool `json:"active"`
+	Syncing     bool `json:"syncing"`
+	Mining      bool `json:"mining"`
+	Hashrate    int  `json:"hashrate"`
+	Peers       int  `json:"peers"`
 	EnergyPrice int  `json:"energyPrice"`
-	Uptime   int  `json:"uptime"`
+	Uptime      int  `json:"uptime"`
 }
 
 // reportPending retrieves various stats about the node at the networking and
@@ -677,9 +682,9 @@ type nodeStats struct {
 func (s *Service) reportStats(conn *websocket.Conn) error {
 	// Gather the syncing and mining infos from the local miner instance
 	var (
-		mining   bool
-		hashrate int
-		syncing  bool
+		mining      bool
+		hashrate    int
+		syncing     bool
 		energyprice int
 	)
 	if s.xce != nil {
@@ -701,13 +706,13 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	stats := map[string]interface{}{
 		"id": s.node,
 		"stats": &nodeStats{
-			Active:   true,
-			Mining:   mining,
-			Hashrate: hashrate,
-			Peers:    s.server.PeerCount(),
+			Active:      true,
+			Mining:      mining,
+			Hashrate:    hashrate,
+			Peers:       s.server.PeerCount(),
 			EnergyPrice: energyprice,
-			Syncing:  syncing,
-			Uptime:   100,
+			Syncing:     syncing,
+			Uptime:      100,
 		},
 	}
 	report := map[string][]interface{}{

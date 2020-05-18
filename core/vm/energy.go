@@ -32,18 +32,15 @@ const (
 
 // callEnergy returns the actual energy cost of the call.
 //
-// The cost of energy was changed during the homestead price change HF.
-// As part of CIP 150 (TangerineWhistle), the returned energy is energy - base * 63 / 64.
-func callEnergy(isCip150 bool, availableEnergy, base uint64, callCost *big.Int) (uint64, error) {
-	if isCip150 {
-		availableEnergy = availableEnergy - base
-		energy := availableEnergy - availableEnergy/64
-		// If the bit length exceeds 64 bit we know that the newly calculated "energy" for CIP150
-		// is smaller than the requested amount. Therefor we return the new energy instead
-		// of returning an error.
-		if !callCost.IsUint64() || energy < callCost.Uint64() {
-			return energy, nil
-		}
+// The returned energy is energy - base * 63 / 64.
+func callEnergy(availableEnergy, base uint64, callCost *big.Int) (uint64, error) {
+	availableEnergy = availableEnergy - base
+	energy := availableEnergy - availableEnergy/64
+	// If the bit length exceeds 64 bit we know that the newly calculated "energy" for CIP150
+	// is smaller than the requested amount. Therefor we return the new energy instead
+	// of returning an error.
+	if !callCost.IsUint64() || energy < callCost.Uint64() {
+		return energy, nil
 	}
 	if !callCost.IsUint64() {
 		return 0, errEnergyUintOverflow

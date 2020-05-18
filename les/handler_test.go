@@ -524,7 +524,7 @@ func testTransactionStatus(t *testing.T, protocol int) {
 			t.Errorf("transaction status mismatch")
 		}
 	}
-	signer := types.HomesteadSigner{}
+	signer := types.NucleusSigner{}
 
 	// test error status by sending an underpriced transaction
 	tx0, _ := types.SignTx(types.NewTransaction(0, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)

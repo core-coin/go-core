@@ -23,7 +23,6 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/log"
 )
 
 // Config are the configuration options for the Interpreter
@@ -93,27 +92,8 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 	if !cfg.JumpTable[STOP].valid {
 		var jt JumpTable
 		switch {
-		case cvm.chainRules.IsIstanbul:
-			jt = istanbulInstructionSet
-		case cvm.chainRules.IsConstantinople:
-			jt = constantinopleInstructionSet
-		case cvm.chainRules.IsByzantium:
-			jt = byzantiumInstructionSet
-		case cvm.chainRules.IsCIP158:
-			jt = spuriousDragonInstructionSet
-		case cvm.chainRules.IsCIP150:
-			jt = tangerineWhistleInstructionSet
-		case cvm.chainRules.IsHomestead:
-			jt = homesteadInstructionSet
 		default:
-			jt = frontierInstructionSet
-		}
-		for i, cip := range cfg.ExtraCips {
-			if err := EnableCIP(cip, &jt); err != nil {
-				// Disable it, so caller can check if it's activated or not
-				cfg.ExtraCips = append(cfg.ExtraCips[:i], cfg.ExtraCips[i+1:]...)
-				log.Error("CIP activation failed", "cip", cip, "error", err)
-			}
+			jt = InstructionSet
 		}
 		cfg.JumpTable = jt
 	}
@@ -214,7 +194,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			return nil, fmt.Errorf("stack limit reached %d (%d)", sLen, operation.maxStack)
 		}
 		// If the operation is valid, enforce and write restrictions
-		if in.readOnly && in.cvm.chainRules.IsByzantium {
+		if in.readOnly {
 			// If the interpreter is operating in readonly mode, make sure no
 			// state-modifying operation is performed. The 3rd stack item
 			// for a call operation is the value. Transferring value from one

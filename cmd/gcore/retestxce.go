@@ -17,7 +17,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -32,7 +31,6 @@ import (
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/consensus/misc"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
@@ -125,14 +123,6 @@ type ChainParams struct {
 
 type CParamsParams struct {
 	AccountStartNonce          math.HexOrDecimal64   `json:"accountStartNonce"`
-	HomesteadForkBlock         *math.HexOrDecimal64  `json:"homesteadForkBlock"`
-	CIP150ForkBlock            *math.HexOrDecimal64  `json:"CIP150ForkBlock"`
-	CIP158ForkBlock            *math.HexOrDecimal64  `json:"CIP158ForkBlock"`
-	DaoHardforkBlock           *math.HexOrDecimal64  `json:"daoHardforkBlock"`
-	ByzantiumForkBlock         *math.HexOrDecimal64  `json:"byzantiumForkBlock"`
-	ConstantinopleForkBlock    *math.HexOrDecimal64  `json:"constantinopleForkBlock"`
-	ConstantinopleFixForkBlock *math.HexOrDecimal64  `json:"constantinopleFixForkBlock"`
-	IstanbulBlock              *math.HexOrDecimal64  `json:"istanbulForkBlock"`
 	ChainID                    *math.HexOrDecimal256 `json:"chainID"`
 	MaximumExtraDataSize       math.HexOrDecimal64   `json:"maximumExtraDataSize"`
 	TieBreakingEnergy             bool                  `json:"tieBreakingEnergy"`
@@ -235,7 +225,7 @@ func (e *NoRewardEngine) Finalize(chain consensus.ChainReader, header *types.Hea
 		e.inner.Finalize(chain, header, statedb, txs, uncles)
 	} else {
 		e.accumulateRewards(chain.Config(), statedb, header, uncles)
-		header.Root = statedb.IntermediateRoot(chain.Config().IsCIP158(header.Number))
+		header.Root = statedb.IntermediateRoot(true)
 	}
 }
 
@@ -245,7 +235,7 @@ func (e *NoRewardEngine) FinalizeAndAssemble(chain consensus.ChainReader, header
 		return e.inner.FinalizeAndAssemble(chain, header, statedb, txs, uncles, receipts)
 	} else {
 		e.accumulateRewards(chain.Config(), statedb, header, uncles)
-		header.Root = statedb.IntermediateRoot(chain.Config().IsCIP158(header.Number))
+		header.Root = statedb.IntermediateRoot(true)
 
 		// Header seems complete, assemble into a block and return
 		return types.NewBlock(header, txs, uncles, receipts), nil
@@ -311,59 +301,10 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	if chainParams.Params.ChainID != nil {
 		chainId.Set((*big.Int)(chainParams.Params.ChainID))
 	}
-	var (
-		homesteadBlock      *big.Int
-		daoForkBlock        *big.Int
-		cip150Block         *big.Int
-		cip155Block         *big.Int
-		cip158Block         *big.Int
-		byzantiumBlock      *big.Int
-		constantinopleBlock *big.Int
-		petersburgBlock     *big.Int
-		istanbulBlock       *big.Int
-	)
-	if chainParams.Params.HomesteadForkBlock != nil {
-		homesteadBlock = big.NewInt(int64(*chainParams.Params.HomesteadForkBlock))
-	}
-	if chainParams.Params.DaoHardforkBlock != nil {
-		daoForkBlock = big.NewInt(int64(*chainParams.Params.DaoHardforkBlock))
-	}
-	if chainParams.Params.CIP150ForkBlock != nil {
-		cip150Block = big.NewInt(int64(*chainParams.Params.CIP150ForkBlock))
-	}
-	if chainParams.Params.CIP158ForkBlock != nil {
-		cip158Block = big.NewInt(int64(*chainParams.Params.CIP158ForkBlock))
-		cip155Block = cip158Block
-	}
-	if chainParams.Params.ByzantiumForkBlock != nil {
-		byzantiumBlock = big.NewInt(int64(*chainParams.Params.ByzantiumForkBlock))
-	}
-	if chainParams.Params.ConstantinopleForkBlock != nil {
-		constantinopleBlock = big.NewInt(int64(*chainParams.Params.ConstantinopleForkBlock))
-	}
-	if chainParams.Params.ConstantinopleFixForkBlock != nil {
-		petersburgBlock = big.NewInt(int64(*chainParams.Params.ConstantinopleFixForkBlock))
-	}
-	if constantinopleBlock != nil && petersburgBlock == nil {
-		petersburgBlock = big.NewInt(100000000000)
-	}
-	if chainParams.Params.IstanbulBlock != nil {
-		istanbulBlock = big.NewInt(int64(*chainParams.Params.IstanbulBlock))
-	}
 
 	genesis := &core.Genesis{
 		Config: &params.ChainConfig{
 			ChainID:             chainId,
-			HomesteadBlock:      homesteadBlock,
-			DAOForkBlock:        daoForkBlock,
-			DAOForkSupport:      true,
-			CIP150Block:         cip150Block,
-			CIP155Block:         cip155Block,
-			CIP158Block:         cip158Block,
-			ByzantiumBlock:      byzantiumBlock,
-			ConstantinopleBlock: constantinopleBlock,
-			PetersburgBlock:     petersburgBlock,
-			IstanbulBlock:       istanbulBlock,
 		},
 		Nonce:      uint64(chainParams.Genesis.Nonce),
 		Timestamp:  uint64(chainParams.Genesis.Timestamp),
@@ -417,7 +358,7 @@ func (api *RetestxceAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 		// Return nil is not by mistake - some tests include sending transaction where energyLimit overflows uint64
 		return common.Hash{}, nil
 	}
-	signer := types.MakeSigner(api.chainConfig, big.NewInt(int64(api.currentNumber())))
+	signer := types.MakeSigner()
 	sender, err := types.Sender(signer, tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -472,25 +413,9 @@ func (api *RetestxceAPI) mineBlock() error {
 	if api.engine != nil {
 		api.engine.Prepare(api.blockchain, header)
 	}
-	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
-	if daoBlock := api.chainConfig.DAOForkBlock; daoBlock != nil {
-		// Check whether the block is among the fork extra-override range
-		limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
-		if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
-			// Depending whether we support or oppose the fork, override differently
-			if api.chainConfig.DAOForkSupport {
-				header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
-			} else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
-				header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
-			}
-		}
-	}
 	statedb, err := api.blockchain.StateAt(parent.Root())
 	if err != nil {
 		return err
-	}
-	if api.chainConfig.DAOForkSupport && api.chainConfig.DAOForkBlock != nil && api.chainConfig.DAOForkBlock.Cmp(header.Number) == 0 {
-		misc.ApplyDAOHardFork(statedb)
 	}
 	energyPool := new(core.EnergyPool).AddEnergy(header.EnergyLimit)
 	txCount := 0
@@ -663,7 +588,7 @@ func (api *RetestxceAPI) AccountRange(ctx context.Context,
 			return AccountRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner(api.blockchain.Config(), block.Number())
+		signer := types.MakeSigner()
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -674,11 +599,10 @@ func (api *RetestxceAPI) AccountRange(ctx context.Context,
 				return AccountRangeResult{}, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 			}
 			// Ensure any modifications are committed to the state
-			// Only delete empty objects if CIP158/161 (a.k.a Spurious Dragon) is in effect
-			root = statedb.IntermediateRoot(vmenv.ChainConfig().IsCIP158(block.Number()))
+			root = statedb.IntermediateRoot(true)
 			if idx == int(txIndex) {
 				// This is to make sure root can be opened by OpenTrie
-				root, err = statedb.Commit(api.chainConfig.IsCIP158(block.Number()))
+				root, err = statedb.Commit(true)
 				if err != nil {
 					return AccountRangeResult{}, err
 				}
@@ -773,7 +697,7 @@ func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 			return StorageRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner(api.blockchain.Config(), block.Number())
+		signer := types.MakeSigner()
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -784,11 +708,10 @@ func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 				return StorageRangeResult{}, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 			}
 			// Ensure any modifications are committed to the state
-			// Only delete empty objects if CIP158/161 (a.k.a Spurious Dragon) is in effect
-			_ = statedb.IntermediateRoot(vmenv.ChainConfig().IsCIP158(block.Number()))
+			_ = statedb.IntermediateRoot(true)
 			if idx == int(txIndex) {
 				// This is to make sure root can be opened by OpenTrie
-				_, err = statedb.Commit(vmenv.ChainConfig().IsCIP158(block.Number()))
+				_, err = statedb.Commit(true)
 				if err != nil {
 					return StorageRangeResult{}, err
 				}

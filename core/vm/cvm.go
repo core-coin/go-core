@@ -43,13 +43,7 @@ type (
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(cvm *CVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
 	if contract.CodeAddr != nil {
-		precompiles := PrecompiledContractsHomestead
-		if cvm.chainRules.IsByzantium {
-			precompiles = PrecompiledContractsByzantium
-		}
-		if cvm.chainRules.IsIstanbul {
-			precompiles = PrecompiledContractsIstanbul
-		}
+		precompiles := PrecompiledContracts
 		if p := precompiles[*contract.CodeAddr]; p != nil {
 			return RunPrecompiledContract(p, input, contract)
 		}
@@ -205,14 +199,8 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 		snapshot = cvm.StateDB.Snapshot()
 	)
 	if !cvm.StateDB.Exist(addr) {
-		precompiles := PrecompiledContractsHomestead
-		if cvm.chainRules.IsByzantium {
-			precompiles = PrecompiledContractsByzantium
-		}
-		if cvm.chainRules.IsIstanbul {
-			precompiles = PrecompiledContractsIstanbul
-		}
-		if precompiles[addr] == nil && cvm.chainRules.IsCIP158 && value.Sign() == 0 {
+		precompiles := PrecompiledContracts
+		if precompiles[addr] == nil && value.Sign() == 0 {
 			// Calling a non existing account, don't do anything, but ping the tracer
 			if cvm.vmConfig.Debug && cvm.depth == 0 {
 				cvm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, energy, value)
@@ -242,8 +230,7 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 	ret, err = run(cvm, contract, input, false)
 
 	// When an error was returned by the CVM or when setting the creation code
-	// above we revert to the snapshot and consume any energy remaining. Additionally
-	// when we're in homestead this also counts for code storage energy errors.
+	// above we revert to the snapshot and consume any energy remaining.
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
 		if err != errExecutionReverted {
@@ -349,14 +336,12 @@ func (cvm *CVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	contract.SetCallCode(&addr, cvm.StateDB.GetCodeHash(addr), cvm.StateDB.GetCode(addr))
 
 	// We do an AddBalance of zero here, just in order to trigger a touch.
-	// This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
 	// but is the correct thing to do and matters on other networks, in tests, and potential
 	// future scenarios
 	cvm.StateDB.AddBalance(addr, bigZero)
 
 	// When an error was returned by the CVM or when setting the creation code
-	// above we revert to the snapshot and consume any energy remaining. Additionally
-	// when we're in Homestead this also counts for code storage energy errors.
+	// above we revert to the snapshot and consume any energy remaining.
 	ret, err = run(cvm, contract, input, true)
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
@@ -400,9 +385,7 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	// Create a new account on the state
 	snapshot := cvm.StateDB.Snapshot()
 	cvm.StateDB.CreateAccount(address)
-	if cvm.chainRules.IsCIP158 {
-		cvm.StateDB.SetNonce(address, 1)
-	}
+	cvm.StateDB.SetNonce(address, 1)
 	cvm.Transfer(cvm.StateDB, caller.Address(), address, value)
 
 	// Initialise a new contract and set the code that is to be used by the CVM.
@@ -422,7 +405,7 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	ret, err := run(cvm, contract, nil, false)
 
 	// check whether the max code size has been exceeded
-	maxCodeSizeExceeded := cvm.chainRules.IsCIP158 && len(ret) > params.MaxCodeSize
+	maxCodeSizeExceeded := len(ret) > params.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
 	// calculate the energy required to store the code. If the code could not
 	// be stored due to not enough energy set an error and let it be handled
@@ -437,9 +420,8 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	}
 
 	// When an error was returned by the CVM or when setting the creation code
-	// above we revert to the snapshot and consume any energy remaining. Additionally
-	// when we're in homestead this also counts for code storage energy errors.
-	if maxCodeSizeExceeded || (err != nil && (cvm.chainRules.IsHomestead || err != ErrCodeStoreOutOfEnergy)) {
+	// above we revert to the snapshot and consume any energy remaining.
+	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfEnergy) {
 		cvm.StateDB.RevertToSnapshot(snapshot)
 		if err != errExecutionReverted {
 			contract.UseEnergy(contract.Energy)

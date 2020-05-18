@@ -33,15 +33,10 @@
       }
     },
     "config": {
-      "byzantiumBlock": 1700000,
       "chainId": 3,
-      "daoForkSupport": true,
-      "cip150Block": 0,
-      "cip150Hash": "0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
       "cip155Block": 10,
       "cip158Block": 10,
-      "cryptore": {},
-      "homesteadBlock": 0
+      "cryptore": {}
     },
     "difficulty": "3956606365",
     "extraData": "0x566961425443",

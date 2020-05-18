@@ -125,7 +125,7 @@ func NewReceipt(root []byte, failed bool, cumulativeEnergyUsed uint64) *Receipt 
 }
 
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
-// into an RLP stream. If no post state is present, byzantium fork is assumed.
+// into an RLP stream.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, &receiptRLP{r.statusEncoding(), r.CumulativeEnergyUsed, r.Bloom, r.Logs})
 }
@@ -295,7 +295,7 @@ func (r Receipts) GetRlp(i int) []byte {
 // DeriveFields fills the receipts with their computed fields based on consensus
 // data and contextual infos like containing block and transactions.
 func (r Receipts) DeriveFields(config *params.ChainConfig, hash common.Hash, number uint64, txs Transactions) error {
-	signer := MakeSigner(config, new(big.Int).SetUint64(number))
+	signer := MakeSigner()
 
 	logIndex := uint(0)
 	if len(txs) != len(r) {

@@ -30,13 +30,8 @@ import (
 // TransactionTest checks RLP decoding and sender derivation of transactions.
 type TransactionTest struct {
 	RLP            hexutil.Bytes `json:"rlp"`
-	Byzantium      ttFork
-	Constantinople ttFork
-	Istanbul       ttFork
-	CIP150         ttFork
-	CIP158         ttFork
-	Frontier       ttFork
-	Homestead      ttFork
+	Nucleus       ttFork
+	CIP150 ttFork
 }
 
 type ttFork struct {
@@ -46,7 +41,7 @@ type ttFork struct {
 
 func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 
-	validateTx := func(rlpData hexutil.Bytes, signer types.Signer, isHomestead bool, isIstanbul bool) (*common.Address, *common.Hash, error) {
+	validateTx := func(rlpData hexutil.Bytes, signer types.Signer) (*common.Address, *common.Hash, error) {
 		tx := new(types.Transaction)
 		if err := rlp.DecodeBytes(rlpData, tx); err != nil {
 			return nil, nil, err
@@ -56,7 +51,7 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 			return nil, nil, err
 		}
 		// Intrinsic energy
-		requiredEnergy, err := core.IntrinsicEnergy(tx.Data(), tx.To() == nil, isHomestead, isIstanbul)
+		requiredEnergy, err := core.IntrinsicEnergy(tx.Data(), tx.To() == nil)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -71,18 +66,11 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 		name        string
 		signer      types.Signer
 		fork        ttFork
-		isHomestead bool
-		isIstanbul  bool
 	}{
-		{"Frontier", types.FrontierSigner{}, tt.Frontier, false, false},
-		{"Homestead", types.HomesteadSigner{}, tt.Homestead, true, false},
-		{"CIP150", types.HomesteadSigner{}, tt.CIP150, true, false},
-		{"CIP158", types.NewCIP155Signer(config.ChainID), tt.CIP158, true, false},
-		{"Byzantium", types.NewCIP155Signer(config.ChainID), tt.Byzantium, true, false},
-		{"Constantinople", types.NewCIP155Signer(config.ChainID), tt.Constantinople, true, false},
-		{"Istanbul", types.NewCIP155Signer(config.ChainID), tt.Istanbul, true, true},
+		{"Nucleus", types.NucleusSigner{}, tt.Nucleus},
+		{"CIP150", types.NucleusSigner{}, tt.CIP150},
 	} {
-		sender, txhash, err := validateTx(tt.RLP, testcase.signer, testcase.isHomestead, testcase.isIstanbul)
+		sender, txhash, err := validateTx(tt.RLP, testcase.signer)
 
 		if testcase.fork.Sender == (common.UnprefixedAddress{}) {
 			if err == nil {
