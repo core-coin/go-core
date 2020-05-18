@@ -20,8 +20,8 @@ import "errors"
 
 // List execution errors
 var (
-	ErrOutOfGas                 = errors.New("out of gas")
-	ErrCodeStoreOutOfGas        = errors.New("contract creation code storage out of gas")
+	ErrOutOfEnergy                 = errors.New("out of energy")
+	ErrCodeStoreOutOfEnergy        = errors.New("contract creation code storage out of energy")
 	ErrDepth                    = errors.New("max call depth exceeded")
 	ErrTraceLimitReached        = errors.New("the number of logs reached the specified limit")
 	ErrInsufficientBalance      = errors.New("insufficient balance for transfer")

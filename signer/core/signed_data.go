@@ -185,11 +185,11 @@ func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr com
 func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (*SignDataRequest, bool, error) {
 	var (
 		req          *SignDataRequest
-		useEthereumV = true // Default to use V = 27 or 28, the legacy Ethereum format
+		useCoreV = true // Default to use V = 27 or 28, the legacy Core format
 	)
 	mediaType, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		return nil, useEthereumV, err
+		return nil, useCoreV, err
 	}
 
 	switch mediaType {
@@ -197,12 +197,12 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		// Data with an intended validator
 		validatorData, err := UnmarshalValidatorData(data)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		sighash, msg := SignTextValidator(validatorData)
 		messages := []*NameValueType{
 			{
-				Name:  "This is a request to sign data intended for a particular validator (see EIP 191 version 0)",
+				Name:  "This is a request to sign data intended for a particular validator (see CIP 191 version 0)",
 				Typ:   "description",
 				Value: "",
 			},
@@ -224,30 +224,30 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		}
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: []byte(msg), Messages: messages, Hash: sighash}
 	case ApplicationClique.Mime:
-		// Clique is the Ethereum PoA standard
+		// Clique is the Core PoA standard
 		stringData, ok := data.(string)
 		if !ok {
-			return nil, useEthereumV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationClique.Mime)
+			return nil, useCoreV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationClique.Mime)
 		}
 		cliqueData, err := hexutil.Decode(stringData)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		header := &types.Header{}
 		if err := rlp.DecodeBytes(cliqueData, header); err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		// The incoming clique header is already truncated, sent to us with a extradata already shortened
-		if len(header.Extra) < 112 + 56 {
+		if len(header.Extra) < crypto.SignatureLength {
 			// Need to add it back, to get a suitable length for hashing
-			newExtra := make([]byte, len(header.Extra)+ 112 + 56)
+			newExtra := make([]byte, len(header.Extra) + crypto.SignatureLength)
 			copy(newExtra, header.Extra)
 			header.Extra = newExtra
 		}
 		// Get back the rlp data, encoded by us
 		sighash, cliqueRlp, err := cliqueHeaderHashAndRlp(header)
 		if err != nil {
-			return nil, useEthereumV, err
+			return nil, useCoreV, err
 		}
 		messages := []*NameValueType{
 			{
@@ -257,17 +257,17 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			},
 		}
 		// Clique uses V on the form 0 or 1
-		useEthereumV = false
+		useCoreV = false
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
 	default: // also case TextPlain.Mime:
-		// Calculates an Ethereum ECDSA signature for:
-		// hash = keccak256("\x19${byteVersion}Ethereum Signed Message:\n${message length}${message}")
+		// Calculates an Core EDDSA signature for:
+		// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 		// We expect it to be a string
 		if stringData, ok := data.(string); !ok {
-			return nil, useEthereumV, fmt.Errorf("input for text/plain must be an hex-encoded string")
+			return nil, useCoreV, fmt.Errorf("input for text/plain must be an hex-encoded string")
 		} else {
 			if textData, err := hexutil.Decode(stringData); err != nil {
-				return nil, useEthereumV, err
+				return nil, useCoreV, err
 			} else {
 				sighash, msg := accounts.TextAndHash(textData)
 				messages := []*NameValueType{
@@ -283,7 +283,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 	}
 	req.Address = addr
 	req.Meta = MetadataFromContext(ctx)
-	return req, useEthereumV, nil
+	return req, useCoreV, nil
 }
 
 // SignTextWithValidator signs the given message which can be further recovered
@@ -295,15 +295,13 @@ func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 }
 
 // cliqueHeaderHashAndRlp returns the hash which is used as input for the proof-of-authority
-// signing. It is the hash of the entire header apart from the 112 + 56 byte signature
-// contained at the end of the extra data.
 //
 // The method requires the extra data to be at least 65 bytes -- the original implementation
 // in clique.go panics if this is the case, thus it's been reimplemented here to avoid the panic
 // and simply return an error instead
 func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
-	if len(header.Extra) < 112 + 56 {
-		err = fmt.Errorf("clique header extradata too short, %d < 112 + 56", len(header.Extra))
+	if len(header.Extra) < crypto.SignatureLength {
+		err = fmt.Errorf("clique header extradata too short, %d < %d", len(header.Extra), crypto.SignatureLength)
 		return
 	}
 	rlp = clique.CliqueRLP(header)
@@ -311,10 +309,10 @@ func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) 
 	return hash, rlp, err
 }
 
-// SignTypedData signs EIP-712 conformant typed data
+// SignTypedData signs CIP-712 conformant typed data
 // hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
 func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.MixedcaseAddress, typedData TypedData) (hexutil.Bytes, error) {
-	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, err
 	}
@@ -604,24 +602,11 @@ func dataMismatchError(encType string, encValue interface{}) error {
 func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hexutil.Bytes) (common.Address, error) {
 	// Returns the address for the Account that was used to create the signature.
 	//
-	// Note, this function is compatible with eth_sign and personal_sign. As such it recovers
+	// Note, this function is compatible with xce_sign and personal_sign. As such it recovers
 	// the address of:
-	// hash = keccak256("\x19${byteVersion}Ethereum Signed Message:\n${message length}${message}")
+	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
 	//
-	// Note, the signature must conform to the secp256k1 curve R, S and V values, where
-	// the V value must be be 27 or 28 for legacy reasons.
-	//
-	// https://github.com/core-coin/go-core/wiki/Management-APIs#personal_ecRecover
-	if len(sig) != 112 + 56 {
-		return common.Address{}, fmt.Errorf("signature must be 112 + 56 bytes long")
-	}
-    /*
-	if sig[64] != 27 && sig[64] != 28 {
-		return common.Address{}, fmt.Errorf("invalid Ethereum signature (V is not 27 or 28)")
-	}
-	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
-    */
 	hash := accounts.TextHash(data)
 	rpk, err := crypto.SigToPub(hash, sig)
 	if err != nil {
@@ -691,7 +676,7 @@ func (typedData *TypedData) Map() map[string]interface{} {
 // Format returns a representation of typedData, which can be easily displayed by a user-interface
 // without in-depth knowledge about 712 rules
 func (typedData *TypedData) Format() ([]*NameValueType, error) {
-	domain, err := typedData.formatData("EIP712Domain", typedData.Domain.Map())
+	domain, err := typedData.formatData("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, err
 	}
@@ -701,7 +686,7 @@ func (typedData *TypedData) Format() ([]*NameValueType, error) {
 	}
 	var nvts []*NameValueType
 	nvts = append(nvts, &NameValueType{
-		Name:  "EIP712Domain",
+		Name:  "CIP712Domain",
 		Value: domain,
 		Typ:   "domain",
 	})
@@ -969,7 +954,7 @@ func isPrimitiveTypeValid(primitiveType string) bool {
 // the minimum viable keys and values
 func (domain *TypedDataDomain) validate() error {
 	if domain.ChainId == nil {
-		return errors.New("chainId must be specified according to EIP-155")
+		return errors.New("chainId must be specified according to CIP-155")
 	}
 
 	if len(domain.Name) == 0 && len(domain.Version) == 0 && len(domain.VerifyingContract) == 0 && len(domain.Salt) == 0 {

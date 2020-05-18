@@ -56,7 +56,7 @@ func (s Storage) Copy() Storage {
 	return cpy
 }
 
-// stateObject represents an Ethereum account which is being modified.
+// stateObject represents an Core account which is being modified.
 //
 // The usage pattern is as follows:
 // First you need to obtain a state object.
@@ -64,7 +64,7 @@ func (s Storage) Copy() Storage {
 // Finally, call CommitTrie to write the modified storage trie into a database.
 type stateObject struct {
 	address  common.Address
-	addrHash common.Hash // hash of ethereum address of the account
+	addrHash common.Hash // hash of core address of the account
 	data     Account
 	db       *StateDB
 
@@ -97,7 +97,7 @@ func (s *stateObject) empty() bool {
 	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
 }
 
-// Account is the Ethereum consensus representation of accounts.
+// Account is the Core consensus representation of accounts.
 // These objects are stored in the main account trie.
 type Account struct {
 	Nonce    uint64
@@ -343,7 +343,7 @@ func (s *stateObject) CommitTrie(db Database) error {
 // AddBalance removes amount from c's balance.
 // It is used to add funds to the destination account of a transfer.
 func (s *stateObject) AddBalance(amount *big.Int) {
-	// EIP158: We must check emptiness for the objects such that the account
+	// CIP158: We must check emptiness for the objects such that the account
 	// clearing (0,0,0 objects) can take effect.
 	if amount.Sign() == 0 {
 		if s.empty() {
@@ -376,8 +376,8 @@ func (s *stateObject) setBalance(amount *big.Int) {
 	s.data.Balance = amount
 }
 
-// Return the gas back to the origin. Used by the Virtual machine or Closures
-func (s *stateObject) ReturnGas(gas *big.Int) {}
+// Return the energy back to the origin. Used by the Virtual machine or Closures
+func (s *stateObject) ReturnEnergy(energy *big.Int) {}
 
 func (s *stateObject) deepCopy(db *StateDB) *stateObject {
 	stateObject := newObject(db, s.address, s.data)

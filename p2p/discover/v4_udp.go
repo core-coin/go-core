@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"container/list"
 	"context"
-	ecdsa "github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -28,6 +27,8 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
@@ -47,6 +48,7 @@ var (
 	errTimeout          = errors.New("RPC timeout")
 	errClockWarp        = errors.New("reply deadline too far in the future")
 	errClosed           = errors.New("socket closed")
+	errLowPort          = errors.New("low port")
 )
 
 const (
@@ -78,7 +80,7 @@ const (
 // RPC request structures
 type (
 	pingV4 struct {
-		senderKey *ecdsa.PublicKey // filled in by preverify
+		senderKey *eddsa.PublicKey // filled in by preverify
 
 		Version    uint
 		From, To   rpcEndpoint
@@ -168,7 +170,7 @@ func makeEndpoint(addr *net.UDPAddr, tcpPort uint16) rpcEndpoint {
 
 func (t *UDPv4) nodeFromRPC(sender *net.UDPAddr, rn rpcNode) (*node, error) {
 	if rn.UDP <= 1024 {
-		return nil, errors.New("low port")
+		return nil, errLowPort
 	}
 	if err := netutil.CheckRelayIP(sender.IP, rn.IP); err != nil {
 		return nil, err
@@ -186,7 +188,7 @@ func (t *UDPv4) nodeFromRPC(sender *net.UDPAddr, rn rpcNode) (*node, error) {
 }
 
 func nodeToRPC(n *node) rpcNode {
-	var key ecdsa.PublicKey
+	var key eddsa.PublicKey
 	var ekey encPubkey
 	if err := n.Load((*enode.Secp256k1)(&key)); err == nil {
 		ekey = encodePubkey(&key)
@@ -199,7 +201,7 @@ type UDPv4 struct {
 	conn        UDPConn
 	log         log.Logger
 	netrestrict *netutil.Netlist
-	priv        *ecdsa.PrivateKey
+	priv        *eddsa.PrivateKey
 	localNode   *enode.LocalNode
 	db          *enode.DB
 	tab         *Table
@@ -322,7 +324,7 @@ func (t *UDPv4) Resolve(n *enode.Node) *enode.Node {
 	if n.Load(&key) != nil {
 		return n // no secp256k1 key
 	}
-	result := t.LookupPubkey((*ecdsa.PublicKey)(&key))
+	result := t.LookupPubkey((*eddsa.PublicKey)(&key))
 	for _, rn := range result {
 		if rn.ID() == n.ID() {
 			if rn, err := t.RequestENR(rn); err == nil {
@@ -391,7 +393,7 @@ func (t *UDPv4) makePing(toaddr *net.UDPAddr) *pingV4 {
 }
 
 // LookupPubkey finds the closest nodes to the given public key.
-func (t *UDPv4) LookupPubkey(key *ecdsa.PublicKey) []*enode.Node {
+func (t *UDPv4) LookupPubkey(key *eddsa.PublicKey) []*enode.Node {
 	if t.tab.len() == 0 {
 		// All nodes were dropped, refresh. The very first query will hit this
 		// case and run the bootstrapping logic.
@@ -621,7 +623,7 @@ func (t *UDPv4) loop() {
 
 const (
 	macSize  = 256 / 8
-	sigSize  = 112 + 56
+	sigSize  = crypto.SignatureLength
 	headSize = macSize + sigSize // space of packet frame data
 )
 
@@ -665,7 +667,7 @@ func (t *UDPv4) write(toaddr *net.UDPAddr, toid enode.ID, what string, packet []
 	return err
 }
 
-func (t *UDPv4) encode(priv *ecdsa.PrivateKey, req packetV4) (packet, hash []byte, err error) {
+func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byte, err error) {
 	name := req.name()
 	b := new(bytes.Buffer)
 	b.Write(headSpace)

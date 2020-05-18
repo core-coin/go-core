@@ -1,8 +1,8 @@
 # Clef
 
-Clef can be used to sign transactions and data and is meant as a(n eventual) replacement for Geth's account management. This allows DApps to not depend on Geth's account management. When a DApp wants to sign data (or a transaction), it can send the content to Clef, which will then provide the user with context and asks for permission to sign the content. If the users grants the signing request, Clef will send the signature back to the DApp.
+Clef can be used to sign transactions and data and is meant as a(n eventual) replacement for Gcore's account management. This allows DApps to not depend on Gcore's account management. When a DApp wants to sign data (or a transaction), it can send the content to Clef, which will then provide the user with context and asks for permission to sign the content. If the users grants the signing request, Clef will send the signature back to the DApp.
 
-This setup allows a DApp to connect to a remote Ethereum node and send transactions that are locally signed. This can help in situations when a DApp is connected to an untrusted remote Ethereum node, because a local one is not available, not synchronised with the chain, or is a node that has no built-in (or limited) account management.
+This setup allows a DApp to connect to a remote Core node and send transactions that are locally signed. This can help in situations when a DApp is connected to an untrusted remote Core node, because a local one is not available, not synchronised with the chain, or is a node that has no built-in (or limited) account management.
 
 Clef can run as a daemon on the same machine, off a usb-stick like [USB armory](https://inversepath.com/usbarmory), or even a separate VM in a [QubesOS](https://www.qubes-os.org/) type setup.
 
@@ -27,9 +27,9 @@ COMMANDS:
 
 GLOBAL OPTIONS:
    --loglevel value        log level to emit to the screen (default: 4)
-   --keystore value        Directory for the keystore (default: "$HOME/.ethereum/keystore")
+   --keystore value        Directory for the keystore (default: "$HOME/core/keystore")
    --configdir value       Directory for Clef configuration (default: "$HOME/.clef")
-   --chainid value         Chain id to use for signing (1=mainnet, 3=Ropsten, 4=Rinkeby, 5=Goerli) (default: 1)
+   --chainid value         Chain id to use for signing (1=mainnet, 3=Testnet, 4=Rinkeby, 5=Koliba) (default: 1)
    --lightkdf              Reduce key-derivation RAM & CPU usage at some expense of KDF strength
    --nousb                 Disables monitoring for and managing USB hardware wallets
    --pcscdpath value       Path to the smartcard daemon (pcscd) socket file (default: "/run/pcscd/pcscd.comm")
@@ -66,10 +66,10 @@ The security model of Clef is as follows:
 * Clef also communicates with whatever process that invoked the binary, via stdin/stdout.
   * This channel is considered 'trusted'. Over this channel, approvals and passwords are communicated.
 
-The general flow for signing a transaction using e.g. Geth is as follows:
+The general flow for signing a transaction using e.g. Gcore is as follows:
 ![image](sign_flow.png)
 
-In this case, `geth` would be started with `--signer http://localhost:8550` and would relay requests to `eth.sendTransaction`.
+In this case, `gcore` would be started with `--signer http://localhost:8550` and would relay requests to `xce.sendTransaction`.
 
 ## TODOs
 
@@ -93,17 +93,17 @@ Some snags and todos
       * the total amount
       * the number of unique recipients
 
-* Geth todos
+* Gcore todos
     - The signer should pass the `Origin` header as call-info to the UI. As of right now, the way that info about the request is put together is a bit of a hack into the HTTP server. This could probably be greatly improved.
-    - Relay: Geth should be started in `geth --signer localhost:8550`.
-    - Currently, the Geth APIs use `common.Address` in the arguments to transaction submission (e.g `to` field). This type is 20 `bytes`, and is incapable of carrying checksum information. The signer uses `common.MixedcaseAddress`, which retains the original input.
-    - The Geth API should switch to use the same type, and relay `to`-account verbatim to the external API.
+    - Relay: Gcore should be started in `gcore --signer localhost:8550`.
+    - Currently, the Gcore APIs use `common.Address` in the arguments to transaction submission (e.g `to` field). This type is 20 `bytes`, and is incapable of carrying checksum information. The signer uses `common.MixedcaseAddress`, which retains the original input.
+    - The Gcore API should switch to use the same type, and relay `to`-account verbatim to the external API.
 * [x] Storage
     * [x] An encrypted key-value storage should be implemented.
     * See [rules.md](rules.md) for more info about this.
 * Another potential thing to introduce is pairing.
   * To prevent spurious requests which users just accept, implement a way to "pair" the caller with the signer (external API).
-  * Thus Geth/cpp would cryptographically handshake and afterwards the caller would be allowed to make signing requests.
+  * Thus Gcore/cpp would cryptographically handshake and afterwards the caller would be allowed to make signing requests.
   * This feature would make the addition of rules less dangerous.
 
 * Wallets / accounts. Add API methods for wallets.
@@ -112,7 +112,7 @@ Some snags and todos
 
 ### External API
 
-Clef listens to HTTP requests on `rpcaddr`:`rpcport` (or to IPC on `ipcpath`), with the same JSON-RPC standard as Geth. The messages are expected to be [JSON-RPC 2.0 standard](https://www.jsonrpc.org/specification).
+Clef listens to HTTP requests on `rpcaddr`:`rpcport` (or to IPC on `ipcpath`), with the same JSON-RPC standard as Gcore. The messages are expected to be [JSON-RPC 2.0 standard](https://www.jsonrpc.org/specification).
 
 Some of these call can require user interaction. Clients must be aware that responses may be delayed significantly or may never be received if a users decides to ignore the confirmation request.
 
@@ -151,7 +151,7 @@ All hex encoded values must be prefixed with `0x`.
 
 #### Create new password protected account
 
-The signer will generate a new private key, encrypts it according to [web3 keystore spec](https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition) and stores it in the keystore directory.
+The signer will generate a new private key, encrypts it according to [web3 keystore spec](https://github.com/core-coin/wiki/wiki/Web3-Secret-Storage-Definition) and stores it in the keystore directory.
 The client is responsible for creating a backup of the keystore. If the keystore is lost there is no method of retrieving lost accounts.
 
 #### Arguments
@@ -235,9 +235,9 @@ Response
   2. transaction object:
      - `from` [address]: account to send the transaction from
      - `to` [address]: receiver account. If omitted or `0x`, will cause contract creation.
-     - `gas` [number]: maximum amount of gas to burn
-     - `gasPrice` [number]: gas price
-     - `value` [number:optional]: amount of Wei to send with the transaction
+     - `energy` [number]: maximum amount of energy to burn
+     - `energyPrice` [number]: energy price
+     - `value` [number:optional]: amount of Ore to send with the transaction
      - `data` [data:optional]:  input data
      - `nonce` [number]: account nonce
   3. method signature [string:optional]
@@ -256,8 +256,8 @@ Response
   "params": [
     {
       "from": "0x1923f626bb8dc025849e00f99c25fe2b2f7fb0db",
-      "gas": "0x55555",
-      "gasPrice": "0x1234",
+      "energy": "0x55555",
+      "energyPrice": "0x1234",
       "input": "0xabcd",
       "nonce": "0x0",
       "to": "0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
@@ -289,8 +289,8 @@ Response
   "params": [
     {
       "from": "0x694267f14675d7e1b9494fd8d72fefe1755710fa",
-      "gas": "0x333",
-      "gasPrice": "0x1",
+      "energy": "0x333",
+      "energyPrice": "0x1",
       "nonce": "0x0",
       "to": "0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
       "value": "0x0",
@@ -310,8 +310,8 @@ Response
     "raw": "0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663",
     "tx": {
       "nonce": "0x0",
-      "gasPrice": "0x1",
-      "gas": "0x333",
+      "energyPrice": "0x1",
+      "energy": "0x333",
       "to": "0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
       "value": "0x0",
       "input": "0x4401a6e40000000000000000000000000000000000000000000000000000000000000012",
@@ -326,9 +326,9 @@ Response
 
 Bash example:
 ```bash
-#curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
+#curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","energy":"0x333","energyPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
 
-{"jsonrpc":"2.0","id":67,"result":{"raw":"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663","tx":{"nonce":"0x0","gasPrice":"0x1","gas":"0x333","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0","value":"0x0","input":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012","v":"0x26","r":"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e","s":"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663","hash":"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"}}}
+{"jsonrpc":"2.0","id":67,"result":{"raw":"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663","tx":{"nonce":"0x0","energyPrice":"0x1","energy":"0x333","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0","value":"0x0","input":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012","v":"0x26","r":"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e","s":"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663","hash":"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"}}}
 ```
 
 ### account_signData
@@ -339,7 +339,7 @@ Bash example:
 #### Arguments
   - content type [string]: type of signed data
      - `text/validator`: hex data with custom validator defined in a contract
-     - `application/clique`: [clique](https://github.com/ethereum/EIPs/issues/225) headers
+     - `application/clique`: [clique](https://github.com/core-coin/CIPs/issues/225) headers
      - `text/plain`: simple hex data validated by `account_ecRecover`
   - account [address]: account to sign with
   - data [object]: data to sign
@@ -373,7 +373,7 @@ Response
 ### account_signTypedData
 
 #### Sign data
-   Signs a chunk of structured data conformant to [EIP712]([EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)) and returns the calculated signature.
+   Signs a chunk of structured data conformant to [CIP712]([CIP-712](https://github.com/core-coin/CIPs/blob/master/CIPS/cip-712.md)) and returns the calculated signature.
 
 #### Arguments
   - account [address]: account to sign with
@@ -392,7 +392,7 @@ Response
     "0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826",
     {
       "types": {
-        "EIP712Domain": [
+        "CIP712Domain": [
           {
             "name": "name",
             "type": "string"
@@ -437,7 +437,7 @@ Response
       },
       "primaryType": "Mail",
       "domain": {
-        "name": "Ether Mail",
+        "name": "Core Mail",
         "version": "1",
         "chainId": 1,
         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
@@ -510,7 +510,7 @@ Response
    format.
 
 #### Arguments
-  - account [object]: key in [web3 keystore format](https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition) (retrieved with account_export)
+  - account [object]: key in [web3 keystore format](https://github.com/core-coin/wiki/wiki/Web3-Secret-Storage-Definition) (retrieved with account_export)
 
 #### Result
   - imported key [object]:
@@ -573,7 +573,7 @@ Response
   - account [address]: export private key that is associated with this account
 
 #### Result
-  - exported key, see [web3 keystore format](https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition) for
+  - exported key, see [web3 keystore format](https://github.com/core-coin/wiki/wiki/Web3-Secret-Storage-Definition) for
   more information
 
 #### Sample call
@@ -643,7 +643,7 @@ Invoked when there's a transaction for approval.
 Here's a method invocation:
 ```bash
 
-curl -i -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
+curl -i -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","energy":"0x333","energyPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
 ```
 Results in the following invocation on the UI:
 ```json
@@ -657,8 +657,8 @@ Results in the following invocation on the UI:
       "transaction": {
         "from": "0x0x694267f14675d7e1b9494fd8d72fefe1755710fa",
         "to": "0x0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
-        "gas": "0x333",
-        "gasPrice": "0x1",
+        "energy": "0x333",
+        "energyPrice": "0x1",
         "value": "0x0",
         "nonce": "0x0",
         "data": "0x4401a6e40000000000000000000000000000000000000000000000000000000000000012",
@@ -688,7 +688,7 @@ Results in the following invocation on the UI:
 The same method invocation, but with invalid data:
 ```bash
 
-curl -i -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000002000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
+curl -i -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","energy":"0x333","energyPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000002000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}' http://localhost:8550/
 ```
 
 ```json
@@ -702,8 +702,8 @@ curl -i -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","me
       "transaction": {
         "from": "0x0x694267f14675d7e1b9494fd8d72fefe1755710fa",
         "to": "0x0x07a565b7ed7d7a678680a4c162885bedbb695fe0",
-        "gas": "0x333",
-        "gasPrice": "0x1",
+        "energy": "0x333",
+        "energyPrice": "0x1",
         "value": "0x0",
         "nonce": "0x0",
         "data": "0x4401a6e40000000000000002000000000000000000000000000000000000000000000012",
@@ -745,8 +745,8 @@ One which has missing `to`, but with no `data`:
       "transaction": {
         "from": "",
         "to": null,
-        "gas": "0x0",
-        "gasPrice": "0x0",
+        "energy": "0x0",
+        "energyPrice": "0x0",
         "value": "0x0",
         "nonce": "0x0",
         "data": null,
@@ -785,12 +785,12 @@ Invoked when a request for account listing has been made.
       "accounts": [
         {
           "type": "Account",
-          "url": "keystore:///home/bazonk/.ethereum/keystore/UTC--2017-11-20T14-44-54.089682944Z--123409812340981234098123409812deadbeef42",
+          "url": "keystore:///home/bazonk/.core/keystore/UTC--2017-11-20T14-44-54.089682944Z--123409812340981234098123409812deadbeef42",
           "address": "0x123409812340981234098123409812deadbeef42"
         },
         {
           "type": "Account",
-          "url": "keystore:///home/bazonk/.ethereum/keystore/UTC--2017-11-23T21-59-03.199240693Z--cafebabedeadbeef34098123409812deadbeef42",
+          "url": "keystore:///home/bazonk/.core/keystore/UTC--2017-11-23T21-59-03.199240693Z--cafebabedeadbeef34098123409812deadbeef42",
           "address": "0xcafebabedeadbeef34098123409812deadbeef42"
         }
       ],
@@ -819,7 +819,7 @@ Invoked when a request for account listing has been made.
     {
       "address": "0x123409812340981234098123409812deadbeef42",
       "raw_data": "0x01020304",
-      "message": "\u0019Ethereum Signed Message:\n4\u0001\u0002\u0003\u0004",
+      "message": "\u0019Core Signed Message:\n4\u0001\u0002\u0003\u0004",
       "hash": "0x7e3a4e7a9d1744bc5c675c25e1234ca8ed9162bd17f78b9085e48047c15ac310",
       "meta": {
         "remote": "signer binary",
@@ -913,7 +913,7 @@ A UI should conform to the following rules.
 * A UI MUST NOT load any external resources that were not embedded/part of the UI package.
   * For example, not load icons, stylesheets from the internet
   * Not load files from the filesystem, unless they reside in the same local directory (e.g. config files)
-* A Graphical UI MUST show the blocky-identicon for ethereum addresses.
+* A Graphical UI MUST show the blocky-identicon for core addresses.
 * A UI MUST warn display appropriate warning if the destination-account is formatted with invalid checksum.
 * A UI MUST NOT open any ports or services
   * The signer opens the public port

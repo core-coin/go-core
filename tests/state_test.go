@@ -44,16 +44,7 @@ func TestState(t *testing.T) {
 	// Very time consuming
 	st.skipLoad(`^stTimeConsuming/`)
 
-	// Broken tests:
-	// Expected failures:
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Byzantium/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Byzantium/3`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Constantinople/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/Constantinople/3`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/ConstantinopleFix/0`, "bug in test")
-	//st.fails(`^stRevertTest/RevertPrecompiledTouch(_storage)?\.json/ConstantinopleFix/3`, "bug in test")
-
-	// For Istanbul, older tests were moved into LegacyTests
+	// Older tests were moved into LegacyTests
 	for _, dir := range []string{
 		stateTestDir,
 		legacyStateTestDir,
@@ -64,7 +55,7 @@ func TestState(t *testing.T) {
 				key := fmt.Sprintf("%s/%d", subtest.Fork, subtest.Index)
 				name := name + "/" + key
 				t.Run(key, func(t *testing.T) {
-					withTrace(t, test.gasLimit(subtest), func(vmconfig vm.Config) error {
+					withTrace(t, test.energyLimit(subtest), func(vmconfig vm.Config) error {
 						_, err := test.Run(subtest, vmconfig)
 						return st.checkFailure(t, name, err)
 					})
@@ -74,12 +65,12 @@ func TestState(t *testing.T) {
 	}
 }
 
-// Transactions with gasLimit above this value will not get a VM trace on failure.
+// Transactions with energyLimit above this value will not get a VM trace on failure.
 const traceErrorLimit = 400000
 
-func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
+func withTrace(t *testing.T, energyLimit uint64, test func(vm.Config) error) {
 	// Use config from command line arguments.
-	config := vm.Config{EVMInterpreter: *testEVM, EWASMInterpreter: *testEWASM}
+	config := vm.Config{CVMInterpreter: *testCVM, EWASMInterpreter: *testEWASM}
 	err := test(config)
 	if err == nil {
 		return
@@ -87,8 +78,8 @@ func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
 
 	// Test failed, re-run with tracing enabled.
 	t.Error(err)
-	if gasLimit > traceErrorLimit {
-		t.Log("gas limit too high for EVM trace")
+	if energyLimit > traceErrorLimit {
+		t.Log("energy limit too high for CVM trace")
 		return
 	}
 	buf := new(bytes.Buffer)
@@ -101,10 +92,10 @@ func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
 	}
 	w.Flush()
 	if buf.Len() == 0 {
-		t.Log("no EVM operation logs generated")
+		t.Log("no CVM operation logs generated")
 	} else {
-		t.Log("EVM operation log:\n" + buf.String())
+		t.Log("CVM operation log:\n" + buf.String())
 	}
-	//t.Logf("EVM output: 0x%x", tracer.Output())
-	//t.Logf("EVM error: %v", tracer.Error())
+	//t.Logf("CVM output: 0x%x", tracer.Output())
+	//t.Logf("CVM error: %v", tracer.Error())
 }

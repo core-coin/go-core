@@ -25,7 +25,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb/memorydb"
+	"github.com/core-coin/go-core/xcedb/memorydb"
 )
 
 func init() {

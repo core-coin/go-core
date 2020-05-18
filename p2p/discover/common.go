@@ -17,7 +17,7 @@
 package discover
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"net"
 
 	"github.com/core-coin/go-core/log"
@@ -36,7 +36,7 @@ type UDPConn interface {
 // Config holds settings for the discovery listener.
 type Config struct {
 	// These settings are required and configure the UDP listener:
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *eddsa.PrivateKey
 
 	// These settings are optional:
 	NetRestrict *netutil.Netlist  // network whitelist

@@ -51,7 +51,7 @@ var modexpTests = []precompiledTest{
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
 		expected: "0000000000000000000000000000000000000000000000000000000000000001",
-		name:     "eip_example1",
+		name:     "cip_example1",
 	}, {
 		input: "0000000000000000000000000000000000000000000000000000000000000000" +
 			"0000000000000000000000000000000000000000000000000000000000000020" +
@@ -59,7 +59,7 @@ var modexpTests = []precompiledTest{
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" +
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
 		expected: "0000000000000000000000000000000000000000000000000000000000000000",
-		name:     "eip_example2",
+		name:     "cip_example2",
 	}, {
 		input:    "000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040e09ad9675465c53a109fac66a445c91b292d2bb2c5268addb30cd82f80fcb0033ff97c80a5fc6f39193ae969c6ede6710a6b7ac27078a06d90ef1c72e5c85fb502fc9e1f6beb81516545975218075ec2af118cd8798df6e08a147c60fd6095ac2bb02c2908cf4dd7c81f11c289e4bce98f3553768f392a80ce22bf5c4f4a248c6b",
 		expected: "60008f1614cc01dcfb6bfb09c625cf90b47d4468db81b5f8b7a39d42f332eab9b2da8f2d95311648a8f243f4bb13cfb3d8f7f2a3c014122ebb3ed41b02783adc",
@@ -310,11 +310,11 @@ var bn256PairingTests = []precompiledTest{
 		input:    "1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f593034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41209dd15ebff5d46c4bd888e51a93cf99a7329636c63514396b4a452003a35bf704bf11ca01483bfa8b34b43561848d28905960114c8ac04049af4b6315a416782bb8324af6cfc93537a2ad1a445cfd0ca2a71acd7ac41fadbf933c2a51be344d120a2a4cf30c1bf9845f20c6fe39e07ea2cce61f0c9bb048165fe5e4de877550111e129f1cf1097710d41c4ac70fcdfa5ba2023c6ff1cbeac322de49d1b6df7c103188585e2364128fe25c70558f1560f4f9350baf3959e603cc91486e110936198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c21800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
 		expected: "0000000000000000000000000000000000000000000000000000000000000000",
 		name:     "jeff6",
-	}, { // ecpairing_empty_data_insufficient_gas
+	}, { // ecpairing_empty_data_insufficient_energy
 		input:    "",
 		expected: "0000000000000000000000000000000000000000000000000000000000000001",
 		name:     "empty_data",
-	}, { // ecpairing_one_point_insufficient_gas
+	}, { // ecpairing_one_point_insufficient_energy
 		input:    "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c21800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
 		expected: "0000000000000000000000000000000000000000000000000000000000000000",
 		name:     "one_point",
@@ -345,7 +345,7 @@ var bn256PairingTests = []precompiledTest{
 	},
 }
 
-// EIP-152 test vectors
+// CIP-152 test vectors
 var blake2FMalformedInputTests = []precompiledFailureTest{
 	{
 		input:         "",
@@ -369,7 +369,7 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 	},
 }
 
-// EIP-152 test vectors
+// CIP-152 test vectors
 var blake2FTests = []precompiledTest{
 	{
 		input:    "0000000048c9bdf267e6096a3ba7ca8485ae67bb2bf894fe72f36e3cf1361d5f3af54fa5d182e6ad7f520e511f6c3e2b8c68059b6bbd41fbabd9831f79217e1319cde05b61626300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000001",
@@ -399,11 +399,11 @@ var blake2FTests = []precompiledTest{
 }
 
 func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
-	p := PrecompiledContractsIstanbul[common.HexToAddress(addr)]
+	p := PrecompiledContracts[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.input)
 	contract := NewContract(AccountRef(common.HexToAddress("1337")),
-		nil, new(big.Int), p.RequiredGas(in))
-	t.Run(fmt.Sprintf("%s-Gas=%d", test.name, contract.Gas), func(t *testing.T) {
+		nil, new(big.Int), p.RequiredEnergy(in))
+	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(t *testing.T) {
 		if res, err := RunPrecompiledContract(p, in, contract); err != nil {
 			t.Error(err)
 		} else if common.Bytes2Hex(res) != test.expected {
@@ -418,14 +418,14 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
-	p := PrecompiledContractsIstanbul[common.HexToAddress(addr)]
+	p := PrecompiledContracts[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.input)
 	contract := NewContract(AccountRef(common.HexToAddress("1337")),
-		nil, new(big.Int), p.RequiredGas(in)-1)
-	t.Run(fmt.Sprintf("%s-Gas=%d", test.name, contract.Gas), func(t *testing.T) {
+		nil, new(big.Int), p.RequiredEnergy(in)-1)
+	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(t *testing.T) {
 		_, err := RunPrecompiledContract(p, in, contract)
-		if err.Error() != "out of gas" {
-			t.Errorf("Expected error [out of gas], got [%v]", err)
+		if err.Error() != "out of energy" {
+			t.Errorf("Expected error [out of energy], got [%v]", err)
 		}
 		// Verify that the precompile did not touch the input buffer
 		exp := common.Hex2Bytes(test.input)
@@ -436,10 +436,10 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing.T) {
-	p := PrecompiledContractsIstanbul[common.HexToAddress(addr)]
+	p := PrecompiledContracts[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.input)
 	contract := NewContract(AccountRef(common.HexToAddress("31337")),
-		nil, new(big.Int), p.RequiredGas(in))
+		nil, new(big.Int), p.RequiredEnergy(in))
 
 	t.Run(test.name, func(t *testing.T) {
 		_, err := RunPrecompiledContract(p, in, contract)
@@ -458,11 +458,11 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 	if test.noBenchmark {
 		return
 	}
-	p := PrecompiledContractsIstanbul[common.HexToAddress(addr)]
+	p := PrecompiledContracts[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.input)
-	reqGas := p.RequiredGas(in)
+	reqEnergy := p.RequiredEnergy(in)
 	contract := NewContract(AccountRef(common.HexToAddress("1337")),
-		nil, new(big.Int), reqGas)
+		nil, new(big.Int), reqEnergy)
 
 	var (
 		res  []byte
@@ -470,10 +470,10 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 		data = make([]byte, len(in))
 	)
 
-	bench.Run(fmt.Sprintf("%s-Gas=%d", test.name, contract.Gas), func(bench *testing.B) {
+	bench.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(bench *testing.B) {
 		bench.ResetTimer()
 		for i := 0; i < bench.N; i++ {
-			contract.Gas = reqGas
+			contract.Energy = reqEnergy
 			copy(data, in)
 			res, err = RunPrecompiledContract(p, data, contract)
 		}
@@ -530,28 +530,28 @@ func BenchmarkPrecompiledIdentity(bench *testing.B) {
 	benchmarkPrecompiled("04", t, bench)
 }
 
-// Tests the sample inputs from the ModExp EIP 198.
+// Tests the sample inputs from the ModExp CIP 198.
 func TestPrecompiledModExp(t *testing.T) {
 	for _, test := range modexpTests {
 		testPrecompiled("05", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the ModExp EIP 198.
+// Benchmarks the sample inputs from the ModExp CIP 198.
 func BenchmarkPrecompiledModExp(bench *testing.B) {
 	for _, test := range modexpTests {
 		benchmarkPrecompiled("05", test, bench)
 	}
 }
 
-// Tests the sample inputs from the elliptic curve addition EIP 213.
+// Tests the sample inputs from the elliptic curve addition CIP 213.
 func TestPrecompiledBn256Add(t *testing.T) {
 	for _, test := range bn256AddTests {
 		testPrecompiled("06", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the elliptic curve addition EIP 213.
+// Benchmarks the sample inputs from the elliptic curve addition CIP 213.
 func BenchmarkPrecompiledBn256Add(bench *testing.B) {
 	for _, test := range bn256AddTests {
 		benchmarkPrecompiled("06", test, bench)
@@ -565,28 +565,28 @@ func TestPrecompiledModExpOOG(t *testing.T) {
 	}
 }
 
-// Tests the sample inputs from the elliptic curve scalar multiplication EIP 213.
+// Tests the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func TestPrecompiledBn256ScalarMul(t *testing.T) {
 	for _, test := range bn256ScalarMulTests {
 		testPrecompiled("07", test, t)
 	}
 }
 
-// Benchmarks the sample inputs from the elliptic curve scalar multiplication EIP 213.
+// Benchmarks the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func BenchmarkPrecompiledBn256ScalarMul(bench *testing.B) {
 	for _, test := range bn256ScalarMulTests {
 		benchmarkPrecompiled("07", test, bench)
 	}
 }
 
-// Tests the sample inputs from the elliptic curve pairing check EIP 197.
+// Tests the sample inputs from the elliptic curve pairing check CIP 197.
 func TestPrecompiledBn256Pairing(t *testing.T) {
 	for _, test := range bn256PairingTests {
 		testPrecompiled("08", test, t)
 	}
 }
 
-// Behcnmarks the sample inputs from the elliptic curve pairing check EIP 197.
+// Behcnmarks the sample inputs from the elliptic curve pairing check CIP 197.
 func BenchmarkPrecompiledBn256Pairing(bench *testing.B) {
 	for _, test := range bn256PairingTests {
 		benchmarkPrecompiled("08", test, bench)

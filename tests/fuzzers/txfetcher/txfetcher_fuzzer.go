@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth/fetcher"
+	"github.com/core-coin/go-core/xce/fetcher"
 )
 
 var (

@@ -26,10 +26,10 @@ import (
 
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/ethdb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 var (
@@ -59,8 +59,11 @@ var (
 // secureKeyPrefix is the database key prefix used to store trie node preimages.
 var secureKeyPrefix = []byte("secure-key-")
 
+// secureKeyPrefixLength is the length of the above prefix
+const secureKeyPrefixLength = 11
+
 // secureKeyLength is the length of the above prefix + 32byte hash.
-const secureKeyLength = 11 + 32
+const secureKeyLength = secureKeyPrefixLength + 32
 
 // Database is an intermediate write layer between the trie data structures and
 // the disk database. The aim is to accumulate trie writes in-memory and only
@@ -71,7 +74,7 @@ const secureKeyLength = 11 + 32
 // behind this split design is to provide read access to RPC handlers and sync
 // servers even while the trie is executing expensive garbage collection.
 type Database struct {
-	diskdb ethdb.KeyValueStore // Persistent storage for matured trie nodes
+	diskdb xcedb.KeyValueStore // Persistent storage for matured trie nodes
 
 	cleans  *fastcache.Cache            // GC friendly memory cache of clean node RLPs
 	dirties map[common.Hash]*cachedNode // Data and references relationships of dirty nodes
@@ -79,7 +82,6 @@ type Database struct {
 	newest  common.Hash                 // Newest tracked node, flush-list tail
 
 	preimages map[common.Hash][]byte // Preimages of nodes from the secure trie
-	seckeybuf [secureKeyLength]byte  // Ephemeral buffer for calculating preimage keys
 
 	gctime  time.Duration      // Time spent on garbage collection since last commit
 	gcnodes uint64             // Nodes garbage collected since last commit
@@ -275,14 +277,14 @@ func expandNode(hash hashNode, n node) node {
 // NewDatabase creates a new trie database to store ephemeral trie content before
 // its written out to disk or garbage collected. No read cache is created, so all
 // data retrievals will hit the underlying disk database.
-func NewDatabase(diskdb ethdb.KeyValueStore) *Database {
+func NewDatabase(diskdb xcedb.KeyValueStore) *Database {
 	return NewDatabaseWithCache(diskdb, 0)
 }
 
 // NewDatabaseWithCache creates a new trie database to store ephemeral trie content
 // before its written out to disk or garbage collected. It also acts as a read cache
 // for nodes loaded from disk.
-func NewDatabaseWithCache(diskdb ethdb.KeyValueStore, cache int) *Database {
+func NewDatabaseWithCache(diskdb xcedb.KeyValueStore, cache int) *Database {
 	var cleans *fastcache.Cache
 	if cache > 0 {
 		cleans = fastcache.New(cache * 1024 * 1024)
@@ -298,7 +300,7 @@ func NewDatabaseWithCache(diskdb ethdb.KeyValueStore, cache int) *Database {
 }
 
 // DiskDB retrieves the persistent storage backing the trie database.
-func (db *Database) DiskDB() ethdb.KeyValueReader {
+func (db *Database) DiskDB() xcedb.KeyValueReader {
 	return db.diskdb
 }
 
@@ -445,15 +447,15 @@ func (db *Database) preimage(hash common.Hash) ([]byte, error) {
 		return preimage, nil
 	}
 	// Content unavailable in memory, attempt to retrieve from disk
-	return db.diskdb.Get(db.secureKey(hash[:]))
+	return db.diskdb.Get(secureKey(hash))
 }
 
-// secureKey returns the database key for the preimage of key, as an ephemeral
-// buffer. The caller must not hold onto the return value because it will become
-// invalid on the next call.
-func (db *Database) secureKey(key []byte) []byte {
-	buf := append(db.seckeybuf[:0], secureKeyPrefix...)
-	buf = append(buf, key...)
+// secureKey returns the database key for the preimage of key as
+// allocated byte-slice)
+func secureKey(hash common.Hash) []byte {
+	buf := make([]byte, secureKeyLength)
+	copy(buf, secureKeyPrefix)
+	copy(buf[secureKeyPrefixLength:], hash[:])
 	return buf
 }
 
@@ -596,16 +598,22 @@ func (db *Database) Cap(limit common.StorageSize) error {
 	size := db.dirtiesSize + common.StorageSize((len(db.dirties)-1)*cachedNodeSize)
 	size += db.childrenSize - common.StorageSize(len(db.dirties[common.Hash{}].children)*(common.HashLength+2))
 
+	// We reuse an ephemeral buffer for the keys. The batch Put operation
+	// copies it internally, so we can reuse it.
+	var keyBuf [secureKeyLength]byte
+	copy(keyBuf[:], secureKeyPrefix)
+
 	// If the preimage cache got large enough, push to disk. If it's still small
 	// leave for later to deduplicate writes.
 	flushPreimages := db.preimagesSize > 4*1024*1024
 	if flushPreimages {
 		for hash, preimage := range db.preimages {
-			if err := batch.Put(db.secureKey(hash[:]), preimage); err != nil {
+			copy(keyBuf[secureKeyPrefixLength:], hash[:])
+			if err := batch.Put(keyBuf[:], preimage); err != nil {
 				log.Error("Failed to commit preimage from trie database", "err", err)
 				return err
 			}
-			if batch.ValueSize() > ethdb.IdealBatchSize {
+			if batch.ValueSize() > xcedb.IdealBatchSize {
 				if err := batch.Write(); err != nil {
 					return err
 				}
@@ -622,7 +630,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 			return err
 		}
 		// If we exceeded the ideal batch size, commit and reset
-		if batch.ValueSize() >= ethdb.IdealBatchSize {
+		if batch.ValueSize() >= xcedb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
 				log.Error("Failed to write flush list to disk", "err", err)
 				return err
@@ -692,14 +700,20 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 	start := time.Now()
 	batch := db.diskdb.NewBatch()
 
+	// We reuse an ephemeral buffer for the keys. The batch Put operation
+	// copies it internally, so we can reuse it.
+	var keyBuf [secureKeyLength]byte
+	copy(keyBuf[:], secureKeyPrefix)
+
 	// Move all of the accumulated preimages into a write batch
 	for hash, preimage := range db.preimages {
-		if err := batch.Put(db.secureKey(hash[:]), preimage); err != nil {
+		copy(keyBuf[secureKeyPrefixLength:], hash[:])
+		if err := batch.Put(keyBuf[:], preimage); err != nil {
 			log.Error("Failed to commit preimage from trie database", "err", err)
 			return err
 		}
 		// If the batch is too large, flush to disk
-		if batch.ValueSize() > ethdb.IdealBatchSize {
+		if batch.ValueSize() > xcedb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
 				return err
 			}
@@ -756,7 +770,7 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 }
 
 // commit is the private locked version of Commit.
-func (db *Database) commit(hash common.Hash, batch ethdb.Batch, uncacher *cleaner) error {
+func (db *Database) commit(hash common.Hash, batch xcedb.Batch, uncacher *cleaner) error {
 	// If the node does not exist, it's a previously committed node
 	node, ok := db.dirties[hash]
 	if !ok {
@@ -775,7 +789,7 @@ func (db *Database) commit(hash common.Hash, batch ethdb.Batch, uncacher *cleane
 		return err
 	}
 	// If we've reached an optimal batch size, commit and start over
-	if batch.ValueSize() >= ethdb.IdealBatchSize {
+	if batch.ValueSize() >= xcedb.IdealBatchSize {
 		if err := batch.Write(); err != nil {
 			return err
 		}

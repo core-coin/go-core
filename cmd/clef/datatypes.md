@@ -14,7 +14,7 @@ Example:
   "messages": [
     {
       "name": "message",
-      "value": "\u0019Ethereum Signed Message:\n11hello world",
+      "value": "\u0019Core Signed Message:\n11hello world",
       "type": "text/plain"
     }
   ],
@@ -62,8 +62,8 @@ Example:
   "transaction": {
     "from": "0xDEADbEeF000000000000000000000000DeaDbeEf",
     "to": null,
-    "gas": "0x3e8",
-    "gasPrice": "0x5",
+    "energy": "0x3e8",
+    "energyPrice": "0x5",
     "value": "0x6",
     "nonce": "0x1",
     "data": "0x01020304"
@@ -97,8 +97,8 @@ Example:
   "transaction": {
     "from": "0xDEADbEeF000000000000000000000000DeaDbeEf",
     "to": null,
-    "gas": "0x3e8",
-    "gasPrice": "0x5",
+    "energy": "0x3e8",
+    "energyPrice": "0x5",
     "value": "0x6",
     "nonce": "0x4",
     "data": "0x04030201"
@@ -116,8 +116,8 @@ Example:
   "transaction": {
     "from": "0x",
     "to": null,
-    "gas": "0x0",
-    "gasPrice": "0x0",
+    "energy": "0x0",
+    "energyPrice": "0x0",
     "value": "0x0",
     "nonce": "0x0",
     "data": null
@@ -143,8 +143,8 @@ Example:
   "raw": "0xf85d640101948a8eafb1cf62bfbeb1741769dae1a9dd47996192018026a0716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293a04e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed",
   "tx": {
     "nonce": "0x64",
-    "gasPrice": "0x1",
-    "gas": "0x1",
+    "energyPrice": "0x1",
+    "energy": "0x1",
     "to": "0x8a8eafb1cf62bfbeb1741769dae1a9dd47996192",
     "value": "0x1",
     "input": "0x",

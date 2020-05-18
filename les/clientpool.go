@@ -28,7 +28,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/common/prque"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/rlp"
@@ -159,7 +159,7 @@ type priceFactors struct {
 }
 
 // newClientPool creates a new client pool
-func newClientPool(db ethdb.Database, freeClientCap uint64, clock mclock.Clock, removePeer func(enode.ID)) *clientPool {
+func newClientPool(db xcedb.Database, freeClientCap uint64, clock mclock.Clock, removePeer func(enode.ID)) *clientPool {
 	ndb := newNodeDB(db, clock)
 	pool := &clientPool{
 		ndb:            ndb,
@@ -660,7 +660,7 @@ var (
 )
 
 type nodeDB struct {
-	db              ethdb.Database
+	db              xcedb.Database
 	pcache          *lru.Cache
 	ncache          *lru.Cache
 	auxbuf          []byte                                // 37-byte auxiliary buffer for key encoding
@@ -671,7 +671,7 @@ type nodeDB struct {
 	cleanupHook     func() // Test hook used for testing
 }
 
-func newNodeDB(db ethdb.Database, clock mclock.Clock) *nodeDB {
+func newNodeDB(db xcedb.Database, clock mclock.Clock) *nodeDB {
 	pcache, _ := lru.New(posBalanceCacheLimit)
 	ncache, _ := lru.New(negBalanceCacheLimit)
 	ndb := &nodeDB{

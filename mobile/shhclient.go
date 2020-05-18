@@ -16,14 +16,14 @@
 
 // Contains a wrapper for the Whisper client.
 
-package geth
+package gcore
 
 import (
 	"github.com/core-coin/go-core/whisper/shhclient"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
 )
 
-// WhisperClient provides access to the Ethereum APIs.
+// WhisperClient provides access to the Core APIs.
 type WhisperClient struct {
 	client *shhclient.Client
 }

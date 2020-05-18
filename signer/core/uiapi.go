@@ -114,12 +114,12 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
 
-// ImportRawKey stores the given hex encoded ECDSA key into the key directory,
+// ImportRawKey stores the given hex encoded EDDSA key into the key directory,
 // encrypting it with the passphrase.
 // Example call (should fail on password too short)
 // {"jsonrpc":"2.0","method":"clef_importRawKey","params":["1111111111111111111111111111111111111111111111111111111111111111","test"], "id":6}
 func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Account, error) {
-	key, err := crypto.HexToECDSA(privkey)
+	key, err := crypto.HexToEDDSA(privkey)
 	if err != nil {
 		return accounts.Account{}, err
 	}
@@ -127,13 +127,12 @@ func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Ac
 		return accounts.Account{}, fmt.Errorf("password requirements not met: %v", err)
 	}
 	// No error
-	return fetchKeystore(s.am).ImportECDSA(key, password)
+	return fetchKeystore(s.am).ImportEDDSA(key, password)
 }
 
 // OpenWallet initiates a hardware wallet opening procedure, establishing a USB
 // connection and attempting to authenticate via the provided passphrase. Note,
-// the method may return an extra challenge requiring a second open (e.g. the
-// Trezor PIN matrix challenge).
+// the method may return an extra challenge requiring a second open.
 // Example
 // {"jsonrpc":"2.0","method":"clef_openWallet","params":["ledger://",""], "id":6}
 func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {
@@ -148,7 +147,7 @@ func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {
 	return wallet.Open(pass)
 }
 
-// ChainId returns the chainid in use for Eip-155 replay protection
+// ChainId returns the chainid in use for Cip-155 replay protection
 // Example call
 // {"jsonrpc":"2.0","method":"clef_chainId","params":[], "id":8}
 func (s *UIServerAPI) ChainId() math.HexOrDecimal64 {
@@ -156,7 +155,7 @@ func (s *UIServerAPI) ChainId() math.HexOrDecimal64 {
 }
 
 // SetChainId sets the chain id to use when signing transactions.
-// Example call to set Ropsten:
+// Example call to set Testnet:
 // {"jsonrpc":"2.0","method":"clef_setChainId","params":["3"], "id":8}
 func (s *UIServerAPI) SetChainId(id math.HexOrDecimal64) math.HexOrDecimal64 {
 	s.extApi.chainID = new(big.Int).SetUint64(uint64(id))

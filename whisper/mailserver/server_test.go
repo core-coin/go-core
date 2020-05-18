@@ -18,7 +18,7 @@ package mailserver
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"io/ioutil"
 	"math/rand"
@@ -40,7 +40,7 @@ type ServerTestParams struct {
 	topic whisper.TopicType
 	low   uint32
 	upp   uint32
-	key   *ecdsa.PrivateKey
+	key   *eddsa.PrivateKey
 }
 
 func assert(statement bool, text string, t *testing.T) {
@@ -142,7 +142,7 @@ func deliverTest(t *testing.T, server *WMailServer, env *whisper.Envelope) {
 
 func singleRequest(t *testing.T, server *WMailServer, env *whisper.Envelope, p *ServerTestParams, expect bool) {
 	request := createRequest(t, p)
-	src := crypto.FromECDSAPub(&p.key.PublicKey)
+	src := crypto.FromEDDSAPub(&p.key.PublicKey)
 	ok, lower, upper, bloom := server.validateRequest(src, request)
 	if !ok {
 		t.Fatalf("request validation failed, seed: %d.", seed)

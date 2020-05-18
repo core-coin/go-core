@@ -18,7 +18,7 @@ package core
 
 import (
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -26,12 +26,12 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
 )
 
@@ -74,7 +74,7 @@ func BenchmarkInsertChain_ring1000_diskdb(b *testing.B) {
 
 var (
 	// This is the content of the genesis block used by the benchmarks.
-	benchRootKey, _ = crypto.HexToECDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
+	benchRootKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 	benchRootAddr   = crypto.PubkeyToAddress(benchRootKey.PublicKey)
 	benchRootFunds  = math.BigPow(2, 100)
 )
@@ -86,14 +86,14 @@ func genValueTx(nbytes int) func(int, *BlockGen) {
 	return func(i int, gen *BlockGen) {
 		toaddr := common.Address{}
 		data := make([]byte, nbytes)
-		gas, _ := IntrinsicGas(data, false, false, false)
-		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(benchRootAddr), toaddr, big.NewInt(1), gas, nil, data), types.HomesteadSigner{}, benchRootKey)
+		energy, _ := IntrinsicEnergy(data, false)
+		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(benchRootAddr), toaddr, big.NewInt(1), energy, nil, data), types.NucleusSigner{}, benchRootKey)
 		gen.AddTx(tx)
 	}
 }
 
 var (
-	ringKeys  = make([]*ecdsa.PrivateKey, 1000)
+	ringKeys  = make([]*eddsa.PrivateKey, 1000)
 	ringAddrs = make([]common.Address, len(ringKeys))
 )
 
@@ -106,17 +106,17 @@ func init() {
 	}
 }
 
-// genTxRing returns a block generator that sends ether in a ring
+// genTxRing returns a block generator that sends core in a ring
 // among n accounts. This is creates n entries in the state database
 // and fills the blocks with many small transactions.
 func genTxRing(naccounts int) func(int, *BlockGen) {
 	from := 0
 	return func(i int, gen *BlockGen) {
 		block := gen.PrevBlock(i - 1)
-		gas := CalcGasLimit(block, block.GasLimit(), block.GasLimit())
+		energy := CalcEnergyLimit(block, block.EnergyLimit(), block.EnergyLimit())
 		for {
-			gas -= params.TxGas
-			if gas < params.TxGas {
+			energy -= params.TxEnergy
+			if energy < params.TxEnergy {
 				break
 			}
 			to := (from + 1) % naccounts
@@ -124,11 +124,11 @@ func genTxRing(naccounts int) func(int, *BlockGen) {
 				gen.TxNonce(ringAddrs[from]),
 				ringAddrs[to],
 				benchRootFunds,
-				params.TxGas,
+				params.TxEnergy,
 				nil,
 				nil,
 			)
-			tx, _ = types.SignTx(tx, types.HomesteadSigner{}, ringKeys[from])
+			tx, _ = types.SignTx(tx, types.NucleusSigner{}, ringKeys[from])
 			gen.AddTx(tx)
 			from = to
 		}
@@ -149,11 +149,11 @@ func genUncles(i int, gen *BlockGen) {
 
 func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 	// Create the database in memory or in a temporary directory.
-	var db ethdb.Database
+	var db xcedb.Database
 	if !disk {
 		db = rawdb.NewMemoryDatabase()
 	} else {
-		dir, err := ioutil.TempDir("", "eth-core-bench")
+		dir, err := ioutil.TempDir("", "xce-core-bench")
 		if err != nil {
 			b.Fatalf("cannot create temporary directory: %v", err)
 		}
@@ -172,11 +172,11 @@ func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 		Alloc:  GenesisAlloc{benchRootAddr: {Balance: benchRootFunds}},
 	}
 	genesis := gspec.MustCommit(db)
-	chain, _ := GenerateChain(gspec.Config, genesis, ethash.NewFaker(), db, b.N, gen)
+	chain, _ := GenerateChain(gspec.Config, genesis, cryptore.NewFaker(), db, b.N, gen)
 
 	// Time the insertion of the new chain.
 	// State and blocks are stored in the same DB.
-	chainman, _ := NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil)
+	chainman, _ := NewBlockChain(db, nil, gspec.Config, cryptore.NewFaker(), vm.Config{}, nil)
 	defer chainman.Stop()
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -224,7 +224,7 @@ func BenchmarkChainWrite_full_500k(b *testing.B) {
 
 // makeChainForBench writes a given number of headers or empty blocks/receipts
 // into a database.
-func makeChainForBench(db ethdb.Database, full bool, count uint64) {
+func makeChainForBench(db xcedb.Database, full bool, count uint64) {
 	var hash common.Hash
 	for n := uint64(0); n < count; n++ {
 		header := &types.Header{
@@ -252,7 +252,7 @@ func makeChainForBench(db ethdb.Database, full bool, count uint64) {
 
 func benchWriteChain(b *testing.B, full bool, count uint64) {
 	for i := 0; i < b.N; i++ {
-		dir, err := ioutil.TempDir("", "eth-chain-bench")
+		dir, err := ioutil.TempDir("", "xce-chain-bench")
 		if err != nil {
 			b.Fatalf("cannot create temporary directory: %v", err)
 		}
@@ -267,7 +267,7 @@ func benchWriteChain(b *testing.B, full bool, count uint64) {
 }
 
 func benchReadChain(b *testing.B, full bool, count uint64) {
-	dir, err := ioutil.TempDir("", "eth-chain-bench")
+	dir, err := ioutil.TempDir("", "xce-chain-bench")
 	if err != nil {
 		b.Fatalf("cannot create temporary directory: %v", err)
 	}
@@ -288,7 +288,7 @@ func benchReadChain(b *testing.B, full bool, count uint64) {
 		if err != nil {
 			b.Fatalf("error opening database at %v: %v", dir, err)
 		}
-		chain, err := NewBlockChain(db, nil, params.TestChainConfig, ethash.NewFaker(), vm.Config{}, nil)
+		chain, err := NewBlockChain(db, nil, params.TestChainConfig, cryptore.NewFaker(), vm.Config{}, nil)
 		if err != nil {
 			b.Fatalf("error creating chain: %v", err)
 		}

@@ -18,7 +18,7 @@ package discover
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -200,12 +200,12 @@ func sortedByDistanceTo(distbase enode.ID, slice []*node) bool {
 	})
 }
 
-func hexEncPrivkey(h string) *ecdsa.PrivateKey {
+func hexEncPrivkey(h string) *eddsa.PrivateKey {
 	b, err := hex.DecodeString(h)
 	if err != nil {
 		panic(err)
 	}
-	key, err := crypto.ToECDSA(b)
+	key, err := crypto.ToEDDSA(b)
 	if err != nil {
 		panic(err)
 	}

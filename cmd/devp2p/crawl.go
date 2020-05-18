@@ -122,7 +122,7 @@ func (c *crawler) updateNode(n *enode.Node) {
 	node.LastCheck = truncNow()
 	if err != nil {
 		if node.Score == 0 {
-			// Node doesn't implement EIP-868.
+			// Node doesn't implement CIP-868.
 			log.Debug("Skipping node", "id", n.ID())
 			return
 		}

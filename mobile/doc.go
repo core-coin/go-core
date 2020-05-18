@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package geth contains the simplified mobile APIs to go-core.
+// Package gcore contains the simplified mobile APIs to go-core.
 //
-// The scope of this package is *not* to allow writing a custom Ethereum client
+// The scope of this package is *not* to allow writing a custom Core client
 // with pieces plucked from go-core, rather to allow writing native dapps on
 // mobile platforms. Keep this in mind when using or extending this package!
 //
@@ -58,4 +58,4 @@
 // Note, a panic *cannot* cross over language boundaries, instead will result in
 // an undebuggable SEGFAULT in the process. For error handling only ever use error
 // returns, which may be the only or the second return.
-package geth
+package gcore

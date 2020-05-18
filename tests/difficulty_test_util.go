@@ -22,7 +22,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/params"
 )
@@ -56,7 +56,7 @@ func (test *DifficultyTest) Run(config *params.ChainConfig) error {
 		UncleHash:  test.UncleHash,
 	}
 
-	actual := ethash.CalcDifficulty(config, test.CurrentTimestamp, parent)
+	actual := cryptore.CalcDifficulty(config, test.CurrentTimestamp, parent)
 	exp := test.CurrentDifficulty
 
 	if actual.Cmp(exp) != 0 {

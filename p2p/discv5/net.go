@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"net"
@@ -123,7 +123,7 @@ type timeoutEvent struct {
 	node *Node
 }
 
-func newNetwork(conn transport, ourPubkey ecdsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func newNetwork(conn transport, ourPubkey eddsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	ourID := PubkeyID(&ourPubkey)
 
 	var db *nodeDB

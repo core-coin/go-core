@@ -30,9 +30,9 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus/ethash"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/eth/downloader"
+	"github.com/core-coin/go-core/consensus/cryptore"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -303,7 +303,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 
 func getHead(ctx context.Context, t *testing.T, client *rpc.Client) (uint64, common.Hash) {
 	res := make(map[string]interface{})
-	if err := client.CallContext(ctx, &res, "eth_getBlockByNumber", "latest", false); err != nil {
+	if err := client.CallContext(ctx, &res, "xce_getBlockByNumber", "latest", false); err != nil {
 		t.Fatalf("Failed to obtain head block: %v", err)
 	}
 	numStr, ok := res["number"].(string)
@@ -328,7 +328,7 @@ func testRequest(ctx context.Context, t *testing.T, client *rpc.Client) bool {
 	rand.Read(addr[:])
 	c, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
-	err := client.CallContext(c, &res, "eth_getBalance", addr, "latest")
+	err := client.CallContext(c, &res, "xce_getBalance", addr, "latest")
 	if err != nil {
 		t.Log("request error:", err)
 	}
@@ -493,25 +493,25 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 }
 
 func newLesClientService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := eth.DefaultConfig
+	config := xce.DefaultConfig
 	config.SyncMode = downloader.LightSync
-	config.Ethash.PowMode = ethash.ModeFake
+	config.Cryptore.PowMode = cryptore.ModeFake
 	return New(ctx.NodeContext, &config)
 }
 
 func newLesServerService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := eth.DefaultConfig
+	config := xce.DefaultConfig
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	ethereum, err := eth.New(ctx.NodeContext, &config)
+	core, err := xce.New(ctx.NodeContext, &config)
 	if err != nil {
 		return nil, err
 	}
-	server, err := NewLesServer(ethereum, &config)
+	server, err := NewLesServer(core, &config)
 	if err != nil {
 		return nil, err
 	}
-	ethereum.AddLesServer(server)
-	return ethereum, nil
+	core.AddLesServer(server)
+	return core, nil
 }

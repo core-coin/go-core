@@ -33,7 +33,7 @@ import (
 	"sync"
 	"time"
 
-	ethereum "github.com/core-coin/go-core"
+	core "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
@@ -121,7 +121,7 @@ type Wallet struct {
 
 	deriveNextPaths []accounts.DerivationPath // Next derivation paths for account auto-discovery (multiple bases supported)
 	deriveNextAddrs []common.Address          // Next derived account addresses for auto-discovery (multiple bases supported)
-	deriveChain     ethereum.ChainStateReader // Blockchain state reader to discover used account with
+	deriveChain     core.ChainStateReader // Blockchain state reader to discover used account with
 	deriveReq       chan chan struct{}        // Channel to request a self-derivation on
 	deriveQuit      chan chan error           // Channel to terminate the self-deriver with
 }
@@ -477,7 +477,7 @@ func (w *Wallet) selfDerive() {
 		)
 		for i := 0; i < len(nextAddrs); i++ {
 			for empty := false; !empty; {
-				// Retrieve the next derived Ethereum account
+				// Retrieve the next derived Core account
 				if nextAddrs[i] == (common.Address{}) {
 					if nextAcc, err = w.session.derive(nextPaths[i]); err != nil {
 						w.log.Warn("Smartcard wallet account derivation failed", "err", err)
@@ -647,7 +647,7 @@ func (w *Wallet) Derive(path accounts.DerivationPath, pin bool) (accounts.Accoun
 //
 // You can disable automatic account discovery by calling SelfDerive with a nil
 // chain state reader.
-func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain ethereum.ChainStateReader) {
+func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain core.ChainStateReader) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -699,7 +699,7 @@ func (w *Wallet) signHash(account accounts.Account, hash []byte) ([]byte, error)
 // the needed details via SignTxWithPassphrase, or by other means (e.g. unlock
 // the account in a keystore).
 func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	signer := types.NewEIP155Signer(chainID)
+	signer := types.NewCIP155Signer(chainID)
 	hash := signer.Hash(tx)
 	sig, err := w.signHash(account, hash[:])
 	if err != nil {
@@ -728,7 +728,7 @@ func (w *Wallet) signHashWithPassphrase(account accounts.Account, passphrase str
 }
 
 // SignText requests the wallet to sign the hash of a given piece of data, prefixed
-// by the Ethereum prefix scheme
+// by the Core prefix scheme
 // It looks up the account specified either solely via its address contained within,
 // or optionally with the aid of any location metadata from the embedded URL field.
 //
@@ -917,13 +917,13 @@ func (s *Session) initialize(seed []byte) error {
 	mac.Write(seed)
 	seed = mac.Sum(nil)
 
-	key, err := crypto.ToECDSA(seed[:32])
+	key, err := crypto.ToEDDSA(seed[:32])
 	if err != nil {
 		return err
 	}
 
 	id := initializeData{}
-	id.PublicKey = crypto.FromECDSAPub(&key.PublicKey)
+	id.PublicKey = crypto.FromEDDSAPub(&key.PublicKey)
 	id.PrivateKey = seed[:32]
 	id.ChainCode = seed[32:]
 	data, err := asn1.Marshal(id)

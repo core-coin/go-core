@@ -24,7 +24,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	lru "github.com/hashicorp/golang-lru"
@@ -86,7 +86,7 @@ func newSnapshot(config *params.CliqueConfig, sigcache *lru.ARCCache, number uin
 }
 
 // loadSnapshot loads an existing snapshot from the database.
-func loadSnapshot(config *params.CliqueConfig, sigcache *lru.ARCCache, db ethdb.Database, hash common.Hash) (*Snapshot, error) {
+func loadSnapshot(config *params.CliqueConfig, sigcache *lru.ARCCache, db xcedb.Database, hash common.Hash) (*Snapshot, error) {
 	blob, err := db.Get(append([]byte("clique-"), hash[:]...))
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func loadSnapshot(config *params.CliqueConfig, sigcache *lru.ARCCache, db ethdb.
 }
 
 // store inserts the snapshot into the database.
-func (s *Snapshot) store(db ethdb.Database) error {
+func (s *Snapshot) store(db xcedb.Database) error {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		return err

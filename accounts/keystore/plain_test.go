@@ -32,7 +32,7 @@ import (
 )
 
 func tmpKeyStoreIface(t *testing.T, encrypted bool) (dir string, ks keyStore) {
-	d, err := ioutil.TempDir("", "geth-keystore-test")
+	d, err := ioutil.TempDir("", "gcore-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,9 +106,9 @@ func TestImportPreSaleKey(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	// file content of a presale key file generated with:
-	// python pyethsaletool.py genwallet
+	// python pyxcesaletool.py genwallet
 	// with password "foo"
-	fileContent := "{\"encseed\": \"26d87f5f2bf9835f9a47eefae571bc09f9107bb13d54ff12a4ec095d01f83897494cf34f7bed2ed34126ecba9db7b62de56c9d7cd136520a0427bfb11b8954ba7ac39b90d4650d3448e31185affcd74226a68f1e94b1108e6e0a4a91cdd83eba\", \"ethaddr\": \"d4584b5f6229b7be90727b0fc8c6b91bb427821f\", \"email\": \"gustav.simonsson@gmail.com\", \"btcaddr\": \"1EVknXyFC68kKNLkh6YnKzW41svSRoaAcx\"}"
+	fileContent := "{\"encseed\": \"26d87f5f2bf9835f9a47eefae571bc09f9107bb13d54ff12a4ec095d01f83897494cf34f7bed2ed34126ecba9db7b62de56c9d7cd136520a0427bfb11b8954ba7ac39b90d4650d3448e31185affcd74226a68f1e94b1108e6e0a4a91cdd83eba\", \"xceaddr\": \"d4584b5f6229b7be90727b0fc8c6b91bb427821f\", \"email\": \"gustav.simonsson@gmail.com\", \"btcaddr\": \"1EVknXyFC68kKNLkh6YnKzW41svSRoaAcx\"}"
 	pass := "foo"
 	account, _, err := importPreSaleKey(ks, []byte(fileContent), pass)
 	if err != nil {
@@ -122,7 +122,7 @@ func TestImportPreSaleKey(t *testing.T) {
 	}
 }
 
-// Test and utils for the key store tests in the Ethereum JSON tests;
+// Test and utils for the key store tests in the Core JSON tests;
 // testdataKeyStoreTests/basic_tests.json
 type KeyStoreTestV3 struct {
 	Json     encryptedKeyJSONV3
@@ -200,7 +200,7 @@ func TestV1_2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	privHex := hex.EncodeToString(crypto.FromECDSA(k.PrivateKey))
+	privHex := hex.EncodeToString(crypto.FromEDDSA(k.PrivateKey))
 	expectedHex := "acdd196ee8fb24916e5de015a9b0228e027607dfdf05ca324c24bbceec431a9aaf159c0059a6b559d3ec223dda7cae2ef08ff4b4bb5ad418e2255a7b50548747e89ef575bae40ae1107f2199ea66ed5c70b126e15188a2d7e5d59ec04c109ffd3c38353689fb686bcdb5faee4cafc37106da5f84dbf2995ad28d99021f646582373af34c8e095bd9ac067e5904613e4b"
 	if privHex != expectedHex {
 		t.Fatal(fmt.Errorf("Unexpected privkey: %v, expected %v", privHex, expectedHex))

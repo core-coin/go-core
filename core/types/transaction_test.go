@@ -19,8 +19,8 @@ package types
 import (
 	"bytes"
 	"crypto/rand"
-	ecdsa "github.com/core-coin/eddsa"
 	"encoding/json"
+	"github.com/core-coin/eddsa"
 	"math/big"
 	"testing"
 
@@ -30,7 +30,7 @@ import (
 )
 
 // The values in those tests are from the Transaction Tests
-// at github.com/ethereum/tests.
+// at github.com/core-coin/tests.
 var (
 	emptyTx = NewTransaction(
 		0,
@@ -47,17 +47,17 @@ var (
 		big.NewInt(1),
 		common.FromHex("1123"),
 	).WithSignature(
-		HomesteadSigner{},
+		NucleusSigner{},
 		common.Hex2Bytes("26ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef56cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da40852e9afe4b052cd457d485c62b0e55a6db68f1da40845e4d7349e1df3ecac5db2b90bee5f9f15be07e9470b0c7ffe2f05e9d5802c26b97d81"),
 	)
 )
 
 func TestTransactionSigHash(t *testing.T) {
-	var homestead HomesteadSigner
-	if homestead.Hash(emptyTx) != common.HexToHash("0xc775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
+	var nucleus NucleusSigner
+	if nucleus.Hash(emptyTx) != common.HexToHash("0xc775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if homestead.Hash(rightvrsTx) != common.HexToHash("0xfff0e45edb61906f1bbbcb67c1ed7b17a538f02a17a58ebc6e01b50d5f55ce68") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0xfff0e45edb61906f1bbbcb67c1ed7b17a538f02a17a58ebc6e01b50d5f55ce68") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -67,7 +67,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f8a803018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a8211231bb83826ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef5b8386cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da408941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
+	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -80,20 +80,20 @@ func decodeTx(data []byte) (*Transaction, error) {
 	return t, err
 }
 
-func defaultTestKey() (*ecdsa.PrivateKey, common.Address) {
-	key, _ := crypto.HexToECDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
+func defaultTestKey() (*eddsa.PrivateKey, common.Address) {
+	key, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	return key, addr
 }
 
 func TestRecipientEmpty(t *testing.T) {
 	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("f85e8080808080011ca09b16de9d5bdee2cf56c28d16275a4da68cd30273e2525f3959f5d62557489921a0372ebd8fb3345f7db7b5a86d42e24d36e983e259b0664ceb8c227ec9af572f3d94858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("db80808080800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(HomesteadSigner{}, tx)
+	from, err := Sender(NucleusSigner{}, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,12 +105,12 @@ func TestRecipientEmpty(t *testing.T) {
 func TestRecipientNormal(t *testing.T) {
 	_, addr := defaultTestKey()
 
-	tx, err := decodeTx(common.Hex2Bytes("f87280808094000000000000000000000000000000000000000080011ca0527c0d8f5c63f7b9f41324a7c8a563ee1190bcbf0dac8ab446291bdbf32f5c79a0552c4ef0a09a04395074dab9ed34d3fbfb843c2f2546cc30fe89ec143ca94ca694858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("ef808080940000000000000000000000000000000000000000800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(HomesteadSigner{}, tx)
+	from, err := Sender(NucleusSigner{}, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,12 +124,12 @@ func TestRecipientNormal(t *testing.T) {
 // the same account.
 func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*ecdsa.PrivateKey, 25)
+	keys := make([]*eddsa.PrivateKey, 25)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 
-	signer := HomesteadSigner{}
+	signer := NucleusSigner{}
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
@@ -166,8 +166,8 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		if i+1 < len(txs) {
 			next := txs[i+1]
 			fromNext, _ := Sender(signer, next)
-			if fromi != fromNext && txi.GasPrice().Cmp(next.GasPrice()) < 0 {
-				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.GasPrice(), i+1, fromNext[:4], next.GasPrice())
+			if fromi != fromNext && txi.EnergyPrice().Cmp(next.EnergyPrice()) < 0 {
+				t.Errorf("invalid energyprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.EnergyPrice(), i+1, fromNext[:4], next.EnergyPrice())
 			}
 		}
 	}
@@ -180,7 +180,7 @@ func TestTransactionJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
 	}
-	signer := NewEIP155Signer(common.Big1)
+	signer := NewCIP155Signer(common.Big1)
 
 	transactions := make([]*Transaction, 0, 50)
 	for i := uint64(0); i < 25; i++ {
@@ -212,12 +212,9 @@ func TestTransactionJSON(t *testing.T) {
 			t.Fatalf("json.Unmarshal failed: %v", err)
 		}
 
-		// compare nonce, price, gaslimit, recipient, amount, payload, V, R, S
+		// compare nonce, price, energylimit, recipient, amount, payload, V, R, S
 		if tx.Hash() != parsedTx.Hash() {
 			t.Errorf("parsed tx differs from original tx, want %v, got %v", tx, parsedTx)
-		}
-		if tx.ChainId().Cmp(parsedTx.ChainId()) != 0 {
-			t.Errorf("invalid chain id, want %d, got %d", tx.ChainId(), parsedTx.ChainId())
 		}
 	}
 }

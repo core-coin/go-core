@@ -17,7 +17,7 @@
 package enode
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"fmt"
 	"net"
 	"reflect"
@@ -44,7 +44,7 @@ const (
 type LocalNode struct {
 	cur atomic.Value // holds a non-nil node pointer while the record is up-to-date.
 	id  ID
-	key *ecdsa.PrivateKey
+	key *eddsa.PrivateKey
 	db  *DB
 
 	// everything below is protected by a lock
@@ -62,7 +62,7 @@ type lnEndpoint struct {
 }
 
 // NewLocalNode creates a local node.
-func NewLocalNode(db *DB, key *ecdsa.PrivateKey) *LocalNode {
+func NewLocalNode(db *DB, key *eddsa.PrivateKey) *LocalNode {
 	ln := &LocalNode{
 		id:      PubkeyToIDV4(&key.PublicKey),
 		db:      db,

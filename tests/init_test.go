@@ -36,7 +36,7 @@ import (
 
 // Command line flags to configure the interpreters.
 var (
-	testEVM   = flag.String("vm.evm", "", "EVM configuration")
+	testCVM   = flag.String("vm.cvm", "", "CVM configuration")
 	testEWASM = flag.String("vm.ewasm", "", "EWASM configuration")
 )
 
@@ -49,7 +49,7 @@ var (
 	baseDir            = filepath.Join(".", "testdata")
 	blockTestDir       = filepath.Join(baseDir, "BlockchainTests")
 	stateTestDir       = filepath.Join(baseDir, "GeneralStateTests")
-	legacyStateTestDir = filepath.Join(baseDir, "LegacyTests", "Constantinople", "GeneralStateTests")
+	legacyStateTestDir = filepath.Join(baseDir, "LegacyTests", "GeneralStateTests")
 	transactionTestDir = filepath.Join(baseDir, "TransactionTests")
 	vmTestDir          = filepath.Join(baseDir, "VMTests")
 	rlpTestDir         = filepath.Join(baseDir, "RLPTests")

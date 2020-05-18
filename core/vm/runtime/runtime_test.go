@@ -43,10 +43,10 @@ func TestDefaults(t *testing.T) {
 	if cfg.Time == nil {
 		t.Error("expected time to be non nil")
 	}
-	if cfg.GasLimit == 0 {
-		t.Error("didn't expect gaslimit to be zero")
+	if cfg.EnergyLimit == 0 {
+		t.Error("didn't expect energylimit to be zero")
 	}
-	if cfg.GasPrice == nil {
+	if cfg.EnergyPrice == nil {
 		t.Error("expected time to be non nil")
 	}
 	if cfg.Value == nil {
@@ -60,7 +60,7 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
-func TestEVM(t *testing.T) {
+func TestCVM(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.Fatalf("crashed with: %v", r)
@@ -70,7 +70,7 @@ func TestEVM(t *testing.T) {
 	Execute([]byte{
 		byte(vm.DIFFICULTY),
 		byte(vm.TIMESTAMP),
-		byte(vm.GASLIMIT),
+		byte(vm.ENERGYLIMIT),
 		byte(vm.PUSH1),
 		byte(vm.ORIGIN),
 		byte(vm.BLOCKHASH),
@@ -152,7 +152,7 @@ func BenchmarkCall(b *testing.B) {
 		}
 	}
 }
-func benchmarkEVM_Create(bench *testing.B, code string) {
+func benchmarkCVM_Create(bench *testing.B, code string) {
 	var (
 		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
 		sender     = common.BytesToAddress([]byte("sender"))
@@ -164,23 +164,15 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 	runtimeConfig := Config{
 		Origin:      sender,
 		State:       statedb,
-		GasLimit:    10000000,
+		EnergyLimit:    10000000,
 		Difficulty:  big.NewInt(0x200000),
 		Time:        new(big.Int).SetUint64(0),
 		Coinbase:    common.Address{},
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
 			ChainID:             big.NewInt(1),
-			HomesteadBlock:      new(big.Int),
-			ByzantiumBlock:      new(big.Int),
-			ConstantinopleBlock: new(big.Int),
-			DAOForkBlock:        new(big.Int),
-			DAOForkSupport:      false,
-			EIP150Block:         new(big.Int),
-			EIP155Block:         new(big.Int),
-			EIP158Block:         new(big.Int),
 		},
-		EVMConfig: vm.Config{},
+		CVMConfig: vm.Config{},
 	}
 	// Warm up the intpools and stuff
 	bench.ResetTimer()
@@ -190,21 +182,21 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 	bench.StopTimer()
 }
 
-func BenchmarkEVM_CREATE_500(bench *testing.B) {
+func BenchmarkCVM_CREATE_500(bench *testing.B) {
 	// initcode size 500K, repeatedly calls CREATE and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b6207a120600080f0600152600056")
+	benchmarkCVM_Create(bench, "5b6207a120600080f0600152600056")
 }
-func BenchmarkEVM_CREATE2_500(bench *testing.B) {
+func BenchmarkCVM_CREATE2_500(bench *testing.B) {
 	// initcode size 500K, repeatedly calls CREATE2 and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b586207a120600080f5600152600056")
+	benchmarkCVM_Create(bench, "5b586207a120600080f5600152600056")
 }
-func BenchmarkEVM_CREATE_1200(bench *testing.B) {
+func BenchmarkCVM_CREATE_1200(bench *testing.B) {
 	// initcode size 1200K, repeatedly calls CREATE and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b62124f80600080f0600152600056")
+	benchmarkCVM_Create(bench, "5b62124f80600080f0600152600056")
 }
-func BenchmarkEVM_CREATE2_1200(bench *testing.B) {
+func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 	// initcode size 1200K, repeatedly calls CREATE2 and then modifies the mem contents
-	benchmarkEVM_Create(bench, "5b5862124f80600080f5600152600056")
+	benchmarkCVM_Create(bench, "5b5862124f80600080f5600152600056")
 }
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
@@ -216,7 +208,7 @@ func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
 		Nonce:      types.BlockNonce{0x1},
 		Extra:      []byte{},
 		Difficulty: big.NewInt(0),
-		GasLimit:   100000,
+		EnergyLimit:   100000,
 	}
 	return &header
 }

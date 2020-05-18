@@ -17,7 +17,7 @@
 package crypto
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -29,23 +29,13 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-//SignatureLength indicates the byte length required to carry a signature with recovery id.
 const SignatureLength = 112 + 56
-
-// RecoveryIDOffset points to the byte offset within the signature that contains the recovery id.
-// const RecoveryIDOffset = 64
-
-// DigestLength sets the signature digest exact length
 const DigestLength = 32
-
 const PubkeyLength = 56
-
 const PrivkeyLength = 144
 
 var errInvalidPubkey = errors.New("invalid public key")
-
 var errInvalidPrivkey = errors.New("invalid private key")
-
 var errInvalidSignature = errors.New("invalid signature")
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
@@ -77,44 +67,44 @@ func Keccak512(data ...[]byte) []byte {
 	return d.Sum(nil)
 }
 
-// CreateAddress creates an ethereum address given the bytes and the nonce
+// CreateAddress creates an core address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	return common.BytesToAddress(Keccak256(data)[12:])
 }
 
-// CreateAddress2 creates an ethereum address given the address bytes, initial
+// CreateAddress2 creates an core address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
 	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
-// ToECDSA creates a private key with the given D value.
-func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
-	return toECDSA(d, true)
+// ToEDDSA creates a private key with the given D value.
+func ToEDDSA(d []byte) (*eddsa.PrivateKey, error) {
+	return toEDDSA(d, true)
 }
 
-// ToECDSAUnsafe blindly converts a binary blob to a private key. It should almost
+// ToEDDSAUnsafe blindly converts a binary blob to a private key. It should almost
 // never be used unless you are sure the input is valid and want to avoid hitting
 // errors due to bad origin encoding (0 prefixes cut off).
-func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
-	priv, _ := toECDSA(d, false)
+func ToEDDSAUnsafe(d []byte) *eddsa.PrivateKey {
+	priv, _ := toEDDSA(d, false)
 	return priv
 }
 
-// toECDSA creates a private key with the given D value. The strict parameter
+// toEDDSA creates a private key with the given D value. The strict parameter
 // controls whether the key's length should be enforced at the curve size or
 // it can also accept legacy encodings (0 prefixes).
-func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
+func toEDDSA(d []byte, strict bool) (*eddsa.PrivateKey, error) {
 	_ = strict
 	if len(d) != PrivkeyLength {
 		return nil, errInvalidPrivkey
 	}
-	return ecdsa.Ed448().UnmarshalPriv(d)
+	return eddsa.Ed448().UnmarshalPriv(d)
 }
 
-// FromECDSA exports a private key into a binary dump.
-func FromECDSA(priv *ecdsa.PrivateKey) []byte {
+// FromEDDSA exports a private key into a binary dump.
+func FromEDDSA(priv *eddsa.PrivateKey) []byte {
 	if priv == nil {
 		return nil
 	}
@@ -122,31 +112,31 @@ func FromECDSA(priv *ecdsa.PrivateKey) []byte {
 }
 
 // UnmarshalPubkey converts bytes to a secp256k1 public key.
-func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
+func UnmarshalPubkey(pub []byte) (*eddsa.PublicKey, error) {
 	if len(pub) != PubkeyLength {
 		return nil, errInvalidPubkey
 	}
-	return ecdsa.Ed448().UnmarshalPub(pub)
+	return eddsa.Ed448().UnmarshalPub(pub)
 }
 
-func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
+func FromEDDSAPub(pub *eddsa.PublicKey) []byte {
 	if pub == nil || pub.X == nil {
 		return nil
 	}
 	return pub.X
 }
 
-// HexToECDSA parses a secp256k1 private key.
-func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
+// HexToEDDSA parses a secp256k1 private key.
+func HexToEDDSA(hexkey string) (*eddsa.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
 		return nil, errors.New("invalid hex string")
 	}
-	return ToECDSA(b)
+	return ToEDDSA(b)
 }
 
-// LoadECDSA loads a secp256k1 private key from the given file.
-func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
+// LoadEDDSA loads a secp256k1 private key from the given file.
+func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
 	buf := make([]byte, 144 * 2)
 	fd, err := os.Open(file)
 	if err != nil {
@@ -161,18 +151,18 @@ func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ecdsa.Ed448().UnmarshalPriv(key)
+	return eddsa.Ed448().UnmarshalPriv(key)
 }
 
-// SaveECDSA saves a secp256k1 private key to the given file with
+// SaveEDDSA saves a secp256k1 private key to the given file with
 // restrictive permissions. The key data is saved hex-encoded.
-func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
+func SaveEDDSA(file string, key *eddsa.PrivateKey) error {
 	k := hex.EncodeToString(key.D)
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
 
-func GenerateKey(read io.Reader) (*ecdsa.PrivateKey, error) {
-	return ecdsa.Ed448().GenerateKey(read)
+func GenerateKey(read io.Reader) (*eddsa.PrivateKey, error) {
+	return eddsa.Ed448().GenerateKey(read)
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with
@@ -181,13 +171,13 @@ func ValidateSignatureValues(v byte) bool {
     return v == 0 || v == 1
 }
 
-func ComputeSecret(privkey *ecdsa.PrivateKey, pubkey *ecdsa.PublicKey) []byte {
-	secret := ecdsa.Ed448().ComputeSecret(privkey, pubkey)
+func ComputeSecret(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
+	secret := eddsa.Ed448().ComputeSecret(privkey, pubkey)
 	return secret[:]
 }
 
-func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
-	pubBytes := FromECDSAPub(&p)
+func PubkeyToAddress(p eddsa.PublicKey) common.Address {
+	pubBytes := FromEDDSAPub(&p)
 	if pubBytes == nil {
 		return common.Address{}
 	}

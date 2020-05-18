@@ -19,7 +19,7 @@ package keystore
 import (
 	"math/big"
 
-	ethereum "github.com/core-coin/go-core"
+	core "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
@@ -77,7 +77,7 @@ func (w *keystoreWallet) Derive(path accounts.DerivationPath, pin bool) (account
 
 // SelfDerive implements accounts.Wallet, but is a noop for plain wallets since
 // there is no notion of hierarchical account derivation for plain keystore accounts.
-func (w *keystoreWallet) SelfDerive(bases []accounts.DerivationPath, chain ethereum.ChainStateReader) {
+func (w *keystoreWallet) SelfDerive(bases []accounts.DerivationPath, chain core.ChainStateReader) {
 }
 
 // signHash attempts to sign the given hash with

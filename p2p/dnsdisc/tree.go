@@ -18,7 +18,7 @@ package dnsdisc
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
@@ -40,7 +40,7 @@ type Tree struct {
 }
 
 // Sign signs the tree with the given private key and sets the sequence number.
-func (t *Tree) Sign(key *ecdsa.PrivateKey, domain string) (url string, err error) {
+func (t *Tree) Sign(key *eddsa.PrivateKey, domain string) (url string, err error) {
 	root := *t.root
 	sig, err := crypto.Sign(root.sigHash(), key)
 	if err != nil {
@@ -54,7 +54,7 @@ func (t *Tree) Sign(key *ecdsa.PrivateKey, domain string) (url string, err error
 
 // SetSignature verifies the given signature and assigns it as the tree's current
 // signature if valid.
-func (t *Tree) SetSignature(pubkey *ecdsa.PublicKey, signature string) error {
+func (t *Tree) SetSignature(pubkey *eddsa.PublicKey, signature string) error {
 	sig, err := b64format.DecodeString(signature)
 	if err != nil || len(sig) != crypto.SignatureLength {
 		return errInvalidSig
@@ -211,7 +211,7 @@ type (
 	linkEntry struct {
 		str    string
 		domain string
-		pubkey *ecdsa.PublicKey
+		pubkey *eddsa.PublicKey
 	}
 )
 
@@ -245,8 +245,8 @@ func (e *rootEntry) sigHash() []byte {
 	return h.Sum(nil)
 }
 
-func (e *rootEntry) verifySignature(pubkey *ecdsa.PublicKey) bool {
-	enckey := crypto.FromECDSAPub(pubkey)
+func (e *rootEntry) verifySignature(pubkey *eddsa.PublicKey) bool {
+	enckey := crypto.FromEDDSAPub(pubkey)
 	return crypto.VerifySignature(enckey, e.sigHash(), e.sig)
 }
 
@@ -262,7 +262,7 @@ func (e *linkEntry) String() string {
 	return linkPrefix + e.str
 }
 
-func newLinkEntry(domain string, pubkey *ecdsa.PublicKey) *linkEntry {
+func newLinkEntry(domain string, pubkey *eddsa.PublicKey) *linkEntry {
 	key := b32format.EncodeToString(crypto.CompressPubkey(pubkey))
 	str := key + "@" + domain
 	return &linkEntry{str, domain, pubkey}
@@ -382,7 +382,7 @@ func truncateHash(hash string) string {
 // URL encoding
 
 // ParseURL parses an enrtree:// URL and returns its components.
-func ParseURL(url string) (domain string, pubkey *ecdsa.PublicKey, err error) {
+func ParseURL(url string) (domain string, pubkey *eddsa.PublicKey, err error) {
 	le, err := parseLink(url)
 	if err != nil {
 		return "", nil, err

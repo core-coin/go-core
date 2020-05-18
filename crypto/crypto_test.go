@@ -18,7 +18,7 @@ package crypto
 
 import (
 	"bytes"
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"io/ioutil"
 	"os"
@@ -39,12 +39,12 @@ func TestKeccak256Hash(t *testing.T) {
 	checkhash(t, "Sha3-256-array", func(in []byte) []byte { h := Keccak256Hash(in); return h[:] }, msg, exp)
 }
 
-func TestToECDSAErrors(t *testing.T) {
-	if _, err := HexToECDSA("0000000000000000000000000000000000000000000000000000000000000000"); err == nil {
-		t.Fatal("HexToECDSA should've returned error")
+func TestToEDDSAErrors(t *testing.T) {
+	if _, err := HexToEDDSA("0000000000000000000000000000000000000000000000000000000000000000"); err == nil {
+		t.Fatal("HexToEDDSA should've returned error")
 	}
-	if _, err := HexToECDSA("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); err == nil {
-		t.Fatal("HexToECDSA should've returned error")
+	if _, err := HexToEDDSA("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); err == nil {
+		t.Fatal("HexToEDDSA should've returned error")
 	}
 }
 
@@ -75,7 +75,7 @@ func TestUnmarshalPubkey(t *testing.T) {
 }
 
 func TestSign(t *testing.T) {
-	key, _ := HexToECDSA(testPrivHex)
+	key, _ := HexToEDDSA(testPrivHex)
 	addr := common.HexToAddress(testAddrHex)
 
 	msg := Keccak256([]byte("foo"))
@@ -114,7 +114,7 @@ func TestInvalidSign(t *testing.T) {
 }
 
 func TestNewContractAddress(t *testing.T) {
-	key, _ := HexToECDSA(testPrivHex)
+	key, _ := HexToEDDSA(testPrivHex)
 	addr := common.HexToAddress(testAddrHex)
 	genAddr := PubkeyToAddress(key.PublicKey)
 	// sanity check before using addr to create contract address
@@ -128,13 +128,13 @@ func TestNewContractAddress(t *testing.T) {
 	checkAddr(t, common.HexToAddress("047524d5c9afe7a647136beb75f6bb5e9c24e5af"), caddr2)
 }
 
-func TestLoadECDSAFile(t *testing.T) {
+func TestLoadEDDSAFile(t *testing.T) {
 	keyBytes := common.FromHex(testPrivHex)
 	fileName0 := "test_key0"
 	fileName1 := "test_key1"
-	checkKey := func(k *ecdsa.PrivateKey) {
+	checkKey := func(k *eddsa.PrivateKey) {
 		checkAddr(t, PubkeyToAddress(k.PublicKey), common.HexToAddress(testAddrHex))
-		loadedKeyBytes := FromECDSA(k)
+		loadedKeyBytes := FromEDDSA(k)
 		if !bytes.Equal(loadedKeyBytes, keyBytes) {
 			t.Fatalf("private key mismatch: want: %x have: %x", keyBytes, loadedKeyBytes)
 		}
@@ -143,20 +143,20 @@ func TestLoadECDSAFile(t *testing.T) {
 	ioutil.WriteFile(fileName0, []byte(testPrivHex), 0600)
 	defer os.Remove(fileName0)
 
-	key0, err := LoadECDSA(fileName0)
+	key0, err := LoadEDDSA(fileName0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	checkKey(key0)
 
-	// again, this time with SaveECDSA instead of manual save:
-	err = SaveECDSA(fileName1, key0)
+	// again, this time with SaveEDDSA instead of manual save:
+	err = SaveEDDSA(fileName1, key0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(fileName1)
 
-	key1, err := LoadECDSA(fileName1)
+	key1, err := LoadEDDSA(fileName1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func checkAddr(t *testing.T, addr0, addr1 common.Address) {
 // skip but keep it after they are done
 func TestPythonIntegration(t *testing.T) {
 	kh := "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
-	k0, _ := HexToECDSA(kh)
+	k0, _ := HexToEDDSA(kh)
 
 	msg0 := Keccak256([]byte("foo"))
 	sig0, _ := Sign(msg0, k0)

@@ -32,14 +32,14 @@ import (
 	"github.com/core-coin/go-core/accounts/abi/bind/backends"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/les/flowcontrol"
@@ -105,27 +105,27 @@ contract test {
 func prepare(n int, backend *backends.SimulatedBackend) {
 	var (
 		ctx    = context.Background()
-		signer = types.HomesteadSigner{}
+		signer = types.NucleusSigner{}
 	)
 	for i := 0; i < n; i++ {
 		switch i {
 		case 0:
 			// deploy checkpoint contract
 			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(bind.NewKeyedTransactor(bankKey), backend, []common.Address{signerAddr}, sectionSize, processConfirms, big.NewInt(1))
-			// bankUser transfers some ether to user1
+			// bankUser transfers some core to user1
 			nonce, _ := backend.PendingNonceAt(ctx, bankAddr)
-			tx, _ := types.SignTx(types.NewTransaction(nonce, userAddr1, big.NewInt(10000), params.TxGas, nil, nil), signer, bankKey)
+			tx, _ := types.SignTx(types.NewTransaction(nonce, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx)
 		case 1:
 			bankNonce, _ := backend.PendingNonceAt(ctx, bankAddr)
 			userNonce1, _ := backend.PendingNonceAt(ctx, userAddr1)
 
-			// bankUser transfers more ether to user1
-			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, userAddr1, big.NewInt(1000), params.TxGas, nil, nil), signer, bankKey)
+			// bankUser transfers more core to user1
+			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, userAddr1, big.NewInt(1000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx1)
 
-			// user1 relays ether to user2
-			tx2, _ := types.SignTx(types.NewTransaction(userNonce1, userAddr2, big.NewInt(1000), params.TxGas, nil, nil), signer, userKey1)
+			// user1 relays core to user2
+			tx2, _ := types.SignTx(types.NewTransaction(userNonce1, userAddr2, big.NewInt(1000), params.TxEnergy, nil, nil), signer, userKey1)
 			backend.SendTransaction(ctx, tx2)
 
 			// user1 deploys a test contract
@@ -137,9 +137,9 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 			tx4, _ := types.SignTx(types.NewContractCreation(userNonce1+2, big.NewInt(0), 200000, big.NewInt(0), testEventEmitterCode), signer, userKey1)
 			backend.SendTransaction(ctx, tx4)
 		case 2:
-			// bankUser transfer some ether to signer
+			// bankUser transfer some core to signer
 			bankNonce, _ := backend.PendingNonceAt(ctx, bankAddr)
-			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, signerAddr, big.NewInt(1000000000), params.TxGas, nil, nil), signer, bankKey)
+			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, signerAddr, big.NewInt(1000000000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx1)
 
 			// invoke test contract
@@ -158,24 +158,24 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 }
 
 // testIndexers creates a set of indexers with specified params for testing purpose.
-func testIndexers(db ethdb.Database, odr light.OdrBackend, config *light.IndexerConfig) []*core.ChainIndexer {
+func testIndexers(db xcedb.Database, odr light.OdrBackend, config *light.IndexerConfig) []*core.ChainIndexer {
 	var indexers [3]*core.ChainIndexer
 	indexers[0] = light.NewChtIndexer(db, odr, config.ChtSize, config.ChtConfirms)
-	indexers[1] = eth.NewBloomIndexer(db, config.BloomSize, config.BloomConfirms)
+	indexers[1] = xce.NewBloomIndexer(db, config.BloomSize, config.BloomConfirms)
 	indexers[2] = light.NewBloomTrieIndexer(db, odr, config.BloomSize, config.BloomTrieSize)
 	// make bloomTrieIndexer as a child indexer of bloom indexer.
 	indexers[1].AddChildIndexer(indexers[2])
 	return indexers[:]
 }
 
-func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, indexers []*core.ChainIndexer, db ethdb.Database, peers *serverPeerSet, ulcServers []string, ulcFraction int) *clientHandler {
+func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, indexers []*core.ChainIndexer, db xcedb.Database, peers *serverPeerSet, ulcServers []string, ulcFraction int) *clientHandler {
 	var (
 		evmux  = new(event.TypeMux)
-		engine = ethash.NewFaker()
+		engine = cryptore.NewFaker()
 		gspec  = core.Genesis{
-			Config:   params.AllEthashProtocolChanges,
+			Config:   params.AllCryptoreProtocolChanges,
 			Alloc:    core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
-			GasLimit: 100000000,
+			EnergyLimit: 100000000,
 		}
 		oracle *checkpointoracle.CheckpointOracle
 	)
@@ -199,11 +199,11 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 		}
 		oracle = checkpointoracle.New(checkpointConfig, getLocal)
 	}
-	client := &LightEthereum{
+	client := &LightCore{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
-			config:      &eth.Config{LightPeers: 100, NetworkId: NetworkId},
-			chainConfig: params.AllEthashProtocolChanges,
+			config:      &xce.Config{LightPeers: 100, NetworkId: NetworkId},
+			chainConfig: params.AllCryptoreProtocolChanges,
 			iConfig:     light.TestClientIndexerConfig,
 			chainDb:     db,
 			oracle:      oracle,
@@ -226,12 +226,12 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 	return client.handler
 }
 
-func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db ethdb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
+func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcedb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
 	var (
 		gspec = core.Genesis{
-			Config:   params.AllEthashProtocolChanges,
+			Config:   params.AllCryptoreProtocolChanges,
 			Alloc:    core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
-			GasLimit: 100000000,
+			EnergyLimit: 100000000,
 		}
 		oracle *checkpointoracle.CheckpointOracle
 	)
@@ -265,8 +265,8 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db ethdb.Da
 	server := &LesServer{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
-			config:      &eth.Config{LightPeers: 100, NetworkId: NetworkId},
-			chainConfig: params.AllEthashProtocolChanges,
+			config:      &xce.Config{LightPeers: 100, NetworkId: NetworkId},
+			chainConfig: params.AllCryptoreProtocolChanges,
 			iConfig:     light.TestServerIndexerConfig,
 			chainDb:     db,
 			chainReader: simulation.Blockchain(),
@@ -432,7 +432,7 @@ type indexerCallback func(*core.ChainIndexer, *core.ChainIndexer, *core.ChainInd
 // testClient represents a client for testing with necessary auxiliary fields.
 type testClient struct {
 	clock   mclock.Clock
-	db      ethdb.Database
+	db      xcedb.Database
 	peer    *testPeer
 	handler *clientHandler
 
@@ -445,7 +445,7 @@ type testClient struct {
 type testServer struct {
 	clock   mclock.Clock
 	backend *backends.SimulatedBackend
-	db      ethdb.Database
+	db      xcedb.Database
 	peer    *testPeer
 	handler *serverHandler
 

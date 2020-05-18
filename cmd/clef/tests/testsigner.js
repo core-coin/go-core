@@ -1,18 +1,18 @@
-// Copyright 2019 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2019 The go-core Authors
+// This file is part of go-core.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-core is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-core is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
 // This file is a test-utility for testing clef-functionality
 //
@@ -20,9 +20,9 @@
 //
 // build/bin/clef --4bytedb=./cmd/clef/4byte.json --rpc
 //
-// Start geth with
+// Start gcore with
 //
-// build/bin/geth --nodiscover --maxpeers 0 --signer http://localhost:8550 console --preload=cmd/clef/tests/testsigner.js
+// build/bin/gcore --nodiscover --maxpeers 0 --signer http://localhost:8550 console --preload=cmd/clef/tests/testsigner.js
 //
 // and in the console simply invoke
 //
@@ -36,7 +36,7 @@ function reload(){
 
 function init(){
     if (typeof accts == 'undefined' || accts.length == 0){
-        accts = eth.accounts
+        accts = xce.accounts
         console.log("Got accounts ", accts);
     }
 }
@@ -44,7 +44,7 @@ init()
 function testTx(){
     if( accts && accts.length > 0) {
         var a = accts[0]
-        var txdata = eth.signTransaction({from: a, to: a, value: 1, nonce: 1, gas: 1, gasPrice: 1})
+        var txdata = xce.signTransaction({from: a, to: a, value: 1, nonce: 1, energy: 1, energyPrice: 1})
         var v = parseInt(txdata.tx.v)
         console.log("V value: ", v)
         if (v == 37 || v == 38){
@@ -58,7 +58,7 @@ function testTx(){
 function testSignText(){
     if( accts && accts.length > 0){
         var a = accts[0]
-        var r = eth.sign(a, "0x68656c6c6f20776f726c64"); //hello world
+        var r = xce.sign(a, "0x68656c6c6f20776f726c64"); //hello world
         console.log("signing response",  r)
     }
 }

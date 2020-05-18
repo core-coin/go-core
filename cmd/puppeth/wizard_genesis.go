@@ -40,31 +40,22 @@ func (w *wizard) makeGenesis() {
 	// Construct a default genesis block
 	genesis := &core.Genesis{
 		Timestamp:  uint64(time.Now().Unix()),
-		GasLimit:   4700000,
+		EnergyLimit:   4700000,
 		Difficulty: big.NewInt(524288),
 		Alloc:      make(core.GenesisAlloc),
-		Config: &params.ChainConfig{
-			HomesteadBlock:      big.NewInt(0),
-			EIP150Block:         big.NewInt(0),
-			EIP155Block:         big.NewInt(0),
-			EIP158Block:         big.NewInt(0),
-			ByzantiumBlock:      big.NewInt(0),
-			ConstantinopleBlock: big.NewInt(0),
-			PetersburgBlock:     big.NewInt(0),
-			IstanbulBlock:       big.NewInt(0),
-		},
+		Config: &params.ChainConfig{},
 	}
 	// Figure out which consensus engine to choose
 	fmt.Println()
 	fmt.Println("Which consensus engine to use? (default = clique)")
-	fmt.Println(" 1. Ethash - proof-of-work")
+	fmt.Println(" 1. Cryptore - proof-of-work")
 	fmt.Println(" 2. Clique - proof-of-authority")
 
 	choice := w.read()
 	switch {
 	case choice == "1":
-		// In case of ethash, we're pretty much done
-		genesis.Config.Ethash = new(params.EthashConfig)
+		// In case of cryptore, we're pretty much done
+		genesis.Config.Cryptore = new(params.CryptoreConfig)
 		genesis.ExtraData = make([]byte, 32)
 
 	case choice == "" || choice == "2":
@@ -122,7 +113,7 @@ func (w *wizard) makeGenesis() {
 		break
 	}
 	fmt.Println()
-	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 wei? (advisable yes)")
+	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 ore? (advisable yes)")
 	if w.readDefaultYesNo(true) {
 		// Add a batch of precompile balances to avoid them getting deleted
 		for i := int64(0); i < 256; i++ {
@@ -141,7 +132,7 @@ func (w *wizard) makeGenesis() {
 	w.conf.flush()
 }
 
-// importGenesis imports a Geth genesis spec into puppeth.
+// importGenesis imports a Gcore genesis spec into puppeth.
 func (w *wizard) importGenesis() {
 	// Request the genesis JSON spec URL from the user
 	fmt.Println()
@@ -201,40 +192,6 @@ func (w *wizard) manageGenesis() {
 	switch choice {
 	case "1":
 		// Fork rule updating requested, iterate over each fork
-		fmt.Println()
-		fmt.Printf("Which block should Homestead come into effect? (default = %v)\n", w.conf.Genesis.Config.HomesteadBlock)
-		w.conf.Genesis.Config.HomesteadBlock = w.readDefaultBigInt(w.conf.Genesis.Config.HomesteadBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should EIP150 (Tangerine Whistle) come into effect? (default = %v)\n", w.conf.Genesis.Config.EIP150Block)
-		w.conf.Genesis.Config.EIP150Block = w.readDefaultBigInt(w.conf.Genesis.Config.EIP150Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should EIP155 (Spurious Dragon) come into effect? (default = %v)\n", w.conf.Genesis.Config.EIP155Block)
-		w.conf.Genesis.Config.EIP155Block = w.readDefaultBigInt(w.conf.Genesis.Config.EIP155Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should EIP158/161 (also Spurious Dragon) come into effect? (default = %v)\n", w.conf.Genesis.Config.EIP158Block)
-		w.conf.Genesis.Config.EIP158Block = w.readDefaultBigInt(w.conf.Genesis.Config.EIP158Block)
-
-		fmt.Println()
-		fmt.Printf("Which block should Byzantium come into effect? (default = %v)\n", w.conf.Genesis.Config.ByzantiumBlock)
-		w.conf.Genesis.Config.ByzantiumBlock = w.readDefaultBigInt(w.conf.Genesis.Config.ByzantiumBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should Constantinople come into effect? (default = %v)\n", w.conf.Genesis.Config.ConstantinopleBlock)
-		w.conf.Genesis.Config.ConstantinopleBlock = w.readDefaultBigInt(w.conf.Genesis.Config.ConstantinopleBlock)
-		if w.conf.Genesis.Config.PetersburgBlock == nil {
-			w.conf.Genesis.Config.PetersburgBlock = w.conf.Genesis.Config.ConstantinopleBlock
-		}
-		fmt.Println()
-		fmt.Printf("Which block should Petersburg come into effect? (default = %v)\n", w.conf.Genesis.Config.PetersburgBlock)
-		w.conf.Genesis.Config.PetersburgBlock = w.readDefaultBigInt(w.conf.Genesis.Config.PetersburgBlock)
-
-		fmt.Println()
-		fmt.Printf("Which block should Istanbul come into effect? (default = %v)\n", w.conf.Genesis.Config.IstanbulBlock)
-		w.conf.Genesis.Config.IstanbulBlock = w.readDefaultBigInt(w.conf.Genesis.Config.IstanbulBlock)
-
 		out, _ := json.MarshalIndent(w.conf.Genesis.Config, "", "  ")
 		fmt.Printf("Chain configuration updated:\n\n%s\n", out)
 
@@ -244,7 +201,7 @@ func (w *wizard) manageGenesis() {
 		// Save whatever genesis configuration we currently have
 		fmt.Println()
 		fmt.Printf("Which folder to save the genesis specs into? (default = current)\n")
-		fmt.Printf("  Will create %s.json, %s-aleth.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
+		fmt.Printf("  Will create %s.json\n",  w.network)
 
 		folder := w.readDefaultString(".")
 		if err := os.MkdirAll(folder, 0755); err != nil {
@@ -253,28 +210,13 @@ func (w *wizard) manageGenesis() {
 		}
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
 
-		// Export the native genesis spec used by puppeth and Geth
-		gethJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
-		if err := ioutil.WriteFile((gethJson), out, 0644); err != nil {
+		// Export the native genesis spec used by puppxce and Gcore
+		gcoreJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
+		if err := ioutil.WriteFile((gcoreJson), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
 			return
 		}
-		log.Info("Saved native genesis chain spec", "path", gethJson)
-
-		// Export the genesis spec used by Aleth (formerly C++ Ethereum)
-		if spec, err := newAlethGenesisSpec(w.network, w.conf.Genesis); err != nil {
-			log.Error("Failed to create Aleth chain spec", "err", err)
-		} else {
-			saveGenesis(folder, w.network, "aleth", spec)
-		}
-		// Export the genesis spec used by Parity
-		if spec, err := newParityChainSpec(w.network, w.conf.Genesis, []string{}); err != nil {
-			log.Error("Failed to create Parity chain spec", "err", err)
-		} else {
-			saveGenesis(folder, w.network, "parity", spec)
-		}
-		// Export the genesis spec used by Harmony (formerly EthereumJ)
-		saveGenesis(folder, w.network, "harmony", w.conf.Genesis)
+		log.Info("Saved native genesis chain spec", "path", gcoreJson)
 
 	case "3":
 		// Make sure we don't have any services running

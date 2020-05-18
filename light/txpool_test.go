@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/ethash"
+	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
@@ -77,7 +77,7 @@ func txPoolTestChainGen(i int, block *core.BlockGen) {
 
 func TestTxPool(t *testing.T) {
 	for i := range testTx {
-		testTx[i], _ = types.SignTx(types.NewTransaction(uint64(i), acc1Addr, big.NewInt(10000), params.TxGas, nil, nil), types.HomesteadSigner{}, testBankKey)
+		testTx[i], _ = types.SignTx(types.NewTransaction(uint64(i), acc1Addr, big.NewInt(10000), params.TxEnergy, nil, nil), types.NucleusSigner{}, testBankKey)
 	}
 
 	var (
@@ -88,8 +88,8 @@ func TestTxPool(t *testing.T) {
 	)
 	gspec.MustCommit(ldb)
 	// Assemble the test environment
-	blockchain, _ := core.NewBlockChain(sdb, nil, params.TestChainConfig, ethash.NewFullFaker(), vm.Config{}, nil)
-	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, ethash.NewFaker(), sdb, poolTestBlocks, txPoolTestChainGen)
+	blockchain, _ := core.NewBlockChain(sdb, nil, params.TestChainConfig, cryptore.NewFullFaker(), vm.Config{}, nil)
+	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), sdb, poolTestBlocks, txPoolTestChainGen)
 	if _, err := blockchain.InsertChain(gchain); err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func TestTxPool(t *testing.T) {
 		discard: make(chan int, 1),
 		mined:   make(chan int, 1),
 	}
-	lightchain, _ := NewLightChain(odr, params.TestChainConfig, ethash.NewFullFaker(), nil)
+	lightchain, _ := NewLightChain(odr, params.TestChainConfig, cryptore.NewFullFaker(), nil)
 	txPermanent = 50
 	pool := NewTxPool(params.TestChainConfig, lightchain, relay)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

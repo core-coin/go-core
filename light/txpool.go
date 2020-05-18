@@ -19,7 +19,6 @@ package light
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"sync"
 	"time"
 
@@ -28,11 +27,11 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 const (
@@ -60,19 +59,17 @@ type TxPool struct {
 	mu           sync.RWMutex
 	chain        *LightChain
 	odr          OdrBackend
-	chainDb      ethdb.Database
+	chainDb      xcedb.Database
 	relay        TxRelayBackend
 	head         common.Hash
 	nonce        map[common.Address]uint64            // "pending" nonce
 	pending      map[common.Hash]*types.Transaction   // pending transactions by tx hash
 	mined        map[common.Hash][]*types.Transaction // mined transactions by block hash
 	clearIdx     uint64                               // earliest block nr that can contain mined tx info
-
-	istanbul bool // Fork indicator whether we are in the istanbul stage.
 }
 
 // TxRelayBackend provides an interface to the mechanism that forwards transacions
-// to the ETH network. The implementations of the functions should be non-blocking.
+// to the XCE network. The implementations of the functions should be non-blocking.
 //
 // Send instructs backend to forward new transactions
 // NewHead notifies backend about a new head after processed by the tx pool,
@@ -90,7 +87,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewEIP155Signer(config.ChainID),
+		signer:      types.NewCIP155Signer(config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),
@@ -310,10 +307,6 @@ func (pool *TxPool) setNewHead(head *types.Header) {
 	txc, _ := pool.reorgOnNewHead(ctx, head)
 	m, r := txc.getLists()
 	pool.relay.NewHead(pool.head, m, r)
-
-	// Update fork indicator by next pending block number
-	next := new(big.Int).Add(head.Number, big.NewInt(1))
-	pool.istanbul = pool.config.IsIstanbul(next)
 }
 
 // Stop stops the light transaction pool
@@ -361,10 +354,10 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	}
 
 	// Check the transaction doesn't exceed the current
-	// block limit gas.
+	// block limit energy.
 	header := pool.chain.GetHeaderByHash(pool.head)
-	if header.GasLimit < tx.Gas() {
-		return core.ErrGasLimit
+	if header.EnergyLimit < tx.Energy() {
+		return core.ErrEnergyLimit
 	}
 
 	// Transactions can't be negative. This may never happen
@@ -380,13 +373,13 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInsufficientFunds
 	}
 
-	// Should supply enough intrinsic gas
-	gas, err := core.IntrinsicGas(tx.Data(), tx.To() == nil, true, pool.istanbul)
+	// Should supply enough intrinsic energy
+	energy, err := core.IntrinsicEnergy(tx.Data(), tx.To() == nil)
 	if err != nil {
 		return err
 	}
-	if tx.Gas() < gas {
-		return core.ErrIntrinsicGas
+	if tx.Energy() < energy {
+		return core.ErrIntrinsicEnergy
 	}
 	return currentState.Error()
 }

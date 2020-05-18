@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/fourbyte"
@@ -52,7 +52,7 @@ func (ui *headlessUi) OnInputRequired(info core.UserInputRequest) (core.UserInpu
 
 func (ui *headlessUi) OnSignerStartup(info core.StartupInfo)        {}
 func (ui *headlessUi) RegisterUIServer(api *core.UIServerAPI)       {}
-func (ui *headlessUi) OnApprovedTx(tx ethapi.SignTransactionResult) {}
+func (ui *headlessUi) OnApprovedTx(tx xceapi.SignTransactionResult) {}
 
 func (ui *headlessUi) ApproveTx(request *core.SignTxRequest) (core.SignTxResponse, error) {
 
@@ -108,7 +108,7 @@ func (ui *headlessUi) ShowInfo(message string) {
 }
 
 func tmpDirName(t *testing.T) string {
-	d, err := ioutil.TempDir("", "eth-keystore-test")
+	d, err := ioutil.TempDir("", "xce-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,16 +225,16 @@ func TestNewAcc(t *testing.T) {
 
 func mkTestTx(from common.MixedcaseAddress) core.SendTxArgs {
 	to := common.NewMixedcaseAddress(common.HexToAddress("0x1337"))
-	gas := hexutil.Uint64(21000)
-	gasPrice := (hexutil.Big)(*big.NewInt(2000000000))
+	energy := hexutil.Uint64(21000)
+	energyPrice := (hexutil.Big)(*big.NewInt(2000000000))
 	value := (hexutil.Big)(*big.NewInt(1e18))
 	nonce := (hexutil.Uint64)(0)
 	data := hexutil.Bytes(common.Hex2Bytes("01020304050607080a"))
 	tx := core.SendTxArgs{
 		From:     from,
 		To:       &to,
-		Gas:      gas,
-		GasPrice: gasPrice,
+		Energy:      energy,
+		EnergyPrice: energyPrice,
 		Value:    value,
 		Data:     &data,
 		Nonce:    nonce}
@@ -244,7 +244,7 @@ func mkTestTx(from common.MixedcaseAddress) core.SendTxArgs {
 func TestSignTx(t *testing.T) {
 	var (
 		list      []common.Address
-		res, res2 *ethapi.SignTransactionResult
+		res, res2 *xceapi.SignTransactionResult
 		err       error
 	)
 

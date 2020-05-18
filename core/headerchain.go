@@ -30,9 +30,9 @@ import (
 	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/ethdb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcedb"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -58,7 +58,7 @@ const (
 type HeaderChain struct {
 	config *params.ChainConfig
 
-	chainDb       ethdb.Database
+	chainDb       xcedb.Database
 	genesisHeader *types.Header
 
 	currentHeader     atomic.Value // Current head of the header chain (may be above the block chain!)
@@ -76,7 +76,7 @@ type HeaderChain struct {
 
 // NewHeaderChain creates a new HeaderChain structure. ProcInterrupt points
 // to the parent's interrupt semaphore.
-func NewHeaderChain(chainDb ethdb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
+func NewHeaderChain(chainDb xcedb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
 	headerCache, _ := lru.New(headerCacheLimit)
 	tdCache, _ := lru.New(tdCacheLimit)
 	numberCache, _ := lru.New(numberCacheLimit)
@@ -149,7 +149,8 @@ func (hc *HeaderChain) WriteHeader(header *types.Header) (status WriteStatus, er
 	if ptd == nil {
 		return NonStatTy, consensus.ErrUnknownAncestor
 	}
-	localTd := hc.GetTd(hc.currentHeaderHash, hc.CurrentHeader().Number.Uint64())
+	head := hc.CurrentHeader().Number.Uint64()
+	localTd := hc.GetTd(hc.currentHeaderHash, head)
 	externTd := new(big.Int).Add(header.Difficulty, ptd)
 
 	// Irrelevant of the canonical status, write the td and header to the database
@@ -165,7 +166,15 @@ func (hc *HeaderChain) WriteHeader(header *types.Header) (status WriteStatus, er
 	// If the total difficulty is higher than our known, add it to the canonical chain
 	// Second clause in the if statement reduces the vulnerability to selfish mining.
 	// Please refer to http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf
-	if externTd.Cmp(localTd) > 0 || (externTd.Cmp(localTd) == 0 && mrand.Float64() < 0.5) {
+	reorg := externTd.Cmp(localTd) > 0
+	if !reorg && externTd.Cmp(localTd) == 0 {
+		if header.Number.Uint64() < head {
+			reorg = true
+		} else if header.Number.Uint64() == head {
+			reorg = mrand.Float64() < 0.5
+		}
+	}
+	if reorg {
 		// If the header can be added into canonical chain, adjust the
 		// header chain markers(canonical indexes and head header flag).
 		//
@@ -480,11 +489,11 @@ func (hc *HeaderChain) SetCurrentHeader(head *types.Header) {
 type (
 	// UpdateHeadBlocksCallback is a callback function that is called by SetHead
 	// before head header is updated.
-	UpdateHeadBlocksCallback func(ethdb.KeyValueWriter, *types.Header)
+	UpdateHeadBlocksCallback func(xcedb.KeyValueWriter, *types.Header)
 
 	// DeleteBlockContentCallback is a callback function that is called by SetHead
 	// before each header is deleted.
-	DeleteBlockContentCallback func(ethdb.KeyValueWriter, common.Hash, uint64)
+	DeleteBlockContentCallback func(xcedb.KeyValueWriter, common.Hash, uint64)
 )
 
 // SetHead rewinds the local chain to a new head. Everything above the new head
@@ -503,7 +512,7 @@ func (hc *HeaderChain) SetHead(head uint64, updateFn UpdateHeadBlocksCallback, d
 			parent = hc.genesisHeader
 		}
 		parentHash = hdr.ParentHash
-		// Notably, since geth has the possibility for setting the head to a low
+		// Notably, since gcore has the possibility for setting the head to a low
 		// height which is even lower than ancient head.
 		// In order to ensure that the head is always no higher than the data in
 		// the database(ancient store or active store), we need to update head

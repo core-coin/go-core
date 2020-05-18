@@ -281,27 +281,27 @@ func TestBlockReceiptStorage(t *testing.T) {
 	// Create the two receipts to manage afterwards
 	receipt1 := &types.Receipt{
 		Status:            types.ReceiptStatusFailed,
-		CumulativeGasUsed: 1,
+		CumulativeEnergyUsed: 1,
 		Logs: []*types.Log{
 			{Address: common.BytesToAddress([]byte{0x11})},
 			{Address: common.BytesToAddress([]byte{0x01, 0x11})},
 		},
 		TxHash:          tx1.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-		GasUsed:         111111,
+		EnergyUsed:         111111,
 	}
 	receipt1.Bloom = types.CreateBloom(types.Receipts{receipt1})
 
 	receipt2 := &types.Receipt{
 		PostState:         common.Hash{2}.Bytes(),
-		CumulativeGasUsed: 2,
+		CumulativeEnergyUsed: 2,
 		Logs: []*types.Log{
 			{Address: common.BytesToAddress([]byte{0x22})},
 			{Address: common.BytesToAddress([]byte{0x02, 0x22})},
 		},
 		TxHash:          tx2.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-		GasUsed:         222222,
+		EnergyUsed:         222222,
 	}
 	receipt2.Bloom = types.CreateBloom(types.Receipts{receipt2})
 	receipts := []*types.Receipt{receipt1, receipt2}

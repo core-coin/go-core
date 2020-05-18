@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/rules/deps"
@@ -230,7 +230,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

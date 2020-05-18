@@ -23,14 +23,14 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/ethdb/memorydb"
+	"github.com/core-coin/go-core/xcedb/memorydb"
 )
 
 func TestIterator(t *testing.T) {
 	trie := newEmpty()
 	vals := []struct{ k, v string }{
 		{"do", "verb"},
-		{"ether", "wookiedoo"},
+		{"core", "wookiedoo"},
 		{"horse", "stallion"},
 		{"shaman", "horse"},
 		{"doge", "coin"},

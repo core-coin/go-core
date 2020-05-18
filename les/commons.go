@@ -25,8 +25,8 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/eth"
-	"github.com/core-coin/go-core/ethdb"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/p2p"
@@ -57,10 +57,10 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *eth.Config
+	config                       *xce.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
-	chainDb                      ethdb.Database
+	chainDb                      xcedb.Database
 	chainReader                  chainReader
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 	oracle                       *checkpointoracle.CheckpointOracle
@@ -69,10 +69,10 @@ type lesCommons struct {
 	wg      sync.WaitGroup
 }
 
-// NodeInfo represents a short summary of the Ethereum sub-protocol metadata
+// NodeInfo represents a short summary of the Core sub-protocol metadata
 // known about the host peer.
 type NodeInfo struct {
-	Network    uint64                   `json:"network"`    // Ethereum network ID (1=Frontier, 2=Morden, Ropsten=3, Rinkeby=4)
+	Network    uint64                   `json:"network"`    // Core network ID (1=Nucleus, 2=Morden, Testnet=3, Rinkeby=4)
 	Difficulty *big.Int                 `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash              `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Config     *params.ChainConfig      `json:"config"`     // Chain configuration for the fork rules

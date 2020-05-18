@@ -21,56 +21,56 @@ import (
 )
 
 func TestURLParsing(t *testing.T) {
-	url, err := parseURL("https://ethereum.org")
+	url, err := parseURL("https://coreblockchain.cc")
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 	if url.Scheme != "https" {
 		t.Errorf("expected: %v, got: %v", "https", url.Scheme)
 	}
-	if url.Path != "ethereum.org" {
-		t.Errorf("expected: %v, got: %v", "ethereum.org", url.Path)
+	if url.Path != "coreblockchain.cc" {
+		t.Errorf("expected: %v, got: %v", "coreblockchain.cc", url.Path)
 	}
 
-	_, err = parseURL("ethereum.org")
+	_, err = parseURL("coreblockchain.cc")
 	if err == nil {
 		t.Error("expected err, got: nil")
 	}
 }
 
 func TestURLString(t *testing.T) {
-	url := URL{Scheme: "https", Path: "ethereum.org"}
-	if url.String() != "https://ethereum.org" {
-		t.Errorf("expected: %v, got: %v", "https://ethereum.org", url.String())
+	url := URL{Scheme: "https", Path: "coreblockchain.cc"}
+	if url.String() != "https://coreblockchain.cc" {
+		t.Errorf("expected: %v, got: %v", "https://coreblockchain.cc", url.String())
 	}
 
-	url = URL{Scheme: "", Path: "ethereum.org"}
-	if url.String() != "ethereum.org" {
-		t.Errorf("expected: %v, got: %v", "ethereum.org", url.String())
+	url = URL{Scheme: "", Path: "coreblockchain.cc"}
+	if url.String() != "coreblockchain.cc" {
+		t.Errorf("expected: %v, got: %v", "coreblockchain.cc", url.String())
 	}
 }
 
 func TestURLMarshalJSON(t *testing.T) {
-	url := URL{Scheme: "https", Path: "ethereum.org"}
+	url := URL{Scheme: "https", Path: "coreblockchain.cc"}
 	json, err := url.MarshalJSON()
 	if err != nil {
 		t.Errorf("unexpcted error: %v", err)
 	}
-	if string(json) != "\"https://ethereum.org\"" {
-		t.Errorf("expected: %v, got: %v", "\"https://ethereum.org\"", string(json))
+	if string(json) != "\"https://coreblockchain.cc\"" {
+		t.Errorf("expected: %v, got: %v", "\"https://coreblockchain.cc\"", string(json))
 	}
 }
 
 func TestURLUnmarshalJSON(t *testing.T) {
 	url := &URL{}
-	err := url.UnmarshalJSON([]byte("\"https://ethereum.org\""))
+	err := url.UnmarshalJSON([]byte("\"https://coreblockchain.cc\""))
 	if err != nil {
 		t.Errorf("unexpcted error: %v", err)
 	}
 	if url.Scheme != "https" {
 		t.Errorf("expected: %v, got: %v", "https", url.Scheme)
 	}
-	if url.Path != "ethereum.org" {
+	if url.Path != "coreblockchain.cc" {
 		t.Errorf("expected: %v, got: %v", "https", url.Path)
 	}
 }
@@ -81,10 +81,10 @@ func TestURLComparison(t *testing.T) {
 		urlB   URL
 		expect int
 	}{
-		{URL{"https", "ethereum.org"}, URL{"https", "ethereum.org"}, 0},
-		{URL{"http", "ethereum.org"}, URL{"https", "ethereum.org"}, -1},
-		{URL{"https", "ethereum.org/a"}, URL{"https", "ethereum.org"}, 1},
-		{URL{"https", "abc.org"}, URL{"https", "ethereum.org"}, -1},
+		{URL{"https", "coreblockchain.cc"}, URL{"https", "coreblockchain.cc"}, 0},
+		{URL{"http", "coreblockchain.cc"}, URL{"https", "coreblockchain.cc"}, -1},
+		{URL{"https", "coreblockchain.cc/a"}, URL{"https", "coreblockchain.cc"}, 1},
+		{URL{"https", "abc.org"}, URL{"https", "coreblockchain.cc"}, -1},
 	}
 
 	for i, tt := range tests {

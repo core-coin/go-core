@@ -315,11 +315,11 @@ func TestSharedKeyStatic(t *testing.T) {
 }
 
 func hexKey(prv string) *PrivateKey {
-	key, err := crypto.HexToECDSA(prv)
+	key, err := crypto.HexToEDDSA(prv)
 	if err != nil {
 		panic(err)
 	}
-	return ImportECDSA(key)
+	return ImportEDDSA(key)
 }
 
 func hexPub(key string) []byte {

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package bind generates Ethereum contract Go bindings.
+// Package bind generates Core contract Go bindings.
 //
 // Detailed usage document and tutorial available on the go-core Wiki page:
-// https://github.com/core-coin/go-core/wiki/Native-DApps:-Go-bindings-to-Ethereum-contracts
+// https://developer.coreblockchain.cc/Native-DApps:-Go-bindings-to-Core-contracts
 package bind
 
 import (
@@ -60,7 +60,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 	)
 	for i := 0; i < len(types); i++ {
 		// Parse the actual ABI to generate the binding for
-		evmABI, err := abi.JSON(strings.NewReader(abis[i]))
+		cvmABI, err := abi.JSON(strings.NewReader(abis[i]))
 		if err != nil {
 			return "", err
 		}
@@ -86,7 +86,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 			transactIdentifiers = make(map[string]bool)
 			eventIdentifiers    = make(map[string]bool)
 		)
-		for _, original := range evmABI.Methods {
+		for _, original := range cvmABI.Methods {
 			// Normalize the method for capital cases and non-anonymous inputs/outputs
 			normalized := original
 			normalizedName := methodNormalizer[lang](alias(aliases, original.Name))
@@ -127,7 +127,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 				transacts[original.Name] = &tmplMethod{Original: original, Normalized: normalized, Structured: structured(original.Outputs)}
 			}
 		}
-		for _, original := range evmABI.Events {
+		for _, original := range cvmABI.Events {
 			// Skip anonymous events as they don't support explicit filtering
 			if original.Anonymous {
 				continue
@@ -166,7 +166,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 			Type:        capitalise(types[i]),
 			InputABI:    strings.Replace(strippedABI, "\"", "\\\"", -1),
 			InputBin:    strings.TrimPrefix(strings.TrimSpace(bytecodes[i]), "0x"),
-			Constructor: evmABI.Constructor,
+			Constructor: cvmABI.Constructor,
 			Calls:       calls,
 			Transacts:   transacts,
 			Events:      events,

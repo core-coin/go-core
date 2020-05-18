@@ -23,10 +23,10 @@ import (
 	"github.com/core-coin/go-core/common/math"
 )
 
-// Memory implements a simple memory model for the ethereum virtual machine.
+// Memory implements a simple memory model for the Core Virtual Machine.
 type Memory struct {
 	store       []byte
-	lastGasCost uint64
+	lastEnergyCost uint64
 }
 
 // NewMemory returns a new memory model.

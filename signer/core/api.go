@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/accounts/usbwallet"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/storage"
@@ -53,7 +53,7 @@ type ExternalAPI interface {
 	// New request to create a new account
 	New(ctx context.Context) (common.Address, error)
 	// SignTransaction request to sign the specified transaction
-	SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*ethapi.SignTransactionResult, error)
+	SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xceapi.SignTransactionResult, error)
 	// SignData - request to sign the given data (plus prefix)
 	SignData(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (hexutil.Bytes, error)
 	// SignTypedData - request to sign the given structured data (plus prefix)
@@ -82,7 +82,7 @@ type UIClientAPI interface {
 	ShowInfo(message string)
 	// OnApprovedTx notifies the UI about a transaction having been successfully signed.
 	// This method can be used by a UI to keep track of e.g. how much has been sent to a particular recipient.
-	OnApprovedTx(tx ethapi.SignTransactionResult)
+	OnApprovedTx(tx xceapi.SignTransactionResult)
 	// OnSignerStartup is invoked when the signer boots, and tells the UI info about external API location and version
 	// information
 	OnSignerStartup(info StartupInfo)
@@ -144,20 +144,6 @@ func StartClefAccountManager(ksLocation string, nousb, lightKDF bool, scpath str
 		} else {
 			backends = append(backends, ledgerhub)
 			log.Debug("Ledger support enabled")
-		}
-		// Start a USB hub for Trezor hardware wallets (HID version)
-		if trezorhub, err := usbwallet.NewTrezorHubWithHID(); err != nil {
-			log.Warn(fmt.Sprintf("Failed to start HID Trezor hub, disabling: %v", err))
-		} else {
-			backends = append(backends, trezorhub)
-			log.Debug("Trezor support enabled via HID")
-		}
-		// Start a USB hub for Trezor hardware wallets (WebUSB version)
-		if trezorhub, err := usbwallet.NewTrezorHubWithWebUSB(); err != nil {
-			log.Warn(fmt.Sprintf("Failed to start WebUSB Trezor hub, disabling: %v", err))
-		} else {
-			backends = append(backends, trezorhub)
-			log.Debug("Trezor support enabled via WebUSB")
 		}
 	}
 
@@ -274,8 +260,8 @@ var ErrRequestDenied = errors.New("request denied")
 // NewSignerAPI creates a new API that can be used for Account management.
 // ksLocation specifies the directory where to store the password protected private
 // key that is generated when a new Account is created.
-// noUSB disables USB support that is required to support hardware devices such as
-// ledger and trezor.
+// noUSB disables USB support that is required to support hardware device such as
+// ledger.
 func NewSignerAPI(am *accounts.Manager, chainID int64, noUSB bool, ui UIClientAPI, validator Validator, advancedMode bool, credentials storage.Storage) *SignerAPI {
 	if advancedMode {
 		log.Info("Clef is in advanced mode: will warn instead of reject")
@@ -286,37 +272,6 @@ func NewSignerAPI(am *accounts.Manager, chainID int64, noUSB bool, ui UIClientAP
 	}
 	return signer
 }
-func (api *SignerAPI) openTrezor(url accounts.URL) {
-	resp, err := api.UI.OnInputRequired(UserInputRequest{
-		Prompt: "Pin required to open Trezor wallet\n" +
-			"Look at the device for number positions\n\n" +
-			"7 | 8 | 9\n" +
-			"--+---+--\n" +
-			"4 | 5 | 6\n" +
-			"--+---+--\n" +
-			"1 | 2 | 3\n\n",
-		IsPassword: true,
-		Title:      "Trezor unlock",
-	})
-	if err != nil {
-		log.Warn("failed getting trezor pin", "err", err)
-		return
-	}
-	// We're using the URL instead of the pointer to the
-	// Wallet -- perhaps it is not actually present anymore
-	w, err := api.am.Wallet(url.String())
-	if err != nil {
-		log.Warn("wallet unavailable", "url", url)
-		return
-	}
-	err = w.Open(resp.Text)
-	if err != nil {
-		log.Warn("failed to open wallet", "wallet", url, "err", err)
-		return
-	}
-
-}
-
 // startUSBListener starts a listener for USB events, for hardware wallet interaction
 func (api *SignerAPI) startUSBListener() {
 	events := make(chan accounts.WalletEvent, 16)
@@ -328,9 +283,6 @@ func (api *SignerAPI) startUSBListener() {
 		for _, wallet := range am.Wallets() {
 			if err := wallet.Open(""); err != nil {
 				log.Warn("Failed to open wallet", "url", wallet.URL(), "err", err)
-				if err == usbwallet.ErrTrezorPINNeeded {
-					go api.openTrezor(wallet.URL())
-				}
 			}
 		}
 		// Listen for wallet event till termination
@@ -339,9 +291,6 @@ func (api *SignerAPI) startUSBListener() {
 			case accounts.WalletArrived:
 				if err := event.Wallet.Open(""); err != nil {
 					log.Warn("New wallet appeared, failed to open", "url", event.Wallet.URL(), "err", err)
-					if err == usbwallet.ErrTrezorPINNeeded {
-						go api.openTrezor(event.Wallet.URL())
-					}
 				}
 			case accounts.WalletOpened:
 				status, _ := event.Wallet.Status()
@@ -443,13 +392,13 @@ func logDiff(original *SignTxRequest, new *SignTxResponse) bool {
 		log.Info("Recipient-account changed by UI", "was", t0, "is", t1)
 		modified = true
 	}
-	if g0, g1 := original.Transaction.Gas, new.Transaction.Gas; g0 != g1 {
+	if g0, g1 := original.Transaction.Energy, new.Transaction.Energy; g0 != g1 {
 		modified = true
-		log.Info("Gas changed by UI", "was", g0, "is", g1)
+		log.Info("Energy changed by UI", "was", g0, "is", g1)
 	}
-	if g0, g1 := big.Int(original.Transaction.GasPrice), big.Int(new.Transaction.GasPrice); g0.Cmp(&g1) != 0 {
+	if g0, g1 := big.Int(original.Transaction.EnergyPrice), big.Int(new.Transaction.EnergyPrice); g0.Cmp(&g1) != 0 {
 		modified = true
-		log.Info("GasPrice changed by UI", "was", g0, "is", g1)
+		log.Info("EnergyPrice changed by UI", "was", g0, "is", g1)
 	}
 	if v0, v1 := big.Int(original.Transaction.Value), big.Int(new.Transaction.Value); v0.Cmp(&v1) != 0 {
 		modified = true
@@ -497,7 +446,7 @@ func (api *SignerAPI) lookupOrQueryPassword(address common.Address, title, promp
 }
 
 // SignTransaction signs the given Transaction and returns it both as json and rlp-encoded form
-func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*ethapi.SignTransactionResult, error) {
+func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xceapi.SignTransactionResult, error) {
 	var (
 		err    error
 		result SignTxResponse
@@ -555,7 +504,7 @@ func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, meth
 	if err != nil {
 		return nil, err
 	}
-	response := ethapi.SignTransactionResult{Raw: rlpdata, Tx: signedTx}
+	response := xceapi.SignTransactionResult{Raw: rlpdata, Tx: signedTx}
 
 	// Finally, send the signed tx to the UI
 	api.UI.OnApprovedTx(response)

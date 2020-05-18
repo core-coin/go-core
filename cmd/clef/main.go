@@ -43,7 +43,7 @@ import (
 	"github.com/core-coin/go-core/console"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/ethapi"
+	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
@@ -95,7 +95,7 @@ var (
 	chainIdFlag = cli.Int64Flag{
 		Name:  "chainid",
 		Value: params.MainnetChainConfig.ChainID.Int64(),
-		Usage: "Chain id to use for signing (1=mainnet, 3=Ropsten, 4=Rinkeby, 5=Goerli)",
+		Usage: "Chain id to use for signing (1=mainnet, 3=Testnet, 4=Rinkeby, 5=Koliba)",
 	}
 	rpcPortFlag = cli.IntFlag{
 		Name:  "rpcport",
@@ -198,7 +198,7 @@ The gendoc generates example structures of the json-rpc communication types.
 
 func init() {
 	app.Name = "Clef"
-	app.Usage = "Manage Ethereum account operations"
+	app.Usage = "Manage Core account operations"
 	app.Flags = []cli.Flag{
 		logLevelFlag,
 		keystoreFlag,
@@ -769,8 +769,8 @@ func testExternalUI(api *core.SignerAPI) {
 			ReceiptHash: common.HexToHash("0000H45H"),
 			Difficulty:  big.NewInt(1337),
 			Number:      big.NewInt(1337),
-			GasLimit:    1338,
-			GasUsed:     1338,
+			EnergyLimit:    1338,
+			EnergyUsed:     1338,
 			Time:        1338,
 			Extra:       []byte("Extra data Extra data Extra data  Extra data  Extra data  Extra data  Extra data Extra data"),
 			MixDigest:   common.HexToHash("0x0000H45H"),
@@ -784,10 +784,10 @@ func testExternalUI(api *core.SignerAPI) {
 		expectApprove("signdata - clique header", err)
 	}
 	{ // Sign data test - typed data
-		api.UI.ShowInfo("Please approve the next request for signing EIP-712 typed data")
+		api.UI.ShowInfo("Please approve the next request for signing CIP-712 typed data")
 		time.Sleep(delay)
 		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
-		data := `{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
+		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
 		var typedData core.TypedData
 		json.Unmarshal([]byte(data), &typedData)
@@ -820,8 +820,8 @@ func testExternalUI(api *core.SignerAPI) {
 			Value:    hexutil.Big(*big.NewInt(6)),
 			From:     common.NewMixedcaseAddress(a),
 			To:       &to,
-			GasPrice: hexutil.Big(*big.NewInt(5)),
-			Gas:      1000,
+			EnergyPrice: hexutil.Big(*big.NewInt(5)),
+			Energy:      1000,
 			Input:    nil,
 		}
 		_, err := api.SignTransaction(ctx, tx, nil)
@@ -977,8 +977,8 @@ func GenDoc(ctx *cli.Context) {
 				Value:    hexutil.Big(*big.NewInt(6)),
 				From:     common.NewMixedcaseAddress(a),
 				To:       nil,
-				GasPrice: hexutil.Big(*big.NewInt(5)),
-				Gas:      1000,
+				EnergyPrice: hexutil.Big(*big.NewInt(5)),
+				Energy:      1000,
 				Input:    nil,
 			}})
 	}
@@ -993,8 +993,8 @@ func GenDoc(ctx *cli.Context) {
 					Value:    hexutil.Big(*big.NewInt(6)),
 					From:     common.NewMixedcaseAddress(a),
 					To:       nil,
-					GasPrice: hexutil.Big(*big.NewInt(5)),
-					Gas:      1000,
+					EnergyPrice: hexutil.Big(*big.NewInt(5)),
+					Energy:      1000,
 					Input:    nil,
 				}})
 		add("SignTxResponse - deny", "Response to SignTxRequest. When denying a request, there's no need to "+
@@ -1019,7 +1019,7 @@ func GenDoc(ctx *cli.Context) {
 		rlpdata := common.FromHex("0xf85d640101948a8eafb1cf62bfbeb1741769dae1a9dd47996192018026a0716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293a04e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed")
 		var tx types.Transaction
 		rlp.DecodeBytes(rlpdata, &tx)
-		add("OnApproved - SignTransactionResult", desc, &ethapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
+		add("OnApproved - SignTransactionResult", desc, &xceapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
 
 	}
 	{ // User input

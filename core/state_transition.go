@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	errInsufficientBalanceForGas = errors.New("insufficient balance to pay for gas")
+	errInsufficientBalanceForEnergy = errors.New("insufficient balance to pay for energy")
 )
 
 /*
@@ -38,7 +38,7 @@ A state transition is a change made when a transaction is applied to the current
 The state transitioning model does all the necessary work to work out a valid new state root.
 
 1) Nonce handling
-2) Pre pay gas
+2) Pre pay energy
 3) Create a new state object if the recipient is \0*32
 4) Value transfer
 == If contract creation ==
@@ -49,25 +49,24 @@ The state transitioning model does all the necessary work to work out a valid ne
 6) Derive new state root
 */
 type StateTransition struct {
-	gp         *GasPool
+	gp         *EnergyPool
 	msg        Message
-	gas        uint64
-	gasPrice   *big.Int
-	initialGas uint64
+	energy        uint64
+	energyPrice   *big.Int
+	initialEnergy uint64
 	value      *big.Int
 	data       []byte
 	state      vm.StateDB
-	evm        *vm.EVM
+	cvm        *vm.CVM
 }
 
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address
-	//FromFrontier() (common.Address, error)
 	To() *common.Address
 
-	GasPrice() *big.Int
-	Gas() uint64
+	EnergyPrice() *big.Int
+	Energy() uint64
 	Value() *big.Int
 
 	Nonce() uint64
@@ -75,16 +74,16 @@ type Message interface {
 	Data() []byte
 }
 
-// IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
-func IntrinsicGas(data []byte, contractCreation, isHomestead bool, isEIP2028 bool) (uint64, error) {
-	// Set the starting gas for the raw transaction
-	var gas uint64
-	if contractCreation && isHomestead {
-		gas = params.TxGasContractCreation
+// IntrinsicEnergy computes the 'intrinsic energy' for a message with the given data.
+func IntrinsicEnergy(data []byte, contractCreation bool) (uint64, error) {
+	// Set the starting energy for the raw transaction
+	var energy uint64
+	if contractCreation {
+		energy = params.TxEnergyContractCreation
 	} else {
-		gas = params.TxGas
+		energy = params.TxEnergy
 	}
-	// Bump the required gas by the amount of transactional data
+	// Bump the required energy by the amount of transactional data
 	if len(data) > 0 {
 		// Zero and non-zero bytes are priced differently
 		var nz uint64
@@ -94,46 +93,43 @@ func IntrinsicGas(data []byte, contractCreation, isHomestead bool, isEIP2028 boo
 			}
 		}
 		// Make sure we don't exceed uint64 for all data combinations
-		nonZeroGas := params.TxDataNonZeroGasFrontier
-		if isEIP2028 {
-			nonZeroGas = params.TxDataNonZeroGasEIP2028
+		nonZeroEnergy := params.TxDataNonZeroEnergy
+		if (math.MaxUint64-energy)/nonZeroEnergy < nz {
+			return 0, vm.ErrOutOfEnergy
 		}
-		if (math.MaxUint64-gas)/nonZeroGas < nz {
-			return 0, vm.ErrOutOfGas
-		}
-		gas += nz * nonZeroGas
+		energy += nz * nonZeroEnergy
 
 		z := uint64(len(data)) - nz
-		if (math.MaxUint64-gas)/params.TxDataZeroGas < z {
-			return 0, vm.ErrOutOfGas
+		if (math.MaxUint64-energy)/params.TxDataZeroEnergy < z {
+			return 0, vm.ErrOutOfEnergy
 		}
-		gas += z * params.TxDataZeroGas
+		energy += z * params.TxDataZeroEnergy
 	}
-	return gas, nil
+	return energy, nil
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition {
+func NewStateTransition(cvm *vm.CVM, msg Message, gp *EnergyPool) *StateTransition {
 	return &StateTransition{
 		gp:       gp,
-		evm:      evm,
+		cvm:      cvm,
 		msg:      msg,
-		gasPrice: msg.GasPrice(),
+		energyPrice: msg.EnergyPrice(),
 		value:    msg.Value(),
 		data:     msg.Data(),
-		state:    evm.StateDB,
+		state:    cvm.StateDB,
 	}
 }
 
 // ApplyMessage computes the new state by applying the given message
 // against the old state within the environment.
 //
-// ApplyMessage returns the bytes returned by any EVM execution (if it took place),
-// the gas used (which includes gas refunds) and an error if it failed. An error always
+// ApplyMessage returns the bytes returned by any CVM execution (if it took place),
+// the energy used (which includes energy refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) ([]byte, uint64, bool, error) {
-	return NewStateTransition(evm, msg, gp).TransitionDb()
+func ApplyMessage(cvm *vm.CVM, msg Message, gp *EnergyPool) ([]byte, uint64, bool, error) {
+	return NewStateTransition(cvm, msg, gp).TransitionDb()
 }
 
 // to returns the recipient of the message.
@@ -144,26 +140,26 @@ func (st *StateTransition) to() common.Address {
 	return *st.msg.To()
 }
 
-func (st *StateTransition) useGas(amount uint64) error {
-	if st.gas < amount {
-		return vm.ErrOutOfGas
+func (st *StateTransition) useEnergy(amount uint64) error {
+	if st.energy < amount {
+		return vm.ErrOutOfEnergy
 	}
-	st.gas -= amount
+	st.energy -= amount
 
 	return nil
 }
 
-func (st *StateTransition) buyGas() error {
-	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+func (st *StateTransition) buyEnergy() error {
+	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Energy()), st.energyPrice)
 	if st.state.GetBalance(st.msg.From()).Cmp(mgval) < 0 {
-		return errInsufficientBalanceForGas
+		return errInsufficientBalanceForEnergy
 	}
-	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
+	if err := st.gp.SubEnergy(st.msg.Energy()); err != nil {
 		return err
 	}
-	st.gas += st.msg.Gas()
+	st.energy += st.msg.Energy()
 
-	st.initialGas = st.msg.Gas()
+	st.initialEnergy = st.msg.Energy()
 	st.state.SubBalance(st.msg.From(), mgval)
 	return nil
 }
@@ -178,44 +174,42 @@ func (st *StateTransition) preCheck() error {
 			return ErrNonceTooLow
 		}
 	}
-	return st.buyGas()
+	return st.buyEnergy()
 }
 
 // TransitionDb will transition the state by applying the current message and
-// returning the result including the used gas. It returns an error if failed.
+// returning the result including the used energy. It returns an error if failed.
 // An error indicates a consensus issue.
-func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
+func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed bool, err error) {
 	if err = st.preCheck(); err != nil {
 		return
 	}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
-	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
-	istanbul := st.evm.ChainConfig().IsIstanbul(st.evm.BlockNumber)
 	contractCreation := msg.To() == nil
 
-	// Pay intrinsic gas
-	gas, err := IntrinsicGas(st.data, contractCreation, homestead, istanbul)
+	// Pay intrinsic energy
+	energy, err := IntrinsicEnergy(st.data, contractCreation)
 	if err != nil {
 		return nil, 0, false, err
 	}
-	if err = st.useGas(gas); err != nil {
+	if err = st.useEnergy(energy); err != nil {
 		return nil, 0, false, err
 	}
 
 	var (
-		evm = st.evm
+		cvm = st.cvm
 		// vm errors do not effect consensus and are therefor
 		// not assigned to err, except for insufficient balance
 		// error.
 		vmerr error
 	)
 	if contractCreation {
-		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)
+		ret, _, st.energy, vmerr = cvm.Create(sender, st.data, st.energy, st.value)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
-		ret, st.gas, vmerr = evm.Call(sender, st.to(), st.data, st.gas, st.value)
+		ret, st.energy, vmerr = cvm.Call(sender, st.to(), st.data, st.energy, st.value)
 	}
 	if vmerr != nil {
 		log.Debug("VM returned with error", "err", vmerr)
@@ -226,30 +220,30 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 			return nil, 0, false, vmerr
 		}
 	}
-	st.refundGas()
-	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	st.refundEnergy()
+	st.state.AddBalance(st.cvm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
 
-	return ret, st.gasUsed(), vmerr != nil, err
+	return ret, st.energyUsed(), vmerr != nil, err
 }
 
-func (st *StateTransition) refundGas() {
-	// Apply refund counter, capped to half of the used gas.
-	refund := st.gasUsed() / 2
+func (st *StateTransition) refundEnergy() {
+	// Apply refund counter, capped to half of the used energy.
+	refund := st.energyUsed() / 2
 	if refund > st.state.GetRefund() {
 		refund = st.state.GetRefund()
 	}
-	st.gas += refund
+	st.energy += refund
 
-	// Return ETH for remaining gas, exchanged at the original rate.
-	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+	// Return XCE for remaining energy, exchanged at the original rate.
+	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.energy), st.energyPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 
-	// Also return remaining gas to the block gas counter so it is
+	// Also return remaining energy to the block energy counter so it is
 	// available for the next transaction.
-	st.gp.AddGas(st.gas)
+	st.gp.AddEnergy(st.energy)
 }
 
-// gasUsed returns the amount of gas used up by the state transition.
-func (st *StateTransition) gasUsed() uint64 {
-	return st.initialGas - st.gas
+// energyUsed returns the amount of energy used up by the state transition.
+func (st *StateTransition) energyUsed() uint64 {
+	return st.initialEnergy - st.energy
 }

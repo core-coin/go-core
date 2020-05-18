@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core"
+	gcore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts/abi"
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
@@ -36,13 +36,13 @@ import (
 )
 
 func TestSimulatedBackend(t *testing.T) {
-	var gasLimit uint64 = 8000029
+	var energyLimit uint64 = 8000029
 	key, _ := crypto.GenerateKey(rand.Reader) // nolint: gosec
 	auth := bind.NewKeyedTransactor(key)
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 
-	sim := NewSimulatedBackend(genAlloc, gasLimit)
+	sim := NewSimulatedBackend(genAlloc, energyLimit)
 	defer sim.Close()
 
 	// should return an error if the tx is not found
@@ -52,15 +52,15 @@ func TestSimulatedBackend(t *testing.T) {
 	if isPending {
 		t.Fatal("transaction should not be pending")
 	}
-	if err != ethereum.NotFound {
-		t.Fatalf("err should be `ethereum.NotFound` but received %v", err)
+	if err != gcore.NotFound {
+		t.Fatalf("err should be `core.NotFound` but received %v", err)
 	}
 
 	// generate a transaction and confirm you can retrieve it
 	code := `6060604052600a8060106000396000f360606040526008565b00`
-	var gas uint64 = 3000000
-	tx := types.NewContractCreation(0, big.NewInt(0), gas, big.NewInt(1), common.FromHex(code))
-	tx, _ = types.SignTx(tx, types.HomesteadSigner{}, key)
+	var energy uint64 = 3000000
+	tx := types.NewContractCreation(0, big.NewInt(0), energy, big.NewInt(1), common.FromHex(code))
+	tx, _ = types.SignTx(tx, types.NucleusSigner{}, key)
 
 	err = sim.SendTransaction(context.Background(), tx)
 	if err != nil {
@@ -86,7 +86,7 @@ func TestSimulatedBackend(t *testing.T) {
 	}
 }
 
-var testKey, failure = crypto.HexToECDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
+var testKey, failure = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 
 //  the following is based on this contract:
 //  contract T {
@@ -119,12 +119,12 @@ func TestNewSimulatedBackend(t *testing.T) {
 	)
 	defer sim.Close()
 
-	if sim.config != params.AllEthashProtocolChanges {
-		t.Errorf("expected sim config to equal params.AllEthashProtocolChanges, got %v", sim.config)
+	if sim.config != params.AllCryptoreProtocolChanges {
+		t.Errorf("expected sim config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
-	if sim.blockchain.Config() != params.AllEthashProtocolChanges {
-		t.Errorf("expected sim blockchain config to equal params.AllEthashProtocolChanges, got %v", sim.config)
+	if sim.blockchain.Config() != params.AllCryptoreProtocolChanges {
+		t.Errorf("expected sim blockchain config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
 	statedb, _ := sim.blockchain.State()
@@ -250,8 +250,8 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(nonce, testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(nonce, testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -285,8 +285,8 @@ func TestSimulatedBackend_SendTransaction(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -320,8 +320,8 @@ func TestSimulatedBackend_TransactionByHash(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -359,7 +359,7 @@ func TestSimulatedBackend_TransactionByHash(t *testing.T) {
 	}
 }
 
-func TestSimulatedBackend_EstimateGas(t *testing.T) {
+func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{}, 10000000,
 	)
@@ -367,18 +367,18 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 	bgCtx := context.Background()
 	testAddr := crypto.PubkeyToAddress(testKey.PublicKey)
 
-	gas, err := sim.EstimateGas(bgCtx, ethereum.CallMsg{
+	energy, err := sim.EstimateEnergy(bgCtx, gcore.CallMsg{
 		From:  testAddr,
 		To:    &testAddr,
 		Value: big.NewInt(1000),
 		Data:  []byte{},
 	})
 	if err != nil {
-		t.Errorf("could not estimate gas: %v", err)
+		t.Errorf("could not estimate energy: %v", err)
 	}
 
-	if gas != params.TxGas {
-		t.Errorf("expected 21000 gas cost for a transaction got %v", gas)
+	if energy != params.TxEnergy {
+		t.Errorf("expected 21000 energy cost for a transaction got %v", energy)
 	}
 }
 
@@ -483,8 +483,8 @@ func TestSimulatedBackend_TransactionCount(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -542,8 +542,8 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -601,8 +601,8 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -624,8 +624,8 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// make a new transaction with a nonce of 1
-	tx = types.NewTransaction(uint64(1), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err = types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx = types.NewTransaction(uint64(1), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err = types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -657,8 +657,8 @@ func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NucleusSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
 	}
@@ -680,19 +680,19 @@ func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
 	}
 }
 
-func TestSimulatedBackend_SuggestGasPrice(t *testing.T) {
+func TestSimulatedBackend_SuggestEnergyPrice(t *testing.T) {
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{},
 		10000000,
 	)
 	defer sim.Close()
 	bgCtx := context.Background()
-	gasPrice, err := sim.SuggestGasPrice(bgCtx)
+	energyPrice, err := sim.SuggestEnergyPrice(bgCtx)
 	if err != nil {
-		t.Errorf("could not get gas price: %v", err)
+		t.Errorf("could not get energy price: %v", err)
 	}
-	if gasPrice.Uint64() != uint64(1) {
-		t.Errorf("gas price was not expected value of 1. actual: %v", gasPrice.Uint64())
+	if energyPrice.Uint64() != uint64(1) {
+		t.Errorf("energy price was not expected value of 1. actual: %v", energyPrice.Uint64())
 	}
 }
 
@@ -780,7 +780,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 }
 
 // When receive("X") is called with sender 0x00... and value 1, it produces this tx receipt:
-//   receipt{status=1 cgas=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
+//   receipt{status=1 cenergy=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
 func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	testAddr := crypto.PubkeyToAddress(testKey.PublicKey)
 	sim := NewSimulatedBackend(
@@ -808,7 +808,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	}
 
 	// make sure you can call the contract in pending state
-	res, err := sim.PendingCallContract(bgCtx, ethereum.CallMsg{
+	res, err := sim.PendingCallContract(bgCtx, gcore.CallMsg{
 		From: testAddr,
 		To:   &addr,
 		Data: input,
@@ -828,7 +828,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	sim.Commit()
 
 	// make sure you can call the contract
-	res, err = sim.CallContract(bgCtx, ethereum.CallMsg{
+	res, err = sim.CallContract(bgCtx, gcore.CallMsg{
 		From: testAddr,
 		To:   &addr,
 		Data: input,

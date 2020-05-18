@@ -17,7 +17,7 @@
 package discv5
 
 import (
-	ecdsa "github.com/core-coin/eddsa"
+	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -284,7 +284,7 @@ func MustHexID(in string) NodeID {
 }
 
 // PubkeyID returns a marshaled representation of the given public key.
-func PubkeyID(pub *ecdsa.PublicKey) NodeID {
+func PubkeyID(pub *eddsa.PublicKey) NodeID {
 	var id NodeID
 	if len(pub.X) != len(id) {
 		panic("id len != pub len")
@@ -295,7 +295,7 @@ func PubkeyID(pub *ecdsa.PublicKey) NodeID {
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
-func (n NodeID) Pubkey() (*ecdsa.PublicKey, error) {
+func (n NodeID) Pubkey() (*eddsa.PublicKey, error) {
 	if n.String() == "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
 		return nil, errors.New("invalid node id")
 	}
