@@ -159,8 +159,6 @@ func xceFilter(args []string) (nodeFilter, error) {
 	switch args[0] {
 	case "mainnet":
 		filter = forkid.NewStaticFilter(params.MainnetChainConfig, params.MainnetGenesisHash)
-	case "rinkeby":
-		filter = forkid.NewStaticFilter(params.RinkebyChainConfig, params.RinkebyGenesisHash)
 	case "koliba":
 		filter = forkid.NewStaticFilter(params.KolibaChainConfig, params.KolibaGenesisHash)
 	case "testnet":

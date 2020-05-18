@@ -31,12 +31,6 @@ var TestnetBootnodes = []string{
 	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
 }
 
-// RinkebyBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Rinkeby test network.
-var RinkebyBootnodes = []string{
-	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
-}
-
 // KolibaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Koliba test network.
 var KolibaBootnodes = []string{
@@ -56,6 +50,5 @@ const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUD
 var KnownDNSNetworks = map[common.Hash]string{
 	MainnetGenesisHash: dnsPrefix + "all.mainnet.xcedisco.net",
 	TestnetGenesisHash: dnsPrefix + "all.testnet.xcedisco.net",
-	RinkebyGenesisHash: dnsPrefix + "all.rinkeby.xcedisco.net",
 	KolibaGenesisHash:  dnsPrefix + "all.koliba.xcedisco.net",
 }
