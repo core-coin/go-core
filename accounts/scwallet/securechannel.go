@@ -27,7 +27,6 @@ import (
 
 	"github.com/core-coin/go-core/crypto"
 	pcsc "github.com/gballet/go-libpcsclite"
-	"github.com/wsddn/go-ecdh"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/text/unicode/norm"
 )
@@ -63,26 +62,22 @@ type SecureChannelSession struct {
 // NewSecureChannelSession creates a new secure channel for the given card and public key.
 func NewSecureChannelSession(card *pcsc.Card, keyData []byte) (*SecureChannelSession, error) {
 	// Generate an EDDSA keypair for ourselves
-	gen := ecdh.NewEllipticECDH(crypto.S256())
-	private, public, err := gen.GenerateKey(rand.Reader)
+	private, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
-	cardPublic, ok := gen.Unmarshal(keyData)
-	if !ok {
+	cardPublic, err := crypto.UnmarshalPubkey(keyData)
+	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal public key from card")
 	}
 
-	secret, err := gen.GenerateSharedSecret(private, cardPublic)
-	if err != nil {
-		return nil, err
-	}
+	secret := crypto.ComputeSecret(private, cardPublic)
 
 	return &SecureChannelSession{
-		card:      card,
-		secret:    secret,
-		publicKey: gen.Marshal(public),
+		card: card,
+		secret: secret,
+		publicKey: private.PublicKey.X,
 	}, nil
 }
 

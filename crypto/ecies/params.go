@@ -36,17 +36,12 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/elliptic"
 	"crypto/sha256"
-	"crypto/sha512"
 	"fmt"
 	"hash"
-
-	xcecrypto "github.com/core-coin/go-core/crypto"
 )
 
 var (
-	DefaultCurve                  = xcecrypto.S256()
 	ErrUnsupportedECDHAlgorithm   = fmt.Errorf("ecies: unsupported ECDH algorithm")
 	ErrUnsupportedECIESParameters = fmt.Errorf("ecies: unsupported ECIES parameters")
 )
@@ -59,59 +54,14 @@ type ECIESParams struct {
 	KeyLen    int                                // length of symmetric key
 }
 
-// Standard ECIES parameters:
-// * ECIES using AES128 and HMAC-SHA-256-16
-// * ECIES using AES256 and HMAC-SHA-256-32
-// * ECIES using AES256 and HMAC-SHA-384-48
-// * ECIES using AES256 and HMAC-SHA-512-64
-
-var (
-	ECIES_AES128_SHA256 = &ECIESParams{
-		Hash:      sha256.New,
-		hashAlgo:  crypto.SHA256,
-		Cipher:    aes.NewCipher,
-		BlockSize: aes.BlockSize,
-		KeyLen:    16,
-	}
-
-	ECIES_AES256_SHA256 = &ECIESParams{
-		Hash:      sha256.New,
-		hashAlgo:  crypto.SHA256,
-		Cipher:    aes.NewCipher,
-		BlockSize: aes.BlockSize,
-		KeyLen:    32,
-	}
-
-	ECIES_AES256_SHA384 = &ECIESParams{
-		Hash:      sha512.New384,
-		hashAlgo:  crypto.SHA384,
-		Cipher:    aes.NewCipher,
-		BlockSize: aes.BlockSize,
-		KeyLen:    32,
-	}
-
-	ECIES_AES256_SHA512 = &ECIESParams{
-		Hash:      sha512.New,
-		hashAlgo:  crypto.SHA512,
-		Cipher:    aes.NewCipher,
-		BlockSize: aes.BlockSize,
-		KeyLen:    32,
-	}
-)
-
-var paramsFromCurve = map[elliptic.Curve]*ECIESParams{
-	xcecrypto.S256(): ECIES_AES128_SHA256,
-	elliptic.P256():  ECIES_AES128_SHA256,
-	elliptic.P384():  ECIES_AES256_SHA384,
-	elliptic.P521():  ECIES_AES256_SHA512,
+var ECIES_AES128_SHA256 = &ECIESParams{
+	Hash:      sha256.New,
+	hashAlgo:  crypto.SHA256,
+	Cipher:    aes.NewCipher,
+	BlockSize: aes.BlockSize,
+	KeyLen:    16,
 }
 
-func AddParamsForCurve(curve elliptic.Curve, params *ECIESParams) {
-	paramsFromCurve[curve] = params
-}
-
-// ParamsFromCurve selects parameters optimal for the selected elliptic curve.
-// Only the curves P256, P384, and P512 are supported.
-func ParamsFromCurve(curve elliptic.Curve) (params *ECIESParams) {
-	return paramsFromCurve[curve]
+func ParamsFromCurve() (params *ECIESParams) {
+	return ECIES_AES128_SHA256
 }
