@@ -18,7 +18,6 @@ package build
 
 import (
 	"bufio"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"golang.org/x/crypto/sha3"
