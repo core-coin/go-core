@@ -25,7 +25,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/accounts/scwallet"
@@ -44,11 +43,8 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/tyler-smith/go-bip39"
-)
-
-const (
-	defaultEnergyPrice = params.Nucle
 )
 
 // PublicCoreAPI provides an API to access Core related information.
@@ -719,12 +715,12 @@ func (s *PublicBlockChainAPI) GetStorageAt(ctx context.Context, address common.A
 
 // CallArgs represents the arguments for a call.
 type CallArgs struct {
-	From     *common.Address `json:"from"`
-	To       *common.Address `json:"to"`
+	From        *common.Address `json:"from"`
+	To          *common.Address `json:"to"`
 	Energy      *hexutil.Uint64 `json:"energy"`
 	EnergyPrice *hexutil.Big    `json:"energyPrice"`
-	Value    *hexutil.Big    `json:"value"`
-	Data     *hexutil.Bytes  `json:"data"`
+	Value       *hexutil.Big    `json:"value"`
+	Data        *hexutil.Bytes  `json:"data"`
 }
 
 // account indicates the overriding fields of account during the execution of
@@ -792,7 +788,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 		log.Warn("Caller energy above allowance, capping", "requested", energy, "cap", globalEnergyCap)
 		energy = globalEnergyCap.Uint64()
 	}
-	energyPrice := new(big.Int).SetUint64(defaultEnergyPrice)
+	energyPrice := new(big.Int)
 	if args.EnergyPrice != nil {
 		energyPrice = args.EnergyPrice.ToInt()
 	}
@@ -929,7 +925,7 @@ func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs)
 // while replaying a transaction in debug mode as well as transaction
 // execution status, the amount of energy used and the return value
 type ExecutionResult struct {
-	Energy         uint64         `json:"energy"`
+	Energy      uint64         `json:"energy"`
 	Failed      bool           `json:"failed"`
 	ReturnValue string         `json:"returnValue"`
 	StructLogs  []StructLogRes `json:"structLogs"`
@@ -938,15 +934,15 @@ type ExecutionResult struct {
 // StructLogRes stores a structured log emitted by the CVM while replaying a
 // transaction in debug mode
 type StructLogRes struct {
-	Pc      uint64             `json:"pc"`
-	Op      string             `json:"op"`
+	Pc         uint64             `json:"pc"`
+	Op         string             `json:"op"`
 	Energy     uint64             `json:"energy"`
 	EnergyCost uint64             `json:"energyCost"`
-	Depth   int                `json:"depth"`
-	Error   error              `json:"error,omitempty"`
-	Stack   *[]string          `json:"stack,omitempty"`
-	Memory  *[]string          `json:"memory,omitempty"`
-	Storage *map[string]string `json:"storage,omitempty"`
+	Depth      int                `json:"depth"`
+	Error      error              `json:"error,omitempty"`
+	Stack      *[]string          `json:"stack,omitempty"`
+	Memory     *[]string          `json:"memory,omitempty"`
+	Storage    *map[string]string `json:"storage,omitempty"`
 }
 
 // FormatLogs formats CVM returned structured logs for json output
@@ -954,12 +950,12 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 	formatted := make([]StructLogRes, len(logs))
 	for index, trace := range logs {
 		formatted[index] = StructLogRes{
-			Pc:      trace.Pc,
-			Op:      trace.Op.String(),
+			Pc:         trace.Pc,
+			Op:         trace.Op.String(),
 			Energy:     trace.Energy,
 			EnergyCost: trace.EnergyCost,
-			Depth:   trace.Depth,
-			Error:   trace.Err,
+			Depth:      trace.Depth,
+			Error:      trace.Err,
 		}
 		if trace.Stack != nil {
 			stack := make([]string, len(trace.Stack))
@@ -1001,8 +997,8 @@ func RPCMarshalHeader(head *types.Header) map[string]interface{} {
 		"difficulty":       (*hexutil.Big)(head.Difficulty),
 		"extraData":        hexutil.Bytes(head.Extra),
 		"size":             hexutil.Uint64(head.Size()),
-		"energyLimit":         hexutil.Uint64(head.EnergyLimit),
-		"energyUsed":          hexutil.Uint64(head.EnergyUsed),
+		"energyLimit":      hexutil.Uint64(head.EnergyLimit),
+		"energyUsed":       hexutil.Uint64(head.EnergyUsed),
 		"timestamp":        hexutil.Uint64(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,
@@ -1071,8 +1067,8 @@ type RPCTransaction struct {
 	BlockHash        *common.Hash    `json:"blockHash"`
 	BlockNumber      *hexutil.Big    `json:"blockNumber"`
 	From             common.Address  `json:"from"`
-	Energy              hexutil.Uint64  `json:"energy"`
-	EnergyPrice         *hexutil.Big    `json:"energyPrice"`
+	Energy           hexutil.Uint64  `json:"energy"`
+	EnergyPrice      *hexutil.Big    `json:"energyPrice"`
 	Hash             common.Hash     `json:"hash"`
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
@@ -1088,14 +1084,14 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
-		From:     from,
+		From:        from,
 		Energy:      hexutil.Uint64(tx.Energy()),
 		EnergyPrice: (*hexutil.Big)(tx.EnergyPrice()),
-		Hash:     tx.Hash(),
-		Input:    hexutil.Bytes(tx.Data()),
-		Nonce:    hexutil.Uint64(tx.Nonce()),
-		To:       tx.To(),
-		Value:    (*hexutil.Big)(tx.Value()),
+		Hash:        tx.Hash(),
+		Input:       hexutil.Bytes(tx.Data()),
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		To:          tx.To(),
+		Value:       (*hexutil.Big)(tx.Value()),
 	}
 	if blockHash != (common.Hash{}) {
 		result.BlockHash = &blockHash
@@ -1274,17 +1270,17 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	from, _ := types.Sender(signer, tx)
 
 	fields := map[string]interface{}{
-		"blockHash":         blockHash,
-		"blockNumber":       hexutil.Uint64(blockNumber),
-		"transactionHash":   hash,
-		"transactionIndex":  hexutil.Uint64(index),
-		"from":              from,
-		"to":                tx.To(),
+		"blockHash":            blockHash,
+		"blockNumber":          hexutil.Uint64(blockNumber),
+		"transactionHash":      hash,
+		"transactionIndex":     hexutil.Uint64(index),
+		"from":                 from,
+		"to":                   tx.To(),
 		"energyUsed":           hexutil.Uint64(receipt.EnergyUsed),
 		"cumulativeEnergyUsed": hexutil.Uint64(receipt.CumulativeEnergyUsed),
-		"contractAddress":   nil,
-		"logs":              receipt.Logs,
-		"logsBloom":         receipt.Bloom,
+		"contractAddress":      nil,
+		"logs":                 receipt.Logs,
+		"logsBloom":            receipt.Bloom,
 	}
 
 	// Assign receipt status or post state.
@@ -1318,12 +1314,12 @@ func (s *PublicTransactionPoolAPI) sign(addr common.Address, tx *types.Transacti
 
 // SendTxArgs represents the arguments to sumbit a new transaction into the transaction pool.
 type SendTxArgs struct {
-	From     common.Address  `json:"from"`
-	To       *common.Address `json:"to"`
+	From        common.Address  `json:"from"`
+	To          *common.Address `json:"to"`
 	Energy      *hexutil.Uint64 `json:"energy"`
 	EnergyPrice *hexutil.Big    `json:"energyPrice"`
-	Value    *hexutil.Big    `json:"value"`
-	Nonce    *hexutil.Uint64 `json:"nonce"`
+	Value       *hexutil.Big    `json:"value"`
+	Nonce       *hexutil.Uint64 `json:"nonce"`
 	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`
@@ -1373,11 +1369,11 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 			input = args.Data
 		}
 		callArgs := CallArgs{
-			From:     &args.From, // From shouldn't be nil
-			To:       args.To,
+			From:        &args.From, // From shouldn't be nil
+			To:          args.To,
 			EnergyPrice: args.EnergyPrice,
-			Value:    args.Value,
-			Data:     input,
+			Value:       args.Value,
+			Data:        input,
 		}
 		pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
 		estimated, err := DoEstimateEnergy(ctx, b, callArgs, pendingBlockNr, b.RPCEnergyCap())
@@ -1639,7 +1635,7 @@ func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address comm
 		return common.Address{}, fmt.Errorf("block #%d not found", number)
 	}
 	header := block.Header()
-	header.Extra = make([]byte, 32 + crypto.SignatureLength)
+	header.Extra = make([]byte, 32+crypto.SignatureLength)
 	encoded := clique.CliqueRLP(header)
 
 	// Look up the wallet containing the requested signer
