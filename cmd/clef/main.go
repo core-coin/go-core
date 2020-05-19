@@ -545,12 +545,12 @@ func signer(c *cli.Context) error {
 		if err != nil {
 			utils.Fatalf("Could not start RPC api: %v", err)
 		}
-		extapiURL = fmt.Sprintf("http://%s", httpEndpoint)
+		extapiURL = fmt.Sprintf("http://%v/", listener.Addr())
 		log.Info("HTTP endpoint opened", "url", extapiURL)
 
 		defer func() {
 			listener.Close()
-			log.Info("HTTP endpoint closed", "url", httpEndpoint)
+			log.Info("HTTP endpoint closed", "url", extapiURL)
 		}()
 	}
 	if !c.GlobalBool(utils.IPCDisabledFlag.Name) {
@@ -769,8 +769,8 @@ func testExternalUI(api *core.SignerAPI) {
 			ReceiptHash: common.HexToHash("0000H45H"),
 			Difficulty:  big.NewInt(1337),
 			Number:      big.NewInt(1337),
-			EnergyLimit:    1338,
-			EnergyUsed:     1338,
+			EnergyLimit: 1338,
+			EnergyUsed:  1338,
 			Time:        1338,
 			Extra:       []byte("Extra data Extra data Extra data  Extra data  Extra data  Extra data  Extra data Extra data"),
 			MixDigest:   common.HexToHash("0x0000H45H"),
@@ -815,14 +815,14 @@ func testExternalUI(api *core.SignerAPI) {
 		data := hexutil.Bytes([]byte{})
 		to := common.NewMixedcaseAddress(a)
 		tx := core.SendTxArgs{
-			Data:     &data,
-			Nonce:    0x1,
-			Value:    hexutil.Big(*big.NewInt(6)),
-			From:     common.NewMixedcaseAddress(a),
-			To:       &to,
+			Data:        &data,
+			Nonce:       0x1,
+			Value:       hexutil.Big(*big.NewInt(6)),
+			From:        common.NewMixedcaseAddress(a),
+			To:          &to,
 			EnergyPrice: hexutil.Big(*big.NewInt(5)),
 			Energy:      1000,
-			Input:    nil,
+			Input:       nil,
 		}
 		_, err := api.SignTransaction(ctx, tx, nil)
 		expectDeny("signtransaction [1]", err)
@@ -972,14 +972,14 @@ func GenDoc(ctx *cli.Context) {
 				{Typ: "Info", Message: "User should see this as well"},
 			},
 			Transaction: core.SendTxArgs{
-				Data:     &data,
-				Nonce:    0x1,
-				Value:    hexutil.Big(*big.NewInt(6)),
-				From:     common.NewMixedcaseAddress(a),
-				To:       nil,
+				Data:        &data,
+				Nonce:       0x1,
+				Value:       hexutil.Big(*big.NewInt(6)),
+				From:        common.NewMixedcaseAddress(a),
+				To:          nil,
 				EnergyPrice: hexutil.Big(*big.NewInt(5)),
 				Energy:      1000,
-				Input:    nil,
+				Input:       nil,
 			}})
 	}
 	{ // Sign tx response
@@ -988,14 +988,14 @@ func GenDoc(ctx *cli.Context) {
 			", because the UI is free to make modifications to the transaction.",
 			&core.SignTxResponse{Approved: true,
 				Transaction: core.SendTxArgs{
-					Data:     &data,
-					Nonce:    0x4,
-					Value:    hexutil.Big(*big.NewInt(6)),
-					From:     common.NewMixedcaseAddress(a),
-					To:       nil,
+					Data:        &data,
+					Nonce:       0x4,
+					Value:       hexutil.Big(*big.NewInt(6)),
+					From:        common.NewMixedcaseAddress(a),
+					To:          nil,
 					EnergyPrice: hexutil.Big(*big.NewInt(5)),
 					Energy:      1000,
-					Input:    nil,
+					Input:       nil,
 				}})
 		add("SignTxResponse - deny", "Response to SignTxRequest. When denying a request, there's no need to "+
 			"provide the transaction in return",
