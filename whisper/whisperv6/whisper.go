@@ -19,21 +19,21 @@ package whisperv6
 import (
 	"bytes"
 	"crypto/rand"
-	"crypto/sha256"
-	"github.com/core-coin/eddsa"
 	"fmt"
+	"github.com/core-coin/eddsa"
+	"golang.org/x/crypto/sha3"
 	"math"
 	"runtime"
 	"sync"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sync/syncmap"
@@ -527,7 +527,7 @@ func (whisper *Whisper) AddSymKeyFromPassword(password string) (string, error) {
 
 	// kdf should run no less than 0.1 seconds on an average computer,
 	// because it's an once in a session experience
-	derived := pbkdf2.Key([]byte(password), nil, 65356, aesKeyLength, sha256.New)
+	derived := pbkdf2.Key([]byte(password), nil, 65356, aesKeyLength, sha3.New256)
 	if err != nil {
 		return "", err
 	}

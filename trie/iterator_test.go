@@ -394,7 +394,7 @@ func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 	if !memonly {
 		triedb.Commit(root, true)
 	}
-	barNodeHash := common.HexToHash("05041990364eb72fcb1127652ce40d8bab765f2bfe53225b1170d276cc101c2e")
+	barNodeHash := common.HexToHash("0x9e3dfb5f6b3d86f07fbd1ca0eb55a023f002ad2a8b6bf56fafd7e9f63e07f16b")
 	var (
 		barNodeBlob []byte
 		barNodeObj  *cachedNode

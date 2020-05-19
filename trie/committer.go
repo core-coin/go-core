@@ -57,7 +57,7 @@ var committerPool = sync.Pool{
 	New: func() interface{} {
 		return &committer{
 			tmp: make(sliceBuffer, 0, 550), // cap is as large as a full fullNode.
-			sha: sha3.NewLegacyKeccak256().(keccakState),
+			sha: sha3.New256().(keccakState),
 		}
 	},
 }

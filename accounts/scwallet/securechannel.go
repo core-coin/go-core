@@ -21,12 +21,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
 	"github.com/core-coin/go-core/crypto"
 	pcsc "github.com/gballet/go-libpcsclite"
 	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/crypto/sha3"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -82,7 +82,7 @@ func NewSecureChannelSession(card *pcsc.Card, keyData []byte) (*SecureChannelSes
 
 // Pair establishes a new pairing with the smartcard.
 func (s *SecureChannelSession) Pair(pairingPassword []byte) error {
-	secretHash := pbkdf2.Key(norm.NFKD.Bytes(pairingPassword), norm.NFKD.Bytes([]byte(pairingSalt)), 50000, 32, sha256.New)
+	secretHash := pbkdf2.Key(norm.NFKD.Bytes(pairingPassword), norm.NFKD.Bytes([]byte(pairingSalt)), 50000, 32, sha3.New256)
 
 	challenge := make([]byte, 32)
 	if _, err := rand.Read(challenge); err != nil {
@@ -94,7 +94,7 @@ func (s *SecureChannelSession) Pair(pairingPassword []byte) error {
 		return err
 	}
 
-	md := sha256.New()
+	md := sha3.New256()
 	md.Write(secretHash[:])
 	md.Write(challenge)
 
