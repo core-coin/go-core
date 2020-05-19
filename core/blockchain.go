@@ -36,13 +36,13 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcedb"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -1705,11 +1705,10 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, er
 		// Write the block to the chain and get the status.
 		substart = time.Now()
 		status, err := bc.writeBlockWithState(block, receipts, logs, statedb, false)
+		atomic.StoreUint32(&followupInterrupt, 1)
 		if err != nil {
-			atomic.StoreUint32(&followupInterrupt, 1)
 			return it.index, err
 		}
-		atomic.StoreUint32(&followupInterrupt, 1)
 
 		// Update the metrics touched during block commit
 		accountCommitTimer.Update(statedb.AccountCommits) // Account commits are complete, we can mark them
