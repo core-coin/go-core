@@ -18,7 +18,6 @@ package whisperv6
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"golang.org/x/crypto/sha3"
 	"testing"
 

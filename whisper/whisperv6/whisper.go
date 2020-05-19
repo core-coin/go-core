@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"github.com/core-coin/eddsa"
-	"crypto/sha256"
 	"fmt"
 	"golang.org/x/crypto/sha3"
 	"math"
