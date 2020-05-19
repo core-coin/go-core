@@ -32,9 +32,9 @@ package ecies
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -43,7 +43,7 @@ import (
 // Ensure the KDF generates appropriately sized keys.
 func TestKDF(t *testing.T) {
 	msg := []byte("Hello, world")
-	h := sha3.New256()
+	h := sha256.New()
 
 	k, err := concatKDF(h, msg, nil, 64)
 	if err != nil {

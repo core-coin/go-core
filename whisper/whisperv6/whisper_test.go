@@ -18,8 +18,8 @@ package whisperv6
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"github.com/core-coin/eddsa"
-	"golang.org/x/crypto/sha3"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -76,7 +76,7 @@ func TestWhisperBasic(t *testing.T) {
 		t.Fatalf("failed w.Envelopes().")
 	}
 
-	derived := pbkdf2.Key(peerID, nil, 65356, aesKeyLength, sha3.New256)
+	derived := pbkdf2.Key(peerID, nil, 65356, aesKeyLength, sha256.New)
 	if !validateDataIntegrity(derived, aesKeyLength) {
 		t.Fatalf("failed validateSymmetricKey with param = %v.", derived)
 	}

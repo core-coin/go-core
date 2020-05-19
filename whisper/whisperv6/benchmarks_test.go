@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"crypto/rand"
-	"golang.org/x/crypto/sha3"
+	"crypto/sha256"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -27,7 +27,7 @@ import (
 
 func BenchmarkDeriveKeyMaterial(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		pbkdf2.Key([]byte("test"), nil, 65356, aesKeyLength, sha3.New256)
+		pbkdf2.Key([]byte("test"), nil, 65356, aesKeyLength, sha256.New)
 	}
 }
 
