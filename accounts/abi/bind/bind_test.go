@@ -1764,7 +1764,7 @@ public class Test {
 	
 
 	
-	// setAddress is a paid mutator transaction binding the contract method 0xe30081a0.
+	// setAddress is a paid mutator transaction binding the contract method 0x38b3d31e.
 	//
 	// Solidity: function setAddress(address a) returns(address)
 	public Transaction setAddress(TransactOpts opts, Address a) throws Exception {
@@ -1774,7 +1774,7 @@ public class Test {
 		return this.Contract.transact(opts, "setAddress"	, args);
 	}
 	
-	// setAddressArray is a paid mutator transaction binding the contract method 0x151f5471.
+	// setAddressArray is a paid mutator transaction binding the contract method 0xd1b7ed97.
 	//
 	// Solidity: function setAddressArray(address[2] a_a) returns(address[2])
 	public Transaction setAddressArray(TransactOpts opts, Addresses a_a) throws Exception {
@@ -1784,7 +1784,7 @@ public class Test {
 		return this.Contract.transact(opts, "setAddressArray"	, args);
 	}
 	
-	// setAddressList is a paid mutator transaction binding the contract method 0x5be6b37e.
+	// setAddressList is a paid mutator transaction binding the contract method 0x904faf03.
 	//
 	// Solidity: function setAddressList(address[] a_l) returns(address[])
 	public Transaction setAddressList(TransactOpts opts, Addresses a_l) throws Exception {
@@ -1794,7 +1794,7 @@ public class Test {
 		return this.Contract.transact(opts, "setAddressList"	, args);
 	}
 	
-	// setBool is a paid mutator transaction binding the contract method 0x1e26fd33.
+	// setBool is a paid mutator transaction binding the contract method 0x4dd024a0.
 	//
 	// Solidity: function setBool(bool b) returns(bool)
 	public Transaction setBool(TransactOpts opts, boolean b) throws Exception {
@@ -1804,7 +1804,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBool"	, args);
 	}
 	
-	// setBoolArray is a paid mutator transaction binding the contract method 0x118a9718.
+	// setBoolArray is a paid mutator transaction binding the contract method 0xd6c63e40.
 	//
 	// Solidity: function setBoolArray(bool[2] b_a) returns(bool[2])
 	public Transaction setBoolArray(TransactOpts opts, Bools b_a) throws Exception {
@@ -1814,7 +1814,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBoolArray"	, args);
 	}
 	
-	// setBoolList is a paid mutator transaction binding the contract method 0x4d5ee6da.
+	// setBoolList is a paid mutator transaction binding the contract method 0xaffde4fb.
 	//
 	// Solidity: function setBoolList(bool[] b_l) returns(bool[])
 	public Transaction setBoolList(TransactOpts opts, Bools b_l) throws Exception {
@@ -1824,7 +1824,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBoolList"	, args);
 	}
 	
-	// setBytes is a paid mutator transaction binding the contract method 0xda359dc8.
+	// setBytes is a paid mutator transaction binding the contract method 0xa29012c8.
 	//
 	// Solidity: function setBytes(bytes bs) returns(bytes)
 	public Transaction setBytes(TransactOpts opts, byte[] bs) throws Exception {
@@ -1834,7 +1834,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBytes"	, args);
 	}
 	
-	// setBytes1 is a paid mutator transaction binding the contract method 0xfba1a1c3.
+	// setBytes1 is a paid mutator transaction binding the contract method 0xc04b5fb7.
 	//
 	// Solidity: function setBytes1(bytes1 b1) returns(bytes1)
 	public Transaction setBytes1(TransactOpts opts, byte[] b1) throws Exception {
@@ -1844,7 +1844,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBytes1"	, args);
 	}
 	
-	// setBytes32 is a paid mutator transaction binding the contract method 0xc2b12a73.
+	// setBytes32 is a paid mutator transaction binding the contract method 0x73f74fb1.
 	//
 	// Solidity: function setBytes32(bytes32 b32) returns(bytes32)
 	public Transaction setBytes32(TransactOpts opts, byte[] b32) throws Exception {
@@ -1854,7 +1854,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBytes32"	, args);
 	}
 	
-	// setBytesArray is a paid mutator transaction binding the contract method 0x5119655d.
+	// setBytesArray is a paid mutator transaction binding the contract method 0x28d422d6.
 	//
 	// Solidity: function setBytesArray(bytes[2] bs_a) returns(bytes[2])
 	public Transaction setBytesArray(TransactOpts opts, Binaries bs_a) throws Exception {
@@ -1864,7 +1864,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBytesArray"	, args);
 	}
 	
-	// setBytesList is a paid mutator transaction binding the contract method 0x16c105e2.
+	// setBytesList is a paid mutator transaction binding the contract method 0xd7d2a529.
 	//
 	// Solidity: function setBytesList(bytes[] bs_l) returns(bytes[])
 	public Transaction setBytesList(TransactOpts opts, Binaries bs_l) throws Exception {
@@ -1874,7 +1874,7 @@ public class Test {
 		return this.Contract.transact(opts, "setBytesList"	, args);
 	}
 	
-	// setInt16 is a paid mutator transaction binding the contract method 0x86114cea.
+	// setInt16 is a paid mutator transaction binding the contract method 0xaf48b6f1.
 	//
 	// Solidity: function setInt16(int16 i16) returns(int16)
 	public Transaction setInt16(TransactOpts opts, short i16) throws Exception {
@@ -1884,7 +1884,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt16"	, args);
 	}
 	
-	// setInt256 is a paid mutator transaction binding the contract method 0xa53b1c1e.
+	// setInt256 is a paid mutator transaction binding the contract method 0xee27bc3c.
 	//
 	// Solidity: function setInt256(int256 i256) returns(int256)
 	public Transaction setInt256(TransactOpts opts, BigInt i256) throws Exception {
@@ -1894,7 +1894,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt256"	, args);
 	}
 	
-	// setInt256Array is a paid mutator transaction binding the contract method 0x6aa482fc.
+	// setInt256Array is a paid mutator transaction binding the contract method 0x1ff2e90c.
 	//
 	// Solidity: function setInt256Array(int256[2] i256_a) returns(int256[2])
 	public Transaction setInt256Array(TransactOpts opts, BigInts i256_a) throws Exception {
@@ -1904,7 +1904,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt256Array"	, args);
 	}
 	
-	// setInt256List is a paid mutator transaction binding the contract method 0x22722302.
+	// setInt256List is a paid mutator transaction binding the contract method 0x22b4da49.
 	//
 	// Solidity: function setInt256List(int256[] i256_l) returns(int256[])
 	public Transaction setInt256List(TransactOpts opts, BigInts i256_l) throws Exception {
@@ -1914,7 +1914,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt256List"	, args);
 	}
 	
-	// setInt32 is a paid mutator transaction binding the contract method 0xb7d5df31.
+	// setInt32 is a paid mutator transaction binding the contract method 0x2d4e1848.
 	//
 	// Solidity: function setInt32(int32 i32) returns(int32)
 	public Transaction setInt32(TransactOpts opts, int i32) throws Exception {
@@ -1924,7 +1924,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt32"	, args);
 	}
 	
-	// setInt64 is a paid mutator transaction binding the contract method 0xe673eb32.
+	// setInt64 is a paid mutator transaction binding the contract method 0x4658e91d.
 	//
 	// Solidity: function setInt64(int64 i64) returns(int64)
 	public Transaction setInt64(TransactOpts opts, long i64) throws Exception {
@@ -1934,7 +1934,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt64"	, args);
 	}
 	
-	// setInt8 is a paid mutator transaction binding the contract method 0x9a19a953.
+	// setInt8 is a paid mutator transaction binding the contract method 0xcaf9aa96.
 	//
 	// Solidity: function setInt8(int8 i8) returns(int8)
 	public Transaction setInt8(TransactOpts opts, byte i8) throws Exception {
@@ -1944,7 +1944,7 @@ public class Test {
 		return this.Contract.transact(opts, "setInt8"	, args);
 	}
 	
-	// setString is a paid mutator transaction binding the contract method 0x7fcaf666.
+	// setString is a paid mutator transaction binding the contract method 0x0a8de7d6.
 	//
 	// Solidity: function setString(string s) returns(string)
 	public Transaction setString(TransactOpts opts, String s) throws Exception {
@@ -1954,7 +1954,7 @@ public class Test {
 		return this.Contract.transact(opts, "setString"	, args);
 	}
 	
-	// setStringArray is a paid mutator transaction binding the contract method 0x7173b695.
+	// setStringArray is a paid mutator transaction binding the contract method 0xda9f56a3.
 	//
 	// Solidity: function setStringArray(string[2] s_a) returns(string[2])
 	public Transaction setStringArray(TransactOpts opts, Strings s_a) throws Exception {
@@ -1964,7 +1964,7 @@ public class Test {
 		return this.Contract.transact(opts, "setStringArray"	, args);
 	}
 	
-	// setStringList is a paid mutator transaction binding the contract method 0xc5777961.
+	// setStringList is a paid mutator transaction binding the contract method 0x04345454.
 	//
 	// Solidity: function setStringList(string[] s_l) returns(string[])
 	public Transaction setStringList(TransactOpts opts, Strings s_l) throws Exception {
@@ -1974,7 +1974,7 @@ public class Test {
 		return this.Contract.transact(opts, "setStringList"	, args);
 	}
 	
-	// setUint16 is a paid mutator transaction binding the contract method 0x0477988a.
+	// setUint16 is a paid mutator transaction binding the contract method 0x1a8f73ff.
 	//
 	// Solidity: function setUint16(uint16 u16) returns(uint16)
 	public Transaction setUint16(TransactOpts opts, BigInt u16) throws Exception {
@@ -1984,7 +1984,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint16"	, args);
 	}
 	
-	// setUint256 is a paid mutator transaction binding the contract method 0xd2282dc5.
+	// setUint256 is a paid mutator transaction binding the contract method 0x60ff6c02.
 	//
 	// Solidity: function setUint256(uint256 u256) returns(uint256)
 	public Transaction setUint256(TransactOpts opts, BigInt u256) throws Exception {
@@ -1994,7 +1994,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint256"	, args);
 	}
 	
-	// setUint256Array is a paid mutator transaction binding the contract method 0x2766a755.
+	// setUint256Array is a paid mutator transaction binding the contract method 0x47122832.
 	//
 	// Solidity: function setUint256Array(uint256[2] u256_a) returns(uint256[2])
 	public Transaction setUint256Array(TransactOpts opts, BigInts u256_a) throws Exception {
@@ -2004,7 +2004,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint256Array"	, args);
 	}
 	
-	// setUint256List is a paid mutator transaction binding the contract method 0xa0709e19.
+	// setUint256List is a paid mutator transaction binding the contract method 0x8cb906c1.
 	//
 	// Solidity: function setUint256List(uint256[] u256_l) returns(uint256[])
 	public Transaction setUint256List(TransactOpts opts, BigInts u256_l) throws Exception {
@@ -2014,7 +2014,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint256List"	, args);
 	}
 	
-	// setUint32 is a paid mutator transaction binding the contract method 0x1c9352e2.
+	// setUint32 is a paid mutator transaction binding the contract method 0x1daf92c8.
 	//
 	// Solidity: function setUint32(uint32 u32) returns(uint32)
 	public Transaction setUint32(TransactOpts opts, BigInt u32) throws Exception {
@@ -2024,7 +2024,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint32"	, args);
 	}
 	
-	// setUint64 is a paid mutator transaction binding the contract method 0x822cba69.
+	// setUint64 is a paid mutator transaction binding the contract method 0xcfd9f34b.
 	//
 	// Solidity: function setUint64(uint64 u64) returns(uint64)
 	public Transaction setUint64(TransactOpts opts, BigInt u64) throws Exception {
@@ -2034,7 +2034,7 @@ public class Test {
 		return this.Contract.transact(opts, "setUint64"	, args);
 	}
 	
-	// setUint8 is a paid mutator transaction binding the contract method 0x1774e646.
+	// setUint8 is a paid mutator transaction binding the contract method 0x0e4a91fa.
 	//
 	// Solidity: function setUint8(uint8 u8) returns(uint8)
 	public Transaction setUint8(TransactOpts opts, BigInt u8) throws Exception {
