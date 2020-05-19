@@ -23,9 +23,9 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/xce/downloader"
 )
 
 const (
@@ -189,8 +189,8 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		return
 	}
 	// Make sure the peer's TD is higher than our own
-	currentBlock := pm.blockchain.CurrentBlock()
-	td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
+	currentHeader := pm.blockchain.CurrentHeader()
+	td := pm.blockchain.GetTd(currentHeader.Hash(), currentHeader.Number.Uint64())
 
 	pHead, pTd := peer.Head()
 	if pTd.Cmp(td) <= 0 {
