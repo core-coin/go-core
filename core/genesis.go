@@ -32,10 +32,10 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -46,20 +46,20 @@ var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
-	Config     *params.ChainConfig `json:"config"`
-	Nonce      uint64              `json:"nonce"`
-	Timestamp  uint64              `json:"timestamp"`
-	ExtraData  []byte              `json:"extraData"`
-	EnergyLimit   uint64              `json:"energyLimit"   gencodec:"required"`
-	Difficulty *big.Int            `json:"difficulty" gencodec:"required"`
-	Mixhash    common.Hash         `json:"mixHash"`
-	Coinbase   common.Address      `json:"coinbase"`
-	Alloc      GenesisAlloc        `json:"alloc"      gencodec:"required"`
+	Config      *params.ChainConfig `json:"config"`
+	Nonce       uint64              `json:"nonce"`
+	Timestamp   uint64              `json:"timestamp"`
+	ExtraData   []byte              `json:"extraData"`
+	EnergyLimit uint64              `json:"energyLimit"   gencodec:"required"`
+	Difficulty  *big.Int            `json:"difficulty" gencodec:"required"`
+	Mixhash     common.Hash         `json:"mixHash"`
+	Coinbase    common.Address      `json:"coinbase"`
+	Alloc       GenesisAlloc        `json:"alloc"      gencodec:"required"`
 
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
 	Number     uint64      `json:"number"`
-	EnergyUsed    uint64      `json:"energyUsed"`
+	EnergyUsed uint64      `json:"energyUsed"`
 	ParentHash common.Hash `json:"parentHash"`
 }
 
@@ -89,14 +89,14 @@ type GenesisAccount struct {
 
 // field type overrides for gencodec
 type genesisSpecMarshaling struct {
-	Nonce      math.HexOrDecimal64
-	Timestamp  math.HexOrDecimal64
-	ExtraData  hexutil.Bytes
-	EnergyLimit   math.HexOrDecimal64
-	EnergyUsed    math.HexOrDecimal64
-	Number     math.HexOrDecimal64
-	Difficulty *math.HexOrDecimal256
-	Alloc      map[common.UnprefixedAddress]GenesisAccount
+	Nonce       math.HexOrDecimal64
+	Timestamp   math.HexOrDecimal64
+	ExtraData   hexutil.Bytes
+	EnergyLimit math.HexOrDecimal64
+	EnergyUsed  math.HexOrDecimal64
+	Number      math.HexOrDecimal64
+	Difficulty  *math.HexOrDecimal256
+	Alloc       map[common.UnprefixedAddress]GenesisAccount
 }
 
 type genesisAccountMarshaling struct {
@@ -152,10 +152,6 @@ func (e *GenesisMismatchError) Error() string {
 //
 // The returned chain configuration is never nil.
 func SetupGenesisBlock(db xcedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
-	return SetupGenesisBlockWithOverride(db, genesis)
-}
-
-func SetupGenesisBlockWithOverride(db xcedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllCryptoreProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -264,17 +260,17 @@ func (g *Genesis) ToBlock(db xcedb.Database) *types.Block {
 	}
 	root := statedb.IntermediateRoot(false)
 	head := &types.Header{
-		Number:     new(big.Int).SetUint64(g.Number),
-		Nonce:      types.EncodeNonce(g.Nonce),
-		Time:       g.Timestamp,
-		ParentHash: g.ParentHash,
-		Extra:      g.ExtraData,
-		EnergyLimit:   g.EnergyLimit,
-		EnergyUsed:    g.EnergyUsed,
-		Difficulty: g.Difficulty,
-		MixDigest:  g.Mixhash,
-		Coinbase:   g.Coinbase,
-		Root:       root,
+		Number:      new(big.Int).SetUint64(g.Number),
+		Nonce:       types.EncodeNonce(g.Nonce),
+		Time:        g.Timestamp,
+		ParentHash:  g.ParentHash,
+		Extra:       g.ExtraData,
+		EnergyLimit: g.EnergyLimit,
+		EnergyUsed:  g.EnergyUsed,
+		Difficulty:  g.Difficulty,
+		MixDigest:   g.Mixhash,
+		Coinbase:    g.Coinbase,
+		Root:        root,
 	}
 	if g.EnergyLimit == 0 {
 		head.EnergyLimit = params.GenesisEnergyLimit
@@ -332,36 +328,36 @@ func GenesisBlockForTesting(db xcedb.Database, addr common.Address, balance *big
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:     params.MainnetChainConfig,
-		Nonce:      66,
-		ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
-		EnergyLimit:   5000,
-		Difficulty: big.NewInt(17179869184),
-		Alloc:      decodePrealloc(mainnetAllocData),
+		Config:      params.MainnetChainConfig,
+		Nonce:       66,
+		ExtraData:   hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
+		EnergyLimit: 5000,
+		Difficulty:  big.NewInt(17179869184),
+		Alloc:       decodePrealloc(mainnetAllocData),
 	}
 }
 
 // DefaultTestnetGenesisBlock returns the Testnet network genesis block.
 func DefaultTestnetGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:     params.TestnetChainConfig,
-		Nonce:      66,
-		ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
-		EnergyLimit:   16777216,
-		Difficulty: big.NewInt(1048576),
-		Alloc:      decodePrealloc(testnetAllocData),
+		Config:      params.TestnetChainConfig,
+		Nonce:       66,
+		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
+		EnergyLimit: 16777216,
+		Difficulty:  big.NewInt(1048576),
+		Alloc:       decodePrealloc(testnetAllocData),
 	}
 }
 
 // DefaultKolibaGenesisBlock returns the Koliba network genesis block.
 func DefaultKolibaGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:     params.KolibaChainConfig,
-		Timestamp:  1548854791,
-		ExtraData:  hexutil.MustDecode("0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
-		EnergyLimit:   10485760,
-		Difficulty: big.NewInt(1),
-		Alloc:      decodePrealloc(kolibaAllocData),
+		Config:      params.KolibaChainConfig,
+		Timestamp:   1548854791,
+		ExtraData:   hexutil.MustDecode("0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+		EnergyLimit: 10485760,
+		Difficulty:  big.NewInt(1),
+		Alloc:       decodePrealloc(kolibaAllocData),
 	}
 }
 
@@ -373,10 +369,10 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{
-		Config:     &config,
-		ExtraData:  append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
-		EnergyLimit:   6283185,
-		Difficulty: big.NewInt(1),
+		Config:      &config,
+		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
+		EnergyLimit: 6283185,
+		Difficulty:  big.NewInt(1),
 		Alloc: map[common.Address]GenesisAccount{
 			common.BytesToAddress([]byte{1}): {Balance: big.NewInt(1)}, // ECRecover
 			common.BytesToAddress([]byte{2}): {Balance: big.NewInt(1)}, // SHA256

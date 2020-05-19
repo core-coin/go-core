@@ -20,8 +20,6 @@ package crypto
 
 import (
 	"github.com/core-coin/eddsa"
-	"crypto/elliptic"
-	"github.com/core-coin/go-core/crypto/secp256k1"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.
@@ -80,9 +78,4 @@ func DecompressPubkey(pubkey []byte) (*eddsa.PublicKey, error) {
 // CompressPubkey encodes a public key to the 33-byte compressed format.
 func CompressPubkey(pubkey *eddsa.PublicKey) []byte {
 	return pubkey.X
-}
-
-// S256 returns an instance of the secp256k1 curve.
-func S256() elliptic.Curve {
-	return secp256k1.S256()
 }

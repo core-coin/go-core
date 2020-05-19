@@ -37,10 +37,6 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
@@ -52,6 +48,10 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
+	"github.com/core-coin/go-core/xce/filters"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 type LesServer interface {
@@ -89,9 +89,9 @@ type Core struct {
 
 	APIBackend *XceAPIBackend
 
-	miner     *miner.Miner
-	energyPrice  *big.Int
-	corebase common.Address
+	miner       *miner.Miner
+	energyPrice *big.Int
+	corebase    common.Address
 
 	networkID     uint64
 	netRPCService *xceapi.PublicNetAPI
@@ -137,7 +137,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	if err != nil {
 		return nil, err
 	}
-	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis)
+	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
@@ -151,8 +151,8 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 		engine:         CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
-		energyPrice:       config.Miner.EnergyPrice,
-		corebase:      config.Miner.Corebase,
+		energyPrice:    config.Miner.EnergyPrice,
+		corebase:       config.Miner.Corebase,
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
 	}
