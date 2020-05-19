@@ -19,7 +19,6 @@
 package gcore
 
 import (
-	"errors"
 	"math/big"
 	"strings"
 
@@ -28,7 +27,6 @@ import (
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
 )
 
 // Signer is an interface defining the callback when a contract requires a
@@ -59,7 +57,7 @@ func NewCallOpts() *CallOpts {
 	return new(CallOpts)
 }
 
-func (opts *CallOpts) IsPending() bool    { return opts.opts.Pending }
+func (opts *CallOpts) IsPending() bool       { return opts.opts.Pending }
 func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(karalabe) */ }
 
 // GetContext cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
@@ -67,7 +65,7 @@ func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(karalabe) */ }
 // func (opts *CallOpts) GetContext() *Context { return &Context{opts.opts.Context} }
 
 func (opts *CallOpts) SetPending(pending bool)     { opts.opts.Pending = pending }
-func (opts *CallOpts) SetEnergyLimit(limit int64)     { /* TODO(karalabe) */ }
+func (opts *CallOpts) SetEnergyLimit(limit int64)  { /* TODO(karalabe) */ }
 func (opts *CallOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 func (opts *CallOpts) SetFrom(addr *Address)       { opts.opts.From = addr.address }
 
@@ -82,33 +80,19 @@ func NewTransactOpts() *TransactOpts {
 	return new(TransactOpts)
 }
 
-// NewKeyedTransactor is a utility method to easily create a transaction signer
+// NewKeyedTransactOpts is a utility method to easily create a transaction signer
 // from a single private key.
 func NewKeyedTransactOpts(keyJson []byte, passphrase string) (*TransactOpts, error) {
 	key, err := keystore.DecryptKey(keyJson, passphrase)
 	if err != nil {
 		return nil, err
 	}
-	keyAddr := crypto.PubkeyToAddress(key.PrivateKey.PublicKey)
-	opts := bind.TransactOpts{
-		From: keyAddr,
-		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
-			if address != keyAddr {
-				return nil, errors.New("not authorized to sign this account")
-			}
-			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key.PrivateKey)
-			if err != nil {
-				return nil, err
-			}
-			return tx.WithSignature(signer, signature)
-		},
-	}
-	return &TransactOpts{opts}, nil
+	return &TransactOpts{*bind.NewKeyedTransactor(key.PrivateKey)}, nil
 }
 
-func (opts *TransactOpts) GetFrom() *Address    { return &Address{opts.opts.From} }
-func (opts *TransactOpts) GetNonce() int64      { return opts.opts.Nonce.Int64() }
-func (opts *TransactOpts) GetValue() *BigInt    { return &BigInt{opts.opts.Value} }
+func (opts *TransactOpts) GetFrom() *Address       { return &Address{opts.opts.From} }
+func (opts *TransactOpts) GetNonce() int64         { return opts.opts.Nonce.Int64() }
+func (opts *TransactOpts) GetValue() *BigInt       { return &BigInt{opts.opts.Value} }
 func (opts *TransactOpts) GetEnergyPrice() *BigInt { return &BigInt{opts.opts.EnergyPrice} }
 func (opts *TransactOpts) GetEnergyLimit() int64   { return int64(opts.opts.EnergyLimit) }
 
@@ -130,10 +114,10 @@ func (opts *TransactOpts) SetSigner(s Signer) {
 		return sig.tx, nil
 	}
 }
-func (opts *TransactOpts) SetValue(value *BigInt)      { opts.opts.Value = value.bigint }
-func (opts *TransactOpts) SetEnergyPrice(price *BigInt)   { opts.opts.EnergyPrice = price.bigint }
-func (opts *TransactOpts) SetEnergyLimit(limit int64)     { opts.opts.EnergyLimit = uint64(limit) }
-func (opts *TransactOpts) SetContext(context *Context) { opts.opts.Context = context.context }
+func (opts *TransactOpts) SetValue(value *BigInt)       { opts.opts.Value = value.bigint }
+func (opts *TransactOpts) SetEnergyPrice(price *BigInt) { opts.opts.EnergyPrice = price.bigint }
+func (opts *TransactOpts) SetEnergyLimit(limit int64)   { opts.opts.EnergyLimit = uint64(limit) }
+func (opts *TransactOpts) SetContext(context *Context)  { opts.opts.Context = context.context }
 
 // BoundContract is the base wrapper object that reflects a contract on the
 // Core network. It contains a collection of methods that are used by the
