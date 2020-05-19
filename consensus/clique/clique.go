@@ -693,7 +693,7 @@ func (c *Clique) APIs(chain consensus.ChainReader) []rpc.API {
 
 // SealHash returns the hash of a block prior to it being sealed.
 func SealHash(header *types.Header) (hash common.Hash) {
-	hasher := sha3.NewLegacyKeccak256()
+	hasher := sha3.New256()
 	encodeSigHeader(hasher, header)
 	hasher.Sum(hash[:0])
 	return hash

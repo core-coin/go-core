@@ -209,7 +209,7 @@ func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 // Hex returns an CIP55-compliant hex string representation of the address.
 func (a Address) Hex() string {
 	unchecksummed := hex.EncodeToString(a[:])
-	sha := sha3.NewLegacyKeccak256()
+	sha := sha3.New256()
 	sha.Write([]byte(unchecksummed))
 	hash := sha.Sum(nil)
 

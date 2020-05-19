@@ -537,11 +537,11 @@ func BenchmarkHash(b *testing.B) {
 	trie := newEmpty()
 	i := 0
 	for ; i < len(addresses)/2; i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	trie.Hash()
 	for ; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -579,7 +579,7 @@ func benchmarkCommitAfterHash(b *testing.B, onleaf LeafCallback) {
 	addresses, accounts := makeAccounts(b.N)
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -620,7 +620,7 @@ func TestCommitAfterHash(t *testing.T) {
 	addresses, accounts := makeAccounts(1000)
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -757,7 +757,7 @@ func benchmarkCommitAfterHashFixedSize(b *testing.B, addresses [][20]byte, accou
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -809,7 +809,7 @@ func benchmarkDerefRootFixedSize(b *testing.B, addresses [][20]byte, accounts []
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	h := trie.Hash()
 	trie.Commit(nil)

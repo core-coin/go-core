@@ -28,7 +28,7 @@ import (
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
 // deployed contract addresses (relevant after the account abstraction).
-var emptyCodeHash = crypto.Keccak256Hash(nil)
+var emptyCodeHash = crypto.SHA3Hash(nil)
 
 type (
 	// CanTransferFunc is the signature of a transfer guard function
@@ -359,7 +359,7 @@ type codeAndHash struct {
 
 func (c *codeAndHash) Hash() common.Hash {
 	if c.hash == (common.Hash{}) {
-		c.hash = crypto.Keccak256Hash(c.code)
+		c.hash = crypto.SHA3Hash(c.code)
 	}
 	return c.hash
 }

@@ -178,7 +178,7 @@ func ReadHeaderRLP(db xcedb.Reader, hash common.Hash, number uint64) rlp.RawValu
 	// comparison is necessary since ancient database only maintains
 	// the canonical data.
 	data, _ := db.Ancient(freezerHeaderTable, number)
-	if len(data) > 0 && crypto.Keccak256Hash(data) == hash {
+	if len(data) > 0 && crypto.SHA3Hash(data) == hash {
 		return data
 	}
 	// Then try to look up the data in leveldb.
@@ -191,7 +191,7 @@ func ReadHeaderRLP(db xcedb.Reader, hash common.Hash, number uint64) rlp.RawValu
 	// but when we reach into leveldb, the data was already moved. That would
 	// result in a not found error.
 	data, _ = db.Ancient(freezerHeaderTable, number)
-	if len(data) > 0 && crypto.Keccak256Hash(data) == hash {
+	if len(data) > 0 && crypto.SHA3Hash(data) == hash {
 		return data
 	}
 	return nil // Can't find the data anywhere.
