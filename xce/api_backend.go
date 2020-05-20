@@ -23,19 +23,18 @@ import (
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xce/energyprice"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 // XceAPIBackend implements xceapi.Backend for full nodes
@@ -191,7 +190,6 @@ func (b *XceAPIBackend) GetTd(blockHash common.Hash) *big.Int {
 }
 
 func (b *XceAPIBackend) GetCVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header) (*vm.CVM, func() error, error) {
-	state.SetBalance(msg.From(), math.MaxBig256)
 	vmError := func() error { return nil }
 
 	context := core.NewCVMContext(msg, header, b.xce.BlockChain(), nil)
