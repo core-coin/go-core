@@ -1,26 +1,26 @@
 {
     "wikipage_test_vector_scrypt": {
         "json": {
-            "crypto" : {
-                "cipher" : "aes-128-ctr",
-                "cipherparams" : {
-                    "iv" : "83dbcc02d8ccb40e466191a123791e0e"
+            "crypto":{
+                "cipher":"aes-128-ctr",
+                "ciphertext":"5ba7202d39678bbdc1774bf4d498fbdc310fee1a6dd9d5f08c3d5ccc8f5c69d5f3e12f7b7c0f9a825a9e5a06772578068f339a3537b608fbcbc4b9db4f20d1f1c77eff4b376bed2e1d63a2f58143e2dc03f20682e4f69c55457975c2ac596b21853e387fffa3c4b32d9ab339d4ea19172fb6f012afda4e5f2e49ac92bee282d549e3f7a839b57386875fe50c60b7d78d",
+                "cipherparams":{
+                    "iv":"07d3d54ef519777588267037141fbb83"
                 },
-                "ciphertext" : "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
-                "kdf" : "scrypt",
-                "kdfparams" : {
-                    "dklen" : 32,
-                    "n" : 262144,
-                    "r" : 1,
-                    "p" : 8,
-                    "salt" : "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19"
+                "kdf":"scrypt",
+                "kdfparams":{
+                    "dklen":32,
+                    "n":4096,
+                    "p":6,
+                    "r":8,
+                    "salt":"5cd517592d40b4621a1aa8eae776897325de73bc2dcca9e85f0102c1379a2bec"
                 },
-                "mac" : "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097"
+                "mac":"a97ef67c885658540780897a34f5b96d1cf4ecf4beb0964796235d07c198ac31"
             },
-            "id" : "3198bc9c-6672-5ab3-d995-4942343ae5b6",
-            "version" : 3
+            "id":"f192872d-8a24-4f55-a955-9ce1c13fb324",
+            "version":3
         },
-        "password": "testpassword",
+        "password": "foobar",
         "priv": "7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
     },
     "wikipage_test_vector_pbkdf2": {

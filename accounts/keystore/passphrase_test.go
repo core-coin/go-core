@@ -34,8 +34,8 @@ func TestKeyEncryptDecrypt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	password := ""
-	address := common.HexToAddress("798682fac39cfe662bb6d451827fd16b4a1a7172")
+	password := "foobar"
+	address := common.HexToAddress("c91938bff440fac4e6d4ff24234f52c5671fb0d4")
 
 	// Do a few rounds of decryption and encryption
 	for i := 0; i < 3; i++ {
@@ -52,7 +52,7 @@ func TestKeyEncryptDecrypt(t *testing.T) {
 			t.Errorf("test %d: key address mismatch: have %x, want %x", i, key.Address, address)
 		}
 		// Recrypt with a new password and start over
-		password += "new data appended"
+		password += "foobar2"
 		if keyjson, err = EncryptKey(key, password, veryLightScryptN, veryLightScryptP); err != nil {
 			t.Errorf("test %d: failed to recrypt key %v", i, err)
 		}
