@@ -139,7 +139,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	    salt 0x00000000000000000000000000000000000000000000000000000000cafebabe
 	    init_code 0xdeadbeef
 	    energy (assuming no mem expansion): 32006
-	    result: 0x60f3f640a8508fC6a86d45DF051962668E1e8AC7
+	    result: 0xac280cda65f7e674f2f2fc9cb5af861dcbd6d04c
 	*/
 	origin, _ := signer.Sender(tx)
 	context := vm.Context{
@@ -193,8 +193,8 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err := json.Unmarshal(res, &ret); err != nil {
 		t.Fatalf("failed to unmarshal trace result: %v", err)
 	}
-	if _, has := ret["0x60f3f640a8508fc6a86d45df051962668e1e8ac7"]; !has {
-		t.Fatalf("Expected 0x60f3f640a8508fc6a86d45df051962668e1e8ac7 in result")
+	if _, has := ret["0xac280cda65f7e674f2f2fc9cb5af861dcbd6d04c"]; !has {
+		t.Fatalf("Expected 0xac280cda65f7e674f2f2fc9cb5af861dcbd6d04c in result")
 	}
 }
 

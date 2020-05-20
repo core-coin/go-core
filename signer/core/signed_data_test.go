@@ -269,7 +269,7 @@ func TestHashStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	mainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if mainHash != "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e" {
+	if mainHash != "0xf4db1703342472a4aadbcc1b92facbe9760a0e370f66849372a2cb76e84144da" {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
@@ -278,7 +278,7 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0x2a5cc2ac22d2501a7f915c61d43990d699ca51ab4547cfa438db036fbd67ddcb" {
+	if domainHash != "0x118d59eb893e87cd38ad7ebe574c3e7bd76f55259a54613690e3b6510339bcaa" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
@@ -297,7 +297,7 @@ func TestEncodeType(t *testing.T) {
 
 func TestTypeHash(t *testing.T) {
 	mailTypeHash := fmt.Sprintf("0x%s", common.Bytes2Hex(typedData.TypeHash(typedData.PrimaryType)))
-	if mailTypeHash != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2" {
+	if mailTypeHash != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622b" {
 		t.Errorf("Expected different typeHash result (got %s)", mailTypeHash)
 	}
 }
@@ -308,7 +308,7 @@ func TestEncodeData(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataEncoding := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if dataEncoding != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2fc71e5fa27ff56c350aa531bc129ebdf613b772b6604664f5d8dbe21b85eb0c8cd54f074a4af31b4411ff6a60c9719dbd559c221c8ac3492d9d872b041d703d1b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8" {
+	if dataEncoding != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622b960f5eae4594a79302a6a52f4a0d0a13dd4cc97a0d9a2d665958cd72ac27928776c77f5f84ab3ca0e9759568cc0a6f75998410e561dc8ea91bff7d2a71f1a932b58543c145f315ad2c9210b45c29c13e6c9fc5396a140d3b07f766925fda360e" {
 		t.Errorf("Expected different encodeData result (got %s)", dataEncoding)
 	}
 }
