@@ -275,9 +275,9 @@ func TestRLPXFrameFake(t *testing.T) {
 	})
 
 	golden := unhex(`
-00828ddae471818bb0bfa6b551d1cb42
+ee4bdf598434add487b2845159762028
 01010101010101010101010101010101
-ba628a4ba590cb43f7848f41c4382885
+2ad9100d3c2ac6652fa799328a635bc2
 01010101010101010101010101010101
 `)
 
@@ -506,9 +506,9 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		authCiphertext     = unhex(cip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(cip8HandshakeRespTests[1].input)
 		authMsg            = makeAuth(cip8HandshakeAuthTests[1])
-		wantAES            = unhex("d5b5c6435460380778791811be8d3a354a17cbcc8a49a742bfc679e5db852c5e")
-		wantMAC            = unhex("f4a7d65c026ba34aeaf0c7446a2c36fbfc88918bcf9541bbff84ac0bf48fbbd7")
-		wantFooIngressHash = unhex("0d6d8c38e8befa00cbc118765cdc7c31bb8224d5109f72e80d9bc42a499a70d0")
+		wantAES            = unhex("ac14d7f2b36e3869666788316d6b8beeea2af3debdee374a12d43f6807e398aa")
+		wantMAC            = unhex("c0119ca14d507c205da36a00bb52199efde3dcdea718229e9f2d0eeb4aa0a068")
+		wantFooIngressHash = unhex("e8939160cb4ca04b71f37f7561024f6f67c08966ec8a738d6f0abb9df9610982")
 	)
 	if err := hs.handleAuthMsg(authMsg, keyB); err != nil {
 		t.Fatalf("handleAuthMsg: %v", err)
