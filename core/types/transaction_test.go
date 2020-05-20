@@ -48,16 +48,16 @@ var (
 		common.FromHex("1123"),
 	).WithSignature(
 		NucleusSigner{},
-		common.Hex2Bytes("26ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef56cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da40852e9afe4b052cd457d485c62b0e55a6db68f1da40845e4d7349e1df3ecac5db2b90bee5f9f15be07e9470b0c7ffe2f05e9d5802c26b97d81"),
+		common.Hex2Bytes("25320acb9758febce98604e7946f0029f4125f6d7b54860f657296518e5103e73935097931ee83af5dcc4939cac81b5d8197ceae601b32defad02001e439872648e9e78c49196ea9b93a7197373e07d6fa3c74123b8d903862efdefa4d2c15cf528f4ea42fe8c486c8aa3cb5da24f51bf2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47"),
 	)
 )
 
 func TestTransactionSigHash(t *testing.T) {
 	var nucleus NucleusSigner
-	if nucleus.Hash(emptyTx) != common.HexToHash("0xc775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
+	if nucleus.Hash(emptyTx) != common.HexToHash("0xdec558d8709e0f7e77def55bd3359da6cd12a0d96fed811af73e8d25f8bf3f30") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if nucleus.Hash(rightvrsTx) != common.HexToHash("0xfff0e45edb61906f1bbbcb67c1ed7b17a538f02a17a58ebc6e01b50d5f55ce68") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x8a39016339a01b6c65fc4f8a9f194e1a74d68cb6dd862e61ac4813e5e60b9cbc") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -67,7 +67,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
+	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123942516841536f2fc110c9ac01fd60c95c523fdabcf")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -88,7 +88,7 @@ func defaultTestKey() (*eddsa.PrivateKey, common.Address) {
 
 func TestRecipientEmpty(t *testing.T) {
 	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("db80808080800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("db808080808001942516841536f2fc110c9ac01fd60c95c523fdabcf"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestRecipientEmpty(t *testing.T) {
 func TestRecipientNormal(t *testing.T) {
 	_, addr := defaultTestKey()
 
-	tx, err := decodeTx(common.Hex2Bytes("ef808080940000000000000000000000000000000000000000800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("ef8080809400000000000000000000000000000000000000008001942516841536f2fc110c9ac01fd60c95c523fdabcf"))
 	if err != nil {
 		t.Fatal(err)
 	}

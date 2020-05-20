@@ -123,9 +123,9 @@ func TestNewContractAddress(t *testing.T) {
 	caddr0 := CreateAddress(addr, 0)
 	caddr1 := CreateAddress(addr, 1)
 	caddr2 := CreateAddress(addr, 2)
-	checkAddr(t, common.HexToAddress("0de8d3cdea4072dfac377efdfde7cca98dca025a"), caddr0)
-	checkAddr(t, common.HexToAddress("1435a4ee18ad5779ef34345087938bbe8469c6f8"), caddr1)
-	checkAddr(t, common.HexToAddress("047524d5c9afe7a647136beb75f6bb5e9c24e5af"), caddr2)
+	checkAddr(t, common.HexToAddress("559b8fac1f1d461b2d5290f7b9842b6d4639c64d"), caddr0)
+	checkAddr(t, common.HexToAddress("57cdb68eff4c94d32c1c05e86c51523275c21b14"), caddr1)
+	checkAddr(t, common.HexToAddress("3e2167f5410179d06724f50253c90a2c3e154be1"), caddr2)
 }
 
 func TestLoadEDDSAFile(t *testing.T) {

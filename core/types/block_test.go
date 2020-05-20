@@ -70,7 +70,7 @@ func TestBlockEncoding(t *testing.T) {
 func TestUncleHash(t *testing.T) {
 	uncles := make([]*Header, 0)
 	h := CalcUncleHash(uncles)
-	exp := common.HexToHash("1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347")
+	exp := common.HexToHash("f18f47848fb293468f641c33863dca9e5278fa8e9690f77f7dc96e954ef9221b")
 	if h != exp {
 		t.Fatalf("empty uncle hash is wrong, got %x != %x", h, exp)
 	}

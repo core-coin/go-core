@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0xfc64ec04), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0xd4e7d0b0), Next: 0}},
 			},
 		},
 		// Testnet test cases
@@ -51,7 +51,7 @@ func TestCreation(t *testing.T) {
 			params.TestnetChainConfig,
 			params.TestnetGenesisHash,
 			[]testcase{
-				{10, ID{Hash: checksumToBytes(0x30c7ddbc), Next: 0}},
+				{10, ID{Hash: checksumToBytes(0x8cc526b5), Next: 0}},
 			},
 		},
 		// Koliba test cases
