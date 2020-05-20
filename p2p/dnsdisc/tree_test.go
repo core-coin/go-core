@@ -20,9 +20,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestParseRoot(t *testing.T) {
@@ -107,7 +107,7 @@ func TestParseEntry(t *testing.T) {
 		},
 		// ENRs
 		{
-			input: "enr:-PW4qAA3JXxwfsfrJtvzIxaUlKaNhB1y1sV7TmmMl3FuPSCNoHt4iFtvJygldtB3xudmCjQ5UDdEXlPY8mEi6om6ejaiKFHpSTKdjGj-mMQePmVTJ4lv4Pks3UtXP49IoQJAH2vnGuAMTnUz4KXUhocXmxhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGICCaWSCdjSJc2VjcDI1NmsxuDhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGA",
+			input: "enr:-PW4qH7cG4dllE36VCDWgjhj5Rv8pchCnzMpXhbMMGNOnqHv02POGtkUewfj1XX9Z3DhggbsmiGYn8qmMC0iBF3d1fyxlhBlX8s4QqrwXoMbs6V08iTaM7_k70Xvtz_Gvk-DLd9HCKsBakSJ_N97_Ny5LQ5vGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGICCaWSCdjSJc2VjcDI1NmsxuDhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGA",
 			e:     &enrEntry{node: testNode(nodesSeed1)},
 		},
 		{
