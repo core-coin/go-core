@@ -27,15 +27,15 @@ import (
 	"github.com/core-coin/go-core/common"
 )
 
-var testAddrHex = "b2a6f9a2c6925d2407314b99518f8109156d0b09"
+var testAddrHex = "a71d3dacb1a805776cb9c17785f040babcbb9fc1"
 var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 
 // These tests are sanity checks.
 // They should ensure that we don't e.g. use Sha3-224 instead of Sha3-256
 // and that the sha3 library uses keccak-f permutation.
-func TestKeccak256Hash(t *testing.T) {
+func TestSHA3Hash(t *testing.T) {
 	msg := []byte("abc")
-	exp, _ := hex.DecodeString("4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45")
+	exp, _ := hex.DecodeString("3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532")
 	checkhash(t, "Sha3-256-array", func(in []byte) []byte { h := SHA3Hash(in); return h[:] }, msg, exp)
 }
 

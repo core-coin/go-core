@@ -127,15 +127,15 @@ func TestAddressHexChecksum(t *testing.T) {
 		Output string
 	}{
 		// Test cases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-55.md#specification
-		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"},
-		{"0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359", "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359"},
-		{"0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB"},
-		{"0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"},
+		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", "0x5aaeb6053f3E94C9b9A09f33669435E7EF1Beaed"},
+		{"0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359", "0xFB6916095Ca1df60BB79ce92Ce3eA74c37c5d359"},
+		{"0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", "0xDBf03B407c01e7cd3CbEa99509D93F8dddc8C6fB"},
+		{"0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", "0xD1220a0Cf47c7B9bE7a2E6BA89f429762E7B9AdB"},
 		// Ensure that non-standard length input values are handled correctly
-		{"0xa", "0x000000000000000000000000000000000000000A"},
-		{"0x0a", "0x000000000000000000000000000000000000000A"},
-		{"0x00a", "0x000000000000000000000000000000000000000A"},
-		{"0x000000000000000000000000000000000000000a", "0x000000000000000000000000000000000000000A"},
+		{"0xa", "0x000000000000000000000000000000000000000a"},
+		{"0x0a", "0x000000000000000000000000000000000000000a"},
+		{"0x00a", "0x000000000000000000000000000000000000000a"},
+		{"0x000000000000000000000000000000000000000a", "0x000000000000000000000000000000000000000a"},
 	}
 	for i, test := range tests {
 		output := HexToAddress(test.Input).Hex()
@@ -163,7 +163,7 @@ func TestMixedcaseAccount_Address(t *testing.T) {
 	}
 	if err := json.Unmarshal([]byte(`[
 		{"A" : "0xae967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
-		{"A" : "0xAe967917c465db8578ca9024c205720b1a3651A9", "Valid": true},
+		{"A" : "0xae967917C465DB8578Ca9024c205720B1a3651a9", "Valid": true},
 		{"A" : "0XAe967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
 		{"A" : "0x1111111111111111111112222222222223333323", "Valid": true}
 		]`), &res); err != nil {
