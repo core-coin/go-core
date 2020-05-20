@@ -20,12 +20,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/hmac"
-	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/asn1"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"regexp"
 	"sort"
@@ -33,7 +33,7 @@ import (
 	"sync"
 	"time"
 
-	core "github.com/core-coin/go-core"
+	"github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
@@ -70,7 +70,7 @@ var ErrPubkeyMismatch = errors.New("smartcard: recovered public key mismatch")
 var (
 	appletAID = []byte{0xA0, 0x00, 0x00, 0x08, 0x04, 0x00, 0x01, 0x01, 0x01}
 	// DerivationSignatureHash is used to derive the public key from the signature of this hash
-	DerivationSignatureHash = sha256.Sum256(common.Hash{}.Bytes())
+	DerivationSignatureHash = sha3.Sum256(common.Hash{}.Bytes())
 )
 
 // List of APDU command-related constants
