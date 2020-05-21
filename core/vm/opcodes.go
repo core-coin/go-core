@@ -70,7 +70,7 @@ const (
 	SHR
 	SAR
 
-	SHA3 OpCode = 0x20
+	SHA3 = 0x20
 )
 
 // 0x30 range - closure state.
@@ -101,8 +101,8 @@ const (
 	NUMBER
 	DIFFICULTY
 	ENERGYLIMIT
-	CHAINID     OpCode = 0x46
-	SELFBALANCE OpCode = 0x47
+	CHAINID     = 0x46
+	SELFBALANCE = 0x47
 )
 
 // 0x50 range - 'storage' and execution.
@@ -213,9 +213,10 @@ const (
 	RETURN
 	DELEGATECALL
 	CREATE2
-	STATICCALL   OpCode = 0xfa
-	REVERT       OpCode = 0xfd
-	SELFDESTRUCT OpCode = 0xff
+	STATICCALL = 0xfa
+
+	REVERT       = 0xfd
+	SELFDESTRUCT = 0xff
 )
 
 // Since the opcodes aren't all in order we can't use a regular slice.
@@ -264,7 +265,7 @@ var opCodeToString = map[OpCode]string{
 	CALLDATACOPY:   "CALLDATACOPY",
 	CODESIZE:       "CODESIZE",
 	CODECOPY:       "CODECOPY",
-	ENERGYPRICE:    "ENERGYPRICE",
+	ENERGYPRICE:       "ENERGYPRICE",
 	EXTCODESIZE:    "EXTCODESIZE",
 	EXTCODECOPY:    "EXTCODECOPY",
 	RETURNDATASIZE: "RETURNDATASIZE",
@@ -277,7 +278,7 @@ var opCodeToString = map[OpCode]string{
 	TIMESTAMP:   "TIMESTAMP",
 	NUMBER:      "NUMBER",
 	DIFFICULTY:  "DIFFICULTY",
-	ENERGYLIMIT: "ENERGYLIMIT",
+	ENERGYLIMIT:    "ENERGYLIMIT",
 	CHAINID:     "CHAINID",
 	SELFBALANCE: "SELFBALANCE",
 
@@ -294,7 +295,7 @@ var opCodeToString = map[OpCode]string{
 	JUMPI:    "JUMPI",
 	PC:       "PC",
 	MSIZE:    "MSIZE",
-	ENERGY:   "ENERGY",
+	ENERGY:      "ENERGY",
 	JUMPDEST: "JUMPDEST",
 
 	// 0x60 range - push.
@@ -436,7 +437,7 @@ var stringToOp = map[string]OpCode{
 	"STATICCALL":     STATICCALL,
 	"CODESIZE":       CODESIZE,
 	"CODECOPY":       CODECOPY,
-	"ENERGYPRICE":    ENERGYPRICE,
+	"ENERGYPRICE":       ENERGYPRICE,
 	"EXTCODESIZE":    EXTCODESIZE,
 	"EXTCODECOPY":    EXTCODECOPY,
 	"RETURNDATASIZE": RETURNDATASIZE,
@@ -447,7 +448,7 @@ var stringToOp = map[string]OpCode{
 	"TIMESTAMP":      TIMESTAMP,
 	"NUMBER":         NUMBER,
 	"DIFFICULTY":     DIFFICULTY,
-	"ENERGYLIMIT":    ENERGYLIMIT,
+	"ENERGYLIMIT":       ENERGYLIMIT,
 	"SELFBALANCE":    SELFBALANCE,
 	"POP":            POP,
 	"MLOAD":          MLOAD,
@@ -459,7 +460,7 @@ var stringToOp = map[string]OpCode{
 	"JUMPI":          JUMPI,
 	"PC":             PC,
 	"MSIZE":          MSIZE,
-	"ENERGY":         ENERGY,
+	"ENERGY":            ENERGY,
 	"JUMPDEST":       JUMPDEST,
 	"PUSH1":          PUSH1,
 	"PUSH2":          PUSH2,

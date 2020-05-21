@@ -30,10 +30,7 @@ func TestVM(t *testing.T) {
 
 	vmt.walk(t, vmTestDir, func(t *testing.T, name string, test *VMTest) {
 		withTrace(t, test.json.Exec.EnergyLimit, func(vmconfig vm.Config) error {
-			return vmt.checkFailure(t, name+"/trie", test.Run(vmconfig, false))
-		})
-		withTrace(t, test.json.Exec.EnergyLimit, func(vmconfig vm.Config) error {
-			return vmt.checkFailure(t, name+"/snap", test.Run(vmconfig, true))
+			return vmt.checkFailure(t, name, test.Run(vmconfig))
 		})
 	})
 }

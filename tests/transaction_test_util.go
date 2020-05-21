@@ -29,9 +29,9 @@ import (
 
 // TransactionTest checks RLP decoding and sender derivation of transactions.
 type TransactionTest struct {
-	RLP     hexutil.Bytes `json:"rlp"`
-	Nucleus ttFork
-	CIP150  ttFork
+	RLP            hexutil.Bytes `json:"rlp"`
+	Nucleus       ttFork
+	CIP150 ttFork
 }
 
 type ttFork struct {
@@ -40,6 +40,7 @@ type ttFork struct {
 }
 
 func (tt *TransactionTest) Run(config *params.ChainConfig) error {
+
 	validateTx := func(rlpData hexutil.Bytes, signer types.Signer) (*common.Address, *common.Hash, error) {
 		tx := new(types.Transaction)
 		if err := rlp.DecodeBytes(rlpData, tx); err != nil {
@@ -62,9 +63,9 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 	}
 
 	for _, testcase := range []struct {
-		name   string
-		signer types.Signer
-		fork   ttFork
+		name        string
+		signer      types.Signer
+		fork        ttFork
 	}{
 		{"Nucleus", types.NucleusSigner{}, tt.Nucleus},
 		{"CIP150", types.NucleusSigner{}, tt.CIP150},

@@ -35,11 +35,11 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/xce/filters"
+	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/xcedb"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -49,7 +49,7 @@ var (
 	errBlockNumberUnsupported  = errors.New("simulatedBackend cannot access blocks other than the latest block")
 	errBlockDoesNotExist       = errors.New("block does not exist in blockchain")
 	errTransactionDoesNotExist = errors.New("transaction does not exist")
-	errEnergyEstimationFailed  = errors.New("energy required exceeds allowance or always failing transaction")
+	errEnergyEstimationFailed     = errors.New("energy required exceeds allowance or always failing transaction")
 )
 
 // SimulatedBackend implements bind.ContractBackend, simulating a blockchain in
@@ -124,7 +124,7 @@ func (b *SimulatedBackend) rollback() {
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
+	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database())
 }
 
 // stateByBlockNumber retrieves a state by a given blocknumber.
@@ -480,7 +480,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
+	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database())
 	return nil
 }
 
@@ -593,7 +593,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
+	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database())
 
 	return nil
 }
@@ -608,14 +608,14 @@ type callmsg struct {
 	gcore.CallMsg
 }
 
-func (m callmsg) From() common.Address  { return m.CallMsg.From }
-func (m callmsg) Nonce() uint64         { return 0 }
-func (m callmsg) CheckNonce() bool      { return false }
-func (m callmsg) To() *common.Address   { return m.CallMsg.To }
-func (m callmsg) EnergyPrice() *big.Int { return m.CallMsg.EnergyPrice }
-func (m callmsg) Energy() uint64        { return m.CallMsg.Energy }
-func (m callmsg) Value() *big.Int       { return m.CallMsg.Value }
-func (m callmsg) Data() []byte          { return m.CallMsg.Data }
+func (m callmsg) From() common.Address { return m.CallMsg.From }
+func (m callmsg) Nonce() uint64        { return 0 }
+func (m callmsg) CheckNonce() bool     { return false }
+func (m callmsg) To() *common.Address  { return m.CallMsg.To }
+func (m callmsg) EnergyPrice() *big.Int   { return m.CallMsg.EnergyPrice }
+func (m callmsg) Energy() uint64          { return m.CallMsg.Energy }
+func (m callmsg) Value() *big.Int      { return m.CallMsg.Value }
+func (m callmsg) Data() []byte         { return m.CallMsg.Data }
 
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.

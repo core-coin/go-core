@@ -91,24 +91,24 @@ var makeTest = function(tx, rewind) {
 
 // callTrace is the result of a callTracer run.
 type callTrace struct {
-	Type       string          `json:"type"`
-	From       common.Address  `json:"from"`
-	To         common.Address  `json:"to"`
-	Input      hexutil.Bytes   `json:"input"`
-	Output     hexutil.Bytes   `json:"output"`
+	Type    string          `json:"type"`
+	From    common.Address  `json:"from"`
+	To      common.Address  `json:"to"`
+	Input   hexutil.Bytes   `json:"input"`
+	Output  hexutil.Bytes   `json:"output"`
 	Energy     *hexutil.Uint64 `json:"energy,omitempty"`
 	EnergyUsed *hexutil.Uint64 `json:"energyUsed,omitempty"`
-	Value      *hexutil.Big    `json:"value,omitempty"`
-	Error      string          `json:"error,omitempty"`
-	Calls      []callTrace     `json:"calls,omitempty"`
+	Value   *hexutil.Big    `json:"value,omitempty"`
+	Error   string          `json:"error,omitempty"`
+	Calls   []callTrace     `json:"calls,omitempty"`
 }
 
 type callContext struct {
-	Number      math.HexOrDecimal64   `json:"number"`
-	Difficulty  *math.HexOrDecimal256 `json:"difficulty"`
-	Time        math.HexOrDecimal64   `json:"timestamp"`
-	EnergyLimit math.HexOrDecimal64   `json:"energyLimit"`
-	Miner       common.Address        `json:"miner"`
+	Number     math.HexOrDecimal64   `json:"number"`
+	Difficulty *math.HexOrDecimal256 `json:"difficulty"`
+	Time       math.HexOrDecimal64   `json:"timestamp"`
+	EnergyLimit   math.HexOrDecimal64   `json:"energyLimit"`
+	Miner      common.Address        `json:"miner"`
 }
 
 // callTracerTest defines a single test to check the call tracer against.
@@ -150,8 +150,8 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		BlockNumber: new(big.Int).SetUint64(8000000),
 		Time:        new(big.Int).SetUint64(5),
 		Difficulty:  big.NewInt(0x30000),
-		EnergyLimit: uint64(6000000),
-		EnergyPrice: big.NewInt(1),
+		EnergyLimit:    uint64(6000000),
+		EnergyPrice:    big.NewInt(1),
 	}
 	alloc := core.GenesisAlloc{}
 
@@ -167,7 +167,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		Code:    []byte{},
 		Balance: big.NewInt(500000000000000),
 	}
-	statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), alloc, false)
+	statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), alloc)
 
 	// Create the tracer, the CVM environment and run it
 	tracer, err := New("prestateTracer")
@@ -239,10 +239,10 @@ func TestCallTracer(t *testing.T) {
 				BlockNumber: new(big.Int).SetUint64(uint64(test.Context.Number)),
 				Time:        new(big.Int).SetUint64(uint64(test.Context.Time)),
 				Difficulty:  (*big.Int)(test.Context.Difficulty),
-				EnergyLimit: uint64(test.Context.EnergyLimit),
-				EnergyPrice: tx.EnergyPrice(),
+				EnergyLimit:    uint64(test.Context.EnergyLimit),
+				EnergyPrice:    tx.EnergyPrice(),
 			}
-			statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), test.Genesis.Alloc, false)
+			statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), test.Genesis.Alloc)
 
 			// Create the tracer, the CVM environment and run it
 			tracer, err := New("callTracer")

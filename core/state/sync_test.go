@@ -24,9 +24,9 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/trie"
 	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/xcedb/memorydb"
+	"github.com/core-coin/go-core/trie"
 )
 
 // testAccount is the data associated with an account used by the state tests.
@@ -41,7 +41,7 @@ type testAccount struct {
 func makeTestState() (Database, common.Hash, []*testAccount) {
 	// Create an empty state
 	db := NewDatabase(rawdb.NewMemoryDatabase())
-	state, _ := New(common.Hash{}, db, nil)
+	state, _ := New(common.Hash{}, db)
 
 	// Fill it with some arbitrary data
 	accounts := []*testAccount{}
@@ -72,7 +72,7 @@ func makeTestState() (Database, common.Hash, []*testAccount) {
 // account array.
 func checkStateAccounts(t *testing.T, db xcedb.Database, root common.Hash, accounts []*testAccount) {
 	// Check root availability and state contents
-	state, err := New(root, NewDatabase(db), nil)
+	state, err := New(root, NewDatabase(db))
 	if err != nil {
 		t.Fatalf("failed to create state trie at %x: %v", root, err)
 	}
@@ -113,7 +113,7 @@ func checkStateConsistency(db xcedb.Database, root common.Hash) error {
 	if _, err := db.Get(root.Bytes()); err != nil {
 		return nil // Consider a non existent state consistent.
 	}
-	state, err := New(root, NewDatabase(db), nil)
+	state, err := New(root, NewDatabase(db))
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,6 @@ func checkStateConsistency(db xcedb.Database, root common.Hash) error {
 
 // Tests that an empty state is not scheduled for syncing.
 func TestEmptyStateSync(t *testing.T) {
-	// TODO(raisty): Review Hash
 	empty := common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 	if req := NewStateSync(empty, rawdb.NewMemoryDatabase(), trie.NewSyncBloom(1, memorydb.New())).Missing(1); len(req) != 0 {
 		t.Errorf("content requested for empty state: %v", req)

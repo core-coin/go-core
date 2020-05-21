@@ -98,7 +98,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestCall(t *testing.T) {
-	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
+	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
 	address := common.HexToAddress("0x0a")
 	state.SetCode(address, []byte{
 		byte(vm.PUSH1), 10,
@@ -154,7 +154,7 @@ func BenchmarkCall(b *testing.B) {
 }
 func benchmarkCVM_Create(bench *testing.B, code string) {
 	var (
-		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
+		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
 		sender     = common.BytesToAddress([]byte("sender"))
 		receiver   = common.BytesToAddress([]byte("receiver"))
 	)
@@ -164,13 +164,13 @@ func benchmarkCVM_Create(bench *testing.B, code string) {
 	runtimeConfig := Config{
 		Origin:      sender,
 		State:       statedb,
-		EnergyLimit: 10000000,
+		EnergyLimit:    10000000,
 		Difficulty:  big.NewInt(0x200000),
 		Time:        new(big.Int).SetUint64(0),
 		Coinbase:    common.Address{},
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
-			ChainID: big.NewInt(1),
+			ChainID:             big.NewInt(1),
 		},
 		CVMConfig: vm.Config{},
 	}
@@ -201,14 +201,14 @@ func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
 	header := types.Header{
-		Coinbase:    common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
-		Number:      big.NewInt(int64(n)),
-		ParentHash:  parentHash,
-		Time:        1000,
-		Nonce:       types.BlockNonce{0x1},
-		Extra:       []byte{},
-		Difficulty:  big.NewInt(0),
-		EnergyLimit: 100000,
+		Coinbase:   common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
+		Number:     big.NewInt(int64(n)),
+		ParentHash: parentHash,
+		Time:       1000,
+		Nonce:      types.BlockNonce{0x1},
+		Extra:      []byte{},
+		Difficulty: big.NewInt(0),
+		EnergyLimit:   100000,
 	}
 	return &header
 }

@@ -127,8 +127,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 		config.Miner.EnergyPrice = new(big.Int).Set(DefaultConfig.Miner.EnergyPrice)
 	}
 	if config.NoPruning && config.TrieDirtyCache > 0 {
-		config.TrieCleanCache += config.TrieDirtyCache * 3 / 5
-		config.SnapshotCache += config.TrieDirtyCache * 3 / 5
+		config.TrieCleanCache += config.TrieDirtyCache
 		config.TrieDirtyCache = 0
 	}
 	log.Info("Allocated trie memory caches", "clean", common.StorageSize(config.TrieCleanCache)*1024*1024, "dirty", common.StorageSize(config.TrieDirtyCache)*1024*1024)
@@ -185,7 +184,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 			TrieDirtyLimit:      config.TrieDirtyCache,
 			TrieDirtyDisabled:   config.NoPruning,
 			TrieTimeLimit:       config.TrieTimeout,
-			SnapshotLimit:       config.SnapshotCache,
 		}
 	)
 	xce.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xce.engine, vmConfig, xce.shouldPreserve)
@@ -206,7 +204,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	xce.txPool = core.NewTxPool(config.TxPool, chainConfig, xce.blockchain)
 
 	// Permit the downloader to use the trie cache allowance during fast sync
-	cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit + cacheConfig.SnapshotLimit
+	cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit
 	checkpoint := config.Checkpoint
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
