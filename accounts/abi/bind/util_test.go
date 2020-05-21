@@ -41,13 +41,13 @@ var waitDeployedTests = map[string]struct {
 	"successful deploy": {
 		code:        `6060604052600a8060106000396000f360606040526008565b00`,
 		energy:         3000000,
-		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
+		wantAddress: common.HexToAddress("0x32Cd64fb3504b2C2CE4c49fFD2253848aB1573CA"),
 	},
 	"empty code": {
 		code:        ``,
 		energy:         300000,
 		wantErr:     bind.ErrNoCodeAfterDeploy,
-		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
+		wantAddress: common.HexToAddress("0x32Cd64fb3504b2C2CE4c49fFD2253848aB1573CA"),
 	},
 }
 

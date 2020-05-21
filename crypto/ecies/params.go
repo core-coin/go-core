@@ -56,7 +56,7 @@ type ECIESParams struct {
 
 var ECIES_AES128_SHA256 = &ECIESParams{
 	Hash:      sha3.New256,
-	hashAlgo:  crypto.SHA256,
+	hashAlgo:  crypto.SHA3_256,
 	Cipher:    aes.NewCipher,
 	BlockSize: aes.BlockSize,
 	KeyLen:    16,

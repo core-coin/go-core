@@ -20,13 +20,12 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha512"
-	"github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -50,7 +49,7 @@ const (
 	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
 	sigLen = crypto.SignatureLength
 	pubLen = 56
-	shaLen = sha512.Size
+	shaLen = 64
 
 	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1
 	authRespLen = pubLen + shaLen + 1

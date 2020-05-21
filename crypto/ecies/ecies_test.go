@@ -45,12 +45,12 @@ func TestKDF(t *testing.T) {
 	msg := []byte("Hello, world")
 	h := sha3.New256()
 
-	k, err := concatKDF(h, msg, nil, 64)
+	k, err := concatKDF(h, msg, nil, 32)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(k) != 64 {
-		t.Fatalf("KDF: generated key is the wrong size (%d instead of 64\n", len(k))
+	if len(k) != 32 {
+		t.Fatalf("KDF: generated key is the wrong size (%d instead of 32\n", len(k))
 	}
 }
 
