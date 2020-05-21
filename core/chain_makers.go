@@ -25,8 +25,8 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 // BlockGen creates blocks for testing.
@@ -38,10 +38,10 @@ type BlockGen struct {
 	header  *types.Header
 	statedb *state.StateDB
 
-	energyPool  *EnergyPool
-	txs      []*types.Transaction
-	receipts []*types.Receipt
-	uncles   []*types.Header
+	energyPool *EnergyPool
+	txs        []*types.Transaction
+	receipts   []*types.Receipt
+	uncles     []*types.Header
 
 	config *params.ChainConfig
 	engine consensus.Engine
@@ -216,7 +216,7 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 		return nil, nil
 	}
 	for i := 0; i < n; i++ {
-		statedb, err := state.New(parent.Root(), state.NewDatabase(db))
+		statedb, err := state.New(parent.Root(), state.NewDatabase(db), nil)
 		if err != nil {
 			panic(err)
 		}
@@ -247,8 +247,8 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 			UncleHash:  parent.UncleHash(),
 		}),
 		EnergyLimit: CalcEnergyLimit(parent, parent.EnergyLimit(), parent.EnergyLimit()),
-		Number:   new(big.Int).Add(parent.Number(), common.Big1),
-		Time:     time,
+		Number:      new(big.Int).Add(parent.Number(), common.Big1),
+		Time:        time,
 	}
 }
 

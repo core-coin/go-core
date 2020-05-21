@@ -50,8 +50,9 @@ var DefaultConfig = Config{
 	},
 	TxPool: core.DefaultTxPoolConfig,
 	GPO: energyprice.Config{
-		Blocks:     20,
-		Percentile: 60,
+		Blocks:        20,
+		Percentile:    60,
+		SnapshotCache: 256,
 	},
 }
 
@@ -108,6 +109,7 @@ type Config struct {
 	TrieCleanCache int
 	TrieDirtyCache int
 	TrieTimeout    time.Duration
+	SnapshotCache  int
 
 	// Mining options
 	Miner miner.Config
