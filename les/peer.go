@@ -30,13 +30,13 @@ import (
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xce"
 )
 
 var (
@@ -531,8 +531,7 @@ func (p *serverPeer) getTxRelayCost(amount, size int) uint64 {
 // HasBlock checks if the peer has a given block
 func (p *serverPeer) HasBlock(hash common.Hash, number uint64, hasState bool) bool {
 	p.lock.RLock()
-	defer p.lock.RUnlock()
-
+	p.lock.RUnlock()
 	head := p.headInfo.Number
 	var since, recent uint64
 	if hasState {
