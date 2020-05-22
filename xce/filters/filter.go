@@ -25,9 +25,9 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 type Backend interface {
@@ -210,7 +210,7 @@ func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*types.Log, err
 	}
 }
 
-// indexedLogs returns the logs matching the filter criteria based on raw block
+// unindexedLogs returns the logs matching the filter criteria based on raw block
 // iteration and bloom matching.
 func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*types.Log, error) {
 	var logs []*types.Log
