@@ -32,6 +32,7 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
+	"github.com/core-coin/go-core/core/state/snapshot"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/params"
@@ -80,18 +81,18 @@ type btHeader struct {
 	UncleHash        common.Hash
 	ExtraData        []byte
 	Difficulty       *big.Int
-	EnergyLimit         uint64
-	EnergyUsed          uint64
+	EnergyLimit      uint64
+	EnergyUsed       uint64
 	Timestamp        uint64
 }
 
 type btHeaderMarshaling struct {
-	ExtraData  hexutil.Bytes
-	Number     *math.HexOrDecimal256
-	Difficulty *math.HexOrDecimal256
-	EnergyLimit   math.HexOrDecimal64
-	EnergyUsed    math.HexOrDecimal64
-	Timestamp  math.HexOrDecimal64
+	ExtraData   hexutil.Bytes
+	Number      *math.HexOrDecimal256
+	Difficulty  *math.HexOrDecimal256
+	EnergyLimit math.HexOrDecimal64
+	EnergyUsed  math.HexOrDecimal64
+	Timestamp   math.HexOrDecimal64
 }
 
 func (t *BlockTest) Run() error {
@@ -139,22 +140,35 @@ func (t *BlockTest) Run() error {
 	if err = t.validatePostState(newDB); err != nil {
 		return fmt.Errorf("post state validation failed: %v", err)
 	}
+	// Cross-check the snapshot-to-hash against the trie hash
+	if snapshotter {
+		snapTree := chain.Snapshot()
+		root := chain.CurrentBlock().Root()
+		it, err := snapTree.AccountIterator(root, common.Hash{})
+		if err != nil {
+			return fmt.Errorf("Could not create iterator for root %x: %v", root, err)
+		}
+		generatedRoot := snapshot.GenerateTrieRoot(it)
+		if generatedRoot != root {
+			return fmt.Errorf("Snapshot corruption, got %d exp %d", generatedRoot, root)
+		}
+	}
 	return t.validateImportedHeaders(chain, validBlocks)
 }
 
 func (t *BlockTest) genesis(config *params.ChainConfig) *core.Genesis {
 	return &core.Genesis{
-		Config:     config,
-		Nonce:      t.json.Genesis.Nonce.Uint64(),
-		Timestamp:  t.json.Genesis.Timestamp,
-		ParentHash: t.json.Genesis.ParentHash,
-		ExtraData:  t.json.Genesis.ExtraData,
-		EnergyLimit:   t.json.Genesis.EnergyLimit,
-		EnergyUsed:    t.json.Genesis.EnergyUsed,
-		Difficulty: t.json.Genesis.Difficulty,
-		Mixhash:    t.json.Genesis.MixHash,
-		Coinbase:   t.json.Genesis.Coinbase,
-		Alloc:      t.json.Pre,
+		Config:      config,
+		Nonce:       t.json.Genesis.Nonce.Uint64(),
+		Timestamp:   t.json.Genesis.Timestamp,
+		ParentHash:  t.json.Genesis.ParentHash,
+		ExtraData:   t.json.Genesis.ExtraData,
+		EnergyLimit: t.json.Genesis.EnergyLimit,
+		EnergyUsed:  t.json.Genesis.EnergyUsed,
+		Difficulty:  t.json.Genesis.Difficulty,
+		Mixhash:     t.json.Genesis.MixHash,
+		Coinbase:    t.json.Genesis.Coinbase,
+		Alloc:       t.json.Pre,
 	}
 }
 
