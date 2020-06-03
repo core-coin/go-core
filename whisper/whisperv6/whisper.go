@@ -19,7 +19,6 @@ package whisperv6
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"crypto/sha256"
 	"fmt"
 	"math"
@@ -27,13 +26,15 @@ import (
 	"sync"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
+	"github.com/core-coin/eddsa"
+
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sync/syncmap"
@@ -89,6 +90,8 @@ type Whisper struct {
 	stats   Statistics // Statistics of whisper node
 
 	mailServer MailServer // MailServer interface
+
+	wg sync.WaitGroup
 }
 
 // New creates a Whisper client ready to communicate through the Core P2P network.
@@ -244,7 +247,9 @@ func (whisper *Whisper) SetBloomFilter(bloom []byte) error {
 	whisper.settings.Store(bloomFilterIdx, b)
 	whisper.notifyPeersAboutBloomFilterChange(b)
 
+	whisper.wg.Add(1)
 	go func() {
+		defer whisper.wg.Done()
 		// allow some time before all the peers have processed the notification
 		time.Sleep(time.Duration(whisper.syncAllowance) * time.Second)
 		whisper.settings.Store(bloomFilterToleranceIdx, b)
@@ -262,7 +267,9 @@ func (whisper *Whisper) SetMinimumPoW(val float64) error {
 	whisper.settings.Store(minPowIdx, val)
 	whisper.notifyPeersAboutPowRequirementChange(val)
 
+	whisper.wg.Add(1)
 	go func() {
+		defer whisper.wg.Done()
 		// allow some time before all the peers have processed the notification
 		time.Sleep(time.Duration(whisper.syncAllowance) * time.Second)
 		whisper.settings.Store(minPowToleranceIdx, val)
@@ -627,10 +634,12 @@ func (whisper *Whisper) Send(envelope *Envelope) error {
 // of the Whisper protocol.
 func (whisper *Whisper) Start(*p2p.Server) error {
 	log.Info("started whisper v." + ProtocolVersionStr)
+	whisper.wg.Add(1)
 	go whisper.update()
 
 	numCPU := runtime.NumCPU()
 	for i := 0; i < numCPU; i++ {
+		whisper.wg.Add(1)
 		go whisper.processQueue()
 	}
 
@@ -641,6 +650,7 @@ func (whisper *Whisper) Start(*p2p.Server) error {
 // of the Whisper protocol.
 func (whisper *Whisper) Stop() error {
 	close(whisper.quit)
+	whisper.wg.Wait()
 	log.Info("whisper stopped")
 	return nil
 }
@@ -875,6 +885,7 @@ func (whisper *Whisper) checkOverflow() {
 
 // processQueue delivers the messages to the watchers during the lifetime of the whisper node.
 func (whisper *Whisper) processQueue() {
+	defer whisper.wg.Done()
 	var e *Envelope
 	for {
 		select {
@@ -893,6 +904,7 @@ func (whisper *Whisper) processQueue() {
 // update loops until the lifetime of the whisper node, updating its internal
 // state by expiring stale messages from the pool.
 func (whisper *Whisper) update() {
+	defer whisper.wg.Done()
 	// Start a ticker to check for expirations
 	expire := time.NewTicker(expirationCycle)
 
