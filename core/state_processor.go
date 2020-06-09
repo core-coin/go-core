@@ -81,7 +81,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, energy used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *EnergyPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedEnergy *uint64, cfg vm.Config) (*types.Receipt, error) {
-	msg, err := tx.AsMessage(types.MakeSigner())
+	msg, err := tx.AsMessage(types.MakeSigner(config.ChainID))
 	if err != nil {
 		return nil, err
 	}

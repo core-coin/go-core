@@ -63,7 +63,7 @@ func TestWaitDeployed(t *testing.T) {
 
 		// Create the transaction.
 		tx := types.NewContractCreation(0, big.NewInt(0), test.energy, big.NewInt(1), common.FromHex(test.code))
-		tx, _ = types.SignTx(tx, types.NucleusSigner{}, testKey)
+		tx, _ = types.SignTx(tx, types.NewNucleusSigner(backend.Blockchain().Config().ChainID), testKey)
 
 		// Wait for it to get mined in the background.
 		var (

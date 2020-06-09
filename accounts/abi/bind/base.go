@@ -234,7 +234,7 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")
 	}
-	signedTx, err := opts.Signer(types.NucleusSigner{}, opts.From, rawTx)
+	signedTx, err := opts.Signer(types.NewNucleusSigner(big.NewInt(1337)), opts.From, rawTx) //TODO change network id (MISHA)
 	if err != nil {
 		return nil, err
 	}

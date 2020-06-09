@@ -279,7 +279,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 		return nil, fmt.Errorf("invalid tx data %q", dataHex)
 	}
 
-	msg := types.NewMessage(from, to, tx.Nonce, value, energyLimit, tx.EnergyPrice, data, true)
+	msg := types.NewMessage(from, to, tx.Nonce, value, energyLimit, tx.EnergyPrice, data, true, int(params.AllCryptoreProtocolChanges.ChainID.Int64()))
 	return msg, nil
 }
 

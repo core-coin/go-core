@@ -18,6 +18,7 @@ package types
 
 import (
 	"crypto/rand"
+	"github.com/core-coin/go-core/params"
 	"math/big"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestNucleusSigning(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
-	signer := NucleusSigner{}
+	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
 	tx, err := SignTx(NewTransaction(0, addr, new(big.Int), 0, new(big.Int), nil), signer, key)
 	if err != nil {
 		t.Fatal(err)
@@ -60,7 +61,7 @@ func TestNucleusSigningDecoding(t *testing.T) {
 		{"f839088504a817c8088302e24894353535353535353535353535353535353535353582020080949bddad43f934d313c2b79ca28a432dd2b7281029", "0x9bddad43f934d313c2b79ca28a432dd2b7281029"},
 		{"f839098504a817c809830334509435353535353535353535353535353535353535358202d980943c24d7329e92f84f08556ceb6df1cdb0104ca49f", "0x3c24d7329e92f84f08556ceb6df1cdb0104ca49f"},
 	} {
-		signer := NucleusSigner{}
+		signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
 		var tx *Transaction
 		err := rlp.DecodeBytes(common.Hex2Bytes(test.txRlp), &tx)
 		if err != nil {

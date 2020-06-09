@@ -804,7 +804,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	}
 
 	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
+	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false, int(b.ChainConfig().ChainID.Int64()))
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered energy, setup a context with a timeout.
@@ -1080,7 +1080,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NucleusSigner{}
+	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
@@ -1266,7 +1266,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	}
 	receipt := receipts[index]
 
-	var signer types.Signer = types.NucleusSigner{}
+	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
 	from, _ := types.Sender(signer, tx)
 
 	fields := map[string]interface{}{
@@ -1405,7 +1405,7 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		return common.Hash{}, err
 	}
 	if tx.To() == nil {
-		signer := types.MakeSigner()
+		signer := types.MakeSigner(b.ChainConfig().ChainID)
 		from, err := types.Sender(signer, tx)
 		if err != nil {
 			return common.Hash{}, err
@@ -1549,7 +1549,7 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	}
 	transactions := make([]*RPCTransaction, 0, len(pending))
 	for _, tx := range pending {
-		var signer types.Signer = types.NucleusSigner{}
+		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
 		from, _ := types.Sender(signer, tx)
 		if _, exists := accounts[from]; exists {
 			transactions = append(transactions, newRPCPendingTransaction(tx))
@@ -1574,7 +1574,7 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	}
 
 	for _, p := range pending {
-		var signer types.Signer = types.NucleusSigner{}
+		var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
 		wantSigHash := signer.Hash(matchTx)
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {

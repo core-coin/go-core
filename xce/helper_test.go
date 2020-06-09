@@ -139,7 +139,7 @@ func (p *testTxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 	batches := make(map[common.Address]types.Transactions)
 	for _, tx := range p.pool {
-		from, _ := types.Sender(types.NucleusSigner{}, tx)
+		from, _ := types.Sender(types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tx)
 		batches[from] = append(batches[from], tx)
 	}
 	for _, batch := range batches {
@@ -155,7 +155,7 @@ func (p *testTxPool) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subs
 // newTestTransaction create a new dummy transaction.
 func newTestTransaction(from *eddsa.PrivateKey, nonce uint64, datasize int) *types.Transaction {
 	tx := types.NewTransaction(nonce, common.Address{}, big.NewInt(0), 100000, big.NewInt(0), make([]byte, datasize))
-	tx, _ = types.SignTx(tx, types.NucleusSigner{}, from)
+	tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), from)
 	return tx
 }
 
