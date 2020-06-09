@@ -51,6 +51,7 @@ type txdata struct {
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Spender      common.Address  `json:"from"`
+	ChainID      int 			 `json:"chain_id"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -84,6 +85,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 		EnergyLimit:     energyLimit,
 		Price:        new(big.Int),
 		Spender:      common.Address{},
+		ChainID:	  0,
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -135,6 +137,7 @@ func (tx *Transaction) EnergyPrice() *big.Int { return new(big.Int).Set(tx.data.
 func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
 func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool   { return true }
+func (tx *Transaction) ChainID() int   { return tx.data.ChainID }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -184,6 +187,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 		data:       tx.data.Payload,
 		from:       tx.data.Spender,
 		checkNonce: true,
+		chainId: s.ChainID(),
 	}
 	return msg, nil
 }
@@ -194,6 +198,8 @@ func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, e
 	if err != nil {
 		return nil, err
 	}
+
+	tx.data.ChainID = signer.ChainID()
 
 	hash := signer.Hash(tx)
 	if !crypto.VerifySignature(pubk.X, hash[:], sig) {
@@ -349,9 +355,10 @@ type Message struct {
 	energyPrice   *big.Int
 	data       []byte
 	checkNonce bool
+	chainId int
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, energyLimit uint64, energyPrice *big.Int, data []byte, checkNonce bool) Message {
+func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, energyLimit uint64, energyPrice *big.Int, data []byte, checkNonce bool, chainID int) Message {
 	return Message{
 		from:       from,
 		to:         to,
@@ -361,6 +368,7 @@ func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *b
 		energyPrice:   energyPrice,
 		data:       data,
 		checkNonce: checkNonce,
+		chainId:chainID,
 	}
 }
 

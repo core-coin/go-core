@@ -358,7 +358,7 @@ func (api *RetestxceAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 		// Return nil is not by mistake - some tests include sending transaction where energyLimit overflows uint64
 		return common.Hash{}, nil
 	}
-	signer := types.MakeSigner()
+	signer := types.MakeSigner(api.blockchain.Config().ChainID)
 	sender, err := types.Sender(signer, tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -588,7 +588,7 @@ func (api *RetestxceAPI) AccountRange(ctx context.Context,
 			return AccountRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner()
+		signer := types.MakeSigner(api.blockchain.Config().ChainID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -697,7 +697,7 @@ func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 			return StorageRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner()
+		signer := types.MakeSigner(api.blockchain.Config().ChainID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)

@@ -18,6 +18,7 @@ package types
 
 import (
 	"bytes"
+	"github.com/core-coin/go-core/params"
 	"math/big"
 	"reflect"
 	"testing"
@@ -54,7 +55,7 @@ func TestBlockEncoding(t *testing.T) {
 	check("Size", block.Size(), common.StorageSize(len(blockEnc)))
 
 	tx1 := NewTransaction(0, crypto.PubkeyToAddress(key.PublicKey), big.NewInt(10), 50000, big.NewInt(10), nil)
-	tx1, _ = tx1.WithSignature(NucleusSigner{}, common.Hex2Bytes("ac4f81b3c3fc94b5deccc435a1dda8408dc2d4f36cb8cb5d88d80ab0d93a9129cd5ffc28d591c101ed4725809f3635f5cf554599ea8f751af59b43497b6f956eb346946ae69648f3f9f6a1df3e5828486219a3c64fce0fd4b1de04696d7abfb8fabf0a5e3c655c02d839eb4f09308722dbcc413b5871d83426cd5b3a0083e6f589f60c1177b287b8f4f764acfcba7dfceadc51ef37b40d6182e3fe6bce148c8a48e07379754ebbf8"))
+	tx1, _ = tx1.WithSignature(NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), common.Hex2Bytes("ac4f81b3c3fc94b5deccc435a1dda8408dc2d4f36cb8cb5d88d80ab0d93a9129cd5ffc28d591c101ed4725809f3635f5cf554599ea8f751af59b43497b6f956eb346946ae69648f3f9f6a1df3e5828486219a3c64fce0fd4b1de04696d7abfb8fabf0a5e3c655c02d839eb4f09308722dbcc413b5871d83426cd5b3a0083e6f589f60c1177b287b8f4f764acfcba7dfceadc51ef37b40d6182e3fe6bce148c8a48e07379754ebbf8"))
 	check("len(Transactions)", len(block.Transactions()), 1)
 	check("Transactions[0].Hash", block.Transactions()[0].Hash(), tx1.Hash())
 

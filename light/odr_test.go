@@ -194,7 +194,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, bc *core.BlockChain
 
 		// Perform read-only call.
 		st.SetBalance(testBankAddress, math.MaxBig256)
-		msg := callmsg{types.NewMessage(testBankAddress, &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false)}
+		msg := callmsg{types.NewMessage(testBankAddress, &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
 		context := core.NewCVMContext(msg, header, chain, nil)
 		vmenv := vm.NewCVM(context, st, config, vm.Config{})
 		gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
@@ -208,7 +208,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, bc *core.BlockChain
 }
 
 func testChainGen(i int, block *core.BlockGen) {
-	signer := types.NucleusSigner{}
+	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
 	switch i {
 	case 0:
 		// In block 1, the test bank sends account #1 some core.

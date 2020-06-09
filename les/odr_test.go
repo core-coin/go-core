@@ -128,7 +128,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 				from := statedb.GetOrNewStateObject(bankAddr)
 				from.SetBalance(math.MaxBig256)
 
-				msg := callmsg{types.NewMessage(from.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
+				msg := callmsg{types.NewMessage(from.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
 
 				context := core.NewCVMContext(msg, header, bc, nil)
 				vmenv := vm.NewCVM(context, statedb, config, vm.Config{})
@@ -142,7 +142,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 			header := lc.GetHeaderByHash(bhash)
 			state := light.NewState(ctx, header, lc.Odr())
 			state.SetBalance(bankAddr, math.MaxBig256)
-			msg := callmsg{types.NewMessage(bankAddr, &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
+			msg := callmsg{types.NewMessage(bankAddr, &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
 			context := core.NewCVMContext(msg, header, lc, nil)
 			vmenv := vm.NewCVM(context, state, config, vm.Config{})
 			gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)

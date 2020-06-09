@@ -32,15 +32,17 @@ type sigCache struct {
 }
 
 // MakeSigner returns a Signer based on the given chain config and block number.
-func MakeSigner() Signer {
-	var signer Signer
-	signer = NucleusSigner{}
+func MakeSigner(chainID *big.Int) Signer {
+	var signer = NewNucleusSigner(chainID)
 	return signer
 }
 
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
+
+	tx.data.ChainID = s.ChainID()
+
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
@@ -79,34 +81,40 @@ type Signer interface {
 	Hash(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
+	// ChainID returns chain id stored in signer
+	ChainID() int
 }
 
-// CIP155Transaction implements Signer using the CIP155 rules.
-type CIP155Signer struct {
+// NucleusSigner implements Signer with chain id.
+type NucleusSigner struct {
 	chainId *big.Int
 }
 
-func NewCIP155Signer(chainId *big.Int) CIP155Signer {
+func NewNucleusSigner(chainId *big.Int) NucleusSigner {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
-	return CIP155Signer{
+	return NucleusSigner{
 		chainId: chainId,
 	}
 }
 
-func (s CIP155Signer) Equal(s2 Signer)bool {
-	cip155, ok := s2.(CIP155Signer)
-	return ok && cip155.chainId.Cmp(s.chainId) == 0
+func (s NucleusSigner) Equal(s2 Signer)bool {
+	nucleus, ok := s2.(NucleusSigner)
+	return ok && nucleus.chainId.Cmp(s.chainId) == 0
 }
 
-func (s CIP155Signer) Sender(tx *Transaction) (common.Address, error) {
+func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
 	return tx.data.Spender, nil
+}
+
+func (s NucleusSigner) ChainID() int {
+	return int(s.chainId.Int64())
 }
 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
-func (s CIP155Signer) Hash(tx *Transaction) common.Hash {
+func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
@@ -114,30 +122,7 @@ func (s CIP155Signer) Hash(tx *Transaction) common.Hash {
 		tx.data.Recipient,
 		tx.data.Amount,
 		tx.data.Payload,
-		s.chainId, uint(0), uint(0),
-	})
-}
-
-type NucleusSigner struct{}
-
-func (s NucleusSigner) Equal(s2 Signer) bool {
-	_, ok := s2.(NucleusSigner)
-	return ok
-}
-
-func (hs NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
-	return tx.data.Spender, nil
-}
-
-// Hash returns the hash to be signed by the sender.
-// It does not uniquely identify the transaction.
-func (hs NucleusSigner) Hash(tx *Transaction) common.Hash {
-	return rlpHash([]interface{}{
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.EnergyLimit,
-		tx.data.Recipient,
-		tx.data.Amount,
-		tx.data.Payload,
+		tx.data.ChainID,
+		s.chainId,
 	})
 }

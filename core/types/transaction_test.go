@@ -21,6 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"github.com/core-coin/eddsa"
+	"github.com/core-coin/go-core/params"
 	"math/big"
 	"testing"
 
@@ -47,7 +48,7 @@ var (
 		big.NewInt(1),
 		common.FromHex("1123"),
 	).WithSignature(
-		NucleusSigner{},
+		NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID),
 		common.Hex2Bytes("26ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef56cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da40852e9afe4b052cd457d485c62b0e55a6db68f1da40845e4d7349e1df3ecac5db2b90bee5f9f15be07e9470b0c7ffe2f05e9d5802c26b97d81"),
 	)
 )
@@ -93,7 +94,7 @@ func TestRecipientEmpty(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NucleusSigner{}, tx)
+	from, err := Sender(NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +111,7 @@ func TestRecipientNormal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NucleusSigner{}, tx)
+	from, err := Sender(NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +130,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 
-	signer := NucleusSigner{}
+	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
@@ -180,7 +181,7 @@ func TestTransactionJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
 	}
-	signer := NewCIP155Signer(common.Big1)
+	signer := NewNucleusSigner(common.Big1)
 
 	transactions := make([]*Transaction, 0, 50)
 	for i := uint64(0); i < 25; i++ {

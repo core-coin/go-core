@@ -87,7 +87,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewCIP155Signer(config.ChainID),
+		signer:      types.NewNucleusSigner(config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),

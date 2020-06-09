@@ -127,7 +127,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err %v", err)
 	}
-	signer := types.NewCIP155Signer(big.NewInt(1))
+	signer := types.NewNucleusSigner(big.NewInt(1))
 	tx, err := types.SignTx(unsignedTx, signer, privateKeyEDDSA)
 	if err != nil {
 		t.Fatalf("err %v", err)
@@ -228,7 +228,7 @@ func TestCallTracer(t *testing.T) {
 			if err := rlp.DecodeBytes(common.FromHex(test.Input), tx); err != nil {
 				t.Fatalf("failed to parse testcase input: %v", err)
 			}
-			signer := types.MakeSigner()
+			signer := types.MakeSigner(params.AllCryptoreProtocolChanges.ChainID)
 			origin, _ := signer.Sender(tx)
 
 			context := vm.Context{
