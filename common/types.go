@@ -25,6 +25,7 @@ import (
 	"math/big"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/core-coin/go-core/common/hexutil"
@@ -180,6 +181,101 @@ func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
 	return a
+}
+
+func StringToAddress(text string) (chainID int, addr Address, err error) {
+	if len(text) != 44 {
+		return 0, Address{}, errors.New("Invalid length of string address ")
+	}
+
+	chainID, err = getChainIDFromAddressPrefix(text[:2])
+	if err != nil{
+		return
+	}
+	if ok := VerifyChecksum(text[2:4], text[4:]); ok != true {
+		return 0, Address{}, errors.New("Invalid checksum ")
+	}
+	return chainID, HexToAddress(text[4:]), nil
+}
+
+func AddressToString(chainId int, address Address) string {
+	prefix, err := getAddressPrefixFromChainID(chainId)
+	if err != nil{
+		return ""
+	}
+	checksum := CalculateChecksum(address)
+	if checksum == ""{
+		return ""
+	}
+	return prefix + checksum + address.String()[2:]
+}
+
+func CalculateChecksum(address Address) string {
+	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
+	mods := ""
+	for _, c := range address.String()[2:] {
+		// Get character code point value
+		i := int(c)
+
+		// Check if c is characters A-F (codepoint 65 - 70)
+		if i > 64 && i < 70 {
+			// A=10, B=11 etc...
+			i -= 55
+			// Add int as string to mod string
+			mods += strconv.Itoa(i)
+		} else {
+			mods += string(c)
+		}
+	}
+
+	// Create bignum from mod string and perform module
+	bigVal, success := new(big.Int).SetString(mods, 10)
+	if !success {
+		return ""
+	}
+
+	modVal := new(big.Int).SetInt64(97)
+	resVal := new(big.Int).Mod(bigVal, modVal)
+
+	subVal := new(big.Int).SetInt64(97)
+	resVal = new(big.Int).Sub(subVal, resVal)
+
+	resInt := resVal.Int64()
+	if resInt < 10 {
+		return "0" + strconv.Itoa(int(resInt))
+	}
+	return strconv.Itoa(int(resInt))
+}
+
+func VerifyChecksum(checksum, addr string) bool {
+	res := CalculateChecksum(HexToAddress(addr))
+	return checksum == res
+}
+
+func getChainIDFromAddressPrefix(alias string) (int, error){
+	switch alias {
+		case "xc":
+			return 540, nil
+		case "xt":
+			return 2, nil
+		case "xp":
+			return 3, nil
+		default:
+			return 0, errors.New("invalid address prefix ")
+	}
+}
+
+func getAddressPrefixFromChainID(chainID int) (string, error){
+	switch chainID {
+		case 540:
+			return "xc", nil
+		case 2:
+			return "xt", nil
+		case 3:
+			return "xp", nil
+		default:
+			return "", errors.New("invalid address prefix ")
+	}
 }
 
 // BigToAddress returns Address with byte values of b.
