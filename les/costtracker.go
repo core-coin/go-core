@@ -24,11 +24,11 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 const makeCostStats = false // make request cost statistics during operation
@@ -269,6 +269,7 @@ func (ct *costTracker) gfLoop() {
 			log.Debug("global cost factor saved", "value", factor)
 		}
 		saveTicker := time.NewTicker(time.Minute * 10)
+		defer saveTicker.Stop()
 
 		for {
 			select {
