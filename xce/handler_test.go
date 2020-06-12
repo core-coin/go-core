@@ -32,10 +32,10 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xce/downloader"
 )
 
 // Tests that block headers can be retrieved from a remote chain based on user queries.
@@ -615,7 +615,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 		case <-doneCh:
 			received++
 
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(time.Second):
 			if received != broadcastExpected {
 				t.Errorf("broadcast count mismatch: have %d, want %d", received, broadcastExpected)
 			}
