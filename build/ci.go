@@ -356,7 +356,7 @@ func doLint(cmdline []string) {
 
 // downloadLinter downloads and unpacks golangci-lint.
 func downloadLinter(cachedir string) string {
-	const version = "1.22.2"
+	const version = "1.24.0"
 
 	csdb := build.MustLoadChecksums("build/checksums.txt")
 	base := fmt.Sprintf("golangci-lint-%s-%s-%s", version, runtime.GOOS, runtime.GOARCH)
@@ -395,7 +395,7 @@ func doArchive(cmdline []string) {
 
 		basegcore = archiveBasename(*arch, params.ArchiveVersion(env.Commit))
 		gcore     = "gcore-" + basegcore + ext
-		alltools = "gcore-alltools-" + basegcore + ext
+		alltools  = "gcore-alltools-" + basegcore + ext
 	)
 	maybeSkipArchive(env)
 	if err := build.WriteArchive(gcore, gcoreArchiveFiles); err != nil {
@@ -759,8 +759,8 @@ func doWindowsInstaller(cmdline []string) {
 
 	// Aggregate binaries that are included in the installer
 	var (
-		devTools []string
-		allTools []string
+		devTools  []string
+		allTools  []string
 		gcoreTool string
 	)
 	for _, file := range allToolsArchiveFiles {
@@ -779,7 +779,7 @@ func doWindowsInstaller(cmdline []string) {
 	// first section contains the gcore binary, second section holds the dev tools.
 	templateData := map[string]interface{}{
 		"License":  "COPYING",
-		"Gcore":     gcoreTool,
+		"Gcore":    gcoreTool,
 		"DevTools": devTools,
 	}
 	build.Render("build/nsis.gcore.nsi", filepath.Join(*workdir, "gcore.nsi"), 0644, nil)
