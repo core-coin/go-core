@@ -17,6 +17,7 @@
 package types
 
 import (
+	"fmt"
 	"github.com/core-coin/eddsa"
 	"math/big"
 
@@ -39,6 +40,7 @@ func MakeSigner(chainID *big.Int) Signer {
 
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
+	tx.data.ChainID = s.ChainID()
 	h := s.Hash(tx)
 
 	sig, err := crypto.Sign(h[:], prv)
@@ -79,6 +81,8 @@ type Signer interface {
 	Hash(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
+
+	ChainID() int
 }
 
 // NucleusSigner implements Signer with chain id.
@@ -104,10 +108,18 @@ func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
 	return tx.data.Spender, nil
 }
 
+func (s NucleusSigner) ChainID() int {
+	return int(s.chainId.Int64())
+}
+
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
-	return rlpHash([]interface{}{
+	fmt.Println(s.chainId)
+	fmt.Println(tx.data.Amount)
+	fmt.Println(tx.data.Recipient.Hex())
+	fmt.Println("------------------------------------------------")
+	asd := rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
 		tx.data.EnergyLimit,
@@ -116,4 +128,6 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 		tx.data.Payload,
 		s.chainId,
 	})
+	fmt.Println(asd.Hex())
+	return asd
 }

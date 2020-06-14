@@ -44,6 +44,10 @@ func (s *senderFromServer) Equal(other types.Signer) bool {
 	return ok && os.blockhash == s.blockhash
 }
 
+func (s *senderFromServer) ChainID() int {
+	panic("can't sign with senderFromServer")
+}
+
 func (s *senderFromServer) Sender(tx *types.Transaction) (common.Address, error) {
 	if s.blockhash == (common.Hash{}) {
 		return common.Address{}, errNotCached
