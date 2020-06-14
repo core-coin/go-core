@@ -52,7 +52,7 @@ type txdata struct {
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Spender      common.Address  `json:"from"`
 
-	ChainID int `json:"chain_id"`
+	ChainID uint `json:"chain_id"`
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
 }
@@ -192,7 +192,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 
 // WithSignature returns a new transaction with the given signature.
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
-	tx.data.ChainID = signer.ChainID()
+	tx.data.ChainID = uint(signer.ChainID())
 
 	pubk, err := crypto.SigToPub(nil, sig)
 	if err != nil {
