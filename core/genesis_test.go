@@ -21,13 +21,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xccdb"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -45,24 +45,24 @@ func TestSetupGenesis(t *testing.T) {
 	var (
 		customghash = common.HexToHash("0x360a97735f5d23216810b6c2fa5803274eb5fdc006cdbcee9666464c7d091cc0")
 		customg     = Genesis{
-			Config: &params.ChainConfig{EWASMBlock:big.NewInt(3)},
+			Config: &params.ChainConfig{EWASMBlock: big.NewInt(3)},
 			Alloc: GenesisAlloc{
 				{1}: {Balance: big.NewInt(1), Storage: map[common.Hash]common.Hash{{1}: {1}}},
 			},
 		}
 		oldcustomg = customg
 	)
-	oldcustomg.Config = &params.ChainConfig{EWASMBlock:big.NewInt(2)}
+	oldcustomg.Config = &params.ChainConfig{EWASMBlock: big.NewInt(2)}
 	tests := []struct {
 		name       string
-		fn         func(xcedb.Database) (*params.ChainConfig, common.Hash, error)
+		fn         func(xccdb.Database) (*params.ChainConfig, common.Hash, error)
 		wantConfig *params.ChainConfig
 		wantHash   common.Hash
 		wantErr    error
 	}{
 		{
 			name: "genesis without ChainConfig",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
@@ -70,7 +70,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "no block in DB, genesis == nil",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -78,7 +78,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "mainnet block in DB, genesis == nil",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -87,7 +87,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "custom block in DB, genesis == nil",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -96,7 +96,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "custom block in DB, genesis == testnet",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
 				return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 			},
@@ -106,7 +106,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "compatible config in DB",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				oldcustomg.MustCommit(db)
 				return SetupGenesisBlock(db, &customg)
 			},
@@ -115,7 +115,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "incompatible config in DB",
-			fn: func(db xcedb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db xccdb.Database) (*params.ChainConfig, common.Hash, error) {
 				// Commit the 'old' genesis block with transition at #2.
 				// Advance to block #4, past the transition block of customg.
 				genesis := oldcustomg.MustCommit(db)

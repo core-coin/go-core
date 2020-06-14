@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcc"
 	"github.com/naoina/toml"
 )
 
@@ -68,15 +68,15 @@ var tomlSettings = toml.Config{
 	},
 }
 
-type xcestatsConfig struct {
+type xccstatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
 type gcoreConfig struct {
-	Xce      xce.Config
+	Xce      xcc.Config
 	Shh      whisper.Config
 	Node     node.Config
-	Xcestats xcestatsConfig
+	Xcestats xccstatsConfig
 }
 
 func loadConfig(file string, cfg *gcoreConfig) error {
@@ -98,8 +98,8 @@ func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
-	cfg.HTTPModules = append(cfg.HTTPModules, "xce")
-	cfg.WSModules = append(cfg.WSModules, "xce")
+	cfg.HTTPModules = append(cfg.HTTPModules, "xcc")
+	cfg.WSModules = append(cfg.WSModules, "xcc")
 	cfg.IPCPath = "gcore.ipc"
 	return cfg
 }
@@ -107,7 +107,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	// Load defaults.
 	cfg := gcoreConfig{
-		Xce:  xce.DefaultConfig,
+		Xce:  xcc.DefaultConfig,
 		Shh:  whisper.DefaultConfig,
 		Node: defaultNodeConfig(),
 	}

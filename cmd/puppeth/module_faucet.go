@@ -64,8 +64,8 @@ services:
     volumes:
       - {{.Datadir}}:/root/.faucet
     environment:
-      - XCE_PORT={{.XcePort}}
-      - XCE_NAME={{.XceName}}
+      - XCC_PORT={{.XcePort}}
+      - XCC_NAME={{.XceName}}
       - FAUCET_AMOUNT={{.FaucetAmount}}
       - FAUCET_MINUTES={{.FaucetMinutes}}
       - FAUCET_TIERS={{.FaucetTiers}}
@@ -160,7 +160,7 @@ func (info *faucetInfos) Report() map[string]string {
 	report := map[string]string{
 		"Website address":              info.host,
 		"Website listener port":        strconv.Itoa(info.port),
-		"Core listener port":       strconv.Itoa(info.node.port),
+		"Core listener port":           strconv.Itoa(info.node.port),
 		"Funding amount (base tier)":   fmt.Sprintf("%d Cores", info.amount),
 		"Funding cooldown (base tier)": fmt.Sprintf("%d mins", info.minutes),
 		"Funding tiers":                strconv.Itoa(info.tiers),
@@ -230,8 +230,8 @@ func checkFaucet(client *sshClient, network string) (*faucetInfos, error) {
 	return &faucetInfos{
 		node: &nodeInfos{
 			datadir:  infos.volumes["/root/.faucet"],
-			port:     infos.portmap[infos.envvars["XCE_PORT"]+"/tcp"],
-			xcestats: infos.envvars["XCE_NAME"],
+			port:     infos.portmap[infos.envvars["XCC_PORT"]+"/tcp"],
+			xcestats: infos.envvars["XCC_NAME"],
 			keyJSON:  keyJSON,
 			keyPass:  keyPass,
 		},

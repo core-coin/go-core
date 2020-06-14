@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"math/big"
@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 const (
@@ -59,10 +59,10 @@ func (pm *ProtocolManager) syncTransactions(p *peer) {
 	if len(txs) == 0 {
 		return
 	}
-	// The xce/65 protocol introduces proper transaction announcements, so instead
+	// The xcc/65 protocol introduces proper transaction announcements, so instead
 	// of dripping transactions across multiple peers, just send the entire list as
 	// an announcement and let the remote side decide what they need (likely nothing).
-	if p.version >= xce65 {
+	if p.version >= xcc65 {
 		hashes := make([]common.Hash, len(txs))
 		for i, tx := range txs {
 			hashes[i] = tx.Hash()
@@ -93,8 +93,8 @@ func (pm *ProtocolManager) txsyncLoop64() {
 
 	// send starts a sending a pack of transactions from the sync.
 	send := func(s *txsync) {
-		if s.p.version >= xce65 {
-			panic("initial transaction syncer running on xce/65+")
+		if s.p.version >= xcc65 {
+			panic("initial transaction syncer running on xcc/65+")
 		}
 		// Fill pack with transactions up to the target size.
 		size := common.StorageSize(0)

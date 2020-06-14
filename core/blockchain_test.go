@@ -35,8 +35,8 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // So we can deterministically seed different blockchains
@@ -48,7 +48,7 @@ var (
 // newCanonical creates a chain database, and injects a deterministic canonical
 // chain. Depending on the full flag, if creates either a full block chain or a
 // header only chain.
-func newCanonical(engine consensus.Engine, n int, full bool) (xcedb.Database, *BlockChain, error) {
+func newCanonical(engine consensus.Engine, n int, full bool) (xccdb.Database, *BlockChain, error) {
 	var (
 		db      = rawdb.NewMemoryDatabase()
 		genesis = new(Genesis).MustCommit(db)
@@ -719,7 +719,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	blocks, receipts := GenerateChain(gspec.Config, genesis, cryptore.NewFaker(), gendb, int(height), nil)
 
 	// makeDb creates a db instance for testing.
-	makeDb := func() (xcedb.Database, func()) {
+	makeDb := func() (xccdb.Database, func()) {
 		dir, err := ioutil.TempDir("", "")
 		if err != nil {
 			t.Fatalf("failed to create temp freezer dir: %v", err)
@@ -826,7 +826,7 @@ func TestChainTxReorgs(t *testing.T) {
 		addr3   = crypto.PubkeyToAddress(key3.PublicKey)
 		db      = rawdb.NewMemoryDatabase()
 		gspec   = &Genesis{
-			Config:   params.TestChainConfig,
+			Config:      params.TestChainConfig,
 			EnergyLimit: 3141592,
 			Alloc: GenesisAlloc{
 				addr1: {Balance: big.NewInt(1000000)},
@@ -1417,7 +1417,7 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		theAddr = common.Address{1}
 		gspec   = &Genesis{
 			Config: &params.ChainConfig{
-				ChainID:        big.NewInt(1),
+				ChainID: big.NewInt(1),
 			},
 			Alloc: GenesisAlloc{address: {Balance: funds}},
 		}

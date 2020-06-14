@@ -1089,7 +1089,7 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if lightClient {
 		xcePeers = 0
 	}
-	log.Info("Maximum peer count", "XCE", xcePeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "XCC", xcePeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)

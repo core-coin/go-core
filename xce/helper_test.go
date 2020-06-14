@@ -17,7 +17,7 @@
 // This file contains some shares testing functionality, common to  multiple
 // different files and modules being tested.
 
-package xce
+package xcc
 
 import (
 	"crypto/rand"
@@ -41,8 +41,8 @@ import (
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 var (
@@ -53,7 +53,7 @@ var (
 // newTestProtocolManager creates a new protocol manager for testing purposes,
 // with the given number of blocks already known, and potential notification
 // channels for different events.
-func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func(int, *core.BlockGen), newtx chan<- []*types.Transaction) (*ProtocolManager, xcedb.Database, error) {
+func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func(int, *core.BlockGen), newtx chan<- []*types.Transaction) (*ProtocolManager, xccdb.Database, error) {
 	var (
 		evmux  = new(event.TypeMux)
 		engine = cryptore.NewFaker()
@@ -81,7 +81,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func
 // with the given number of blocks already known, and potential notification
 // channels for different events. In case of an error, the constructor force-
 // fails the test.
-func newTestProtocolManagerMust(t *testing.T, mode downloader.SyncMode, blocks int, generator func(int, *core.BlockGen), newtx chan<- []*types.Transaction) (*ProtocolManager, xcedb.Database) {
+func newTestProtocolManagerMust(t *testing.T, mode downloader.SyncMode, blocks int, generator func(int, *core.BlockGen), newtx chan<- []*types.Transaction) (*ProtocolManager, xccdb.Database) {
 	pm, db, err := newTestProtocolManager(mode, blocks, generator, newtx)
 	if err != nil {
 		t.Fatalf("Failed to create protocol manager: %v", err)
@@ -196,7 +196,7 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 func (p *testPeer) handshake(t *testing.T, td *big.Int, head common.Hash, genesis common.Hash, forkID forkid.ID, forkFilter forkid.Filter) {
 	var msg interface{}
 	switch {
-	case p.version == xce63:
+	case p.version == xcc63:
 		msg = &statusData63{
 			ProtocolVersion: uint32(p.version),
 			NetworkId:       DefaultConfig.NetworkId,
@@ -204,7 +204,7 @@ func (p *testPeer) handshake(t *testing.T, td *big.Int, head common.Hash, genesi
 			CurrentBlock:    head,
 			GenesisBlock:    genesis,
 		}
-	case p.version >= xce64:
+	case p.version >= xcc64:
 		msg = &statusData{
 			ProtocolVersion: uint32(p.version),
 			NetworkID:       DefaultConfig.NetworkId,
@@ -214,7 +214,7 @@ func (p *testPeer) handshake(t *testing.T, td *big.Int, head common.Hash, genesi
 			ForkID:          forkID,
 		}
 	default:
-		panic(fmt.Sprintf("unsupported xce protocol version: %d", p.version))
+		panic(fmt.Sprintf("unsupported xcc protocol version: %d", p.version))
 	}
 	if err := p2p.ExpectMsg(p.app, StatusMsg, msg); err != nil {
 		t.Fatalf("status recv: %v", err)

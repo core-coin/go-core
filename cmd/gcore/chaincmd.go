@@ -33,10 +33,10 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcc/downloader"
 	"gopkg.in/urfave/cli.v1"
 )
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"fmt"
@@ -32,10 +32,10 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 // Tests that block headers can be retrieved from a remote chain based on user queries.
@@ -426,7 +426,7 @@ func testGetReceipt(t *testing.T, protocol int) {
 	}
 }
 
-// Tests that post xce protocol handshake, clients perform a mutual checkpoint
+// Tests that post xcc protocol handshake, clients perform a mutual checkpoint
 // challenge to validate each other's chains. Hash mismatches, or missing ones
 // during a fast sync should lead to the peer getting dropped.
 func TestCheckpointChallenge(t *testing.T) {
@@ -503,7 +503,7 @@ func testCheckpointChallenge(t *testing.T, syncmode downloader.SyncMode, checkpo
 	defer pm.Stop()
 
 	// Connect a new peer and check that we receive the checkpoint challenge
-	peer, _ := newTestPeer("peer", xce63, pm, true)
+	peer, _ := newTestPeer("peer", xcc63, pm, true)
 	defer peer.close()
 
 	if checkpoint {

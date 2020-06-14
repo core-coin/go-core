@@ -23,13 +23,13 @@ import (
 	"sort"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
+	mapset "github.com/deckarep/golang-set"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 
 	// maxTxRetrievals is the maximum transaction number can be fetched in one
 	// request. The rationale to pick 256 is:
-	//   - In xce protocol, the softResponseLimit is 2MB. Nowadays according to
+	//   - In xcc protocol, the softResponseLimit is 2MB. Nowadays according to
 	//     Corescan the average transaction size is around 200B, so in theory
 	//     we can include lots of transaction in a single protocol packet.
 	//   - However the maximum size of a single transaction is raised to 128KB,
@@ -68,27 +68,27 @@ var (
 )
 
 var (
-	txAnnounceInMeter          = metrics.NewRegisteredMeter("xce/fetcher/transaction/announces/in", nil)
-	txAnnounceKnownMeter       = metrics.NewRegisteredMeter("xce/fetcher/transaction/announces/known", nil)
-	txAnnounceUnderpricedMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/announces/underpriced", nil)
-	txAnnounceDOSMeter         = metrics.NewRegisteredMeter("xce/fetcher/transaction/announces/dos", nil)
+	txAnnounceInMeter          = metrics.NewRegisteredMeter("xcc/fetcher/transaction/announces/in", nil)
+	txAnnounceKnownMeter       = metrics.NewRegisteredMeter("xcc/fetcher/transaction/announces/known", nil)
+	txAnnounceUnderpricedMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/announces/underpriced", nil)
+	txAnnounceDOSMeter         = metrics.NewRegisteredMeter("xcc/fetcher/transaction/announces/dos", nil)
 
-	txBroadcastInMeter          = metrics.NewRegisteredMeter("xce/fetcher/transaction/broadcasts/in", nil)
-	txBroadcastKnownMeter       = metrics.NewRegisteredMeter("xce/fetcher/transaction/broadcasts/known", nil)
-	txBroadcastUnderpricedMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/broadcasts/underpriced", nil)
-	txBroadcastOtherRejectMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/broadcasts/otherreject", nil)
+	txBroadcastInMeter          = metrics.NewRegisteredMeter("xcc/fetcher/transaction/broadcasts/in", nil)
+	txBroadcastKnownMeter       = metrics.NewRegisteredMeter("xcc/fetcher/transaction/broadcasts/known", nil)
+	txBroadcastUnderpricedMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/broadcasts/underpriced", nil)
+	txBroadcastOtherRejectMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/broadcasts/otherreject", nil)
 
-	txRequestOutMeter     = metrics.NewRegisteredMeter("xce/fetcher/transaction/request/out", nil)
-	txRequestFailMeter    = metrics.NewRegisteredMeter("xce/fetcher/transaction/request/fail", nil)
-	txRequestDoneMeter    = metrics.NewRegisteredMeter("xce/fetcher/transaction/request/done", nil)
-	txRequestTimeoutMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/request/timeout", nil)
+	txRequestOutMeter     = metrics.NewRegisteredMeter("xcc/fetcher/transaction/request/out", nil)
+	txRequestFailMeter    = metrics.NewRegisteredMeter("xcc/fetcher/transaction/request/fail", nil)
+	txRequestDoneMeter    = metrics.NewRegisteredMeter("xcc/fetcher/transaction/request/done", nil)
+	txRequestTimeoutMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/request/timeout", nil)
 
-	txReplyInMeter          = metrics.NewRegisteredMeter("xce/fetcher/transaction/replies/in", nil)
-	txReplyKnownMeter       = metrics.NewRegisteredMeter("xce/fetcher/transaction/replies/known", nil)
-	txReplyUnderpricedMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/replies/underpriced", nil)
-	txReplyOtherRejectMeter = metrics.NewRegisteredMeter("xce/fetcher/transaction/replies/otherreject", nil)
+	txReplyInMeter          = metrics.NewRegisteredMeter("xcc/fetcher/transaction/replies/in", nil)
+	txReplyKnownMeter       = metrics.NewRegisteredMeter("xcc/fetcher/transaction/replies/known", nil)
+	txReplyUnderpricedMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/replies/underpriced", nil)
+	txReplyOtherRejectMeter = metrics.NewRegisteredMeter("xcc/fetcher/transaction/replies/otherreject", nil)
 
-	txFetcherWaitingPeers   = metrics.NewRegisteredGauge("xce/fetcher/transaction/waiting/peers", nil)
+	txFetcherWaitingPeers   = metrics.NewRegisteredGauge("xcc/fetcher/transaction/waiting/peers", nil)
 	txFetcherWaitingHashes  = metrics.NewRegisteredGauge("xce/fetcher/transaction/waiting/hashes", nil)
 	txFetcherQueueingPeers  = metrics.NewRegisteredGauge("xce/fetcher/transaction/queueing/peers", nil)
 	txFetcherQueueingHashes = metrics.NewRegisteredGauge("xce/fetcher/transaction/queueing/hashes", nil)

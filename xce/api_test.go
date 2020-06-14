@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"bytes"
@@ -24,11 +24,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/crypto"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var dumper = spew.ConfigState{Indent: "    "}

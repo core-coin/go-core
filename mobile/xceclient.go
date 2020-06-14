@@ -22,17 +22,17 @@ import (
 	"math/big"
 
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xceclient"
+	"github.com/core-coin/go-core/xccclient"
 )
 
 // CoreClient provides access to the Core APIs.
 type CoreClient struct {
-	client *xceclient.Client
+	client *xccclient.Client
 }
 
 // NewCoreClient connects a client to the given URL.
 func NewCoreClient(rawurl string) (client *CoreClient, _ error) {
-	rawClient, err := xceclient.Dial(rawurl)
+	rawClient, err := xccclient.Dial(rawurl)
 	return &CoreClient{rawClient}, err
 }
 

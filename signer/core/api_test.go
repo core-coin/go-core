@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/fourbyte"
@@ -231,13 +231,13 @@ func mkTestTx(from common.MixedcaseAddress) core.SendTxArgs {
 	nonce := (hexutil.Uint64)(0)
 	data := hexutil.Bytes(common.Hex2Bytes("01020304050607080a"))
 	tx := core.SendTxArgs{
-		From:     from,
-		To:       &to,
+		From:        from,
+		To:          &to,
 		Energy:      energy,
 		EnergyPrice: energyPrice,
-		Value:    value,
-		Data:     &data,
-		Nonce:    nonce}
+		Value:       value,
+		Data:        &data,
+		Nonce:       nonce}
 	return tx
 }
 

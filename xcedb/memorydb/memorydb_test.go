@@ -19,13 +19,13 @@ package memorydb
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/xcedb"
-	"github.com/core-coin/go-core/xcedb/dbtest"
+	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xccdb/dbtest"
 )
 
 func TestMemoryDB(t *testing.T) {
 	t.Run("DatabaseSuite", func(t *testing.T) {
-		dbtest.TestDatabaseSuite(t, func() xcedb.KeyValueStore {
+		dbtest.TestDatabaseSuite(t, func() xccdb.KeyValueStore {
 			return New()
 		})
 	})

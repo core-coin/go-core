@@ -20,9 +20,9 @@ import (
 	"bytes"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // NewStateSync create a new state trie download scheduler.

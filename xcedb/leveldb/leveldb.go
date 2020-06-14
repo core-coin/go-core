@@ -27,9 +27,9 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/xccdb"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
@@ -176,7 +176,7 @@ func (db *Database) Delete(key []byte) error {
 
 // NewBatch creates a write-only key-value store that buffers changes to its host
 // database until a final write is called.
-func (db *Database) NewBatch() xcedb.Batch {
+func (db *Database) NewBatch() xccdb.Batch {
 	return &batch{
 		db: db.db,
 		b:  new(leveldb.Batch),
@@ -185,20 +185,20 @@ func (db *Database) NewBatch() xcedb.Batch {
 
 // NewIterator creates a binary-alphabetical iterator over the entire keyspace
 // contained within the leveldb database.
-func (db *Database) NewIterator() xcedb.Iterator {
+func (db *Database) NewIterator() xccdb.Iterator {
 	return db.db.NewIterator(new(util.Range), nil)
 }
 
 // NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
 // database content starting at a particular initial key (or after, if it does
 // not exist).
-func (db *Database) NewIteratorWithStart(start []byte) xcedb.Iterator {
+func (db *Database) NewIteratorWithStart(start []byte) xccdb.Iterator {
 	return db.db.NewIterator(&util.Range{Start: start}, nil)
 }
 
 // NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
 // of database content with a particular key prefix.
-func (db *Database) NewIteratorWithPrefix(prefix []byte) xcedb.Iterator {
+func (db *Database) NewIteratorWithPrefix(prefix []byte) xccdb.Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
 }
 
@@ -461,13 +461,13 @@ func (b *batch) Reset() {
 }
 
 // Replay replays the batch contents.
-func (b *batch) Replay(w xcedb.KeyValueWriter) error {
+func (b *batch) Replay(w xccdb.KeyValueWriter) error {
 	return b.b.Replay(&replayer{writer: w})
 }
 
 // replayer is a small wrapper to implement the correct replay methods.
 type replayer struct {
-	writer  xcedb.KeyValueWriter
+	writer  xccdb.KeyValueWriter
 	failure error
 }
 

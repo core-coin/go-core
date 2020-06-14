@@ -42,7 +42,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
 	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcestats \'{{.Xcestats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xccstats \'{{.Xcestats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
 
 ENTRYPOINT ["/bin/sh", "gcore.sh"]
 `
@@ -98,36 +98,36 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	}
 	dockerfile := new(bytes.Buffer)
 	template.Must(template.New("").Parse(nodeDockerfile)).Execute(dockerfile, map[string]interface{}{
-		"NetworkID": config.network,
-		"Port":      config.port,
-		"IP":        client.address,
-		"Peers":     config.peersTotal,
-		"LightFlag": lightFlag,
-		"Bootnodes": strings.Join(bootnodes, ","),
-		"Xcestats":  config.xcestats,
-		"Corebase": config.corebase,
+		"NetworkID":    config.network,
+		"Port":         config.port,
+		"IP":           client.address,
+		"Peers":        config.peersTotal,
+		"LightFlag":    lightFlag,
+		"Bootnodes":    strings.Join(bootnodes, ","),
+		"Xcestats":     config.xccstats,
+		"Corebase":     config.corebase,
 		"EnergyTarget": uint64(1000000 * config.energyTarget),
 		"EnergyLimit":  uint64(1000000 * config.energyLimit),
 		"EnergyPrice":  uint64(1000000000 * config.energyPrice),
-		"Unlock":    config.keyJSON != "",
+		"Unlock":       config.keyJSON != "",
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
 
 	composefile := new(bytes.Buffer)
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
-		"Type":       kind,
-		"Datadir":    config.datadir,
+		"Type":         kind,
+		"Datadir":      config.datadir,
 		"Cryptoredir":  config.cryptoredir,
-		"Network":    network,
-		"Port":       config.port,
-		"TotalPeers": config.peersTotal,
-		"Light":      config.peersLight > 0,
-		"LightPeers": config.peersLight,
-		"Xcestats":   config.xcestats[:strings.Index(config.xcestats, ":")],
-		"Corebase":  config.corebase,
-		"EnergyTarget":  config.energyTarget,
-		"EnergyLimit":   config.energyLimit,
-		"EnergyPrice":   config.energyPrice,
+		"Network":      network,
+		"Port":         config.port,
+		"TotalPeers":   config.peersTotal,
+		"Light":        config.peersLight > 0,
+		"LightPeers":   config.peersLight,
+		"Xcestats":     config.xccstats[:strings.Index(config.xccstats, ":")],
+		"Corebase":     config.corebase,
+		"EnergyTarget": config.energyTarget,
+		"EnergyLimit":  config.energyLimit,
+		"EnergyPrice":  config.energyPrice,
 	})
 	files[filepath.Join(workdir, "docker-compose.yaml")] = composefile.Bytes()
 
@@ -152,21 +152,21 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 // nodeInfos is returned from a boot or seal node status check to allow reporting
 // various configuration parameters.
 type nodeInfos struct {
-	genesis    []byte
-	network    int64
-	datadir    string
+	genesis      []byte
+	network      int64
+	datadir      string
 	cryptoredir  string
-	xcestats   string
-	port       int
-	enode      string
-	peersTotal int
-	peersLight int
-	corebase  string
-	keyJSON    string
-	keyPass    string
-	energyTarget  float64
-	energyLimit   float64
-	energyPrice   float64
+	xccstats     string
+	port         int
+	enode        string
+	peersTotal   int
+	peersLight   int
+	corebase     string
+	keyJSON      string
+	keyPass      string
+	energyTarget float64
+	energyLimit  float64
+	energyPrice  float64
 }
 
 // Report converts the typed struct into a plain string->string map, containing
@@ -177,7 +177,7 @@ func (info *nodeInfos) Report() map[string]string {
 		"Listener port":            strconv.Itoa(info.port),
 		"Peer count (all total)":   strconv.Itoa(info.peersTotal),
 		"Peer count (light nodes)": strconv.Itoa(info.peersLight),
-		"Xcestats username":        info.xcestats,
+		"Xcestats username":        info.xccstats,
 	}
 	if info.energyTarget > 0 {
 		// Miner or signer node
@@ -253,19 +253,19 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	}
 	// Assemble and return the useful infos
 	stats := &nodeInfos{
-		genesis:    genesis,
-		datadir:    infos.volumes["/root/.core"],
+		genesis:      genesis,
+		datadir:      infos.volumes["/root/.core"],
 		cryptoredir:  infos.volumes["/root/.cryptore"],
-		port:       port,
-		peersTotal: totalPeers,
-		peersLight: lightPeers,
-		xcestats:   infos.envvars["STATS_NAME"],
-		corebase:  infos.envvars["MINER_NAME"],
-		keyJSON:    keyJSON,
-		keyPass:    keyPass,
-		energyTarget:  energyTarget,
-		energyLimit:   energyLimit,
-		energyPrice:   energyPrice,
+		port:         port,
+		peersTotal:   totalPeers,
+		peersLight:   lightPeers,
+		xccstats:     infos.envvars["STATS_NAME"],
+		corebase:     infos.envvars["MINER_NAME"],
+		keyJSON:      keyJSON,
+		keyPass:      keyPass,
+		energyTarget: energyTarget,
+		energyLimit:  energyLimit,
+		energyPrice:  energyPrice,
 	}
 	stats.enode = string(enode)
 

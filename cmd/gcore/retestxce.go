@@ -37,13 +37,13 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xccdb"
 
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -54,18 +54,18 @@ var (
 		Usage: "HTTP-RPC server listening port",
 		Value: node.DefaultHTTPPort,
 	}
-	retestxceCommand = cli.Command{
-		Action:      utils.MigrateFlags(retestxce),
-		Name:        "retestxce",
-		Usage:       "Launches gcore in retestxce mode",
+	retestxccCommand = cli.Command{
+		Action:      utils.MigrateFlags(retestxcc),
+		Name:        "retestxcc",
+		Usage:       "Launches gcore in retestxcc mode",
 		ArgsUsage:   "",
 		Flags:       []cli.Flag{rpcPortFlag},
 		Category:    "MISCELLANEOUS COMMANDS",
-		Description: `Launches gcore in retestxce mode (no database, no network, only retestxce RPC interface)`,
+		Description: `Launches gcore in retestxcc mode (no database, no network, only retestxcc RPC interface)`,
 	}
 )
 
-type RetestxceTestAPI interface {
+type RetestxccTestAPI interface {
 	SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error)
 	MineBlocks(ctx context.Context, number uint64) (bool, error)
 	ModifyTimestamp(ctx context.Context, interval uint64) (bool, error)
@@ -74,7 +74,7 @@ type RetestxceTestAPI interface {
 	GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error)
 }
 
-type RetestxceXceAPI interface {
+type RetestxccXceAPI interface {
 	SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error)
@@ -84,7 +84,7 @@ type RetestxceXceAPI interface {
 	GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error)
 }
 
-type RetestxceDebugAPI interface {
+type RetestxccDebugAPI interface {
 	AccountRange(ctx context.Context,
 		blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 		addressHash *math.HexOrDecimal256, maxResults uint64,
@@ -100,8 +100,8 @@ type RetestWeb3API interface {
 	ClientVersion(ctx context.Context) (string, error)
 }
 
-type RetestxceAPI struct {
-	xceDb         xcedb.Database
+type RetestxccAPI struct {
+	xccDb         xccdb.Database
 	db            state.Database
 	chainConfig   *params.ChainConfig
 	author        common.Address
@@ -122,29 +122,29 @@ type ChainParams struct {
 }
 
 type CParamsParams struct {
-	AccountStartNonce          math.HexOrDecimal64   `json:"accountStartNonce"`
-	ChainID                    *math.HexOrDecimal256 `json:"chainID"`
-	MaximumExtraDataSize       math.HexOrDecimal64   `json:"maximumExtraDataSize"`
-	TieBreakingEnergy             bool                  `json:"tieBreakingEnergy"`
-	MinEnergyLimit                math.HexOrDecimal64   `json:"minEnergyLimit"`
-	MaxEnergyLimit                math.HexOrDecimal64   `json:"maxEnergyLimit"`
-	EnergyLimitBoundDivisor       math.HexOrDecimal64   `json:"energyLimitBoundDivisor"`
-	MinimumDifficulty          math.HexOrDecimal256  `json:"minimumDifficulty"`
-	DifficultyBoundDivisor     math.HexOrDecimal256  `json:"difficultyBoundDivisor"`
-	DurationLimit              math.HexOrDecimal256  `json:"durationLimit"`
-	BlockReward                math.HexOrDecimal256  `json:"blockReward"`
-	NetworkID                  math.HexOrDecimal256  `json:"networkID"`
+	AccountStartNonce       math.HexOrDecimal64   `json:"accountStartNonce"`
+	ChainID                 *math.HexOrDecimal256 `json:"chainID"`
+	MaximumExtraDataSize    math.HexOrDecimal64   `json:"maximumExtraDataSize"`
+	TieBreakingEnergy       bool                  `json:"tieBreakingEnergy"`
+	MinEnergyLimit          math.HexOrDecimal64   `json:"minEnergyLimit"`
+	MaxEnergyLimit          math.HexOrDecimal64   `json:"maxEnergyLimit"`
+	EnergyLimitBoundDivisor math.HexOrDecimal64   `json:"energyLimitBoundDivisor"`
+	MinimumDifficulty       math.HexOrDecimal256  `json:"minimumDifficulty"`
+	DifficultyBoundDivisor  math.HexOrDecimal256  `json:"difficultyBoundDivisor"`
+	DurationLimit           math.HexOrDecimal256  `json:"durationLimit"`
+	BlockReward             math.HexOrDecimal256  `json:"blockReward"`
+	NetworkID               math.HexOrDecimal256  `json:"networkID"`
 }
 
 type CParamsGenesis struct {
-	Nonce      math.HexOrDecimal64   `json:"nonce"`
-	Difficulty *math.HexOrDecimal256 `json:"difficulty"`
-	MixHash    *math.HexOrDecimal256 `json:"mixHash"`
-	Author     common.Address        `json:"author"`
-	Timestamp  math.HexOrDecimal64   `json:"timestamp"`
-	ParentHash common.Hash           `json:"parentHash"`
-	ExtraData  hexutil.Bytes         `json:"extraData"`
-	EnergyLimit   math.HexOrDecimal64   `json:"energyLimit"`
+	Nonce       math.HexOrDecimal64   `json:"nonce"`
+	Difficulty  *math.HexOrDecimal256 `json:"difficulty"`
+	MixHash     *math.HexOrDecimal256 `json:"mixHash"`
+	Author      common.Address        `json:"author"`
+	Timestamp   math.HexOrDecimal64   `json:"timestamp"`
+	ParentHash  common.Hash           `json:"parentHash"`
+	ExtraData   hexutil.Bytes         `json:"extraData"`
+	EnergyLimit math.HexOrDecimal64   `json:"energyLimit"`
 }
 
 type CParamsAccount struct {
@@ -262,7 +262,7 @@ func (e *NoRewardEngine) Close() error {
 	return e.inner.Close()
 }
 
-func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error) {
+func (api *RetestxccAPI) SetChainParams(ctx context.Context, chainParams ChainParams) (bool, error) {
 	// Clean up
 	if api.blockchain != nil {
 		api.blockchain.Stop()
@@ -270,10 +270,10 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	if api.engine != nil {
 		api.engine.Close()
 	}
-	if api.xceDb != nil {
-		api.xceDb.Close()
+	if api.xccDb != nil {
+		api.xccDb.Close()
 	}
-	xceDb := rawdb.NewMemoryDatabase()
+	xccDb := rawdb.NewMemoryDatabase()
 	accounts := make(core.GenesisAlloc)
 	for address, account := range chainParams.Accounts {
 		balance := big.NewInt(0)
@@ -304,19 +304,19 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 
 	genesis := &core.Genesis{
 		Config: &params.ChainConfig{
-			ChainID:             chainId,
+			ChainID: chainId,
 		},
-		Nonce:      uint64(chainParams.Genesis.Nonce),
-		Timestamp:  uint64(chainParams.Genesis.Timestamp),
-		ExtraData:  chainParams.Genesis.ExtraData,
-		EnergyLimit:   uint64(chainParams.Genesis.EnergyLimit),
-		Difficulty: big.NewInt(0).Set((*big.Int)(chainParams.Genesis.Difficulty)),
-		Mixhash:    common.BigToHash((*big.Int)(chainParams.Genesis.MixHash)),
-		Coinbase:   chainParams.Genesis.Author,
-		ParentHash: chainParams.Genesis.ParentHash,
-		Alloc:      accounts,
+		Nonce:       uint64(chainParams.Genesis.Nonce),
+		Timestamp:   uint64(chainParams.Genesis.Timestamp),
+		ExtraData:   chainParams.Genesis.ExtraData,
+		EnergyLimit: uint64(chainParams.Genesis.EnergyLimit),
+		Difficulty:  big.NewInt(0).Set((*big.Int)(chainParams.Genesis.Difficulty)),
+		Mixhash:     common.BigToHash((*big.Int)(chainParams.Genesis.MixHash)),
+		Coinbase:    chainParams.Genesis.Author,
+		ParentHash:  chainParams.Genesis.ParentHash,
+		Alloc:       accounts,
 	}
-	chainConfig, genesisHash, err := core.SetupGenesisBlock(xceDb, genesis)
+	chainConfig, genesisHash, err := core.SetupGenesisBlock(xccDb, genesis)
 	if err != nil {
 		return false, err
 	}
@@ -333,7 +333,7 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	}
 	engine := &NoRewardEngine{inner: inner, rewardsOn: chainParams.SealEngine != "NoReward"}
 
-	blockchain, err := core.NewBlockChain(xceDb, nil, chainConfig, engine, vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(xccDb, nil, chainConfig, engine, vm.Config{}, nil)
 	if err != nil {
 		return false, err
 	}
@@ -342,17 +342,17 @@ func (api *RetestxceAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	api.genesisHash = genesisHash
 	api.author = chainParams.Genesis.Author
 	api.extraData = chainParams.Genesis.ExtraData
-	api.xceDb = xceDb
+	api.xccDb = xccDb
 	api.engine = engine
 	api.blockchain = blockchain
-	api.db = state.NewDatabase(api.xceDb)
+	api.db = state.NewDatabase(api.xccDb)
 	api.txMap = make(map[common.Address]map[uint64]*types.Transaction)
 	api.txSenders = make(map[common.Address]struct{})
 	api.blockInterval = 0
 	return true, nil
 }
 
-func (api *RetestxceAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error) {
+func (api *RetestxccAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.Bytes) (common.Hash, error) {
 	tx := new(types.Transaction)
 	if err := rlp.DecodeBytes(rawTx, tx); err != nil {
 		// Return nil is not by mistake - some tests include sending transaction where energyLimit overflows uint64
@@ -374,7 +374,7 @@ func (api *RetestxceAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 	return tx.Hash(), nil
 }
 
-func (api *RetestxceAPI) MineBlocks(ctx context.Context, number uint64) (bool, error) {
+func (api *RetestxccAPI) MineBlocks(ctx context.Context, number uint64) (bool, error) {
 	for i := 0; i < int(number); i++ {
 		if err := api.mineBlock(); err != nil {
 			return false, err
@@ -384,17 +384,17 @@ func (api *RetestxceAPI) MineBlocks(ctx context.Context, number uint64) (bool, e
 	return true, nil
 }
 
-func (api *RetestxceAPI) currentNumber() uint64 {
+func (api *RetestxccAPI) currentNumber() uint64 {
 	if current := api.blockchain.CurrentBlock(); current != nil {
 		return current.NumberU64()
 	}
 	return 0
 }
 
-func (api *RetestxceAPI) mineBlock() error {
+func (api *RetestxccAPI) mineBlock() error {
 	number := api.currentNumber()
-	parentHash := rawdb.ReadCanonicalHash(api.xceDb, number)
-	parent := rawdb.ReadBlock(api.xceDb, parentHash, number)
+	parentHash := rawdb.ReadCanonicalHash(api.xccDb, number)
+	parent := rawdb.ReadBlock(api.xccDb, parentHash, number)
 	var timestamp uint64
 	if api.blockInterval == 0 {
 		timestamp = uint64(time.Now().Unix())
@@ -403,11 +403,11 @@ func (api *RetestxceAPI) mineBlock() error {
 	}
 	energyLimit := core.CalcEnergyLimit(parent, 9223372036854775807, 9223372036854775807)
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     big.NewInt(int64(number + 1)),
-		EnergyLimit:   energyLimit,
-		Extra:      api.extraData,
-		Time:       timestamp,
+		ParentHash:  parent.Hash(),
+		Number:      big.NewInt(int64(number + 1)),
+		EnergyLimit: energyLimit,
+		Extra:       api.extraData,
+		Time:        timestamp,
 	}
 	header.Coinbase = api.author
 	if api.engine != nil {
@@ -470,7 +470,7 @@ func (api *RetestxceAPI) mineBlock() error {
 	return api.importBlock(block)
 }
 
-func (api *RetestxceAPI) importBlock(block *types.Block) error {
+func (api *RetestxccAPI) importBlock(block *types.Block) error {
 	if _, err := api.blockchain.InsertChain([]*types.Block{block}); err != nil {
 		return err
 	}
@@ -478,12 +478,12 @@ func (api *RetestxceAPI) importBlock(block *types.Block) error {
 	return nil
 }
 
-func (api *RetestxceAPI) ModifyTimestamp(ctx context.Context, interval uint64) (bool, error) {
+func (api *RetestxccAPI) ModifyTimestamp(ctx context.Context, interval uint64) (bool, error) {
 	api.blockInterval = interval
 	return true, nil
 }
 
-func (api *RetestxceAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.Bytes) (common.Hash, error) {
+func (api *RetestxccAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.Bytes) (common.Hash, error) {
 	block := new(types.Block)
 	if err := rlp.DecodeBytes(rawBlock, block); err != nil {
 		return common.Hash{}, err
@@ -495,7 +495,7 @@ func (api *RetestxceAPI) ImportRawBlock(ctx context.Context, rawBlock hexutil.By
 	return block.Hash(), nil
 }
 
-func (api *RetestxceAPI) RewindToBlock(ctx context.Context, newHead uint64) (bool, error) {
+func (api *RetestxccAPI) RewindToBlock(ctx context.Context, newHead uint64) (bool, error) {
 	if err := api.blockchain.SetHead(newHead); err != nil {
 		return false, err
 	}
@@ -507,8 +507,8 @@ func (api *RetestxceAPI) RewindToBlock(ctx context.Context, newHead uint64) (boo
 
 var emptyListHash common.Hash = common.HexToHash("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347")
 
-func (api *RetestxceAPI) GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error) {
-	receipt, _, _, _ := rawdb.ReadReceipt(api.xceDb, txHash, api.chainConfig)
+func (api *RetestxccAPI) GetLogHash(ctx context.Context, txHash common.Hash) (common.Hash, error) {
+	receipt, _, _, _ := rawdb.ReadReceipt(api.xccDb, txHash, api.chainConfig)
 	if receipt == nil {
 		return emptyListHash, nil
 	} else {
@@ -520,11 +520,11 @@ func (api *RetestxceAPI) GetLogHash(ctx context.Context, txHash common.Hash) (co
 	}
 }
 
-func (api *RetestxceAPI) BlockNumber(ctx context.Context) (uint64, error) {
+func (api *RetestxccAPI) BlockNumber(ctx context.Context) (uint64, error) {
 	return api.currentNumber(), nil
 }
 
-func (api *RetestxceAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error) {
+func (api *RetestxccAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexOrDecimal64, fullTx bool) (map[string]interface{}, error) {
 	block := api.blockchain.GetBlockByNumber(uint64(blockNr))
 	if block != nil {
 		response, err := RPCMarshalBlock(block, true, fullTx)
@@ -538,7 +538,7 @@ func (api *RetestxceAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexO
 	return nil, fmt.Errorf("block %d not found", blockNr)
 }
 
-func (api *RetestxceAPI) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
+func (api *RetestxccAPI) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
 	block := api.blockchain.GetBlockByHash(blockHash)
 	if block != nil {
 		response, err := RPCMarshalBlock(block, true, fullTx)
@@ -552,7 +552,7 @@ func (api *RetestxceAPI) GetBlockByHash(ctx context.Context, blockHash common.Ha
 	return nil, fmt.Errorf("block 0x%x not found", blockHash)
 }
 
-func (api *RetestxceAPI) AccountRange(ctx context.Context,
+func (api *RetestxccAPI) AccountRange(ctx context.Context,
 	blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 	addressHash *math.HexOrDecimal256, maxResults uint64,
 ) (AccountRangeResult, error) {
@@ -630,7 +630,7 @@ func (api *RetestxceAPI) AccountRange(ctx context.Context,
 	return result, nil
 }
 
-func (api *RetestxceAPI) GetBalance(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (*math.HexOrDecimal256, error) {
+func (api *RetestxccAPI) GetBalance(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (*math.HexOrDecimal256, error) {
 	//fmt.Printf("GetBalance %x, block %d\n", address, blockNr)
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
@@ -640,7 +640,7 @@ func (api *RetestxceAPI) GetBalance(ctx context.Context, address common.Address,
 	return (*math.HexOrDecimal256)(statedb.GetBalance(address)), nil
 }
 
-func (api *RetestxceAPI) GetCode(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (hexutil.Bytes, error) {
+func (api *RetestxccAPI) GetCode(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (hexutil.Bytes, error) {
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
 	if err != nil {
@@ -649,7 +649,7 @@ func (api *RetestxceAPI) GetCode(ctx context.Context, address common.Address, bl
 	return statedb.GetCode(address), nil
 }
 
-func (api *RetestxceAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error) {
+func (api *RetestxccAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNr math.HexOrDecimal64) (uint64, error) {
 	header := api.blockchain.GetHeaderByNumber(uint64(blockNr))
 	statedb, err := api.blockchain.StateAt(header.Root)
 	if err != nil {
@@ -658,7 +658,7 @@ func (api *RetestxceAPI) GetTransactionCount(ctx context.Context, address common
 	return statedb.GetNonce(address), nil
 }
 
-func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
+func (api *RetestxccAPI) StorageRangeAt(ctx context.Context,
 	blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 	address common.Address,
 	begin *math.HexOrDecimal256, maxResults uint64,
@@ -751,7 +751,7 @@ func (api *RetestxceAPI) StorageRangeAt(ctx context.Context,
 	return result, nil
 }
 
-func (api *RetestxceAPI) ClientVersion(ctx context.Context) (string, error) {
+func (api *RetestxccAPI) ClientVersion(ctx context.Context) (string, error) {
 	return "Gcore-" + params.VersionWithCommit(gitCommit, gitDate), nil
 }
 
@@ -765,16 +765,16 @@ func splitAndTrim(input string) []string {
 	return result
 }
 
-func retestxce(ctx *cli.Context) error {
-	log.Info("Welcome to retestxce!")
+func retestxcc(ctx *cli.Context) error {
+	log.Info("Welcome to retestxcc!")
 	// register signer API with server
 	var (
 		extapiURL string
 	)
-	apiImpl := &RetestxceAPI{}
-	var testApi RetestxceTestAPI = apiImpl
-	var xceApi RetestxceXceAPI = apiImpl
-	var debugApi RetestxceDebugAPI = apiImpl
+	apiImpl := &RetestxccAPI{}
+	var testApi RetestxccTestAPI = apiImpl
+	var xccApi RetestxccXceAPI = apiImpl
+	var debugApi RetestxccDebugAPI = apiImpl
 	var web3Api RetestWeb3API = apiImpl
 	rpcAPI := []rpc.API{
 		{
@@ -784,9 +784,9 @@ func retestxce(ctx *cli.Context) error {
 			Version:   "1.0",
 		},
 		{
-			Namespace: "xce",
+			Namespace: "xcc",
 			Public:    true,
-			Service:   xceApi,
+			Service:   xccApi,
 			Version:   "1.0",
 		},
 		{
@@ -806,13 +806,13 @@ func retestxce(ctx *cli.Context) error {
 	cors := splitAndTrim(ctx.GlobalString(utils.RPCCORSDomainFlag.Name))
 
 	// start http server
-	var RetestxceHTTPTimeouts = rpc.HTTPTimeouts{
+	var RetestxccHTTPTimeouts = rpc.HTTPTimeouts{
 		ReadTimeout:  120 * time.Second,
 		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.RPCListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
-	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "xce", "debug", "web3"}, cors, vhosts, RetestxceHTTPTimeouts)
+	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "xcc", "debug", "web3"}, cors, vhosts, RetestxccHTTPTimeouts)
 	if err != nil {
 		utils.Fatalf("Could not start RPC api: %v", err)
 	}

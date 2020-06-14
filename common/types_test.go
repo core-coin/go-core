@@ -176,7 +176,7 @@ func TestMixedcaseAccount_Address(t *testing.T) {
 		}
 	}
 
-	//These should throw exceptions:
+	//These should throw exccptions:
 	var r2 []MixedcaseAddress
 	for _, r := range []string{
 		`["0x11111111111111111111122222222222233333"]`,     // Too short

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"sync/atomic"
@@ -23,7 +23,7 @@ import (
 
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 func TestFastSyncDisabling63(t *testing.T) { testFastSyncDisabling(t, 63) }

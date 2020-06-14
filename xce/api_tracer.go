@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"bufio"
@@ -35,12 +35,12 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/tracers"
 	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xce/tracers"
 )
 
 const (

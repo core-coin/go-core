@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"github.com/core-coin/go-core/core"
@@ -25,9 +25,9 @@ import (
 	"github.com/core-coin/go-core/rlp"
 )
 
-// xceEntry is the "xce" ENR entry which advertises xce protocol
+// xccEntry is the "xcc" ENR entry which advertises xcc protocol
 // on the discovery network.
-type xceEntry struct {
+type xccEntry struct {
 	ForkID forkid.ID // Fork identifier per CIP-2124
 
 	// Ignore additional fields (for forward compatibility).
@@ -35,23 +35,23 @@ type xceEntry struct {
 }
 
 // ENRKey implements enr.Entry.
-func (e xceEntry) ENRKey() string {
-	return "xce"
+func (e xccEntry) ENRKey() string {
+	return "xcc"
 }
 
 // startXceEntryUpdate starts the ENR updater loop.
-func (xce *Core) startXceEntryUpdate(ln *enode.LocalNode) {
+func (xcc *Core) startXceEntryUpdate(ln *enode.LocalNode) {
 	var newHead = make(chan core.ChainHeadEvent, 10)
-	sub := xce.blockchain.SubscribeChainHeadEvent(newHead)
+	sub := xcc.blockchain.SubscribeChainHeadEvent(newHead)
 
 	go func() {
 		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-newHead:
-				ln.Set(xce.currentXceEntry())
+				ln.Set(xcc.currentXceEntry())
 			case <-sub.Err():
-				// Would be nice to sync with xce.Stop, but there is no
+				// Would be nice to sync with xcc.Stop, but there is no
 				// good way to do that.
 				return
 			}
@@ -59,15 +59,15 @@ func (xce *Core) startXceEntryUpdate(ln *enode.LocalNode) {
 	}()
 }
 
-func (xce *Core) currentXceEntry() *xceEntry {
-	return &xceEntry{ForkID: forkid.NewID(xce.blockchain)}
+func (xcc *Core) currentXceEntry() *xccEntry {
+	return &xccEntry{ForkID: forkid.NewID(xcc.blockchain)}
 }
 
-// setupDiscovery creates the node discovery source for the xce protocol.
-func (xce *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
-	if cfg.NoDiscovery || len(xce.config.DiscoveryURLs) == 0 {
+// setupDiscovery creates the node discovery source for the xcc protocol.
+func (xcc *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
+	if cfg.NoDiscovery || len(xcc.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}
 	client := dnsdisc.NewClient(dnsdisc.Config{})
-	return client.NewIterator(xce.config.DiscoveryURLs...)
+	return client.NewIterator(xcc.config.DiscoveryURLs...)
 }

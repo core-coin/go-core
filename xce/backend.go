@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package xce implements the Core protocol.
-package xce
+// Package xcc implements the Core protocol.
+package xcc
 
 import (
 	"errors"
@@ -38,7 +38,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
@@ -48,10 +48,10 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
+	"github.com/core-coin/go-core/xcc/filters"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 type LesServer interface {
@@ -75,7 +75,7 @@ type Core struct {
 	dialCandiates   enode.Iterator
 
 	// DB interfaces
-	chainDb xcedb.Database // Block chain database
+	chainDb xccdb.Database // Block chain database
 
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
@@ -92,7 +92,7 @@ type Core struct {
 	corebase    common.Address
 
 	networkID     uint64
-	netRPCService *xceapi.PublicNetAPI
+	netRPCService *xccapi.PublicNetAPI
 
 	lock sync.RWMutex // Protects the variadic fields (e.g. energy price and corebase)
 }
@@ -115,7 +115,7 @@ func (s *Core) SetContractBackend(backend bind.ContractBackend) {
 func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	// Ensure configuration values are compatible and sane
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run xce.Core in light sync mode, use les.LightCore")
+		return nil, errors.New("can't run xcc.Core in light sync mode, use les.LightCore")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -131,7 +131,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	log.Info("Allocated trie memory caches", "clean", common.StorageSize(config.TrieCleanCache)*1024*1024, "dirty", common.StorageSize(config.TrieDirtyCache)*1024*1024)
 
 	// Assemble the Core object
-	chainDb, err := ctx.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "xce/db/chaindata/")
+	chainDb, err := ctx.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "xcc/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	xce := &Core{
+	xcc := &Core{
 		config:            config,
 		chainDb:           chainDb,
 		eventMux:          ctx.EventMux,
@@ -184,7 +184,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 			TrieTimeLimit:       config.TrieTimeout,
 		}
 	)
-	xce.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xce.engine, vmConfig, xce.shouldPreserve)
+	xcc.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xce.engine, vmConfig, xce.shouldPreserve)
 	if err != nil {
 		return nil, err
 	}

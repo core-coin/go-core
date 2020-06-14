@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 const (
@@ -49,20 +49,20 @@ const (
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (xce *Core) startBloomHandlers(sectionSize uint64) {
+func (xcc *Core) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
 			for {
 				select {
-				case <-xce.closeBloomHandler:
+				case <-xcc.closeBloomHandler:
 					return
 
-				case request := <-xce.bloomRequests:
+				case request := <-xcc.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
-						head := rawdb.ReadCanonicalHash(xce.chainDb, (section+1)*sectionSize-1)
-						if compVector, err := rawdb.ReadBloomBits(xce.chainDb, task.Bit, section, head); err == nil {
+						head := rawdb.ReadCanonicalHash(xcc.chainDb, (section+1)*sectionSize-1)
+						if compVector, err := rawdb.ReadBloomBits(xcc.chainDb, task.Bit, section, head); err == nil {
 							if blob, err := bitutil.DecompressBytes(compVector, int(sectionSize/8)); err == nil {
 								task.Bitsets[i] = blob
 							} else {
@@ -89,7 +89,7 @@ const (
 // for the Core header bloom filters, permitting blazing fast filtering.
 type BloomIndexer struct {
 	size    uint64               // section size to generate bloombits for
-	db      xcedb.Database       // database instance to write index data and metadata into
+	db      xccdb.Database       // database instance to write index data and metadata into
 	gen     *bloombits.Generator // generator to rotate the bloom bits crating the bloom index
 	section uint64               // Section is the section number being processed currently
 	head    common.Hash          // Head is the hash of the last header processed
@@ -97,7 +97,7 @@ type BloomIndexer struct {
 
 // NewBloomIndexer returns a chain indexer that generates bloom bits data for the
 // canonical chain for fast logs filtering.
-func NewBloomIndexer(db xcedb.Database, size, confirms uint64) *core.ChainIndexer {
+func NewBloomIndexer(db xccdb.Database, size, confirms uint64) *core.ChainIndexer {
 	backend := &BloomIndexer{
 		db:   db,
 		size: size,

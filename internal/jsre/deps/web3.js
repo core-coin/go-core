@@ -926,7 +926,7 @@ var SolidityParam = require('./param');
  * @returns {SolidityParam}
  */
 var formatInputInt = function (value) {
-    BigNumber.config(c.XCE_BIGNUMBER_ROUNDING_MODE);
+    BigNumber.config(c.XCC_BIGNUMBER_ROUNDING_MODE);
     var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
     return new SolidityParam(result);
 };
@@ -1758,10 +1758,10 @@ if (typeof XMLHttpRequest === 'undefined') {
  */
 
 
-/// required to define XCE_BIGNUMBER_ROUNDING_MODE
+/// required to define XCC_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var XCE_UNITS = [
+var XCC_UNITS = [
     'ore',
     'kore',
     'More',
@@ -1792,11 +1792,11 @@ var XCE_UNITS = [
 ];
 
 module.exports = {
-    XCE_PADDING: 32,
-    XCE_SIGNATURE_LENGTH: 4,
-    XCE_UNITS: XCE_UNITS,
-    XCE_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    XCE_POLLING_TIMEOUT: 1000/2,
+    XCC_PADDING: 32,
+    XCC_SIGNATURE_LENGTH: 4,
+    XCC_UNITS: XCC_UNITS,
+    XCC_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    XCC_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -4535,7 +4535,7 @@ Iban.fromBban = function (bban) {
  * @return {Iban} the IBAN object
  */
 Iban.createIndirect = function (options) {
-    return Iban.fromBban('XCE' + options.institution + options.identifier);
+    return Iban.fromBban('XCC' + options.institution + options.identifier);
 };
 
 /**
@@ -4557,7 +4557,7 @@ Iban.isValid = function (iban) {
  * @returns {Boolean} true if it is, otherwise false
  */
 Iban.prototype.isValid = function () {
-    return /^XE[0-9]{2}(XCE[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
+    return /^XE[0-9]{2}(XCC[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
         mod9710(iso13616Prepare(this._iban)) === 1;
 };
 
@@ -6481,7 +6481,7 @@ RequestManager.prototype.reset = function (keepIsSyncing) {
  */
 RequestManager.prototype.poll = function () {
     /*jshint maxcomplexity: 6 */
-    this.timeout = setTimeout(this.poll.bind(this), c.XCE_POLLING_TIMEOUT);
+    this.timeout = setTimeout(this.poll.bind(this), c.XCC_POLLING_TIMEOUT);
 
     if (Object.keys(this.polls).length === 0) {
         return;

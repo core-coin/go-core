@@ -25,14 +25,14 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 func errResp(code errCode, format string, v ...interface{}) error {
@@ -57,10 +57,10 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *xce.Config
+	config                       *xcc.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
-	chainDb                      xcedb.Database
+	chainDb                      xccdb.Database
 	chainReader                  chainReader
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 	oracle                       *checkpointoracle.CheckpointOracle

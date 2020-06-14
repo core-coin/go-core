@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-package xce
+package xcc
 
 import (
 	"math/big"
@@ -27,8 +27,8 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
 )
 
 // DefaultConfig contains default settings for use on the Core main net.
@@ -133,7 +133,7 @@ type Config struct {
 	// Type of the CVM interpreter ("" for default)
 	CVMInterpreter string
 
-	// RPCEnergyCap is the global energy cap for xce-call variants.
+	// RPCEnergyCap is the global energy cap for xcc-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
