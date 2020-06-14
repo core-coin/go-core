@@ -43,6 +43,8 @@ require (
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
+	github.com/onsi/ginkgo v1.10.3 // indirect
+	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/pborman/uuid v0.0.0-20170112150404-1b00554d8222
 	github.com/peterh/liner v1.1.1-0.20190123174540-a2c9a5303de7
 	github.com/prometheus/tsdb v0.6.2-0.20190402121629-4f204dcbc150
@@ -55,7 +57,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
-	github.com/wsddn/go-ecdh v0.0.0-20161211032359-48726bab9208
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
@@ -65,6 +66,5 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 	gopkg.in/olebedev/go-duktape.v3 v3.0.0-20200316214253-d7b0ff38cac9
 	gopkg.in/urfave/cli.v1 v1.20.0
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 )
