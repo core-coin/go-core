@@ -123,24 +123,33 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 
 func TestAddressHexChecksum(t *testing.T) {
 	var tests = []struct {
-		Input  string
-		Output string
+		Input    string
+		Address  Address
+		Checksum string
+		//Prefix string
+		ChainID int
 	}{
-		// Test cases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-55.md#specification
-		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"},
-		{"0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359", "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359"},
-		{"0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB"},
-		{"0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb"},
-		// Ensure that non-standard length input values are handled correctly
-		{"0xa", "0x000000000000000000000000000000000000000A"},
-		{"0x0a", "0x000000000000000000000000000000000000000A"},
-		{"0x00a", "0x000000000000000000000000000000000000000A"},
-		{"0x000000000000000000000000000000000000000a", "0x000000000000000000000000000000000000000A"},
+		{"xc225aaeb6053f3e94c9b9a09f33669435e7ef1beaed", hexToAddress("0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"), "22", 540},
+		{"xt166fb6916095ca1df60bb79ce92ce3ea74c37c5d359", hexToAddress("0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359"), "66", 8913},
+		{"xtk75dbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", hexToAddress("0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb"), "75", 8932},
+		{"xp111d1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", hexToAddress("0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb"), "11", 8849},
 	}
 	for i, test := range tests {
-		output := HexToAddress(test.Input).Hex()
-		if output != test.Output {
-			t.Errorf("test #%d: failed to match when it should (%s != %s)", i, output, test.Output)
+		id, addr, err := StringToAddress(test.Input)
+		if err != nil {
+			t.Error("Unexpected error", err)
+		}
+		if addr != test.Address {
+			t.Errorf("test #%d: failed to match address when it should (%s != %s)", i, addr.Hex(), test.Address.Hex())
+		}
+		if id != test.ChainID {
+			t.Errorf("test #%d: failed to match chain id when it should (%v != %v)", i, id, test.ChainID)
+		}
+		//if prefix, err := getAddressPrefixFromChainID(id); err != nil || prefix != test.Prefix {
+		//	t.Errorf("test #%d: failed to match prefix when it should (%s != %s)", i, prefix, test.Prefix)
+		//}
+		if chsum := CalculateChecksum(addr); chsum != test.Checksum {
+			t.Errorf("test #%d: failed to match checksum when it should (%s != %s)", i, chsum, test.Checksum)
 		}
 	}
 }
@@ -150,49 +159,6 @@ func BenchmarkAddressHex(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		testAddr.Hex()
 	}
-}
-
-func TestMixedcaseAccount_Address(t *testing.T) {
-
-	// https://github.com/core-coin/CIPs/blob/master/CIPS/cip-55.md
-	// Note: 0X{checksum_addr} is not valid according to spec above
-
-	var res []struct {
-		A     MixedcaseAddress
-		Valid bool
-	}
-	if err := json.Unmarshal([]byte(`[
-		{"A" : "0xae967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
-		{"A" : "0xAe967917c465db8578ca9024c205720b1a3651A9", "Valid": true},
-		{"A" : "0XAe967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
-		{"A" : "0x1111111111111111111112222222222223333323", "Valid": true}
-		]`), &res); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, r := range res {
-		if got := r.A.ValidChecksum(); got != r.Valid {
-			t.Errorf("Expected checksum %v, got checksum %v, input %v", r.Valid, got, r.A.String())
-		}
-	}
-
-	//These should throw exceptions:
-	var r2 []MixedcaseAddress
-	for _, r := range []string{
-		`["0x11111111111111111111122222222222233333"]`,     // Too short
-		`["0x111111111111111111111222222222222333332"]`,    // Too short
-		`["0x11111111111111111111122222222222233333234"]`,  // Too long
-		`["0x111111111111111111111222222222222333332344"]`, // Too long
-		`["1111111111111111111112222222222223333323"]`,     // Missing 0x
-		`["x1111111111111111111112222222222223333323"]`,    // Missing 0
-		`["0xG111111111111111111112222222222223333323"]`,   //Non-hex
-	} {
-		if err := json.Unmarshal([]byte(r), &r2); err == nil {
-			t.Errorf("Expected failure, input %v", r)
-		}
-
-	}
-
 }
 
 func TestHash_Scan(t *testing.T) {

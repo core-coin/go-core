@@ -40,9 +40,6 @@ func MakeSigner(chainID *big.Int) Signer {
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
-
-	tx.data.ChainID = s.ChainID()
-
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
@@ -99,7 +96,7 @@ func NewNucleusSigner(chainId *big.Int) NucleusSigner {
 	}
 }
 
-func (s NucleusSigner) Equal(s2 Signer)bool {
+func (s NucleusSigner) Equal(s2 Signer) bool {
 	nucleus, ok := s2.(NucleusSigner)
 	return ok && nucleus.chainId.Cmp(s.chainId) == 0
 }
@@ -122,7 +119,6 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 		tx.data.Recipient,
 		tx.data.Amount,
 		tx.data.Payload,
-		tx.data.ChainID,
 		s.chainId,
 	})
 }

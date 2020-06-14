@@ -49,7 +49,7 @@ type TransactOpts struct {
 	Nonce  *big.Int       // Nonce to use for the transaction execution (nil = use pending state)
 	Signer SignerFn       // Method to use for signing the transaction (mandatory)
 
-	Value    *big.Int // Funds to transfer along along the transaction (nil = 0 = no funds)
+	Value       *big.Int // Funds to transfer along along the transaction (nil = 0 = no funds)
 	EnergyPrice *big.Int // Energy price to use for the transaction execution (nil = energy price oracle)
 	EnergyLimit uint64   // Energy limit to set for the transaction execution (0 = estimate)
 
@@ -234,7 +234,7 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")
 	}
-	signedTx, err := opts.Signer(types.NewNucleusSigner(big.NewInt(1337)), opts.From, rawTx) //TODO change network id (MISHA)
+	signedTx, err := opts.Signer(types.NewNucleusSigner(big.NewInt(1)), opts.From, rawTx)
 	if err != nil {
 		return nil, err
 	}

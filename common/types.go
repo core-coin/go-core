@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"math/rand"
 	"reflect"
@@ -184,27 +185,29 @@ func BytesToAddress(b []byte) Address {
 }
 
 func StringToAddress(text string) (chainID int, addr Address, err error) {
-	if len(text) != 44 {
-		return 0, Address{}, errors.New("Invalid length of string address ")
-	}
+	addrText := text[len(text)-40:]
+	checksumAndPrefix := text[:len(text)-len(addrText)]
 
-	chainID, err = getChainIDFromAddressPrefix(text[:2])
-	if err != nil{
+	checksum := checksumAndPrefix[len(checksumAndPrefix)-2:]
+	prefix := checksumAndPrefix[:len(checksumAndPrefix)-len(checksum)]
+
+	chainID, err = getChainIDFromAddressPrefix(prefix)
+	if err != nil {
 		return
 	}
-	if ok := VerifyChecksum(text[2:4], text[4:]); ok != true {
+	if ok := VerifyChecksum(checksum, addrText); ok != true {
 		return 0, Address{}, errors.New("Invalid checksum ")
 	}
-	return chainID, HexToAddress(text[4:]), nil
+	return chainID, hexToAddress(addrText), nil
 }
 
 func AddressToString(chainId int, address Address) string {
 	prefix, err := getAddressPrefixFromChainID(chainId)
-	if err != nil{
+	if err != nil {
 		return ""
 	}
 	checksum := CalculateChecksum(address)
-	if checksum == ""{
+	if checksum == "" {
 		return ""
 	}
 	return prefix + checksum + address.String()[2:]
@@ -229,7 +232,7 @@ func CalculateChecksum(address Address) string {
 	}
 
 	// Create bignum from mod string and perform module
-	bigVal, success := new(big.Int).SetString(mods, 10)
+	bigVal, success := new(big.Int).SetString(mods, 16)
 	if !success {
 		return ""
 	}
@@ -248,33 +251,59 @@ func CalculateChecksum(address Address) string {
 }
 
 func VerifyChecksum(checksum, addr string) bool {
-	res := CalculateChecksum(HexToAddress(addr))
+	res := CalculateChecksum(hexToAddress(addr))
+	//fmt.Println(res, checksum)
 	return checksum == res
 }
 
-func getChainIDFromAddressPrefix(alias string) (int, error){
-	switch alias {
-		case "xc":
-			return 540, nil
-		case "xt":
-			return 2, nil
-		case "xp":
-			return 3, nil
-		default:
-			return 0, errors.New("invalid address prefix ")
+func getChainIDFromAddressPrefix(alias string) (int, error) {
+	chainId := 0
+	reversed := reverse(alias)
+	for i, ch := range reversed {
+		chInt := int(ch)
+		if chInt > 48 && chInt < 58 {
+			if chInt == 49 {
+				chInt = 1
+			} else {
+				chInt -= 49
+			}
+		} else if chInt > 96 && chInt < 123 {
+			if chInt == 97 {
+				chInt = 10
+			} else {
+				chInt -= 87
+			}
+		}
+		chainId += chInt * int(math.Pow(float64(16), float64(i)))
 	}
+	return chainId, nil
 }
 
-func getAddressPrefixFromChainID(chainID int) (string, error){
+func reverse(s string) string {
+	rns := []rune(s) // convert to rune
+	for i, j := 0, len(rns)-1; i < j; i, j = i+1, j-1 {
+
+		// swap the letters of the string,
+		// like first with last and so on.
+		rns[i], rns[j] = rns[j], rns[i]
+	}
+
+	// return the reversed string.
+	return string(rns)
+}
+
+func getAddressPrefixFromChainID(chainID int) (string, error) {
 	switch chainID {
-		case 540:
-			return "xc", nil
-		case 2:
-			return "xt", nil
-		case 3:
-			return "xp", nil
-		default:
-			return "", errors.New("invalid address prefix ")
+	case 540:
+		return "xc", nil
+	case 5401:
+		return "xc1", nil
+	case 2:
+		return "xt", nil
+	case 3:
+		return "xp", nil
+	default:
+		return "", errors.New("invalid address prefix ")
 	}
 }
 
@@ -282,9 +311,19 @@ func getAddressPrefixFromChainID(chainID int) (string, error){
 // If b is larger than len(h), b will be cropped from the left.
 func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 
+func hexToAddress(hex string) Address {
+	return BytesToAddress(FromHex(hex))
+}
+
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
-func HexToAddress(s string) Address { return BytesToAddress(FromHex(s)) }
+func HexToAddress(s string) Address {
+	_, addr, err := StringToAddress(s)
+	if err != nil {
+		return Address{}
+	}
+	return addr
+}
 
 // IsHexAddress verifies whether a string can represent a valid hex-encoded
 // Core address or not.
