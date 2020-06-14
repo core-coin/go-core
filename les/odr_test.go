@@ -30,10 +30,10 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 type odrTestFn func(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte
@@ -128,7 +128,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 				from := statedb.GetOrNewStateObject(bankAddr)
 				from.SetBalance(math.MaxBig256)
 
-				msg := callmsg{types.NewMessage(from.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
+				msg := callmsg{types.NewMessage(from.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
 
 				context := core.NewCVMContext(msg, header, bc, nil)
 				vmenv := vm.NewCVM(context, statedb, config, vm.Config{})
@@ -142,7 +142,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 			header := lc.GetHeaderByHash(bhash)
 			state := light.NewState(ctx, header, lc.Odr())
 			state.SetBalance(bankAddr, math.MaxBig256)
-			msg := callmsg{types.NewMessage(bankAddr, &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
+			msg := callmsg{types.NewMessage(bankAddr, &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
 			context := core.NewCVMContext(msg, header, lc, nil)
 			vmenv := vm.NewCVM(context, state, config, vm.Config{})
 			gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
