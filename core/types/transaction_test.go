@@ -68,7 +68,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec")
+	should := common.FromHex("f603018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a82112394a0d85dc279e54182d97d4d3aa365445133a8d32d820539")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -89,7 +89,7 @@ func defaultTestKey() (*eddsa.PrivateKey, common.Address) {
 
 func TestRecipientEmpty(t *testing.T) {
 	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("db80808080800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("de80808080800194858a65a40fa13231ba88c574db2c9539124e6e1c820539"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,8 +105,7 @@ func TestRecipientEmpty(t *testing.T) {
 
 func TestRecipientNormal(t *testing.T) {
 	_, addr := defaultTestKey()
-
-	tx, err := decodeTx(common.Hex2Bytes("ef808080940000000000000000000000000000000000000000800194858a65a40fa13231ba88c574db2c9539124e6e1c"))
+	tx, err := decodeTx(common.Hex2Bytes("f2808080940000000000000000000000000000000000000000800194858a65a40fa13231ba88c574db2c9539124e6e1c820539"))
 	if err != nil {
 		t.Fatal(err)
 	}
