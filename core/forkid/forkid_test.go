@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0xfc64ec04), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0xbf810387), Next: 0}},
 			},
 		},
 		// Testnet test cases
