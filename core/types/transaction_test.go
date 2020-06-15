@@ -49,16 +49,16 @@ var (
 		common.FromHex("1123"),
 	).WithSignature(
 		NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID),
-		common.Hex2Bytes("26ebe8b912ab14c5cee0093ef4299db793dd12d99b37513379d114823a841dcbc2f7f300896ee6b643229ba6ee6bb9e5bda7f5888dfffef56cd7f803fc1be106018560c13024140ae361725a79224b5f998b81916a2bf568ce31f0d1aa21c83fbb1148e9a93c8e0e3c917e2cf46da40852e9afe4b052cd457d485c62b0e55a6db68f1da40845e4d7349e1df3ecac5db2b90bee5f9f15be07e9470b0c7ffe2f05e9d5802c26b97d81"),
+		common.Hex2Bytes("b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0"),
 	)
 )
 
 func TestTransactionSigHash(t *testing.T) {
-	var nucleus NucleusSigner
-	if nucleus.Hash(emptyTx) != common.HexToHash("0xc775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") {
+	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	if nucleus.Hash(emptyTx) != common.HexToHash("0xacb6be0ac9d62bb0bcbd2d3cb3fcb0fc35f750ca1f37d37e0bec0bbd1ddfb52f") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if nucleus.Hash(rightvrsTx) != common.HexToHash("0xfff0e45edb61906f1bbbcb67c1ed7b17a538f02a17a58ebc6e01b50d5f55ce68") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x034afa3236428cde891112ba48944cf6f35efe70a6c114ede1d12d9a55e0b3a7") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -176,7 +176,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 
 // TestTransactionJSON tests serializing/de-serializing to/from JSON.
 func TestTransactionJSON(t *testing.T) {
-  t.Skip();
+	t.Skip()
 	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
