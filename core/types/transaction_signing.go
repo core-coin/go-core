@@ -17,7 +17,6 @@
 package types
 
 import (
-	"fmt"
 	"github.com/core-coin/eddsa"
 	"math/big"
 
@@ -115,11 +114,7 @@ func (s NucleusSigner) ChainID() int {
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
-	fmt.Println(s.chainId)
-	fmt.Println(tx.data.Amount)
-	fmt.Println(tx.data.Recipient.Hex())
-	fmt.Println("------------------------------------------------")
-	asd := rlpHash([]interface{}{
+	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
 		tx.data.EnergyLimit,
@@ -128,6 +123,4 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 		tx.data.Payload,
 		s.chainId,
 	})
-	fmt.Println(asd.Hex())
-	return asd
 }
