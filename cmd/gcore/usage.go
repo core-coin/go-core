@@ -77,7 +77,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.SyncModeFlag,
 			utils.ExitWhenSyncedFlag,
 			utils.GCModeFlag,
-			utils.XceStatsURLFlag,
+			utils.XccStatsURLFlag,
 			utils.IdentityFlag,
 			utils.LightKDFFlag,
 			utils.WhitelistFlag,

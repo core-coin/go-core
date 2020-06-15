@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb/memorydb"
+	"github.com/core-coin/go-core/xccdb/memorydb"
 )
 
 // Tests that the trie database returns a missing trie node error if attempting

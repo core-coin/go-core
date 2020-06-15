@@ -26,7 +26,7 @@ import (
 )
 
 // NewStateSync create a new state trie download scheduler.
-func NewStateSync(root common.Hash, database xcedb.KeyValueReader, bloom *trie.SyncBloom) *trie.Sync {
+func NewStateSync(root common.Hash, database xccdb.KeyValueReader, bloom *trie.SyncBloom) *trie.Sync {
 	var syncer *trie.Sync
 	callback := func(leaf []byte, parent common.Hash) error {
 		var obj Account

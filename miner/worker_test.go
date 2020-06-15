@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 )
@@ -92,7 +92,7 @@ func init() {
 
 // testWorkerBackend implements worker.Backend interfaces and wraps all information needed during the testing.
 type testWorkerBackend struct {
-	db         xcedb.Database
+	db         xccdb.Database
 	txPool     *core.TxPool
 	chain      *core.BlockChain
 	testTxFeed event.Feed
@@ -100,7 +100,7 @@ type testWorkerBackend struct {
 	uncleBlock *types.Block
 }
 
-func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db xcedb.Database, n int) *testWorkerBackend {
+func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db xccdb.Database, n int) *testWorkerBackend {
 	var gspec = core.Genesis{
 		Config: chainConfig,
 		Alloc:  core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}},
@@ -177,7 +177,7 @@ func (b *testWorkerBackend) newRandomTx(creation bool) *types.Transaction {
 	return tx
 }
 
-func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db xcedb.Database, blocks int) (*worker, *testWorkerBackend) {
+func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db xccdb.Database, blocks int) (*worker, *testWorkerBackend) {
 	backend := newTestWorkerBackend(t, chainConfig, engine, db, blocks)
 	backend.txPool.AddLocals(pendingTxs)
 	w := newWorker(testConfig, chainConfig, engine, backend, new(event.TypeMux), nil, false)

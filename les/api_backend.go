@@ -33,35 +33,35 @@ import (
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 type LesApiBackend struct {
 	extRPCEnabled bool
-	xce           *LightCore
+	xcc           *LightCore
 	gpo           *energyprice.Oracle
 }
 
 func (b *LesApiBackend) ChainConfig() *params.ChainConfig {
-	return b.xce.chainConfig
+	return b.xcc.chainConfig
 }
 
 func (b *LesApiBackend) CurrentBlock() *types.Block {
-	return types.NewBlockWithHeader(b.xce.BlockChain().CurrentHeader())
+	return types.NewBlockWithHeader(b.xcc.BlockChain().CurrentHeader())
 }
 
 func (b *LesApiBackend) SetHead(number uint64) {
-	b.xce.handler.downloader.Cancel()
-	b.xce.blockchain.SetHead(number)
+	b.xcc.handler.downloader.Cancel()
+	b.xcc.blockchain.SetHead(number)
 }
 
 func (b *LesApiBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, error) {
 	if number == rpc.LatestBlockNumber || number == rpc.PendingBlockNumber {
-		return b.xce.blockchain.CurrentHeader(), nil
+		return b.xcc.blockchain.CurrentHeader(), nil
 	}
-	return b.xce.blockchain.GetHeaderByNumberOdr(ctx, uint64(number))
+	return b.xcc.blockchain.GetHeaderByNumberOdr(ctx, uint64(number))
 }
 
 func (b *LesApiBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Header, error) {
@@ -76,7 +76,7 @@ func (b *LesApiBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash 
 		if header == nil {
 			return nil, errors.New("header for hash not found")
 		}
-		if blockNrOrHash.RequireCanonical && b.xce.blockchain.GetCanonicalHash(header.Number.Uint64()) != hash {
+		if blockNrOrHash.RequireCanonical && b.xcc.blockchain.GetCanonicalHash(header.Number.Uint64()) != hash {
 			return nil, errors.New("hash is not currently canonical")
 		}
 		return header, nil
@@ -85,7 +85,7 @@ func (b *LesApiBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash 
 }
 
 func (b *LesApiBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
-	return b.xce.blockchain.GetHeaderByHash(hash), nil
+	return b.xcc.blockchain.GetHeaderByHash(hash), nil
 }
 
 func (b *LesApiBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, error) {
@@ -97,7 +97,7 @@ func (b *LesApiBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumbe
 }
 
 func (b *LesApiBackend) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
-	return b.xce.blockchain.GetBlockByHash(ctx, hash)
+	return b.xcc.blockchain.GetBlockByHash(ctx, hash)
 }
 
 func (b *LesApiBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Block, error) {
@@ -112,7 +112,7 @@ func (b *LesApiBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash r
 		if block == nil {
 			return nil, errors.New("header found, but block body is missing")
 		}
-		if blockNrOrHash.RequireCanonical && b.xce.blockchain.GetCanonicalHash(block.NumberU64()) != hash {
+		if blockNrOrHash.RequireCanonical && b.xcc.blockchain.GetCanonicalHash(block.NumberU64()) != hash {
 			return nil, errors.New("hash is not currently canonical")
 		}
 		return block, nil
@@ -128,7 +128,7 @@ func (b *LesApiBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.B
 	if header == nil {
 		return nil, nil, errors.New("header not found")
 	}
-	return light.NewState(ctx, header, b.xce.odr), header, nil
+	return light.NewState(ctx, header, b.xcc.odr), header, nil
 }
 
 func (b *LesApiBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *types.Header, error) {
@@ -136,91 +136,91 @@ func (b *LesApiBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 		return b.StateAndHeaderByNumber(ctx, blockNr)
 	}
 	if hash, ok := blockNrOrHash.Hash(); ok {
-		header := b.xce.blockchain.GetHeaderByHash(hash)
+		header := b.xcc.blockchain.GetHeaderByHash(hash)
 		if header == nil {
 			return nil, nil, errors.New("header for hash not found")
 		}
-		if blockNrOrHash.RequireCanonical && b.xce.blockchain.GetCanonicalHash(header.Number.Uint64()) != hash {
+		if blockNrOrHash.RequireCanonical && b.xcc.blockchain.GetCanonicalHash(header.Number.Uint64()) != hash {
 			return nil, nil, errors.New("hash is not currently canonical")
 		}
-		return light.NewState(ctx, header, b.xce.odr), header, nil
+		return light.NewState(ctx, header, b.xcc.odr), header, nil
 	}
 	return nil, nil, errors.New("invalid arguments; neither block nor hash specified")
 }
 
 func (b *LesApiBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
-	if number := rawdb.ReadHeaderNumber(b.xce.chainDb, hash); number != nil {
-		return light.GetBlockReceipts(ctx, b.xce.odr, hash, *number)
+	if number := rawdb.ReadHeaderNumber(b.xcc.chainDb, hash); number != nil {
+		return light.GetBlockReceipts(ctx, b.xcc.odr, hash, *number)
 	}
 	return nil, nil
 }
 
 func (b *LesApiBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*types.Log, error) {
-	if number := rawdb.ReadHeaderNumber(b.xce.chainDb, hash); number != nil {
-		return light.GetBlockLogs(ctx, b.xce.odr, hash, *number)
+	if number := rawdb.ReadHeaderNumber(b.xcc.chainDb, hash); number != nil {
+		return light.GetBlockLogs(ctx, b.xcc.odr, hash, *number)
 	}
 	return nil, nil
 }
 
 func (b *LesApiBackend) GetTd(hash common.Hash) *big.Int {
-	return b.xce.blockchain.GetTdByHash(hash)
+	return b.xcc.blockchain.GetTdByHash(hash)
 }
 
 func (b *LesApiBackend) GetCVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header) (*vm.CVM, func() error, error) {
-	context := core.NewCVMContext(msg, header, b.xce.blockchain, nil)
-	return vm.NewCVM(context, state, b.xce.chainConfig, vm.Config{}), state.Error, nil
+	context := core.NewCVMContext(msg, header, b.xcc.blockchain, nil)
+	return vm.NewCVM(context, state, b.xcc.chainConfig, vm.Config{}), state.Error, nil
 }
 
 func (b *LesApiBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {
-	return b.xce.txPool.Add(ctx, signedTx)
+	return b.xcc.txPool.Add(ctx, signedTx)
 }
 
 func (b *LesApiBackend) RemoveTx(txHash common.Hash) {
-	b.xce.txPool.RemoveTx(txHash)
+	b.xcc.txPool.RemoveTx(txHash)
 }
 
 func (b *LesApiBackend) GetPoolTransactions() (types.Transactions, error) {
-	return b.xce.txPool.GetTransactions()
+	return b.xcc.txPool.GetTransactions()
 }
 
 func (b *LesApiBackend) GetPoolTransaction(txHash common.Hash) *types.Transaction {
-	return b.xce.txPool.GetTransaction(txHash)
+	return b.xcc.txPool.GetTransaction(txHash)
 }
 
 func (b *LesApiBackend) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
-	return light.GetTransaction(ctx, b.xce.odr, txHash)
+	return light.GetTransaction(ctx, b.xcc.odr, txHash)
 }
 
 func (b *LesApiBackend) GetPoolNonce(ctx context.Context, addr common.Address) (uint64, error) {
-	return b.xce.txPool.GetNonce(ctx, addr)
+	return b.xcc.txPool.GetNonce(ctx, addr)
 }
 
 func (b *LesApiBackend) Stats() (pending int, queued int) {
-	return b.xce.txPool.Stats(), 0
+	return b.xcc.txPool.Stats(), 0
 }
 
 func (b *LesApiBackend) TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions) {
-	return b.xce.txPool.Content()
+	return b.xcc.txPool.Content()
 }
 
 func (b *LesApiBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subscription {
-	return b.xce.txPool.SubscribeNewTxsEvent(ch)
+	return b.xcc.txPool.SubscribeNewTxsEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription {
-	return b.xce.blockchain.SubscribeChainEvent(ch)
+	return b.xcc.blockchain.SubscribeChainEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription {
-	return b.xce.blockchain.SubscribeChainHeadEvent(ch)
+	return b.xcc.blockchain.SubscribeChainHeadEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribeChainSideEvent(ch chan<- core.ChainSideEvent) event.Subscription {
-	return b.xce.blockchain.SubscribeChainSideEvent(ch)
+	return b.xcc.blockchain.SubscribeChainSideEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscription {
-	return b.xce.blockchain.SubscribeLogsEvent(ch)
+	return b.xcc.blockchain.SubscribeLogsEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribePendingLogsEvent(ch chan<- []*types.Log) event.Subscription {
@@ -231,27 +231,27 @@ func (b *LesApiBackend) SubscribePendingLogsEvent(ch chan<- []*types.Log) event.
 }
 
 func (b *LesApiBackend) SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription {
-	return b.xce.blockchain.SubscribeRemovedLogsEvent(ch)
+	return b.xcc.blockchain.SubscribeRemovedLogsEvent(ch)
 }
 
 func (b *LesApiBackend) Downloader() *downloader.Downloader {
-	return b.xce.Downloader()
+	return b.xcc.Downloader()
 }
 
 func (b *LesApiBackend) ProtocolVersion() int {
-	return b.xce.LesVersion() + 10000
+	return b.xcc.LesVersion() + 10000
 }
 
 func (b *LesApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
 }
 
-func (b *LesApiBackend) ChainDb() xcedb.Database {
-	return b.xce.chainDb
+func (b *LesApiBackend) ChainDb() xccdb.Database {
+	return b.xcc.chainDb
 }
 
 func (b *LesApiBackend) AccountManager() *accounts.Manager {
-	return b.xce.accountManager
+	return b.xcc.accountManager
 }
 
 func (b *LesApiBackend) ExtRPCEnabled() bool {
@@ -259,19 +259,19 @@ func (b *LesApiBackend) ExtRPCEnabled() bool {
 }
 
 func (b *LesApiBackend) RPCEnergyCap() *big.Int {
-	return b.xce.config.RPCEnergyCap
+	return b.xcc.config.RPCEnergyCap
 }
 
 func (b *LesApiBackend) BloomStatus() (uint64, uint64) {
-	if b.xce.bloomIndexer == nil {
+	if b.xcc.bloomIndexer == nil {
 		return 0, 0
 	}
-	sections, _, _ := b.xce.bloomIndexer.Sections()
+	sections, _, _ := b.xcc.bloomIndexer.Sections()
 	return params.BloomBitsBlocksClient, sections
 }
 
 func (b *LesApiBackend) ServiceFilter(ctx context.Context, session *bloombits.MatcherSession) {
 	for i := 0; i < bloomFilterThreads; i++ {
-		go session.Multiplex(bloomRetrievalBatch, bloomRetrievalWait, b.xce.bloomRequests)
+		go session.Multiplex(bloomRetrievalBatch, bloomRetrievalWait, b.xcc.bloomRequests)
 	}
 }

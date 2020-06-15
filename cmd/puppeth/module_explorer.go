@@ -35,8 +35,8 @@ FROM corehub/explorer:latest
 ADD genesis.json /genesis.json
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > explorer.sh && \
-  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcePort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xcestats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
-  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcePort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xcestats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
+  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XccPort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xccstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
+  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XccPort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xccstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
   echo '/usr/local/bin/docker-entrypoint.sh postgres &' >> explorer.sh && \
   echo 'sleep 5' >> explorer.sh && \
   echo 'mix do ecto.drop --force, ecto.create, ecto.migrate' >> explorer.sh && \
@@ -55,12 +55,12 @@ services:
         image: {{.Network}}/explorer
         container_name: {{.Network}}_explorer_1
         ports:
-            - "{{.XcePort}}:{{.XcePort}}"
-            - "{{.XcePort}}:{{.XcePort}}/udp"{{if not .VHost}}
+            - "{{.XccPort}}:{{.XccPort}}"
+            - "{{.XccPort}}:{{.XccPort}}/udp"{{if not .VHost}}
             - "{{.WebPort}}:4000"{{end}}
         environment:
-            - XCC_PORT={{.XcePort}}
-            - XCC_NAME={{.XceName}}
+            - XCC_PORT={{.XccPort}}
+            - XCC_NAME={{.XccName}}
             - BLOCK_TRANSFORMER={{.Transformer}}{{if .VHost}}
             - VIRTUAL_HOST={{.VHost}}
             - VIRTUAL_PORT=4000{{end}}
@@ -87,8 +87,8 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerDockerfile)).Execute(dockerfile, map[string]interface{}{
 		"NetworkID": config.node.network,
 		"Bootnodes": strings.Join(bootnodes, ","),
-		"Xcestats":  config.node.xccstats,
-		"XcePort":   config.node.port,
+		"Xccstats":  config.node.xccstats,
+		"XccPort":   config.node.port,
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
 
@@ -100,11 +100,11 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerComposefile)).Execute(composefile, map[string]interface{}{
 		"Network":     network,
 		"VHost":       config.host,
-		"Xcestats":    config.node.xccstats,
+		"Xccstats":    config.node.xccstats,
 		"Datadir":     config.node.datadir,
 		"DBDir":       config.dbdir,
-		"XcePort":     config.node.port,
-		"XceName":     config.node.xccstats[:strings.Index(config.node.xccstats, ":")],
+		"XccPort":     config.node.port,
+		"XccName":     config.node.xccstats[:strings.Index(config.node.xccstats, ":")],
 		"WebPort":     config.port,
 		"Transformer": transformer,
 	})
@@ -140,7 +140,7 @@ func (info *explorerInfos) Report() map[string]string {
 		"Website address ":       info.host,
 		"Website listener port ": strconv.Itoa(info.port),
 		"Core listener port ":    strconv.Itoa(info.node.port),
-		"Xcestats username":      info.node.xccstats,
+		"Xccstats username":      info.node.xccstats,
 	}
 	return report
 }

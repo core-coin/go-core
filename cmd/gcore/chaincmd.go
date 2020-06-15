@@ -475,7 +475,7 @@ func removeDB(ctx *cli.Context) error {
 		log.Info("Full node state database missing", "path", path)
 	}
 	// Remove the full node ancient database
-	path = config.Xce.DatabaseFreezer
+	path = config.Xcc.DatabaseFreezer
 	switch {
 	case path == "":
 		path = filepath.Join(stack.ResolvePath("chaindata"), "ancient")

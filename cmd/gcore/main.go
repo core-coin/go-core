@@ -131,7 +131,7 @@ var (
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.XceStatsURLFlag,
+		utils.XccStatsURLFlag,
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
