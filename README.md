@@ -81,20 +81,20 @@ network, you want to join the **test** network with your node, which is fully eq
 the main network, but with play-Core only.
 
 ```shell
-$ gcore --testnet console
+$ gcore --devin console
 ```
 
 The `console` subcommand has the exact same meaning as above and they are equally
-useful on the testnet too. Please see above for their explanations if you've skipped here.
+useful on the devin too. Please see above for their explanations if you've skipped here.
 
-Specifying the `--testnet` flag, however, will reconfigure your `gcore` instance a bit:
+Specifying the `--devin` flag, however, will reconfigure your `gcore` instance a bit:
 
  * Instead of using the default data directory (`~/core` on Linux for example), `gcore`
-   will nest itself one level deeper into a `testnet` subfolder (`~/core/testnet` on
-   Linux). Note, on OSX and Linux this also means that attaching to a running testnet node
+   will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on
+   Linux). Note, on OSX and Linux this also means that attaching to a running devin node
    requires the use of a custom endpoint since `gcore attach` will try to attach to a
    production node endpoint by default. E.g.
-   `gcore attach <datadir>/testnet/gcore.ipc`. Windows users are not affected by
+   `gcore attach <datadir>/devin/gcore.ipc`. Windows users are not affected by
    this.
  * Instead of connecting the main Core network, the client will connect to the test
    network, which uses different P2P bootnodes, different network IDs and genesis states.

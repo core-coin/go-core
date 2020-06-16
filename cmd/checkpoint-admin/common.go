@@ -97,7 +97,7 @@ func getCheckpoint(ctx *cli.Context, client *rpc.Client) *params.TrustedCheckpoi
 }
 
 // newContract creates a registrar contract instance with specified
-// contract address or the default contracts for mainnet or testnet.
+// contract address or the default contracts for mainnet or devin.
 func newContract(client *rpc.Client) (common.Address, *checkpointoracle.CheckpointOracle) {
 	addr := getContractAddr(client)
 	if addr == (common.Address{}) {

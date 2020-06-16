@@ -146,9 +146,9 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 		if err := json.Unmarshal([]byte(config.CoreGenesis), genesis); err != nil {
 			return nil, fmt.Errorf("invalid genesis spec: %v", err)
 		}
-		// If we have the testnet, hard code the chain configs too
-		if config.CoreGenesis == TestnetGenesis() {
-			genesis.Config = params.TestnetChainConfig
+		// If we have the devin, hard code the chain configs too
+		if config.CoreGenesis == DevinGenesis() {
+			genesis.Config = params.DevinChainConfig
 			if config.CoreNetworkID == 1 {
 				config.CoreNetworkID = 3
 			}

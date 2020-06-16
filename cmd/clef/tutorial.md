@@ -41,7 +41,7 @@ You should treat 'masterseed.json' with utmost secrecy and make a backup of it!
 
 ## Remote interactions
 
-Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our Koliba testnet keystore and specify the Koliba chain ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
+Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our Koliba devin keystore and specify the Koliba chain ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
 
 ```text
 $ clef --keystore ~/.core/koliba/keystore --chainid 4
@@ -179,7 +179,7 @@ $ cat ~/.clef/02f90c0603f4f2f60188/config.json
 In `$HOME/.clef`, the `masterseed.json` file was created, containing the master seed. This seed was then used to derive a few other things:
 
 - **Vault location**: in this case `02f90c0603f4f2f60188`.
-   - If you use a different master seed, a different vault location will be used that does not conflict with each other (e.g. `clef --signersecret /path/to/file`). This allows you to run multiple instances of Clef, each with its own rules (e.g. mainnet + testnet).
+   - If you use a different master seed, a different vault location will be used that does not conflict with each other (e.g. `clef --signersecret /path/to/file`). This allows you to run multiple instances of Clef, each with its own rules (e.g. mainnet + devin).
 - **`config.json`**: the encrypted key/value storage for configuration data, currently only containing the key `ruleset_sha256`, the attested hash of the automatic rules to use.
 
 ## Advanced rules

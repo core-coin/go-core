@@ -163,12 +163,12 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Testnet)",
+		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Devin)",
 		Value: xcc.DefaultConfig.NetworkId,
 	}
-	TestnetFlag = cli.BoolFlag{
-		Name:  "testnet",
-		Usage: "Testnet network: pre-configured proof-of-work test network",
+	DevinFlag = cli.BoolFlag{
+		Name:  "devin",
+		Usage: "Devin network: pre-configured proof-of-work test network",
 	}
 	KolibaFlag = cli.BoolFlag{
 		Name:  "koliba",
@@ -720,12 +720,12 @@ var (
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating
-// if none (or the empty string) is specified. If the node is starting a testnet,
+// if none (or the empty string) is specified. If the node is starting a devin,
 // the a subdirectory of the specified datadir will be used.
 func MakeDataDir(ctx *cli.Context) string {
 	if path := ctx.GlobalString(DataDirFlag.Name); path != "" {
-		if ctx.GlobalBool(TestnetFlag.Name) {
-			return filepath.Join(path, "testnet")
+		if ctx.GlobalBool(DevinFlag.Name) {
+			return filepath.Join(path, "devin")
 		}
 		if ctx.GlobalBool(KolibaFlag.Name) {
 			return filepath.Join(path, "koliba")
@@ -780,8 +780,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		} else {
 			urls = splitAndTrim(ctx.GlobalString(BootnodesFlag.Name))
 		}
-	case ctx.GlobalBool(TestnetFlag.Name):
-		urls = params.TestnetBootnodes
+	case ctx.GlobalBool(DevinFlag.Name):
+		urls = params.DevinBootnodes
 	case ctx.GlobalBool(KolibaFlag.Name):
 		urls = params.KolibaBootnodes
 	case cfg.BootstrapNodes != nil:
@@ -1180,8 +1180,8 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 		cfg.DataDir = ctx.GlobalString(DataDirFlag.Name)
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		cfg.DataDir = "" // unless explicitly requested, use memory databases
-	case ctx.GlobalBool(TestnetFlag.Name) && cfg.DataDir == node.DefaultDataDir():
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
+	case ctx.GlobalBool(DevinFlag.Name) && cfg.DataDir == node.DefaultDataDir():
+		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devin")
 	case ctx.GlobalBool(KolibaFlag.Name) && cfg.DataDir == node.DefaultDataDir():
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "koliba")
 	}
@@ -1352,7 +1352,7 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 // SetXccConfig applies xcc-related command line flags to the config.
 func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, DeveloperFlag, TestnetFlag, KolibaFlag)
+	CheckExclusive(ctx, DeveloperFlag, DevinFlag, KolibaFlag)
 	CheckExclusive(ctx, LightLegacyServFlag, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 
@@ -1428,12 +1428,12 @@ func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
+	case ctx.GlobalBool(DevinFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 3
 		}
-		cfg.Genesis = core.DefaultTestnetGenesisBlock()
-		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.TestnetGenesisHash])
+		cfg.Genesis = core.DefaultDevinGenesisBlock()
+		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
 	case ctx.GlobalBool(KolibaFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 5
@@ -1609,8 +1609,8 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xccdb.Database {
 func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	var genesis *core.Genesis
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
-		genesis = core.DefaultTestnetGenesisBlock()
+	case ctx.GlobalBool(DevinFlag.Name):
+		genesis = core.DefaultDevinGenesisBlock()
 	case ctx.GlobalBool(KolibaFlag.Name):
 		genesis = core.DefaultKolibaGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):

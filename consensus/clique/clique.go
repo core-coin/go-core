@@ -165,7 +165,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 }
 
 // Clique is the proof-of-authority consensus engine proposed to support the
-// Core testnet following the Testnet attacks.
+// Core devin following the Devin attacks.
 type Clique struct {
 	config *params.CliqueConfig // Consensus engine configuration parameters
 	db     xccdb.Database       // Database to store and retrieve snapshot checkpoints

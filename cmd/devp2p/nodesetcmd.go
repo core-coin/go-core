@@ -161,8 +161,8 @@ func xccFilter(args []string) (nodeFilter, error) {
 		filter = forkid.NewStaticFilter(params.MainnetChainConfig, params.MainnetGenesisHash)
 	case "koliba":
 		filter = forkid.NewStaticFilter(params.KolibaChainConfig, params.KolibaGenesisHash)
-	case "testnet":
-		filter = forkid.NewStaticFilter(params.TestnetChainConfig, params.TestnetGenesisHash)
+	case "devin":
+		filter = forkid.NewStaticFilter(params.DevinChainConfig, params.DevinGenesisHash)
 	default:
 		return nil, fmt.Errorf("unknown network %q", args[0])
 	}

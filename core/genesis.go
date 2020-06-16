@@ -236,8 +236,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
 		return params.MainnetChainConfig
-	case ghash == params.TestnetGenesisHash:
-		return params.TestnetChainConfig
+	case ghash == params.DevinGenesisHash:
+		return params.DevinChainConfig
 	default:
 		return params.AllCryptoreProtocolChanges
 	}
@@ -337,15 +337,15 @@ func DefaultGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultTestnetGenesisBlock returns the Testnet network genesis block.
-func DefaultTestnetGenesisBlock() *Genesis {
+// DefaultDevinGenesisBlock returns the Devin network genesis block.
+func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:      params.TestnetChainConfig,
+		Config:      params.DevinChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
 		EnergyLimit: 16777216,
 		Difficulty:  big.NewInt(1048576),
-		Alloc:       decodePrealloc(testnetAllocData),
+		Alloc:       decodePrealloc(devinAllocData),
 	}
 }
 

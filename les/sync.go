@@ -103,7 +103,7 @@ func (h *clientHandler) synchronise(peer *serverPeer) {
 	// The light client may be connected to several different versions of the server.
 	// (1) Old version server which can not provide stable checkpoint in the handshake packet.
 	//     => Use hardcoded checkpoint or empty checkpoint
-	// (2) New version server but simple checkpoint syncing is not enabled(e.g. mainnet, new testnet or private network)
+	// (2) New version server but simple checkpoint syncing is not enabled(e.g. mainnet, new devin or private network)
 	//     => Use hardcoded checkpoint or empty checkpoint
 	// (3) New version server but the provided stable checkpoint is even lower than the hardcoded one.
 	//     => Use hardcoded checkpoint

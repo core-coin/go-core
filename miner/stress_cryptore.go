@@ -33,14 +33,14 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Create an Cryptore network based off of the Testnet config
+	// Create an Cryptore network based off of the Devin config
 	genesis := makeGenesis(faucets)
 
 	var (
@@ -128,7 +128,7 @@ func main() {
 // makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
 func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
-	genesis := core.DefaultTestnetGenesisBlock()
+	genesis := core.DefaultDevinGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000
 
@@ -174,12 +174,12 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 			DatabaseHandles: 256,
 			TxPool:          core.DefaultTxPoolConfig,
 			GPO:             xcc.DefaultConfig.GPO,
-			Cryptore:          xcc.DefaultConfig.Cryptore,
+			Cryptore:        xcc.DefaultConfig.Cryptore,
 			Miner: miner.Config{
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
 				EnergyPrice: big.NewInt(1),
-				Recommit: time.Second,
+				Recommit:    time.Second,
 			},
 		})
 	}); err != nil {
