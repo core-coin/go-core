@@ -132,6 +132,9 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 }
 
 func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
+	if len(tx.data.Signature) != crypto.SignatureLength {
+		return common.Address{}, ErrInvalidSig
+	}
 	pubk, err := crypto.SigToPub(nil, tx.data.Signature[:])
 	if err != nil {
 		return common.Address{}, err

@@ -23,7 +23,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
-		Spender      common.Address  `json:"from"`
+		Signature    []byte          `json:"signature"    gencodec:"required"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var enc txdata
@@ -34,7 +34,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
-	enc.Spender = t.Spender
+	enc.Signature = t.Signature
 	enc.Hash = t.Hash
 	return json.Marshal(&enc)
 }
@@ -49,7 +49,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
-		Spender      *common.Address `json:"from"`
+		Signature    []byte          `json:"signature"    gencodec:"required"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var dec txdata
@@ -83,9 +83,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'input' for txdata")
 	}
 	t.Payload = *dec.Payload
-	if dec.Spender != nil {
-		t.Spender = *dec.Spender
+	if dec.Signature == nil {
+		return errors.New("missing required field 'signature' for txdata")
 	}
+	t.Signature = dec.Signature
 	if dec.Hash != nil {
 		t.Hash = dec.Hash
 	}

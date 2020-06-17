@@ -25,7 +25,6 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
 )
 
@@ -44,14 +43,14 @@ type Transaction struct {
 }
 
 type txdata struct {
-	AccountNonce uint64                       `json:"nonce"    gencodec:"required"`
-	Price        *big.Int                     `json:"energyPrice" gencodec:"required"`
-	EnergyLimit  uint64                       `json:"energy"      gencodec:"required"`
-	ChainID      uint                         `json:"chain_id" gencodec:"required"`
-	Recipient    *common.Address              `json:"to"       rlp:"nil"` // nil means contract creation
-	Amount       *big.Int                     `json:"value"    gencodec:"required"`
-	Payload      []byte                       `json:"input"    gencodec:"required"`
-	Signature    [crypto.SignatureLength]byte `json:"signature"    gencodec:"required"`
+	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
+	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
+	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
+	ChainID      uint            `json:"chain_id" gencodec:"required"`
+	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
+	Amount       *big.Int        `json:"value"    gencodec:"required"`
+	Payload      []byte          `json:"input"    gencodec:"required"`
+	Signature    []byte          `json:"signature"    gencodec:"required"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -84,7 +83,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 		Amount:       new(big.Int),
 		EnergyLimit:  energyLimit,
 		Price:        new(big.Int),
-		Signature:    [crypto.SignatureLength]byte{},
+		Signature:    []byte{},
 		ChainID:      0,
 	}
 	if amount != nil {
