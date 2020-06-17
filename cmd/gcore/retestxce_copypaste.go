@@ -29,8 +29,8 @@ type RPCTransaction struct {
 	BlockHash        common.Hash     `json:"blockHash"`
 	BlockNumber      *hexutil.Big    `json:"blockNumber"`
 	From             common.Address  `json:"from"`
-	Energy              hexutil.Uint64  `json:"energy"`
-	EnergyPrice         *hexutil.Big    `json:"energyPrice"`
+	Energy           hexutil.Uint64  `json:"energy"`
+	EnergyPrice      *hexutil.Big    `json:"energyPrice"`
 	Hash             common.Hash     `json:"hash"`
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
@@ -42,18 +42,18 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+	var signer types.Signer = types.NewNucleusSigner(big.NewInt(int64(tx.ChainID())))
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
-		From:     from,
+		From:        from,
 		Energy:      hexutil.Uint64(tx.Energy()),
 		EnergyPrice: (*hexutil.Big)(tx.EnergyPrice()),
-		Hash:     tx.Hash(),
-		Input:    hexutil.Bytes(tx.Data()),
-		Nonce:    hexutil.Uint64(tx.Nonce()),
-		To:       tx.To(),
-		Value:    (*hexutil.Big)(tx.Value()),
+		Hash:        tx.Hash(),
+		Input:       hexutil.Bytes(tx.Data()),
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		To:          tx.To(),
+		Value:       (*hexutil.Big)(tx.Value()),
 	}
 	if blockHash != (common.Hash{}) {
 		result.BlockHash = blockHash
@@ -100,8 +100,8 @@ func RPCMarshalBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]inter
 		"difficulty":       (*hexutil.Big)(head.Difficulty),
 		"extraData":        hexutil.Bytes(head.Extra),
 		"size":             hexutil.Uint64(b.Size()),
-		"energyLimit":         hexutil.Uint64(head.EnergyLimit),
-		"energyUsed":          hexutil.Uint64(head.EnergyUsed),
+		"energyLimit":      hexutil.Uint64(head.EnergyLimit),
+		"energyUsed":       hexutil.Uint64(head.EnergyUsed),
 		"timestamp":        hexutil.Uint64(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,

@@ -1080,7 +1080,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+	var signer types.Signer = types.NewNucleusSigner(big.NewInt(int64(tx.ChainID())))
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
@@ -1266,9 +1266,11 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	}
 	receipt := receipts[index]
 
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
-	from, _ := types.Sender(signer, tx)
-
+	var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
+	from, err := types.Sender(signer, tx)
+	if err != nil {
+		return nil, err
+	}
 	fields := map[string]interface{}{
 		"blockHash":            blockHash,
 		"blockNumber":          hexutil.Uint64(blockNumber),
@@ -1550,7 +1552,10 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	transactions := make([]*RPCTransaction, 0, len(pending))
 	for _, tx := range pending {
 		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
-		from, _ := types.Sender(signer, tx)
+		from, err := types.Sender(signer, tx)
+		if err != nil {
+			return nil, err
+		}
 		if _, exists := accounts[from]; exists {
 			transactions = append(transactions, newRPCPendingTransaction(tx))
 		}
@@ -1574,7 +1579,7 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	}
 
 	for _, p := range pending {
-		var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
 		wantSigHash := signer.Hash(matchTx)
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {

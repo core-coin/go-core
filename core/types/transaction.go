@@ -44,14 +44,14 @@ type Transaction struct {
 }
 
 type txdata struct {
-	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
-	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
-	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
-	ChainID      uint            `json:"chain_id" gencodec:"required"`
-	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
-	Amount       *big.Int        `json:"value"    gencodec:"required"`
-	Payload      []byte          `json:"input"    gencodec:"required"`
-	Spender      common.Address  `json:"from"`
+	AccountNonce uint64                       `json:"nonce"    gencodec:"required"`
+	Price        *big.Int                     `json:"energyPrice" gencodec:"required"`
+	EnergyLimit  uint64                       `json:"energy"      gencodec:"required"`
+	ChainID      uint                         `json:"chain_id" gencodec:"required"`
+	Recipient    *common.Address              `json:"to"       rlp:"nil"` // nil means contract creation
+	Amount       *big.Int                     `json:"value"    gencodec:"required"`
+	Payload      []byte                       `json:"input"    gencodec:"required"`
+	Signature    [crypto.SignatureLength]byte `json:"signature"    gencodec:"required"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -84,7 +84,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 		Amount:       new(big.Int),
 		EnergyLimit:  energyLimit,
 		Price:        new(big.Int),
-		Spender:      common.Address{},
+		Signature:    [crypto.SignatureLength]byte{},
 		ChainID:      0,
 	}
 	if amount != nil {
@@ -137,6 +137,7 @@ func (tx *Transaction) EnergyPrice() *big.Int { return new(big.Int).Set(tx.data.
 func (tx *Transaction) Value() *big.Int       { return new(big.Int).Set(tx.data.Amount) }
 func (tx *Transaction) Nonce() uint64         { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool      { return true }
+func (tx *Transaction) ChainID() uint         { return tx.data.ChainID }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -177,6 +178,10 @@ func (tx *Transaction) Size() common.StorageSize {
 //
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
+	from, err := recoverPlain(s, tx)
+	if err != nil {
+		return Message{}, err
+	}
 	msg := Message{
 		nonce:       tx.data.AccountNonce,
 		energyLimit: tx.data.EnergyLimit,
@@ -184,7 +189,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 		to:          tx.data.Recipient,
 		amount:      tx.data.Amount,
 		data:        tx.data.Payload,
-		from:        tx.data.Spender,
+		from:        from,
 		checkNonce:  true,
 	}
 	return msg, nil
@@ -192,21 +197,9 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 
 // WithSignature returns a new transaction with the given signature.
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
-	tx.data.ChainID = uint(signer.ChainID())
-
-	pubk, err := crypto.SigToPub(nil, sig)
-	if err != nil {
-		return nil, err
-	}
-
-	hash := signer.Hash(tx)
-	if !crypto.VerifySignature(pubk.X, hash[:], sig) {
-		return nil, ErrInvalidSig
-	}
-
 	cpy := &Transaction{data: tx.data}
-	from := crypto.PubkeyToAddress(*pubk)
-	copy(cpy.data.Spender[:], from[:])
+	cpy.data.ChainID = uint(signer.ChainID())
+	copy(cpy.data.Signature[:], sig[:])
 	return cpy, nil
 }
 

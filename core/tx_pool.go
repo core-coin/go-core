@@ -605,7 +605,10 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 		}
 	}
 	// Try to replace an existing transaction in the pending pool
-	from, _ := types.Sender(pool.signer, tx) // already validated
+	from, errSender := types.Sender(pool.signer, tx) // already validated
+	if errSender != nil {
+		return false, errSender
+	}
 	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
 		// Nonce already pending, check if required price bump is met
 		inserted, old := list.Add(tx, pool.config.PriceBump)
@@ -652,7 +655,10 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 // Note, this method assumes the pool lock is held!
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	from, _ := types.Sender(pool.signer, tx) // already validated
+	from, errSender := types.Sender(pool.signer, tx) // already validated
+	if errSender != nil {
+		return false, errSender
+	}
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -879,8 +885,10 @@ func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
 	if tx == nil {
 		return
 	}
-	addr, _ := types.Sender(pool.signer, tx) // already validated during insertion
-
+	addr, errSender := types.Sender(pool.signer, tx)
+	if errSender != nil {
+		return
+	}
 	// Remove it from the list of known transactions
 	pool.all.Remove(hash)
 	if outofbound {

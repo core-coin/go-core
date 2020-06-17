@@ -29,10 +29,10 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/filters"
 	"github.com/core-coin/go-core/internal/xceapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xce/filters"
 )
 
 var (
@@ -214,8 +214,10 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 		return nil, err
 	}
 	var signer types.Signer = types.NewNucleusSigner(t.backend.ChainConfig().ChainID)
-	from, _ := types.Sender(signer, tx)
-
+	from, err := types.Sender(signer, tx)
+	if err != nil {
+		return nil, err
+	}
 	return &Account{
 		backend:       t.backend,
 		address:       from,
@@ -737,19 +739,19 @@ func (b *Block) Account(ctx context.Context, args struct {
 // CallData encapsulates arguments to `call` or `estimateEnergy`.
 // All arguments are optional.
 type CallData struct {
-	From     *common.Address // The Core address the call is from.
-	To       *common.Address // The Core address the call is to.
+	From        *common.Address // The Core address the call is from.
+	To          *common.Address // The Core address the call is to.
 	Energy      *hexutil.Uint64 // The amount of energy provided for the call.
 	EnergyPrice *hexutil.Big    // The price of each unit of energy, in ore.
-	Value    *hexutil.Big    // The value sent along with the call.
-	Data     *hexutil.Bytes  // Any data sent with the call.
+	Value       *hexutil.Big    // The value sent along with the call.
+	Data        *hexutil.Bytes  // Any data sent with the call.
 }
 
 // CallResult encapsulates the result of an invocation of the `call` accessor.
 type CallResult struct {
-	data    hexutil.Bytes  // The return data from the call
+	data       hexutil.Bytes  // The return data from the call
 	energyUsed hexutil.Uint64 // The amount of energy used
-	status  hexutil.Uint64 // The return status of the call - 0 for failure or 1 for success.
+	status     hexutil.Uint64 // The return status of the call - 0 for failure or 1 for success.
 }
 
 func (c *CallResult) Data() hexutil.Bytes {
@@ -779,9 +781,9 @@ func (b *Block) Call(ctx context.Context, args struct {
 		status = 0
 	}
 	return &CallResult{
-		data:    hexutil.Bytes(result),
+		data:       hexutil.Bytes(result),
 		energyUsed: hexutil.Uint64(energy),
-		status:  status,
+		status:     status,
 	}, err
 }
 
@@ -845,9 +847,9 @@ func (p *Pending) Call(ctx context.Context, args struct {
 		status = 0
 	}
 	return &CallResult{
-		data:    hexutil.Bytes(result),
+		data:       hexutil.Bytes(result),
 		energyUsed: hexutil.Uint64(energy),
-		status:  status,
+		status:     status,
 	}, err
 }
 
