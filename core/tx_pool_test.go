@@ -17,15 +17,16 @@
 package core
 
 import (
-	"github.com/core-coin/eddsa"
+	crand "crypto/rand"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
-	crand "crypto/rand"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -47,7 +48,7 @@ func init() {
 
 type testBlockChain struct {
 	statedb       *state.StateDB
-	energyLimit      uint64
+	energyLimit   uint64
 	chainHeadFeed *event.Feed
 }
 
@@ -858,8 +859,10 @@ func testTransactionQueueGlobalLimiting(t *testing.T, nolocals bool) {
 //
 // This logic should not hold for local transactions, unless the local tracking
 // mechanism is disabled.
-func TestTransactionQueueTimeLimiting(t *testing.T)         { testTransactionQueueTimeLimiting(t, false) }
-func TestTransactionQueueTimeLimitingNoLocals(t *testing.T) { testTransactionQueueTimeLimiting(t, true) }
+func TestTransactionQueueTimeLimiting(t *testing.T) { testTransactionQueueTimeLimiting(t, false) }
+func TestTransactionQueueTimeLimitingNoLocals(t *testing.T) {
+	testTransactionQueueTimeLimiting(t, true)
+}
 
 func testTransactionQueueTimeLimiting(t *testing.T, nolocals bool) {
 	// Reduce the eviction interval to a testable amount
@@ -874,7 +877,7 @@ func testTransactionQueueTimeLimiting(t *testing.T, nolocals bool) {
 	config.Lifetime = time.Second
 	config.NoLocals = nolocals
 
-	pool := NewTxPool(config, params.TestChainConfig, blockchain)
+	pool := NewTxPool(config, params.AllCryptoreProtocolChanges, blockchain)
 	defer pool.Stop()
 
 	// Create two test accounts to ensure remotes expire but locals do not
