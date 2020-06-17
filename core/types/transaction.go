@@ -198,7 +198,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
 	cpy := &Transaction{data: tx.data}
 	cpy.data.ChainID = uint(signer.ChainID())
-	copy(cpy.data.Signature[:], sig[:])
+	cpy.data.Signature = sig[:]
 	return cpy, nil
 }
 

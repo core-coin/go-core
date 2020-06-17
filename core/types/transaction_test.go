@@ -20,10 +20,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
-	"github.com/core-coin/eddsa"
-	"github.com/core-coin/go-core/params"
 	"math/big"
 	"testing"
+
+	"github.com/core-coin/eddsa"
+	"github.com/core-coin/go-core/params"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"

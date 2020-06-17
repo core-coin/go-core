@@ -43,8 +43,8 @@ func MakeSigner(chainID *big.Int) Signer {
 
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
+	tx.data.ChainID = uint(s.ChainID())
 	h := s.Hash(tx)
-
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
