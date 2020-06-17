@@ -47,12 +47,12 @@ type txdata struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
 	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
+	ChainID      uint            `json:"chain_id" gencodec:"required"`
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Spender      common.Address  `json:"from"`
 
-	ChainID uint `json:"chain_id"`
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
 }
