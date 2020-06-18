@@ -130,13 +130,14 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte          { return common.CopyBytes(tx.data.Payload) }
-func (tx *Transaction) Energy() uint64        { return tx.data.EnergyLimit }
-func (tx *Transaction) EnergyPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
-func (tx *Transaction) Value() *big.Int       { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Nonce() uint64         { return tx.data.AccountNonce }
-func (tx *Transaction) CheckNonce() bool      { return true }
-func (tx *Transaction) ChainID() uint         { return tx.data.ChainID }
+func (tx *Transaction) Data() []byte            { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Energy() uint64          { return tx.data.EnergyLimit }
+func (tx *Transaction) EnergyPrice() *big.Int   { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) Value() *big.Int         { return new(big.Int).Set(tx.data.Amount) }
+func (tx *Transaction) Nonce() uint64           { return tx.data.AccountNonce }
+func (tx *Transaction) CheckNonce() bool        { return true }
+func (tx *Transaction) ChainID() uint           { return tx.data.ChainID }
+func (tx *Transaction) SetChainID(chainID uint) { tx.data.ChainID = chainID }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
