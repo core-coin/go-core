@@ -804,7 +804,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	}
 
 	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false, int(b.ChainConfig().ChainID.Int64()))
+	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered energy, setup a context with a timeout.

@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
 	"math/rand"
 	"reflect"
@@ -184,39 +183,10 @@ func BytesToAddress(b []byte) Address {
 	return a
 }
 
-func StringToAddress(text string) (chainID int, addr Address, err error) {
-	addrText := text[len(text)-40:]
-	checksumAndPrefix := text[:len(text)-len(addrText)]
-
-	checksum := checksumAndPrefix[len(checksumAndPrefix)-2:]
-	prefix := checksumAndPrefix[:len(checksumAndPrefix)-len(checksum)]
-
-	chainID, err = getChainIDFromAddressPrefix(prefix)
-	if err != nil {
-		return
-	}
-	if ok := VerifyChecksum(checksum, addrText); ok != true {
-		return 0, Address{}, errors.New("Invalid checksum ")
-	}
-	return chainID, hexToAddress(addrText), nil
-}
-
-func AddressToString(chainId int, address Address) string {
-	prefix, err := getAddressPrefixFromChainID(chainId)
-	if err != nil {
-		return ""
-	}
-	checksum := CalculateChecksum(address)
-	if checksum == "" {
-		return ""
-	}
-	return prefix + checksum + address.String()[2:]
-}
-
-func CalculateChecksum(address Address) string {
+func CalculateChecksum(address string) string {
 	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
 	mods := ""
-	for _, c := range address.String()[2:] {
+	for _, c := range address {
 		// Get character code point value
 		i := int(c)
 
@@ -237,11 +207,10 @@ func CalculateChecksum(address Address) string {
 		return ""
 	}
 
-	modVal := new(big.Int).SetInt64(97)
-	resVal := new(big.Int).Mod(bigVal, modVal)
+	val := new(big.Int).SetInt64(97)
+	resVal := new(big.Int).Mod(bigVal, val)
 
-	subVal := new(big.Int).SetInt64(97)
-	resVal = new(big.Int).Sub(subVal, resVal)
+	resVal = new(big.Int).Sub(val, resVal)
 
 	resInt := resVal.Int64()
 	if resInt < 10 {
@@ -251,78 +220,27 @@ func CalculateChecksum(address Address) string {
 }
 
 func VerifyChecksum(checksum, addr string) bool {
-	res := CalculateChecksum(hexToAddress(addr))
-	//fmt.Println(res, checksum)
-	return checksum == res
-}
-
-func getChainIDFromAddressPrefix(alias string) (int, error) {
-	chainId := 0
-	reversed := reverse(alias)
-	for i, ch := range reversed {
-		chInt := int(ch)
-		if chInt > 48 && chInt < 58 {
-			if chInt == 49 {
-				chInt = 1
-			} else {
-				chInt -= 49
-			}
-		} else if chInt > 96 && chInt < 123 {
-			if chInt == 97 {
-				chInt = 10
-			} else {
-				chInt -= 87
-			}
-		}
-		chainId += chInt * int(math.Pow(float64(16), float64(i)))
-	}
-	return chainId, nil
-}
-
-func reverse(s string) string {
-	rns := []rune(s) // convert to rune
-	for i, j := 0, len(rns)-1; i < j; i, j = i+1, j-1 {
-
-		// swap the letters of the string,
-		// like first with last and so on.
-		rns[i], rns[j] = rns[j], rns[i]
-	}
-
-	// return the reversed string.
-	return string(rns)
-}
-
-func getAddressPrefixFromChainID(chainID int) (string, error) {
-	switch chainID {
-	case 540:
-		return "xc", nil
-	case 5401:
-		return "xc1", nil
-	case 2:
-		return "xt", nil
-	case 3:
-		return "xp", nil
-	default:
-		return "", errors.New("invalid address prefix ")
-	}
+	return checksum == CalculateChecksum(addr)
 }
 
 // BigToAddress returns Address with byte values of b.
 // If b is larger than len(h), b will be cropped from the left.
 func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 
-func hexToAddress(hex string) Address {
-	return BytesToAddress(FromHex(hex))
-}
-
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
-	_, addr, err := StringToAddress(s)
-	if err != nil {
-		return Address{}
+	if len(s) == 44 {
+		if s[:2] == "0x" {
+			s = s[2:]
+		}
+		checksum := s[2:4]
+		if !VerifyChecksum(checksum, s[4:]) {
+			return Address{}
+		}
+		return BytesToAddress(FromHex(s[4:]))
 	}
-	return addr
+	return BytesToAddress(FromHex(s))
 }
 
 // IsHexAddress verifies whether a string can represent a valid hex-encoded
@@ -342,7 +260,7 @@ func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns hex string representation of the address.
 func (a Address) Hex() string {
-	return "0x" + hex.EncodeToString(a[:])
+	return CalculateChecksum(hex.EncodeToString(a[:])) + hex.EncodeToString(a[:])
 }
 
 // String implements fmt.Stringer.
@@ -367,7 +285,7 @@ func (a *Address) SetBytes(b []byte) {
 
 // MarshalText returns the hex representation of a.
 func (a Address) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(a[:]).MarshalText()
+	return []byte(CalculateChecksum(hex.EncodeToString(a[:])) + hex.EncodeToString(a[:])), nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
@@ -377,10 +295,13 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(addressT, input, a[:])
+	if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
+		return errors.New("invalid checksum")
+	}
+	return hexutil.UnmarshalFixedJSON(addressT, append(input[:3], input[5:]...), a[:])
 }
 
-// Scan implements Scanner for database/sql.
+// S n implements Scanner for database/sql.
 func (a *Address) Scan(src interface{}) error {
 	srcB, ok := src.([]byte)
 	if !ok {

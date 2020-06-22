@@ -33,10 +33,10 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 var (
@@ -194,7 +194,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, bc *core.BlockChain
 
 		// Perform read-only call.
 		st.SetBalance(testBankAddress, math.MaxBig256)
-		msg := callmsg{types.NewMessage(testBankAddress, &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false, int(params.TestChainConfig.ChainID.Int64()))}
+		msg := callmsg{types.NewMessage(testBankAddress, &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false)}
 		context := core.NewCVMContext(msg, header, chain, nil)
 		vmenv := vm.NewCVM(context, st, config, vm.Config{})
 		gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)

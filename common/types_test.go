@@ -121,39 +121,6 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestAddressHexChecksum(t *testing.T) {
-	var tests = []struct {
-		Input    string
-		Address  Address
-		Checksum string
-		//Prefix string
-		ChainID int
-	}{
-		{"xc225aaeb6053f3e94c9b9a09f33669435e7ef1beaed", hexToAddress("0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"), "22", 540},
-		{"xt166fb6916095ca1df60bb79ce92ce3ea74c37c5d359", hexToAddress("0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359"), "66", 8913},
-		{"xtk75dbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", hexToAddress("0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb"), "75", 8932},
-		{"xp111d1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", hexToAddress("0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb"), "11", 8849},
-	}
-	for i, test := range tests {
-		id, addr, err := StringToAddress(test.Input)
-		if err != nil {
-			t.Error("Unexpected error", err)
-		}
-		if addr != test.Address {
-			t.Errorf("test #%d: failed to match address when it should (%s != %s)", i, addr.Hex(), test.Address.Hex())
-		}
-		if id != test.ChainID {
-			t.Errorf("test #%d: failed to match chain id when it should (%v != %v)", i, id, test.ChainID)
-		}
-		//if prefix, err := getAddressPrefixFromChainID(id); err != nil || prefix != test.Prefix {
-		//	t.Errorf("test #%d: failed to match prefix when it should (%s != %s)", i, prefix, test.Prefix)
-		//}
-		if chsum := CalculateChecksum(addr); chsum != test.Checksum {
-			t.Errorf("test #%d: failed to match checksum when it should (%s != %s)", i, chsum, test.Checksum)
-		}
-	}
-}
-
 func BenchmarkAddressHex(b *testing.B) {
 	testAddr := HexToAddress("0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
 	for n := 0; n < b.N; n++ {

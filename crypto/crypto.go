@@ -17,12 +17,13 @@
 package crypto
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
@@ -137,7 +138,7 @@ func HexToEDDSA(hexkey string) (*eddsa.PrivateKey, error) {
 
 // LoadEDDSA loads a secp256k1 private key from the given file.
 func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
-	buf := make([]byte, 144 * 2)
+	buf := make([]byte, 144*2)
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -168,7 +169,7 @@ func GenerateKey(read io.Reader) (*eddsa.PrivateKey, error) {
 // ValidateSignatureValues verifies whether the signature values are valid with
 // the given chain rules. The v value is assumed to be either 0 or 1.
 func ValidateSignatureValues(v byte) bool {
-    return v == 0 || v == 1
+	return v == 0 || v == 1
 }
 
 func ComputeSecret(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {

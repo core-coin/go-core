@@ -23,7 +23,6 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
 		Spender      common.Address  `json:"from"`
-		ChainID      int             `json:"chain_id"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var enc txdata
@@ -34,7 +33,6 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
 	enc.Spender = t.Spender
-	enc.ChainID = t.ChainID
 	enc.Hash = t.Hash
 	return json.Marshal(&enc)
 }
@@ -49,7 +47,6 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
 		Spender      *common.Address `json:"from"`
-		ChainID      *int            `json:"chain_id"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var dec txdata
@@ -81,9 +78,6 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	t.Payload = *dec.Payload
 	if dec.Spender != nil {
 		t.Spender = *dec.Spender
-	}
-	if dec.ChainID != nil {
-		t.ChainID = *dec.ChainID
 	}
 	if dec.Hash != nil {
 		t.Hash = dec.Hash
