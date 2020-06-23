@@ -104,10 +104,10 @@ func TestAccountUpdate(t *testing.T) {
 	datadir := tmpDatadirWithKeystore(t)
 	gcore := runGcore(t, "account", "update",
 		"--datadir", datadir, "--lightkdf",
-		"5337dc760bff449e5c187e080797283ad42e69bd")
+		"655337dc760bff449e5c187e080797283ad42e69bd")
 	defer gcore.ExpectExit()
 	gcore.Expect(`
-Unlocking account 5337dc760bff449e5c187e080797283ad42e69bd | Attempt 1/3
+Unlocking account 655337dc760bff449e5c187e080797283ad42e69bd | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
 Password: {{.InputLine "foobar"}}
 Please give a new password. Do not forget this password.

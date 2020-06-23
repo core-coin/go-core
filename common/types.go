@@ -234,11 +234,11 @@ func HexToAddress(s string) Address {
 		if s[:2] == "0x" {
 			s = s[2:]
 		}
-		checksum := s[2:4]
-		if !VerifyChecksum(checksum, s[4:]) {
+		checksum := s[0:2]
+		if !VerifyChecksum(checksum, s[2:]) {
 			return Address{}
 		}
-		return BytesToAddress(FromHex(s[4:]))
+		return BytesToAddress(FromHex(s[2:]))
 	}
 	return BytesToAddress(FromHex(s))
 }
