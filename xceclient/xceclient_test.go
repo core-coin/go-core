@@ -32,9 +32,9 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xce"
 )
 
 // Verify that Client implements the core interfaces.

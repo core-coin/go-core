@@ -29,9 +29,9 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 var (
@@ -559,11 +559,16 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 }
 
 func decodeAddress(s string) (common.Address, error) {
-	b, err := hexutil.Decode(s)
-	if err == nil && len(b) != common.AddressLength {
-		err = fmt.Errorf("hex has invalid length %d after decoding; expected %d for address", len(b), common.AddressLength)
+	if len(s) != 44 && len(s) != 46 && len(s) != 42 {
+		return common.Address{}, errors.New("invalid address, want checksum with length 2 and address with length 20")
 	}
-	return common.BytesToAddress(b), err
+	if s[:2] == "0x" {
+		s = s[:2]
+	}
+	if !common.VerifyChecksum(s[:2], s[2:]) {
+		return common.Address{}, errors.New("invalid checksum")
+	}
+	return common.HexToAddress(s[2:]), nil
 }
 
 func decodeTopic(s string) (common.Hash, error) {

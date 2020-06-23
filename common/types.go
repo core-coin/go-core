@@ -295,13 +295,21 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	if len(input) != 44 && len(input) != 46 {
-		return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
+	if string(input[1:3]) == "0x" {
+		if len(input) != 46 {
+			return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
+		}
+		if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
+			return errors.New("invalid checksum")
+		}
+		return hexutil.UnmarshalFixedJSON(addressT, append(input[:3], input[5:]...), a[:])
+	} else if len(input) == 44 {
+		if !VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
+			return errors.New("invalid checksum")
+		}
+		return hexutil.UnmarshalFixedJSON(addressT, append([]byte("\"0x"), input[3:]...), a[:])
 	}
-	if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
-		return errors.New("invalid checksum")
-	}
-	return hexutil.UnmarshalFixedJSON(addressT, append(input[:3], input[5:]...), a[:])
+	return errors.New("invalid address")
 }
 
 // S n implements Scanner for database/sql.
