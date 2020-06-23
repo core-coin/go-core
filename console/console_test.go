@@ -29,15 +29,15 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/xce"
 	"github.com/core-coin/go-core/internal/jsre"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
+	"github.com/core-coin/go-core/xce"
 )
 
 const (
 	testInstance = "console-tester"
-	testAddress  = "0x8605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	testAddress  = "398605cdbbdb6d264aa742e77020dcbc58fcdce182"
 )
 
 // hookedPrompter implements UserPrompter to simulate use input via channels.
@@ -76,7 +76,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	core  *xce.Core
+	core      *xce.Core
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -140,7 +140,7 @@ func newTester(t *testing.T, confOverride func(*xce.Config)) *tester {
 	return &tester{
 		workspace: workspace,
 		stack:     stack,
-		core:  core,
+		core:      core,
 		console:   console,
 		input:     prompter,
 		output:    printer,

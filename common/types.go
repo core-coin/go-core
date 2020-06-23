@@ -295,6 +295,9 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
+	if len(input) != 44 && len(input) != 46 {
+		return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
+	}
 	if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
 		return errors.New("invalid checksum")
 	}

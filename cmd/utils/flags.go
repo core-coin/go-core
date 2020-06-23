@@ -986,7 +986,10 @@ func makeDatabaseHandles() int {
 // a key index in the key store to an internal account representation.
 func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error) {
 	// If the specified account is a valid address, return it
-	if common.IsHexAddress(account) {
+	if len(account) == 42 {
+		if !common.VerifyChecksum(account[:2], account[2:]) {
+			return accounts.Account{}, fmt.Errorf("Failed to unlock account %s (%v)", account, errors.New("invalid checksum"))
+		}
 		return accounts.Account{Address: common.HexToAddress(account)}, nil
 	}
 	// Otherwise try to interpret the account as a keystore index

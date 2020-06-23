@@ -91,6 +91,8 @@ func TestHashJsonValidation(t *testing.T) {
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
+	firstValue, _ := new(big.Int).SetString("1329108225128377463312341651090806296620028551865", 10)
+	secondValue, _ := new(big.Int).SetString("300021483262026997510681356543262424948472729929", 10)
 	var tests = []struct {
 		Input     string
 		ShouldErr bool
@@ -101,8 +103,8 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"0x"`, true, nil},
 		{`"0x00"`, true, nil},
 		{`"0xG000000000000000000000000000000000000000"`, true, nil},
-		{`"0x0000000000000000000000000000000000000000"`, false, big.NewInt(0)},
-		{`"0x0000000000000000000000000000000000000010"`, false, big.NewInt(16)},
+		{`"0x41e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
+		{`"0x88348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
 	}
 	for i, test := range tests {
 		var v Address

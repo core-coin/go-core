@@ -21,7 +21,6 @@
 package keystore
 
 import (
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -32,6 +31,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
