@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb/memorydb"
+	"github.com/core-coin/go-core/xccdb/memorydb"
 )
 
 // makeTestTrie create a sample test trie to test node-wise reconstruction.
