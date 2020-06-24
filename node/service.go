@@ -22,10 +22,10 @@ import (
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // ServiceContext is a collection of service independent options inherited from
@@ -41,7 +41,7 @@ type ServiceContext struct {
 // OpenDatabase opens an existing database with the given name (or creates one
 // if no previous can be found) from within the node's data directory. If the
 // node is an ephemeral one, a memory database is returned.
-func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int, namespace string) (xcedb.Database, error) {
+func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int, namespace string) (xccdb.Database, error) {
 	if ctx.Config.DataDir == "" {
 		return rawdb.NewMemoryDatabase(), nil
 	}
@@ -53,7 +53,7 @@ func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int, nam
 // also attaching a chain freezer to it that moves ancient chain data from the
 // database to immutable append-only files. If the node is an ephemeral one, a
 // memory database is returned.
-func (ctx *ServiceContext) OpenDatabaseWithFreezer(name string, cache int, handles int, freezer string, namespace string) (xcedb.Database, error) {
+func (ctx *ServiceContext) OpenDatabaseWithFreezer(name string, cache int, handles int, freezer string, namespace string) (xccdb.Database, error) {
 	if ctx.Config.DataDir == "" {
 		return rawdb.NewMemoryDatabase(), nil
 	}

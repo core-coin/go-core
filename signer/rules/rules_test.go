@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/storage"
 )
@@ -107,7 +107,7 @@ func (alwaysDenyUI) ShowInfo(message string) {
 	panic("implement me")
 }
 
-func (alwaysDenyUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (alwaysDenyUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	panic("implement me")
 }
 
@@ -235,7 +235,7 @@ func (d *dummyUI) ShowInfo(message string) {
 	d.calls = append(d.calls, "ShowInfo")
 }
 
-func (d *dummyUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (d *dummyUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	d.calls = append(d.calls, "OnApprovedTx")
 }
 
@@ -263,7 +263,7 @@ func TestForwarding(t *testing.T) {
 	r.ShowInfo("test")
 
 	//This one is not forwarded
-	r.OnApprovedTx(xceapi.SignTransactionResult{})
+	r.OnApprovedTx(xccapi.SignTransactionResult{})
 
 	expCalls := 6
 	if len(ui.calls) != expCalls {
@@ -433,10 +433,10 @@ func dummyTx(value hexutil.Big) *core.SignTxRequest {
 
 	return &core.SignTxRequest{
 		Transaction: core.SendTxArgs{
-			From:     *from,
-			To:       to,
-			Value:    value,
-			Nonce:    n,
+			From:        *from,
+			To:          to,
+			Value:       value,
+			Nonce:       n,
 			EnergyPrice: energyPrice,
 			Energy:      energy,
 		},
@@ -482,7 +482,7 @@ func TestLimitWindow(t *testing.T) {
 		}
 		// Create a dummy signed transaction
 
-		response := xceapi.SignTransactionResult{
+		response := xccapi.SignTransactionResult{
 			Tx:  dummySigned(v),
 			Raw: common.Hex2Bytes("deadbeef"),
 		}
@@ -539,7 +539,7 @@ func (d *dontCallMe) ShowInfo(message string) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
-func (d *dontCallMe) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (d *dontCallMe) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 

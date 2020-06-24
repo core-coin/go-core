@@ -16,7 +16,7 @@
 
 // This file contains the implementation for interacting with the Ledger hardware
 // wallets. The wire protocol spec can be found in the Ledger Blue GitHub repo:
-// https://raw.githubusercontent.com/LedgerHQ/blue-app-xce/master/doc/xceapp.asc
+// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcc/master/doc/xccapp.asc
 
 package usbwallet
 
@@ -28,11 +28,11 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 )

@@ -121,7 +121,7 @@ type Wallet struct {
 
 	deriveNextPaths []accounts.DerivationPath // Next derivation paths for account auto-discovery (multiple bases supported)
 	deriveNextAddrs []common.Address          // Next derived account addresses for auto-discovery (multiple bases supported)
-	deriveChain     core.ChainStateReader // Blockchain state reader to discover used account with
+	deriveChain     core.ChainStateReader     // Blockchain state reader to discover used account with
 	deriveReq       chan chan struct{}        // Channel to request a self-derivation on
 	deriveQuit      chan chan error           // Channel to terminate the self-deriver with
 }
@@ -312,15 +312,15 @@ func (w *Wallet) Status() (string, error) {
 	}
 	switch {
 	case !w.session.verified && status.PinRetryCount == 0 && status.PukRetryCount == 0:
-		return fmt.Sprintf("Bricked, waiting for full wipe"), nil
+		return "Bricked, waiting for full wipe", nil
 	case !w.session.verified && status.PinRetryCount == 0:
 		return fmt.Sprintf("Blocked, waiting for PUK (%d attempts left) and new PIN", status.PukRetryCount), nil
 	case !w.session.verified:
 		return fmt.Sprintf("Locked, waiting for PIN (%d attempts left)", status.PinRetryCount), nil
 	case !status.Initialized:
-		return fmt.Sprintf("Empty, waiting for initialization"), nil
+		return "Empty, waiting for initialization", nil
 	default:
-		return fmt.Sprintf("Online"), nil
+		return "Online", nil
 	}
 }
 
