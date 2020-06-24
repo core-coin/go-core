@@ -1266,9 +1266,11 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	}
 	receipt := receipts[index]
 
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
-	from, _ := types.Sender(signer, tx)
-
+	var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
+	from, err := types.Sender(signer, tx)
+	if err != nil {
+		return nil, err
+	}
 	fields := map[string]interface{}{
 		"blockHash":            blockHash,
 		"blockNumber":          hexutil.Uint64(blockNumber),
@@ -1574,7 +1576,7 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	}
 
 	for _, p := range pending {
-		var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
 		wantSigHash := signer.Hash(matchTx)
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {

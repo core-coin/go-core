@@ -139,7 +139,10 @@ func (p *testTxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 	batches := make(map[common.Address]types.Transactions)
 	for _, tx := range p.pool {
-		from, _ := types.Sender(types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tx)
+		from, err := types.Sender(types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tx)
+		if err != nil {
+			return nil, err
+		}
 		batches[from] = append(batches[from], tx)
 	}
 	for _, batch := range batches {

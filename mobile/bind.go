@@ -36,7 +36,7 @@ type Signer interface {
 }
 
 type MobileSigner struct {
-	sign bind.SignerFn
+	sign    bind.SignerFn
 	chainId int
 }
 

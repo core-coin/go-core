@@ -17,12 +17,16 @@
 package types
 
 import (
-	"github.com/core-coin/eddsa"
+	"errors"
 	"math/big"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 )
+
+var ErrInvalidChainId = errors.New("invalid chain id for signer")
 
 // sigCache is used to cache the derived sender and contains
 // the signer used to derive it.
@@ -39,6 +43,7 @@ func MakeSigner(chainID *big.Int) Signer {
 
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
+	tx.data.ChainID = uint(s.ChainID())
 	h := s.Hash(tx)
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
@@ -102,7 +107,12 @@ func (s NucleusSigner) Equal(s2 Signer) bool {
 }
 
 func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
-	return tx.data.Spender, nil
+	if tx.To() != nil { // if contract transaction
+		if tx.data.ChainID != uint(s.chainId.Int64()) {
+			return common.Address{}, ErrInvalidChainId
+		}
+	}
+	return recoverPlain(s, tx)
 }
 
 func (s NucleusSigner) ChainID() int {
@@ -119,6 +129,23 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 		tx.data.Recipient,
 		tx.data.Amount,
 		tx.data.Payload,
-		s.chainId,
+		tx.data.ChainID,
 	})
+}
+
+func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
+	if len(tx.data.Signature) != crypto.SignatureLength {
+		return common.Address{}, ErrInvalidSig
+	}
+	pubk, err := crypto.SigToPub(nil, tx.data.Signature[:])
+	if err != nil {
+		return common.Address{}, err
+	}
+	if tx.To() != nil { // if contract transaction
+		hash := signer.Hash(tx)
+		if !crypto.VerifySignature(pubk.X, hash[:], tx.data.Signature[:]) {
+			return common.Address{}, ErrInvalidSig
+		}
+	}
+	return crypto.PubkeyToAddress(*pubk), nil
 }
