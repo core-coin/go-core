@@ -61,7 +61,7 @@ func TestTransactionSigHash(t *testing.T) {
 	if nucleus.Hash(emptyTx) != common.HexToHash("0x8dde55117bf142fe421467266bc7bce4a2b1da275b344d7f3b58f2361c3476f2") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x034afa3236428cde891112ba48944cf6f35efe70a6c114ede1d12d9a55e0b3a7") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x6c1dc8c8be689259ac20b5a48f58401d3591b980de8d3adf127631ebe5e2834b") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -71,7 +71,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f8cb03018207d0820539941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123b8a8b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0")
+	should := common.FromHex("f8cb800a82c35082053994f8989a12c39d55e40ca9466fbc3963d9914a44880a821123b8a8b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -85,7 +85,7 @@ func decodeTx(data []byte) (*Transaction, error) {
 }
 
 func TestRecipientEmpty(t *testing.T) {
-	tx, err := decodeTx(common.Hex2Bytes("f8bb078504a817c80783029040018082015780b8a82131c93431f0f0bdd8b4a32f927ec73f06ad1204f2cbff1203875a4cb6bf5e3d0133c2706e45c17b54651c028674f9cd7cfd7cfa5ff054ea96214d5093f0e3bf4314264cf221b3d86958dceb19ea181c39a36ce44bc5a82c2a6dfff0478b948a4dccbf494a1e9316fe4db7fee7b2802058fd718628e64c5f0e138656aecadfc57a1d6b735127b0bccdd8e5ff775cc72565b49b9613566acdecc2946bbf7cbcf52e697cdbdef3484e"))
+	tx, err := decodeTx(common.Hex2Bytes("f8bb078504a817c80783029040808082015780b8a82131c93431f0f0bdd8b4a32f927ec73f06ad1204f2cbff1203875a4cb6bf5e3d0133c2706e45c17b54651c028674f9cd7cfd7cfa5ff054ea96214d5093f0e3bf4314264cf221b3d86958dceb19ea181c39a36ce44bc5a82c2a6dfff0478b948a4dccbf494a1e9316fe4db7fee7b2802058fd718628e64c5f0e138656aecadfc57a1d6b735127b0bccdd8e5ff775cc72565b49b9613566acdecc2946bbf7cbcf52e697cdbdef3484e"))
 	if err != nil {
 		t.Fatal(err)
 	}
