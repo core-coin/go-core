@@ -54,7 +54,7 @@ func (xce *Core) startBloomHandlers(sectionSize uint64) {
 		go func() {
 			for {
 				select {
-				case <-xce.shutdownChan:
+				case <-xce.closeBloomHandler:
 					return
 
 				case request := <-xce.bloomRequests:
