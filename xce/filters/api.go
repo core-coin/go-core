@@ -29,9 +29,9 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 var (
@@ -78,6 +78,7 @@ func NewPublicFilterAPI(backend Backend, lightMode bool) *PublicFilterAPI {
 // Tt is started when the api is created.
 func (api *PublicFilterAPI) timeoutLoop() {
 	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
 	for {
 		<-ticker.C
 		api.filtersMu.Lock()
