@@ -38,7 +38,7 @@ const (
 	// AddressLength is the expected length of the address
 	AddressLength = 20
 	// AddressChecksumLength is the length of checksum prefix
-	AddressChecksumLength = 2
+	AddressChecksumLength = 1
 )
 
 var (
@@ -232,15 +232,15 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
-	if len(s) == 2+AddressChecksumLength+AddressLength { // "0x" + 2 digits checksum + 20 digits address
+	if len(s) == 2+AddressChecksumLength*2+AddressLength*2 { // "0x" + 2 digits checksum + 20 digits address
 		if s[:2] == "0x" { // cut off "0x"
 			s = s[2:]
 		}
-		checksum := s[0:AddressChecksumLength]
-		if !VerifyChecksum(checksum, s[AddressChecksumLength:]) {
+		checksum := s[0 : AddressChecksumLength*2]
+		if !VerifyChecksum(checksum, s[AddressChecksumLength*2:]) {
 			return Address{}
 		}
-		return BytesToAddress(FromHex(s[AddressChecksumLength:]))
+		return BytesToAddress(FromHex(s[AddressChecksumLength*2:]))
 	}
 	return BytesToAddress(FromHex(s))
 }
@@ -299,14 +299,14 @@ func (a *Address) UnmarshalText(input []byte) error {
 func (a *Address) UnmarshalJSON(input []byte) error {
 	// input has string like `"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"` or without 0x `"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"`
 	if string(input[1:3]) == "0x" {
-		if len(input) != 2+2+AddressChecksumLength+AddressLength {
+		if len(input) != 2+2+AddressChecksumLength*2+AddressLength*2 {
 			return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
 		}
 		if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
 			return errors.New("invalid checksum")
 		}
 		return hexutil.UnmarshalFixedJSON(addressT, append(input[:3], input[5:]...), a[:])
-	} else if len(input) == 2+AddressChecksumLength+AddressLength {
+	} else if len(input) == 2+AddressChecksumLength*2+AddressLength*2 {
 		if !VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
 			return errors.New("invalid checksum")
 		}

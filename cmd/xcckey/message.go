@@ -104,7 +104,7 @@ It is possible to refer to a file containing the message.`,
 		signatureHex := ctx.Args().Get(1)
 		message := getMessage(ctx, 2)
 
-		if len(addressStr) != common.AddressChecksumLength+common.AddressLength || !common.VerifyChecksum(addressStr[:common.AddressChecksumLength], addressStr[common.AddressChecksumLength:]) {
+		if len(addressStr) != common.AddressChecksumLength*2+common.AddressLength*2 || !common.VerifyChecksum(addressStr[:common.AddressChecksumLength*2], addressStr[common.AddressChecksumLength*2:]) {
 			utils.Fatalf("Invalid address: %s", addressStr)
 		}
 		address := common.HexToAddress(addressStr)
