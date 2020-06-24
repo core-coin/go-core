@@ -17,10 +17,9 @@
 package miner
 
 import (
-	"fmt"
+	crand "crypto/rand"
 	"math/big"
 	"math/rand"
-	crand "crypto/rand"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -35,9 +34,9 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xccdb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 const (
@@ -51,9 +50,9 @@ const (
 
 var (
 	// Test chain configurations
-	testTxPoolConfig  core.TxPoolConfig
+	testTxPoolConfig    core.TxPoolConfig
 	cryptoreChainConfig *params.ChainConfig
-	cliqueChainConfig *params.ChainConfig
+	cliqueChainConfig   *params.ChainConfig
 
 	// Test accounts
 	testBankKey, _  = crypto.GenerateKey(crand.Reader)
@@ -68,7 +67,7 @@ var (
 	newTxs     []*types.Transaction
 
 	testConfig = &Config{
-		Recommit: time.Second,
+		Recommit:    time.Second,
 		EnergyFloor: params.GenesisEnergyLimit,
 		EnergyCeil:  params.GenesisEnergyLimit,
 	}
@@ -211,49 +210,37 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 	w, b := newTestWorker(t, chainConfig, engine, db, 0)
 	defer w.close()
 
+	// This test chain imports the mined blocks.
 	db2 := rawdb.NewMemoryDatabase()
 	b.genesis.MustCommit(db2)
 	chain, _ := core.NewBlockChain(db2, nil, b.chain.Config(), engine, vm.Config{}, nil)
 	defer chain.Stop()
 
-	var (
-		loopErr   = make(chan error)
-		newBlock  = make(chan struct{})
-		subscribe = make(chan struct{})
-	)
-	listenNewBlock := func() {
-		sub := w.mux.Subscribe(core.NewMinedBlockEvent{})
-		defer sub.Unsubscribe()
-
-		subscribe <- struct{}{}
-		for item := range sub.Chan() {
-			block := item.Data.(core.NewMinedBlockEvent).Block
-			_, err := chain.InsertChain([]*types.Block{block})
-			if err != nil {
-				loopErr <- fmt.Errorf("failed to insert new mined block:%d, error:%v", block.NumberU64(), err)
-			}
-			newBlock <- struct{}{}
-		}
-	}
-	// Ignore empty commit here for less noise
+	// Ignore empty commit here for less noise.
 	w.skipSealHook = func(task *task) bool {
 		return len(task.receipts) == 0
 	}
-	go listenNewBlock()
 
-	<-subscribe // Ensure the subscription is created
-	w.start()   // Start mining!
+	// Wait for mined blocks.
+	sub := w.mux.Subscribe(core.NewMinedBlockEvent{})
+	defer sub.Unsubscribe()
+
+	// Start mining!
+	w.start()
 
 	for i := 0; i < 5; i++ {
 		b.txPool.AddLocal(b.newRandomTx(true))
 		b.txPool.AddLocal(b.newRandomTx(false))
 		w.postSideBlock(core.ChainSideEvent{Block: b.newRandomUncle()})
 		w.postSideBlock(core.ChainSideEvent{Block: b.newRandomUncle()})
+
 		select {
-		case e := <-loopErr:
-			t.Fatal(e)
-		case <-newBlock:
-		case <-time.NewTimer(3 * time.Second).C: // Worker needs 1s to include new changes.
+		case ev := <-sub.Chan():
+			block := ev.Data.(core.NewMinedBlockEvent).Block
+			if _, err := chain.InsertChain([]*types.Block{block}); err != nil {
+				t.Fatalf("failed to insert new mined block %d: %v", block.NumberU64(), err)
+			}
+		case <-time.After(3 * time.Second): // Worker needs 1s to include new changes.
 			t.Fatalf("timeout")
 		}
 	}

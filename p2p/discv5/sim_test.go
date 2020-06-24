@@ -17,7 +17,6 @@
 package discv5
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
 	"math/rand"
@@ -27,6 +26,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 )
@@ -43,6 +44,7 @@ func TestSimRandomResolve(t *testing.T) {
 
 	// A new node joins every 10s.
 	launcher := time.NewTicker(10 * time.Second)
+	defer launcher.Stop()
 	go func() {
 		for range launcher.C {
 			net := sim.launchNode(false)
@@ -55,7 +57,6 @@ func TestSimRandomResolve(t *testing.T) {
 	}()
 
 	time.Sleep(3 * time.Hour)
-	launcher.Stop()
 	sim.shutdown()
 	sim.printStats()
 }
@@ -196,6 +197,7 @@ func randomResolves(t *testing.T, s *simulation, net *Network) {
 	}
 
 	timer := time.NewTimer(randtime())
+	defer timer.Stop()
 	for {
 		select {
 		case <-timer.C:

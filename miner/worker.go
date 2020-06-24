@@ -78,12 +78,12 @@ const (
 type environment struct {
 	signer types.Signer
 
-	state     *state.StateDB // apply state changes here
-	ancestors mapset.Set     // ancestor set (used for checking uncle parent validity)
-	family    mapset.Set     // family set (used for checking uncle invalidity)
-	uncles    mapset.Set     // uncle set
-	tcount    int            // tx count in cycle
-	energyPool   *core.EnergyPool  // available energy used to pack transactions
+	state      *state.StateDB   // apply state changes here
+	ancestors  mapset.Set       // ancestor set (used for checking uncle parent validity)
+	family     mapset.Set       // family set (used for checking uncle invalidity)
+	uncles     mapset.Set       // uncle set
+	tcount     int              // tx count in cycle
+	energyPool *core.EnergyPool // available energy used to pack transactions
 
 	header   *types.Header
 	txs      []*types.Transaction
@@ -295,6 +295,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 	)
 
 	timer := time.NewTimer(0)
+	defer timer.Stop()
 	<-timer.C // discard the initial tick
 
 	// commit aborts in-flight transaction execution with given signal and resubmits a new one.
@@ -832,11 +833,11 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 
 	num := parent.Number()
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     num.Add(num, common.Big1),
-		EnergyLimit:   core.CalcEnergyLimit(parent, w.config.EnergyFloor, w.config.EnergyCeil),
-		Extra:      w.extra,
-		Time:       uint64(timestamp),
+		ParentHash:  parent.Hash(),
+		Number:      num.Add(num, common.Big1),
+		EnergyLimit: core.CalcEnergyLimit(parent, w.config.EnergyFloor, w.config.EnergyCeil),
+		Extra:       w.extra,
+		Time:        uint64(timestamp),
 	}
 	if w.isRunning() {
 		if w.coinbase == (common.Address{}) {
