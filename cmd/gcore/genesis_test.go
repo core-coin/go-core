@@ -64,16 +64,16 @@ var customGenesisTests = []struct {
 	// Genesis file with specific chain configurations
 	{
 		genesis: `{
-			"alloc"      : {},
-			"coinbase"   : "0x0000000000000000000000000000000000000000",
-			"difficulty" : "0x20000",
-			"extraData"  : "",
-			"energyLimit"   : "0x2fefd8",
-			"nonce"      : "0x0000000000000042",
-			"mixhash"    : "0x0000000000000000000000000000000000000000000000000000000000000000",
-			"parentHash" : "0x0000000000000000000000000000000000000000000000000000000000000000",
-			"timestamp"  : "0x00",
-			"config"     : {},
+			"alloc"       : {},
+			"coinbase"    : "0x0000000000000000000000000000000000000000",
+			"difficulty"  : "0x20000",
+			"extraData"   : "",
+			"energyLimit" : "0x2fefd8",
+			"nonce"       : "0x0000000000000042",
+			"mixhash"     : "0x0000000000000000000000000000000000000000000000000000000000000000",
+			"parentHash"  : "0x0000000000000000000000000000000000000000000000000000000000000000",
+			"timestamp"   : "0x00",
+			"config"      : {},
 		}`,
 		query:  "xce.getBlock(0).nonce",
 		result: "0x0000000000000042",
@@ -93,10 +93,11 @@ func TestCustomGenesis(t *testing.T) {
 		if err := ioutil.WriteFile(json, []byte(tt.genesis), 0600); err != nil {
 			t.Fatalf("test %d: failed to write genesis file: %v", i, err)
 		}
-		runGcore(t, "--datadir", datadir, "init", json).WaitExit()
+		runGcore(t, "--nousb", "--datadir", datadir, "init", json).WaitExit()
 
 		// Query the custom genesis block
 		gcore := runGcore(t,
+			"--nousb",
 			"--datadir", datadir, "--maxpeers", "0", "--port", "0",
 			"--nodiscover", "--nat", "none", "--ipcdisable",
 			"--exec", tt.query, "console")
