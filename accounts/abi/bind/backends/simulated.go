@@ -35,11 +35,11 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcc/filters"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -49,7 +49,7 @@ var (
 	errBlockNumberUnsupported  = errors.New("simulatedBackend cannot access blocks other than the latest block")
 	errBlockDoesNotExist       = errors.New("block does not exist in blockchain")
 	errTransactionDoesNotExist = errors.New("transaction does not exist")
-	errEnergyEstimationFailed     = errors.New("energy required exceeds allowance or always failing transaction")
+	errEnergyEstimationFailed  = errors.New("energy required exceeds allowance or always failing transaction")
 )
 
 // SimulatedBackend implements bind.ContractBackend, simulating a blockchain in
@@ -58,7 +58,7 @@ var (
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   xcedb.Database   // In memory database to store our testing data
+	database   xccdb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Core blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -72,7 +72,7 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database xcedb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
+func NewSimulatedBackendWithDatabase(database xccdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil)
@@ -608,23 +608,23 @@ type callmsg struct {
 	gcore.CallMsg
 }
 
-func (m callmsg) From() common.Address { return m.CallMsg.From }
-func (m callmsg) Nonce() uint64        { return 0 }
-func (m callmsg) CheckNonce() bool     { return false }
-func (m callmsg) To() *common.Address  { return m.CallMsg.To }
-func (m callmsg) EnergyPrice() *big.Int   { return m.CallMsg.EnergyPrice }
-func (m callmsg) Energy() uint64          { return m.CallMsg.Energy }
-func (m callmsg) Value() *big.Int      { return m.CallMsg.Value }
-func (m callmsg) Data() []byte         { return m.CallMsg.Data }
+func (m callmsg) From() common.Address  { return m.CallMsg.From }
+func (m callmsg) Nonce() uint64         { return 0 }
+func (m callmsg) CheckNonce() bool      { return false }
+func (m callmsg) To() *common.Address   { return m.CallMsg.To }
+func (m callmsg) EnergyPrice() *big.Int { return m.CallMsg.EnergyPrice }
+func (m callmsg) Energy() uint64        { return m.CallMsg.Energy }
+func (m callmsg) Value() *big.Int       { return m.CallMsg.Value }
+func (m callmsg) Data() []byte          { return m.CallMsg.Data }
 
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db xcedb.Database
+	db xccdb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() xcedb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() xccdb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

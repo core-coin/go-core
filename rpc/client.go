@@ -42,7 +42,7 @@ var (
 const (
 	// Timeouts
 	defaultDialTimeout = 10 * time.Second // used if context has no deadline
-	subscribeTimeout   = 5 * time.Second  // overall timeout xce_subscribe, rpc_modules calls
+	subscribeTimeout   = 5 * time.Second  // overall timeout xcc_subscribe, rpc_modules calls
 )
 
 const (
@@ -129,7 +129,7 @@ type requestOp struct {
 	ids  []json.RawMessage
 	err  error
 	resp chan *jsonrpcMessage // receives up to len(ids) responses
-	sub  *ClientSubscription  // only set for XceSubscribe requests
+	sub  *ClientSubscription  // only set for XccSubscribe requests
 }
 
 func (op *requestOp) wait(ctx context.Context, c *Client) (*jsonrpcMessage, error) {
@@ -396,9 +396,9 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 	}
 }
 
-// XceSubscribe registers a subscripion under the "xce" namespace.
-func (c *Client) XceSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
-	return c.Subscribe(ctx, "xce", channel, args...)
+// XccSubscribe registers a subscripion under the "xcc" namespace.
+func (c *Client) XccSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
+	return c.Subscribe(ctx, "xcc", channel, args...)
 }
 
 // ShhSubscribe registers a subscripion under the "shh" namespace.

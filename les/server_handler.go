@@ -30,19 +30,19 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 const (
 	softResponseLimit = 2 * 1024 * 1024 // Target maximum size of returned blocks, headers or node data.
 	estHeaderRlpSize  = 500             // Approximate size of an RLP encoded block header
-	xceVersion        = 63              // equivalent xce version for the downloader
+	xccVersion        = 63              // equivalent xcc version for the downloader
 
 	MaxHeaderFetch           = 192 // Amount of block headers to be fetched per retrieval request
 	MaxBodyFetch             = 32  // Amount of block bodies to be fetched per retrieval request
@@ -63,7 +63,7 @@ var (
 // all incoming light requests.
 type serverHandler struct {
 	blockchain *core.BlockChain
-	chainDb    xcedb.Database
+	chainDb    xccdb.Database
 	txpool     *core.TxPool
 	server     *LesServer
 
@@ -75,7 +75,7 @@ type serverHandler struct {
 	addTxsSync bool
 }
 
-func newServerHandler(server *LesServer, blockchain *core.BlockChain, chainDb xcedb.Database, txpool *core.TxPool, synced func() bool) *serverHandler {
+func newServerHandler(server *LesServer, blockchain *core.BlockChain, chainDb xccdb.Database, txpool *core.TxPool, synced func() bool) *serverHandler {
 	handler := &serverHandler{
 		server:     server,
 		blockchain: blockchain,

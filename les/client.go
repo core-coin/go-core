@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
@@ -40,10 +40,10 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xce/filters"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
+	"github.com/core-coin/go-core/xcc/filters"
 )
 
 type LightCore struct {
@@ -66,11 +66,11 @@ type LightCore struct {
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
 	accountManager *accounts.Manager
-	netRPCService  *xceapi.PublicNetAPI
+	netRPCService  *xccapi.PublicNetAPI
 }
 
-func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
-	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xce/db/chaindata/")
+func New(ctx *node.ServiceContext, config *xcc.Config) (*LightCore, error) {
+	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xcc/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	peers := newServerPeerSet()
-	lxce := &LightCore{
+	lxcc := &LightCore{
 		lesCommons: lesCommons{
 			genesis:     genesisHash,
 			config:      config,
@@ -94,18 +94,18 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 		eventMux:       ctx.EventMux,
 		reqDist:        newRequestDistributor(peers, &mclock.System{}),
 		accountManager: ctx.AccountManager,
-		engine:         xce.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
+		engine:         xcc.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
-		bloomIndexer:   xce.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
+		bloomIndexer:   xcc.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		serverPool:     newServerPool(chainDb, config.UltraLightServers),
 	}
-	lxce.retriever = newRetrieveManager(peers, lxce.reqDist, lxce.serverPool)
-	lxce.relay = newLesTxRelay(peers, lxce.retriever)
+	lxcc.retriever = newRetrieveManager(peers, lxcc.reqDist, lxcc.serverPool)
+	lxcc.relay = newLesTxRelay(peers, lxcc.retriever)
 
-	lxce.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lxce.retriever)
-	lxce.chtIndexer = light.NewChtIndexer(chainDb, lxce.odr, params.CHTFrequency, params.HelperTrieConfirmations)
-	lxce.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lxce.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency)
-	lxce.odr.SetIndexers(lxce.chtIndexer, lxce.bloomTrieIndexer, lxce.bloomIndexer)
+	lxcc.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lxcc.retriever)
+	lxcc.chtIndexer = light.NewChtIndexer(chainDb, lxcc.odr, params.CHTFrequency, params.HelperTrieConfirmations)
+	lxcc.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lxcc.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency)
+	lxcc.odr.SetIndexers(lxcc.chtIndexer, lxcc.bloomTrieIndexer, lxcc.bloomIndexer)
 
 	checkpoint := config.Checkpoint
 	if checkpoint == nil {
@@ -113,44 +113,44 @@ func New(ctx *node.ServiceContext, config *xce.Config) (*LightCore, error) {
 	}
 	// Note: NewLightChain adds the trusted checkpoint so it needs an ODR with
 	// indexers already set but not started yet
-	if lxce.blockchain, err = light.NewLightChain(lxce.odr, lxce.chainConfig, lxce.engine, checkpoint); err != nil {
+	if lxcc.blockchain, err = light.NewLightChain(lxcc.odr, lxcc.chainConfig, lxcc.engine, checkpoint); err != nil {
 		return nil, err
 	}
-	lxce.chainReader = lxce.blockchain
-	lxce.txPool = light.NewTxPool(lxce.chainConfig, lxce.blockchain, lxce.relay)
+	lxcc.chainReader = lxcc.blockchain
+	lxcc.txPool = light.NewTxPool(lxcc.chainConfig, lxcc.blockchain, lxcc.relay)
 
 	// Set up checkpoint oracle.
 	oracle := config.CheckpointOracle
 	if oracle == nil {
 		oracle = params.CheckpointOracles[genesisHash]
 	}
-	lxce.oracle = checkpointoracle.New(oracle, lxce.localCheckpoint)
+	lxcc.oracle = checkpointoracle.New(oracle, lxcc.localCheckpoint)
 
 	// Note: AddChildIndexer starts the update process for the child
-	lxce.bloomIndexer.AddChildIndexer(lxce.bloomTrieIndexer)
-	lxce.chtIndexer.Start(lxce.blockchain)
-	lxce.bloomIndexer.Start(lxce.blockchain)
+	lxcc.bloomIndexer.AddChildIndexer(lxcc.bloomTrieIndexer)
+	lxcc.chtIndexer.Start(lxcc.blockchain)
+	lxcc.bloomIndexer.Start(lxcc.blockchain)
 
-	lxce.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxce)
-	if lxce.handler.ulc != nil {
-		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxce.handler.ulc.keys), "minTrustedFraction", lxce.handler.ulc.fraction)
-		lxce.blockchain.DisableCheckFreq()
+	lxcc.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxcc)
+	if lxcc.handler.ulc != nil {
+		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcc.handler.ulc.keys), "minTrustedFraction", lxcc.handler.ulc.fraction)
+		lxcc.blockchain.DisableCheckFreq()
 	}
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		lxce.blockchain.SetHead(compat.RewindTo)
+		lxcc.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	lxce.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), lxce, nil}
+	lxcc.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), lxcc, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
-	lxce.ApiBackend.gpo = energyprice.NewOracle(lxce.ApiBackend, gpoParams)
+	lxcc.ApiBackend.gpo = energyprice.NewOracle(lxcc.ApiBackend, gpoParams)
 
-	return lxce, nil
+	return lxcc, nil
 }
 
 type LightDummyAPI struct{}
@@ -178,21 +178,21 @@ func (s *LightDummyAPI) Mining() bool {
 // APIs returns the collection of RPC services the core package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightCore) APIs() []rpc.API {
-	apis := xceapi.GetAPIs(s.ApiBackend)
+	apis := xccapi.GetAPIs(s.ApiBackend)
 	apis = append(apis, s.engine.APIs(s.BlockChain().HeaderChain())...)
 	return append(apis, []rpc.API{
 		{
-			Namespace: "xce",
+			Namespace: "xcc",
 			Version:   "1.0",
 			Service:   &LightDummyAPI{},
 			Public:    true,
 		}, {
-			Namespace: "xce",
+			Namespace: "xcc",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.handler.downloader, s.eventMux),
 			Public:    true,
 		}, {
-			Namespace: "xce",
+			Namespace: "xcc",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
 			Public:    true,
@@ -241,7 +241,7 @@ func (s *LightCore) Start(srvr *p2p.Server) error {
 	s.wg.Add(bloomServiceThreads)
 	s.startBloomHandlers(params.BloomBitsBlocksClient)
 
-	s.netRPCService = xceapi.NewPublicNetAPI(srvr, s.config.NetworkId)
+	s.netRPCService = xccapi.NewPublicNetAPI(srvr, s.config.NetworkId)
 
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]
