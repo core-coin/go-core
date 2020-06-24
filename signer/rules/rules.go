@@ -22,12 +22,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dop251/goja"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/rules/deps"
 	"github.com/core-coin/go-core/signer/storage"
+	"github.com/dop251/goja"
 )
 
 var (
@@ -230,7 +230,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

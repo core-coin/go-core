@@ -39,6 +39,7 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xcc"
 )
 
 var (
@@ -188,8 +189,8 @@ func (p *peerCommons) String() string {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peerCommons) Info() *xce.PeerInfo {
-	return &xce.PeerInfo{
+func (p *peerCommons) Info() *xcc.PeerInfo {
+	return &xcc.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
 		Head:       fmt.Sprintf("%x", p.Head()),

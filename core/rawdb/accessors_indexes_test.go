@@ -22,25 +22,25 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // Tests that positional lookup metadata can be stored and retrieved.
 func TestLookupStorage(t *testing.T) {
 	tests := []struct {
 		name                 string
-		writeTxLookupEntries func(xcedb.Writer, *types.Block)
+		writeTxLookupEntries func(xccdb.Writer, *types.Block)
 	}{
 		{
 			"DatabaseV6",
-			func(db xcedb.Writer, block *types.Block) {
+			func(db xccdb.Writer, block *types.Block) {
 				WriteTxLookupEntries(db, block)
 			},
 		},
 		{
 			"DatabaseV4-V5",
-			func(db xcedb.Writer, block *types.Block) {
+			func(db xccdb.Writer, block *types.Block) {
 				for _, tx := range block.Transactions() {
 					db.Put(txLookupKey(tx.Hash()), block.Hash().Bytes())
 				}
@@ -48,7 +48,7 @@ func TestLookupStorage(t *testing.T) {
 		},
 		{
 			"DatabaseV3",
-			func(db xcedb.Writer, block *types.Block) {
+			func(db xccdb.Writer, block *types.Block) {
 				for index, tx := range block.Transactions() {
 					entry := LegacyTxLookupEntry{
 						BlockHash:  block.Hash(),

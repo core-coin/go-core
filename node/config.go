@@ -18,8 +18,8 @@ package node
 
 import (
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -189,8 +189,8 @@ type Config struct {
 	// Logger is a custom logger to use with the p2p.Server.
 	Logger log.Logger `toml:",omitempty"`
 
-	staticNodesWarning     bool
-	trustedNodesWarning    bool
+	staticNodesWarning      bool
+	trustedNodesWarning     bool
 	oldGcoreResourceWarning bool
 }
 
@@ -288,7 +288,7 @@ func (c *Config) ExtRPCEnabled() bool {
 func (c *Config) NodeName() string {
 	name := c.name()
 	// Backwards compatibility: previous versions used title-cased "Gcore", keep that.
-	if name == "gcore" || name == "gcore-testnet" {
+	if name == "gcore" || name == "gcore-devin" {
 		name = "Gcore"
 	}
 	if c.UserIdent != "" {
