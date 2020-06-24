@@ -26,6 +26,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/core-coin/go-core/xce"
+
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
@@ -186,7 +188,7 @@ func (p *peerCommons) String() string {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peerCommons) Info() *xce.PeerInfo { // TODO(raisty): xce is calling library "github.com/core-coin/go-core/xce"
+func (p *peerCommons) Info() *xce.PeerInfo {
 	return &xce.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
