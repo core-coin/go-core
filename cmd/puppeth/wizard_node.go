@@ -33,8 +33,8 @@ func (w *wizard) deployNode(boot bool) {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.xcestats == "" {
-		log.Error("No xcestats server configured")
+	if w.conf.xccstats == "" {
+		log.Error("No xccstats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -84,12 +84,12 @@ func (w *wizard) deployNode(boot bool) {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.xcestats == "" {
+	if infos.xccstats == "" {
 		fmt.Printf("What should the node be called on the stats page?\n")
-		infos.xcestats = w.readString() + ":" + w.conf.xcestats
+		infos.xccstats = w.readString() + ":" + w.conf.xccstats
 	} else {
-		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.xcestats)
-		infos.xcestats = w.readDefaultString(infos.xcestats) + ":" + w.conf.xcestats
+		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.xccstats)
+		infos.xccstats = w.readDefaultString(infos.xccstats) + ":" + w.conf.xccstats
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
