@@ -33,14 +33,14 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Create an Cryptore network based off of the Testnet config
+	// Create an Cryptore network based off of the Devin config
 	genesis := makeGenesis(faucets)
 
 	var (
@@ -88,7 +88,7 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	for _, node := range nodes {
-		var core *xce.Core
+		var core *xcc.Core
 		if err := node.Service(&core); err != nil {
 			panic(err)
 		}
@@ -104,7 +104,7 @@ func main() {
 		index := rand.Intn(len(faucets))
 
 		// Fetch the accessor for the relevant signer
-		var core *xce.Core
+		var core *xcc.Core
 		if err := nodes[index%len(nodes)].Service(&core); err != nil {
 			panic(err)
 		}
@@ -128,7 +128,7 @@ func main() {
 // makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
 func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
-	genesis := core.DefaultTestnetGenesisBlock()
+	genesis := core.DefaultDevinGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000
 
@@ -166,20 +166,20 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 		return nil, err
 	}
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return xce.New(ctx, &xce.Config{
+		return xcc.New(ctx, &xcc.Config{
 			Genesis:         genesis,
 			NetworkId:       genesis.Config.ChainID.Uint64(),
 			SyncMode:        downloader.FullSync,
 			DatabaseCache:   256,
 			DatabaseHandles: 256,
 			TxPool:          core.DefaultTxPoolConfig,
-			GPO:             xce.DefaultConfig.GPO,
-			Cryptore:          xce.DefaultConfig.Cryptore,
+			GPO:             xcc.DefaultConfig.GPO,
+			Cryptore:        xcc.DefaultConfig.Cryptore,
 			Miner: miner.Config{
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
 				EnergyPrice: big.NewInt(1),
-				Recommit: time.Second,
+				Recommit:    time.Second,
 			},
 		})
 	}); err != nil {

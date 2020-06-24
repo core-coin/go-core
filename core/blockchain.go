@@ -42,7 +42,7 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -135,7 +135,7 @@ type BlockChain struct {
 	chainConfig *params.ChainConfig // Chain & network configuration
 	cacheConfig *CacheConfig        // Cache configuration for pruning
 
-	db     xcedb.Database // Low level persistent database to store final content in
+	db     xccdb.Database // Low level persistent database to store final content in
 	triegc *prque.Prque   // Priority queue mapping block numbers to tries to gc
 	gcproc time.Duration  // Accumulates canonical block processing for trie dumping
 
@@ -182,7 +182,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Core Validator and
 // Processor.
-func NewBlockChain(db xcedb.Database, cacheConfig *CacheConfig, chainConfig *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config, shouldPreserve func(block *types.Block) bool) (*BlockChain, error) {
+func NewBlockChain(db xccdb.Database, cacheConfig *CacheConfig, chainConfig *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config, shouldPreserve func(block *types.Block) bool) (*BlockChain, error) {
 	if cacheConfig == nil {
 		cacheConfig = &CacheConfig{
 			TrieCleanLimit: 256,
@@ -394,7 +394,7 @@ func (bc *BlockChain) SetHead(head uint64) error {
 	bc.chainmu.Lock()
 	defer bc.chainmu.Unlock()
 
-	updateFn := func(db xcedb.KeyValueWriter, header *types.Header) {
+	updateFn := func(db xccdb.KeyValueWriter, header *types.Header) {
 		// Rewind the block chain, ensuring we don't end up with a stateless head block
 		if currentBlock := bc.CurrentBlock(); currentBlock != nil && header.Number.Uint64() < currentBlock.NumberU64() {
 			newHeadBlock := bc.GetBlock(header.Hash(), header.Number.Uint64())
@@ -435,7 +435,7 @@ func (bc *BlockChain) SetHead(head uint64) error {
 	}
 
 	// Rewind the header chain, deleting all block bodies until then
-	delFn := func(db xcedb.KeyValueWriter, hash common.Hash, num uint64) {
+	delFn := func(db xccdb.KeyValueWriter, hash common.Hash, num uint64) {
 		// Ignore the error here since light client won't hit this path
 		frozen, _ := bc.db.Ancients()
 		if num+1 <= frozen {
@@ -791,7 +791,7 @@ func (bc *BlockChain) GetReceiptsByHash(hash common.Hash) types.Receipts {
 }
 
 // GetBlocksFromHash returns the block corresponding to hash and up to n-1 ancestors.
-// [deprecated by xce/62]
+// [deprecated by xcc/62]
 func (bc *BlockChain) GetBlocksFromHash(hash common.Hash, n int) (blocks []*types.Block) {
 	number := bc.hc.GetBlockNumber(hash)
 	if number == nil {
@@ -1203,7 +1203,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 			// Write everything belongs to the blocks into the database. So that
 			// we can ensure all components of body is completed(body, receipts,
 			// tx indexes)
-			if batch.ValueSize() >= xcedb.IdealBatchSize {
+			if batch.ValueSize() >= xccdb.IdealBatchSize {
 				if err := batch.Write(); err != nil {
 					return 0, err
 				}
@@ -1350,7 +1350,7 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 				limit       = common.StorageSize(bc.cacheConfig.TrieDirtyLimit) * 1024 * 1024
 			)
 			if nodes > limit || imgs > 4*1024*1024 {
-				triedb.Cap(limit - xcedb.IdealBatchSize)
+				triedb.Cap(limit - xccdb.IdealBatchSize)
 			}
 			// Find the next state trie we need to commit
 			chosen := current - TriesInMemory

@@ -28,12 +28,12 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb/leveldb"
-	"github.com/core-coin/go-core/xcedb/memorydb"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xccdb/leveldb"
+	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func init() {

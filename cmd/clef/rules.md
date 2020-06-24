@@ -5,7 +5,7 @@ The `signer` binary contains a ruleset engine, implemented with [OttoVM](https:/
 It enables usecases like the following:
 
 * I want to auto-approve transactions with contract `CasinoDapp`, with up to `0.05 core` in value to maximum `1 core` per 24h period
-* I want to auto-approve transaction to contract `XceAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `energy < 44k` and `energyPrice < 40Gore`
+* I want to auto-approve transaction to contract `XccAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `energy < 44k` and `energyPrice < 40Gore`
 
 The two main features that are required for this to work well are;
 
