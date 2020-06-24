@@ -67,9 +67,6 @@ type LesServer interface {
 type Core struct {
 	config *Config
 
-	// Channel for shutting down the service
-	shutdownChan chan bool
-
 	// Handlers
 	txPool          *core.TxPool
 	blockchain      *core.BlockChain
@@ -84,8 +81,9 @@ type Core struct {
 	engine         consensus.Engine
 	accountManager *accounts.Manager
 
-	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
-	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
+	bloomRequests     chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
+	bloomIndexer      *core.ChainIndexer             // Bloom indexer operating during block imports
+	closeBloomHandler chan struct{}
 
 	APIBackend *XceAPIBackend
 
@@ -144,17 +142,17 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	xce := &Core{
-		config:         config,
-		chainDb:        chainDb,
-		eventMux:       ctx.EventMux,
-		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
-		shutdownChan:   make(chan bool),
-		networkID:      config.NetworkId,
-		energyPrice:    config.Miner.EnergyPrice,
-		corebase:       config.Miner.Corebase,
-		bloomRequests:  make(chan chan *bloombits.Retrieval),
-		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
+		config:            config,
+		chainDb:           chainDb,
+		eventMux:          ctx.EventMux,
+		accountManager:    ctx.AccountManager,
+		engine:            CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
+		closeBloomHandler: make(chan struct{}),
+		networkID:         config.NetworkId,
+		energyPrice:       config.Miner.EnergyPrice,
+		corebase:          config.Miner.Corebase,
+		bloomRequests:     make(chan chan *bloombits.Retrieval),
+		bloomIndexer:      NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
 	}
 
 	bcVersion := rawdb.ReadDatabaseVersion(chainDb)
@@ -548,18 +546,20 @@ func (s *Core) Start(srvr *p2p.Server) error {
 // Stop implements node.Service, terminating all internal goroutines used by the
 // Core protocol.
 func (s *Core) Stop() error {
-	s.bloomIndexer.Close()
-	s.blockchain.Stop()
-	s.engine.Close()
+	// Stop all the peer-related stuff first.
 	s.protocolManager.Stop()
 	if s.lesServer != nil {
 		s.lesServer.Stop()
 	}
+
+	// Then stop everything else.
+	s.bloomIndexer.Close()
+	close(s.closeBloomHandler)
 	s.txPool.Stop()
 	s.miner.Stop()
-	s.eventMux.Stop()
-
+	s.blockchain.Stop()
+	s.engine.Close()
 	s.chainDb.Close()
-	close(s.shutdownChan)
+	s.eventMux.Stop()
 	return nil
 }

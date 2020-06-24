@@ -22,7 +22,19 @@ package params
 //    new(big.Int).Mul(value, big.NewInt(params.Nucle))
 //
 const (
-	Ore   = 1
-	Nucle  = 1e9
-	Core = 1e18
+	Ore         = 1
+	Wav         = 1e3
+	Grav        = 1e6
+	Nucle       = 1e9
+	Atom        = 1e12
+	Moli        = 1e15
+	Core        = 1e18
+	Aer         = 1e21
+	Orb         = 1e24
+	Plano       = 1e27
+	Terra       = 1e30
+	Sola        = 1e33
+	Galx        = 1e36
+	Cluster     = 1e39
+	Supermatter = 1e42
 )
