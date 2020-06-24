@@ -35,8 +35,8 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 // So we can deterministically seed different blockchains
@@ -826,7 +826,7 @@ func TestChainTxReorgs(t *testing.T) {
 		addr3   = crypto.PubkeyToAddress(key3.PublicKey)
 		db      = rawdb.NewMemoryDatabase()
 		gspec   = &Genesis{
-			Config:   params.TestChainConfig,
+			Config:      params.TestChainConfig,
 			EnergyLimit: 3141592,
 			Alloc: GenesisAlloc{
 				addr1: {Balance: big.NewInt(1000000)},
@@ -974,6 +974,7 @@ func TestLogReorgs(t *testing.T) {
 		t.Fatalf("failed to insert forked chain: %v", err)
 	}
 	timeout := time.NewTimer(1 * time.Second)
+	defer timeout.Stop()
 	select {
 	case <-done:
 	case <-timeout.C:
@@ -1417,7 +1418,7 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		theAddr = common.Address{1}
 		gspec   = &Genesis{
 			Config: &params.ChainConfig{
-				ChainID:        big.NewInt(1),
+				ChainID: big.NewInt(1),
 			},
 			Alloc: GenesisAlloc{address: {Balance: funds}},
 		}
@@ -2133,7 +2134,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 			},
 			EnergyLimit: 100e6, // 100 M
 		}
-		signer          = types.NewNucleusSigner(gspec.Config.ChainID)
+		signer = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 	// Generate the original common chain segment and the two competing forks
 	engine := cryptore.NewFaker()
