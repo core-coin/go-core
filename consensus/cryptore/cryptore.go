@@ -49,7 +49,7 @@ const (
 
 // Config are the configuration parameters of the cryptore.
 type Config struct {
-	PowMode        Mode
+	PowMode Mode
 
 	Log log.Logger `toml:"-"`
 }
@@ -67,7 +67,7 @@ type Cryptore struct {
 	remote   *remoteSealer
 
 	// The fields below are hooks for testing
-	shared    *Cryptore       // Shared PoW verifier to avoid cache regeneration
+	shared    *Cryptore     // Shared PoW verifier to avoid cache regeneration
 	fakeFail  uint64        // Block number which fails PoW check even in fake mode
 	fakeDelay time.Duration // Time delay to sleep for before returning from verify
 
@@ -231,7 +231,7 @@ func (cryptore *Cryptore) APIs(chain consensus.ChainReader) []rpc.API {
 	// to both eth and cryptore namespaces.
 	return []rpc.API{
 		{
-			Namespace: "xce",
+			Namespace: "xcc",
 			Version:   "1.0",
 			Service:   &API{cryptore},
 			Public:    true,

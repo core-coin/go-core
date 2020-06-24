@@ -25,9 +25,9 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/xccdb"
 	"github.com/steakknife/bloomfilter"
 )
 
@@ -66,7 +66,7 @@ type SyncBloom struct {
 
 // NewSyncBloom creates a new bloom filter of the given size (in megabytes) and
 // initializes it from the database. The bloom is hard coded to use 3 filters.
-func NewSyncBloom(memory uint64, database xcedb.Iteratee) *SyncBloom {
+func NewSyncBloom(memory uint64, database xccdb.Iteratee) *SyncBloom {
 	// Create the bloom filter to track known trie nodes
 	bloom, err := bloomfilter.New(memory*1024*1024*8, 3)
 	if err != nil {
@@ -91,7 +91,7 @@ func NewSyncBloom(memory uint64, database xcedb.Iteratee) *SyncBloom {
 }
 
 // init iterates over the database, pushing every trie hash into the bloom filter.
-func (b *SyncBloom) init(database xcedb.Iteratee) {
+func (b *SyncBloom) init(database xccdb.Iteratee) {
 	// Iterate over the database, but restart every now and again to avoid holding
 	// a persistent snapshot since fast sync can push a ton of data concurrently,
 	// bloating the disk.
