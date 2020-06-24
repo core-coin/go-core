@@ -54,14 +54,6 @@ func TestCreation(t *testing.T) {
 				{10, ID{Hash: checksumToBytes(0x30c7ddbc), Next: 0}},
 			},
 		},
-		// Rinkeby test cases
-		{
-			params.RinkebyChainConfig,
-			params.RinkebyGenesisHash,
-			[]testcase{
-				{100, ID{Hash: checksumToBytes(0x3b8e0691), Next: 0}},
-			},
-		},
 		// Koliba test cases
 		{
 			params.KolibaChainConfig,

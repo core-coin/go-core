@@ -18,11 +18,12 @@ package discv5
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
 	"net"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
@@ -637,7 +638,7 @@ loop:
 	}
 	log.Trace("loop stopped")
 
-	log.Debug(fmt.Sprintf("shutting down"))
+	log.Debug("shutting down")
 	if net.conn != nil {
 		net.conn.Close()
 	}

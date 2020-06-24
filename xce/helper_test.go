@@ -20,13 +20,14 @@
 package xce
 
 import (
-	"github.com/core-coin/eddsa"
 	"crypto/rand"
 	"fmt"
 	"math/big"
 	"sort"
 	"sync"
 	"testing"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
@@ -36,12 +37,12 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xcedb"
 )
 
 var (
@@ -170,23 +171,14 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 	// Create a message pipe to communicate through
 	app, net := p2p.MsgPipe()
 
-	// Generate a random id and create the peer
+	// Start the peer on a new thread
 	var id enode.ID
 	rand.Read(id[:])
-
 	peer := pm.newPeer(version, p2p.NewPeer(id, name, nil), net, pm.txpool.Get)
-
-	// Start the peer on a new thread
 	errc := make(chan error, 1)
-	go func() {
-		select {
-		case pm.newPeerCh <- peer:
-			errc <- pm.handle(peer)
-		case <-pm.quitSync:
-			errc <- p2p.DiscQuitting
-		}
-	}()
+	go func() { errc <- pm.runPeer(peer) }()
 	tp := &testPeer{app: app, net: net, peer: peer}
+
 	// Execute any implicitly requested handshakes and return
 	if shake {
 		var (

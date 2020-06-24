@@ -179,7 +179,7 @@ func (n *Notifier) send(sub *Subscription, data json.RawMessage) error {
 	})
 }
 
-// A Subscription is created by a notifier and tight to that notifier. The client can use
+// A Subscription is created by a notifier and tied to that notifier. The client can use
 // this subscription to wait for an unsubscribe request for the client, see Err().
 type Subscription struct {
 	ID        ID

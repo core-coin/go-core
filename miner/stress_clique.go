@@ -57,7 +57,7 @@ func main() {
 	for i := 0; i < len(sealers); i++ {
 		sealers[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	// Create a Clique network based off of the Rinkeby config
+	// Create a Clique network based off of the config
 	genesis := makeGenesis(faucets, sealers)
 
 	var (
@@ -137,8 +137,8 @@ func main() {
 // makeGenesis creates a custom Clique genesis block based on some pre-defined
 // signer and faucet accounts.
 func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core.Genesis {
-	// Create a Clique network based off of the Rinkeby config
-	genesis := core.DefaultRinkebyGenesisBlock()
+	// Create a Clique network based off of the config
+	genesis := core.DefaultKolibaGenesisBlock()
 	genesis.EnergyLimit = 25000000
 
 	genesis.Config.ChainID = big.NewInt(18)
