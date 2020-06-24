@@ -36,12 +36,11 @@ type Signer interface {
 }
 
 type MobileSigner struct {
-	sign    bind.SignerFn
-	chainId int
+	sign bind.SignerFn
 }
 
 func (s *MobileSigner) Sign(addr *Address, unsignedTx *Transaction) (signedTx *Transaction, _ error) {
-	sig, err := s.sign(types.NewNucleusSigner(big.NewInt(int64(s.chainId))), addr.address, unsignedTx.tx)
+	sig, err := s.sign(types.NewNucleusSigner(nil), addr.address, unsignedTx.tx)
 	if err != nil {
 		return nil, err
 	}

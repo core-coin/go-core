@@ -214,10 +214,7 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 		return nil, err
 	}
 	var signer types.Signer = types.NewNucleusSigner(t.backend.ChainConfig().ChainID)
-	from, err := types.Sender(signer, tx)
-	if err != nil {
-		return nil, err
-	}
+	from, _ := types.Sender(signer, tx)
 	return &Account{
 		backend:       t.backend,
 		address:       from,

@@ -230,7 +230,7 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
-	if len(s) == 44 {
+	if len(s) == 44 { // "0x" + 2 digits checksum + 20 digits address
 		if s[:2] == "0x" {
 			s = s[2:]
 		}
@@ -295,6 +295,7 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
+	// input has string like `"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"` or without 0x `"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"`
 	if string(input[1:3]) == "0x" {
 		if len(input) != 46 {
 			return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
