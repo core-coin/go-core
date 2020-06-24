@@ -26,8 +26,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/xce"
-
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
