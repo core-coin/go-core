@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 	"math/rand"
 	"reflect"
