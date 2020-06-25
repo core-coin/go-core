@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/signer/core"
@@ -181,7 +181,7 @@ func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]by
 }
 
 func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	res := xceapi.SignTransactionResult{}
+	res := xccapi.SignTransactionResult{}
 	data := hexutil.Bytes(tx.Data())
 	var to *common.MixedcaseAddress
 	if tx.To() != nil {
@@ -189,13 +189,13 @@ func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transactio
 		to = &t
 	}
 	args := &core.SendTxArgs{
-		Data:     &data,
-		Nonce:    hexutil.Uint64(tx.Nonce()),
-		Value:    hexutil.Big(*tx.Value()),
+		Data:        &data,
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		Value:       hexutil.Big(*tx.Value()),
 		Energy:      hexutil.Uint64(tx.Energy()),
 		EnergyPrice: hexutil.Big(*tx.EnergyPrice()),
-		To:       to,
-		From:     common.NewMixedcaseAddress(account.Address),
+		To:          to,
+		From:        common.NewMixedcaseAddress(account.Address),
 	}
 	if err := api.client.Call(&res, "account_signTransaction", args); err != nil {
 		return nil, err

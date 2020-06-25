@@ -36,7 +36,7 @@ func (w *wizard) networkStats() {
 		return
 	}
 	// Clear out some previous configs to refill from current scan
-	w.conf.xcestats = ""
+	w.conf.xccstats = ""
 	w.conf.bootnodes = w.conf.bootnodes[:0]
 
 	// Iterate over all the specified hosts and check their status
@@ -74,7 +74,7 @@ func (w *wizard) gatherStats(server string, pubkey []byte, client *sshClient) *s
 	// Gather some global stats to feed into the wizard
 	var (
 		genesis   string
-		xcestats  string
+		xccstats  string
 		bootnodes []string
 	)
 	// Ensure a valid SSH connection to the remote server
@@ -104,14 +104,14 @@ func (w *wizard) gatherStats(server string, pubkey []byte, client *sshClient) *s
 	} else {
 		stat.services["nginx"] = infos.Report()
 	}
-	logger.Debug("Checking for xcestats availability")
-	if infos, err := checkXcestats(client, w.network); err != nil {
+	logger.Debug("Checking for xccstats availability")
+	if infos, err := checkXccstats(client, w.network); err != nil {
 		if err != ErrServiceUnknown {
-			stat.services["xcestats"] = map[string]string{"offline": err.Error()}
+			stat.services["xccstats"] = map[string]string{"offline": err.Error()}
 		}
 	} else {
-		stat.services["xcestats"] = infos.Report()
-		xcestats = infos.config
+		stat.services["xccstats"] = infos.Report()
+		xccstats = infos.config
 	}
 	logger.Debug("Checking for bootnode availability")
 	if infos, err := checkNode(client, w.network, true); err != nil {
@@ -177,8 +177,8 @@ func (w *wizard) gatherStats(server string, pubkey []byte, client *sshClient) *s
 			w.conf.Genesis = g
 		}
 	}
-	if xcestats != "" {
-		w.conf.xcestats = xcestats
+	if xccstats != "" {
+		w.conf.xccstats = xccstats
 	}
 	w.conf.bootnodes = append(w.conf.bootnodes, bootnodes...)
 

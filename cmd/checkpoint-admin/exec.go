@@ -32,10 +32,10 @@ import (
 	"github.com/core-coin/go-core/contracts/checkpointoracle"
 	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xccclient"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -160,7 +160,7 @@ func sign(ctx *cli.Context) error {
 		reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelFn()
 
-		head, err := xceclient.NewClient(node).HeaderByNumber(reqCtx, nil)
+		head, err := xccclient.NewClient(node).HeaderByNumber(reqCtx, nil)
 		if err != nil {
 			return err
 		}
@@ -283,12 +283,12 @@ func publish(ctx *cli.Context) error {
 	reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
-	head, err := xceclient.NewClient(client).HeaderByNumber(reqCtx, nil)
+	head, err := xccclient.NewClient(client).HeaderByNumber(reqCtx, nil)
 	if err != nil {
 		return err
 	}
 	num := head.Number.Uint64()
-	recent, err := xceclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
+	recent, err := xccclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
 	if err != nil {
 		return err
 	}

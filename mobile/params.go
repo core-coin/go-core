@@ -32,9 +32,9 @@ func MainnetGenesis() string {
 	return ""
 }
 
-// TestnetGenesis returns the JSON spec to use for the Core test network.
-func TestnetGenesis() string {
-	enc, err := json.Marshal(core.DefaultTestnetGenesisBlock())
+// DevinGenesis returns the JSON spec to use for the Core test network.
+func DevinGenesis() string {
+	enc, err := json.Marshal(core.DefaultDevinGenesisBlock())
 	if err != nil {
 		panic(err)
 	}

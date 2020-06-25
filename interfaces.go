@@ -113,12 +113,12 @@ type ChainSyncReader interface {
 
 // CallMsg contains parameters for contract calls.
 type CallMsg struct {
-	From     common.Address  // the sender of the 'transaction'
-	To       *common.Address // the destination contract (nil for contract creation)
+	From        common.Address  // the sender of the 'transaction'
+	To          *common.Address // the destination contract (nil for contract creation)
 	Energy      uint64          // if 0, the call executes with near-infinite energy
 	EnergyPrice *big.Int        // ore <-> energy exchange ratio
-	Value    *big.Int        // amount of ore sent along with the call
-	Data     []byte          // input data, usually an ABI-encoded contract method invocation
+	Value       *big.Int        // amount of ore sent along with the call
+	Data        []byte          // input data, usually an ABI-encoded contract method invocation
 }
 
 // A ContractCaller provides contract calls, essentially transactions that are executed by
@@ -131,7 +131,7 @@ type ContractCaller interface {
 
 // FilterQuery contains options for contract log filtering.
 type FilterQuery struct {
-	BlockHash *common.Hash     // used by xce_getLogs, return logs only from block with this hash
+	BlockHash *common.Hash     // used by xcc_getLogs, return logs only from block with this hash
 	FromBlock *big.Int         // beginning of the queried range, nil means genesis block
 	ToBlock   *big.Int         // end of the range, nil means latest block
 	Addresses []common.Address // restricts matches to events created by specific contracts

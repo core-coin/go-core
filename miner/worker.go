@@ -78,12 +78,12 @@ const (
 type environment struct {
 	signer types.Signer
 
-	state     *state.StateDB // apply state changes here
-	ancestors mapset.Set     // ancestor set (used for checking uncle parent validity)
-	family    mapset.Set     // family set (used for checking uncle invalidity)
-	uncles    mapset.Set     // uncle set
-	tcount    int            // tx count in cycle
-	energyPool   *core.EnergyPool  // available energy used to pack transactions
+	state      *state.StateDB   // apply state changes here
+	ancestors  mapset.Set       // ancestor set (used for checking uncle parent validity)
+	family     mapset.Set       // family set (used for checking uncle invalidity)
+	uncles     mapset.Set       // uncle set
+	tcount     int              // tx count in cycle
+	energyPool *core.EnergyPool // available energy used to pack transactions
 
 	header   *types.Header
 	txs      []*types.Transaction
@@ -123,7 +123,7 @@ type worker struct {
 	config      *Config
 	chainConfig *params.ChainConfig
 	engine      consensus.Engine
-	xce         Backend
+	xcc         Backend
 	chain       *core.BlockChain
 
 	// Feeds
@@ -177,18 +177,18 @@ type worker struct {
 	resubmitHook func(time.Duration, time.Duration) // Method to call upon updating resubmitting interval.
 }
 
-func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, xce Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *worker {
+func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, xcc Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *worker {
 	worker := &worker{
 		config:             config,
 		chainConfig:        chainConfig,
 		engine:             engine,
-		xce:                xce,
+		xcc:                xcc,
 		mux:                mux,
-		chain:              xce.BlockChain(),
+		chain:              xcc.BlockChain(),
 		isLocalBlock:       isLocalBlock,
 		localUncles:        make(map[common.Hash]*types.Block),
 		remoteUncles:       make(map[common.Hash]*types.Block),
-		unconfirmed:        newUnconfirmedBlocks(xce.BlockChain(), miningLogAtDepth),
+		unconfirmed:        newUnconfirmedBlocks(xcc.BlockChain(), miningLogAtDepth),
 		pendingTasks:       make(map[common.Hash]*task),
 		txsCh:              make(chan core.NewTxsEvent, txChanSize),
 		chainHeadCh:        make(chan core.ChainHeadEvent, chainHeadChanSize),
@@ -202,10 +202,10 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 		resubmitAdjustCh:   make(chan *intervalAdjust, resubmitAdjustChanSize),
 	}
 	// Subscribe NewTxsEvent for tx pool
-	worker.txsSub = xce.TxPool().SubscribeNewTxsEvent(worker.txsCh)
+	worker.txsSub = xcc.TxPool().SubscribeNewTxsEvent(worker.txsCh)
 	// Subscribe events for blockchain
-	worker.chainHeadSub = xce.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
-	worker.chainSideSub = xce.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
+	worker.chainHeadSub = xcc.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
+	worker.chainSideSub = xcc.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
 
 	// Sanitize recommit interval if the user-specified one is too short.
 	recommit := worker.config.Recommit
@@ -295,6 +295,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 	)
 
 	timer := time.NewTimer(0)
+	defer timer.Stop()
 	<-timer.C // discard the initial tick
 
 	// commit aborts in-flight transaction execution with given signal and resubmits a new one.
@@ -832,11 +833,11 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 
 	num := parent.Number()
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     num.Add(num, common.Big1),
-		EnergyLimit:   core.CalcEnergyLimit(parent, w.config.EnergyFloor, w.config.EnergyCeil),
-		Extra:      w.extra,
-		Time:       uint64(timestamp),
+		ParentHash:  parent.Hash(),
+		Number:      num.Add(num, common.Big1),
+		EnergyLimit: core.CalcEnergyLimit(parent, w.config.EnergyFloor, w.config.EnergyCeil),
+		Extra:       w.extra,
+		Time:        uint64(timestamp),
 	}
 	if w.isRunning() {
 		if w.coinbase == (common.Address{}) {
@@ -889,7 +890,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	}
 
 	// Fill the block with all available pending transactions.
-	pending, err := w.xce.TxPool().Pending()
+	pending, err := w.xcc.TxPool().Pending()
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
@@ -901,7 +902,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	}
 	// Split the pending transactions into locals and remotes
 	localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
-	for _, account := range w.xce.TxPool().Locals() {
+	for _, account := range w.xcc.TxPool().Locals() {
 		if txs := remoteTxs[account]; len(txs) > 0 {
 			delete(remoteTxs, account)
 			localTxs[account] = txs
@@ -948,10 +949,10 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 			for i, tx := range block.Transactions() {
 				feesOre.Add(feesOre, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].EnergyUsed), tx.EnergyPrice()))
 			}
-			feesXce := new(big.Float).Quo(new(big.Float).SetInt(feesOre), new(big.Float).SetInt(big.NewInt(params.Core)))
+			feesXcc := new(big.Float).Quo(new(big.Float).SetInt(feesOre), new(big.Float).SetInt(big.NewInt(params.Core)))
 
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
-				"uncles", len(uncles), "txs", w.current.tcount, "energy", block.EnergyUsed(), "fees", feesXce, "elapsed", common.PrettyDuration(time.Since(start)))
+				"uncles", len(uncles), "txs", w.current.tcount, "energy", block.EnergyUsed(), "fees", feesXcc, "elapsed", common.PrettyDuration(time.Since(start)))
 
 		case <-w.exitCh:
 			log.Info("Worker has exited")

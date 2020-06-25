@@ -41,7 +41,7 @@ You should treat 'masterseed.json' with utmost secrecy and make a backup of it!
 
 ## Remote interactions
 
-Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our Koliba testnet keystore and specify the Koliba chain ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
+Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our Koliba devin keystore and specify the Koliba chain ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
 
 ```text
 $ clef --keystore ~/.core/koliba/keystore --chainid 4
@@ -179,7 +179,7 @@ $ cat ~/.clef/02f90c0603f4f2f60188/config.json
 In `$HOME/.clef`, the `masterseed.json` file was created, containing the master seed. This seed was then used to derive a few other things:
 
 - **Vault location**: in this case `02f90c0603f4f2f60188`.
-   - If you use a different master seed, a different vault location will be used that does not conflict with each other (e.g. `clef --signersecret /path/to/file`). This allows you to run multiple instances of Clef, each with its own rules (e.g. mainnet + testnet).
+   - If you use a different master seed, a different vault location will be used that does not conflict with each other (e.g. `clef --signersecret /path/to/file`). This allows you to run multiple instances of Clef, each with its own rules (e.g. mainnet + devin).
 - **`config.json`**: the encrypted key/value storage for configuration data, currently only containing the key `ruleset_sha256`, the attested hash of the automatic rules to use.
 
 ## Advanced rules
@@ -301,7 +301,7 @@ In a different window we can start Gcore, list our accounts, even list our walle
 ```text
 $ gcore --koliba --signer=~/.clef/clef.ipc console
 
-> xce.accounts
+> xcc.accounts
 ["0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3", "0x086278a6c067775f71d6b2bb1856db6e28c30418"]
 
 > personal.listWallets
@@ -317,7 +317,7 @@ $ gcore --koliba --signer=~/.clef/clef.ipc console
     url: "extapi://$HOME/.clef/clef.ipc"
 }]
 
-> xce.sendTransaction({from: xce.accounts[0], to: xce.accounts[0]})
+> xcc.sendTransaction({from: xcc.accounts[0], to: xcc.accounts[0]})
 ```
 
 Lastly, when we requested a transaction to be sent, Clef prompted us in the original window to approve it:
