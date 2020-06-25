@@ -24,11 +24,11 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 const makeCostStats = false // make request cost statistics during operation
@@ -115,7 +115,7 @@ const (
 // changes in the cost factor can be applied immediately without always notifying
 // the clients about the changed cost tables.
 type costTracker struct {
-	db     xcedb.Database
+	db     xccdb.Database
 	stopCh chan chan struct{}
 
 	inSizeFactor  float64
@@ -137,7 +137,7 @@ type costTracker struct {
 
 // newCostTracker creates a cost tracker and loads the cost factor statistics from the database.
 // It also returns the minimum capacity that can be assigned to any peer.
-func newCostTracker(db xcedb.Database, config *xce.Config) (*costTracker, uint64) {
+func newCostTracker(db xccdb.Database, config *xcc.Config) (*costTracker, uint64) {
 	utilTarget := float64(config.LightServ) * flowcontrol.FixedPointMultiplier / 100
 	ct := &costTracker{
 		db:         db,
@@ -269,6 +269,7 @@ func (ct *costTracker) gfLoop() {
 			log.Debug("global cost factor saved", "value", factor)
 		}
 		saveTicker := time.NewTicker(time.Minute * 10)
+		defer saveTicker.Stop()
 
 		for {
 			select {
