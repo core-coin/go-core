@@ -130,7 +130,7 @@ func TestClientWebsocketPing(t *testing.T) {
 		t.Fatalf("client dial error: %v", err)
 	}
 	resultChan := make(chan int)
-	sub, err := client.XceSubscribe(ctx, resultChan, "foo")
+	sub, err := client.XccSubscribe(ctx, resultChan, "foo")
 	if err != nil {
 		t.Fatalf("client subscribe error: %v", err)
 	}
@@ -193,10 +193,10 @@ func wsPingTestServer(t *testing.T, sendPing <-chan struct{}) *http.Server {
 }
 
 func wsPingTestHandler(t *testing.T, conn *websocket.Conn, shutdown, sendPing <-chan struct{}) {
-	// Canned responses for the xce_subscribe call in TestClientWebsocketPing.
+	// Canned responses for the xcc_subscribe call in TestClientWebsocketPing.
 	const (
 		subResp   = `{"jsonrpc":"2.0","id":1,"result":"0x00"}`
-		subNotify = `{"jsonrpc":"2.0","method":"xce_subscription","params":{"subscription":"0x00","result":1}}`
+		subNotify = `{"jsonrpc":"2.0","method":"xcc_subscription","params":{"subscription":"0x00","result":1}}`
 	)
 
 	// Handle subscribe request.

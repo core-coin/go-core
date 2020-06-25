@@ -38,9 +38,9 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xceclient"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xccclient"
 	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -127,11 +127,11 @@ var (
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.NtpServerFlag,
-		utils.TestnetFlag,
+		utils.DevinFlag,
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.XceStatsURLFlag,
+		utils.XccStatsURLFlag,
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
@@ -209,8 +209,8 @@ func init() {
 		javascriptCommand,
 		// See config.go
 		dumpConfigCommand,
-		// See retestxce.go
-		retestxceCommand,
+		// See retestxcc.go
+		retestxccCommand,
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
 
@@ -243,8 +243,8 @@ func main() {
 func prepare(ctx *cli.Context) {
 	// If we're a full node on mainnet without --cache specified, bump default cache allowance
 	if ctx.GlobalString(utils.SyncModeFlag.Name) != "light" && !ctx.GlobalIsSet(utils.CacheFlag.Name) && !ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
-		// Make sure we're not on any supported preconfigured testnet either
-		if !ctx.GlobalIsSet(utils.TestnetFlag.Name) && !ctx.GlobalIsSet(utils.KolibaFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
+		// Make sure we're not on any supported preconfigured devin either
+		if !ctx.GlobalIsSet(utils.DevinFlag.Name) && !ctx.GlobalIsSet(utils.KolibaFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
 			// Nope, we're really on mainnet. Bump that cache up!
 			log.Info("Bumping default cache on mainnet", "provided", ctx.GlobalInt(utils.CacheFlag.Name), "updated", 4096)
 			ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(4096))
@@ -318,16 +318,16 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	if err != nil {
 		utils.Fatalf("Failed to attach to self: %v", err)
 	}
-	xceClient := xceclient.NewClient(rpcClient)
+	xccClient := xccclient.NewClient(rpcClient)
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
 	if ctx.GlobalInt(utils.LightLegacyServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var xceService *xce.Core
-		if err := stack.Service(&xceService); err != nil {
+		var xccService *xcc.Core
+		if err := stack.Service(&xccService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
 		}
-		xceService.SetContractBackend(xceClient)
+		xccService.SetContractBackend(xccClient)
 	}
 	// Set contract backend for les service if local node is
 	// running as a light client.
@@ -336,7 +336,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err := stack.Service(&lesService); err != nil {
 			utils.Fatalf("Failed to retrieve light core service: %v", err)
 		}
-		lesService.SetContractBackend(xceClient)
+		lesService.SetContractBackend(xccClient)
 	}
 
 	go func() {
@@ -363,7 +363,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 				}
 				derivationPaths = append(derivationPaths, accounts.DefaultBaseDerivationPath)
 
-				event.Wallet.SelfDerive(derivationPaths, xceClient)
+				event.Wallet.SelfDerive(derivationPaths, xccClient)
 
 			case accounts.WalletDropped:
 				log.Info("Old wallet dropped", "url", event.Wallet.URL())
@@ -402,7 +402,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var core *xce.Core
+		var core *xcc.Core
 		if err := stack.Service(&core); err != nil {
 			utils.Fatalf("Core service not running: %v", err)
 		}

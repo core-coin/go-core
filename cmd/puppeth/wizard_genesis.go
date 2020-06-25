@@ -39,11 +39,11 @@ import (
 func (w *wizard) makeGenesis() {
 	// Construct a default genesis block
 	genesis := &core.Genesis{
-		Timestamp:  uint64(time.Now().Unix()),
-		EnergyLimit:   4700000,
-		Difficulty: big.NewInt(524288),
-		Alloc:      make(core.GenesisAlloc),
-		Config: &params.ChainConfig{},
+		Timestamp:   uint64(time.Now().Unix()),
+		EnergyLimit: 4700000,
+		Difficulty:  big.NewInt(524288),
+		Alloc:       make(core.GenesisAlloc),
+		Config:      &params.ChainConfig{},
 	}
 	// Figure out which consensus engine to choose
 	fmt.Println()
@@ -201,7 +201,7 @@ func (w *wizard) manageGenesis() {
 		// Save whatever genesis configuration we currently have
 		fmt.Println()
 		fmt.Printf("Which folder to save the genesis specs into? (default = current)\n")
-		fmt.Printf("  Will create %s.json\n",  w.network)
+		fmt.Printf("  Will create %s.json\n", w.network)
 
 		folder := w.readDefaultString(".")
 		if err := os.MkdirAll(folder, 0755); err != nil {
@@ -210,7 +210,7 @@ func (w *wizard) manageGenesis() {
 		}
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
 
-		// Export the native genesis spec used by puppxce and Gcore
+		// Export the native genesis spec used by puppxcc and Gcore
 		gcoreJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
 		if err := ioutil.WriteFile((gcoreJson), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
