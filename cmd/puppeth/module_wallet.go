@@ -37,7 +37,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'node server.js &'                     > wallet.sh && \
 	echo 'gcore --cache 512 init /genesis.json' >> wallet.sh && \
-	echo $'exec gcore --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --xcestats \'{{.Xcestats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*" --rpcvhosts "*"' >> wallet.sh
+	echo $'exec gcore --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xccstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*" --rpcvhosts "*"' >> wallet.sh
 
 RUN \
 	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/corewallet-master.js && \
@@ -67,7 +67,7 @@ services:
       - {{.Datadir}}:/root/core
     environment:
       - NODE_PORT={{.NodePort}}/tcp
-      - STATS={{.Xcestats}}{{if .VHost}}
+      - STATS={{.Xccstats}}{{if .VHost}}
       - VIRTUAL_HOST={{.VHost}}
       - VIRTUAL_PORT=80{{end}}
     logging:
@@ -94,7 +94,7 @@ func deployWallet(client *sshClient, network string, bootnodes []string, config 
 		"NodePort":  config.nodePort,
 		"RPCPort":   config.rpcPort,
 		"Bootnodes": strings.Join(bootnodes, ","),
-		"Xcestats":  config.xcestats,
+		"Xccstats":  config.xccstats,
 		"Host":      client.address,
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
@@ -107,7 +107,7 @@ func deployWallet(client *sshClient, network string, bootnodes []string, config 
 		"RPCPort":  config.rpcPort,
 		"VHost":    config.webHost,
 		"WebPort":  config.webPort,
-		"Xcestats": config.xcestats[:strings.Index(config.xcestats, ":")],
+		"Xccstats": config.xccstats[:strings.Index(config.xccstats, ":")],
 	})
 	files[filepath.Join(workdir, "docker-compose.yaml")] = composefile.Bytes()
 
@@ -132,7 +132,7 @@ type walletInfos struct {
 	genesis  []byte
 	network  int64
 	datadir  string
-	xcestats string
+	xccstats string
 	nodePort int
 	rpcPort  int
 	webHost  string
@@ -144,7 +144,7 @@ type walletInfos struct {
 func (info *walletInfos) Report() map[string]string {
 	report := map[string]string{
 		"Data directory":         info.datadir,
-		"Xcestats username":      info.xcestats,
+		"Xccstats username":      info.xccstats,
 		"Node listener port ":    strconv.Itoa(info.nodePort),
 		"RPC listener port ":     strconv.Itoa(info.rpcPort),
 		"Website address ":       info.webHost,
@@ -182,11 +182,11 @@ func checkWallet(client *sshClient, network string) (*walletInfos, error) {
 	// Run a sanity check to see if the devp2p and RPC ports are reachable
 	nodePort := infos.portmap[infos.envvars["NODE_PORT"]]
 	if err = checkPort(client.server, nodePort); err != nil {
-		log.Warn(fmt.Sprintf("Wallet devp2p port seems unreachable"), "server", client.server, "port", nodePort, "err", err)
+		log.Warn("Wallet devp2p port seems unreachable", "server", client.server, "port", nodePort, "err", err)
 	}
 	rpcPort := infos.portmap["8545/tcp"]
 	if err = checkPort(client.server, rpcPort); err != nil {
-		log.Warn(fmt.Sprintf("Wallet RPC port seems unreachable"), "server", client.server, "port", rpcPort, "err", err)
+		log.Warn("Wallet RPC port seems unreachable", "server", client.server, "port", rpcPort, "err", err)
 	}
 	// Assemble and return the useful infos
 	stats := &walletInfos{
@@ -195,7 +195,7 @@ func checkWallet(client *sshClient, network string) (*walletInfos, error) {
 		rpcPort:  rpcPort,
 		webHost:  host,
 		webPort:  webPort,
-		xcestats: infos.envvars["STATS"],
+		xccstats: infos.envvars["STATS"],
 	}
 	return stats, nil
 }

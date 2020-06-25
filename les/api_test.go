@@ -31,8 +31,6 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -40,6 +38,8 @@ import (
 	"github.com/core-coin/go-core/p2p/simulations"
 	"github.com/core-coin/go-core/p2p/simulations/adapters"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
 	"github.com/mattn/go-colorable"
 )
 
@@ -303,7 +303,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 
 func getHead(ctx context.Context, t *testing.T, client *rpc.Client) (uint64, common.Hash) {
 	res := make(map[string]interface{})
-	if err := client.CallContext(ctx, &res, "xce_getBlockByNumber", "latest", false); err != nil {
+	if err := client.CallContext(ctx, &res, "xcc_getBlockByNumber", "latest", false); err != nil {
 		t.Fatalf("Failed to obtain head block: %v", err)
 	}
 	numStr, ok := res["number"].(string)
@@ -328,7 +328,7 @@ func testRequest(ctx context.Context, t *testing.T, client *rpc.Client) bool {
 	rand.Read(addr[:])
 	c, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
-	err := client.CallContext(c, &res, "xce_getBalance", addr, "latest")
+	err := client.CallContext(c, &res, "xcc_getBalance", addr, "latest")
 	if err != nil {
 		t.Log("request error:", err)
 	}
@@ -493,18 +493,18 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 }
 
 func newLesClientService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := xce.DefaultConfig
+	config := xcc.DefaultConfig
 	config.SyncMode = downloader.LightSync
 	config.Cryptore.PowMode = cryptore.ModeFake
 	return New(ctx.NodeContext, &config)
 }
 
 func newLesServerService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := xce.DefaultConfig
+	config := xcc.DefaultConfig
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	core, err := xce.New(ctx.NodeContext, &config)
+	core, err := xcc.New(ctx.NodeContext, &config)
 	if err != nil {
 		return nil, err
 	}

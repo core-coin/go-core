@@ -25,7 +25,7 @@ import (
 
 var (
 	mainnetChainConfig = params.ChainConfig{
-		ChainID:        big.NewInt(1),
+		ChainID: big.NewInt(1),
 	}
 )
 
@@ -41,8 +41,8 @@ func TestDifficulty(t *testing.T) {
 	dt.skipLoad("keyaddrtest\\.json")
 	dt.skipLoad("txtest\\.json")
 
-	dt.config("Testnet", *params.TestnetChainConfig)
-	dt.config("Morden", *params.TestnetChainConfig)
+	dt.config("Devin", *params.DevinChainConfig)
+	dt.config("Morden", *params.DevinChainConfig)
 
 	dt.config("MainNetwork", mainnetChainConfig)
 	dt.config("CustomMainNetwork", mainnetChainConfig)

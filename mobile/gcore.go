@@ -25,10 +25,6 @@ import (
 	"path/filepath"
 
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xceclient"
-	"github.com/core-coin/go-core/xcestats"
 	"github.com/core-coin/go-core/internal/debug"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/node"
@@ -36,6 +32,10 @@ import (
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xccclient"
+	"github.com/core-coin/go-core/xccstats"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Gcore
@@ -81,8 +81,8 @@ type NodeConfig struct {
 // defaultNodeConfig contains the default node configuration values to use if all
 // or some fields are missing from the user's specified list.
 var defaultNodeConfig = &NodeConfig{
-	BootstrapNodes:        FoundationBootnodes(),
-	MaxPeers:              25,
+	BootstrapNodes:    FoundationBootnodes(),
+	MaxPeers:          25,
 	CoreEnabled:       true,
 	CoreNetworkID:     1,
 	CoreDatabaseCache: 16,
@@ -146,9 +146,9 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 		if err := json.Unmarshal([]byte(config.CoreGenesis), genesis); err != nil {
 			return nil, fmt.Errorf("invalid genesis spec: %v", err)
 		}
-		// If we have the testnet, hard code the chain configs too
-		if config.CoreGenesis == TestnetGenesis() {
-			genesis.Config = params.TestnetChainConfig
+		// If we have the devin, hard code the chain configs too
+		if config.CoreGenesis == DevinGenesis() {
+			genesis.Config = params.DevinChainConfig
 			if config.CoreNetworkID == 1 {
 				config.CoreNetworkID = 3
 			}
@@ -156,13 +156,13 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 	// Register the Core protocol if requested
 	if config.CoreEnabled {
-		xceConf := xce.DefaultConfig
-		xceConf.Genesis = genesis
-		xceConf.SyncMode = downloader.LightSync
-		xceConf.NetworkId = uint64(config.CoreNetworkID)
-		xceConf.DatabaseCache = config.CoreDatabaseCache
+		xccConf := xcc.DefaultConfig
+		xccConf.Genesis = genesis
+		xccConf.SyncMode = downloader.LightSync
+		xccConf.NetworkId = uint64(config.CoreNetworkID)
+		xccConf.DatabaseCache = config.CoreDatabaseCache
 		if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, &xceConf)
+			return les.New(ctx, &xccConf)
 		}); err != nil {
 			return nil, fmt.Errorf("core init: %v", err)
 		}
@@ -172,7 +172,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 				var lesServ *les.LightCore
 				ctx.Service(&lesServ)
 
-				return xcestats.New(config.CoreNetStats, nil, lesServ)
+				return xccstats.New(config.CoreNetStats, nil, lesServ)
 			}); err != nil {
 				return nil, fmt.Errorf("netstats init: %v", err)
 			}
@@ -212,7 +212,7 @@ func (n *Node) GetCoreClient() (client *CoreClient, _ error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CoreClient{xceclient.NewClient(rpc)}, nil
+	return &CoreClient{xccclient.NewClient(rpc)}, nil
 }
 
 // GetNodeInfo gathers and returns a collection of metadata known about the host.

@@ -25,11 +25,11 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 // clientHandler is responsible for receiving and processing all incoming server
@@ -400,7 +400,7 @@ func (d *downloaderPeerNotify) registerPeer(p *serverPeer) {
 		handler: h,
 		peer:    p,
 	}
-	h.downloader.RegisterLightPeer(p.id, xceVersion, pc)
+	h.downloader.RegisterLightPeer(p.id, xccVersion, pc)
 }
 
 func (d *downloaderPeerNotify) unregisterPeer(p *serverPeer) {

@@ -33,9 +33,9 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xccdb"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -67,47 +67,47 @@ type stPostState struct {
 	Root    common.UnprefixedHash `json:"hash"`
 	Logs    common.UnprefixedHash `json:"logs"`
 	Indexes struct {
-		Data  int `json:"data"`
-		Energy   int `json:"energy"`
-		Value int `json:"value"`
+		Data   int `json:"data"`
+		Energy int `json:"energy"`
+		Value  int `json:"value"`
 	}
 }
 
 //go:generate gencodec -type stEnv -field-override stEnvMarshaling -out gen_stenv.go
 
 type stEnv struct {
-	Coinbase   common.Address `json:"currentCoinbase"   gencodec:"required"`
-	Difficulty *big.Int       `json:"currentDifficulty" gencodec:"required"`
-	EnergyLimit   uint64         `json:"currentEnergyLimit"   gencodec:"required"`
-	Number     uint64         `json:"currentNumber"     gencodec:"required"`
-	Timestamp  uint64         `json:"currentTimestamp"  gencodec:"required"`
+	Coinbase    common.Address `json:"currentCoinbase"   gencodec:"required"`
+	Difficulty  *big.Int       `json:"currentDifficulty" gencodec:"required"`
+	EnergyLimit uint64         `json:"currentEnergyLimit"   gencodec:"required"`
+	Number      uint64         `json:"currentNumber"     gencodec:"required"`
+	Timestamp   uint64         `json:"currentTimestamp"  gencodec:"required"`
 }
 
 type stEnvMarshaling struct {
-	Coinbase   common.UnprefixedAddress
-	Difficulty *math.HexOrDecimal256
-	EnergyLimit   math.HexOrDecimal64
-	Number     math.HexOrDecimal64
-	Timestamp  math.HexOrDecimal64
+	Coinbase    common.UnprefixedAddress
+	Difficulty  *math.HexOrDecimal256
+	EnergyLimit math.HexOrDecimal64
+	Number      math.HexOrDecimal64
+	Timestamp   math.HexOrDecimal64
 }
 
 //go:generate gencodec -type stTransaction -field-override stTransactionMarshaling -out gen_sttransaction.go
 
 type stTransaction struct {
-	EnergyPrice   *big.Int `json:"energyPrice"`
-	Nonce      uint64   `json:"nonce"`
-	To         string   `json:"to"`
-	Data       []string `json:"data"`
-	EnergyLimit   []uint64 `json:"energyLimit"`
-	Value      []string `json:"value"`
-	PrivateKey []byte   `json:"secretKey"`
+	EnergyPrice *big.Int `json:"energyPrice"`
+	Nonce       uint64   `json:"nonce"`
+	To          string   `json:"to"`
+	Data        []string `json:"data"`
+	EnergyLimit []uint64 `json:"energyLimit"`
+	Value       []string `json:"value"`
+	PrivateKey  []byte   `json:"secretKey"`
 }
 
 type stTransactionMarshaling struct {
-	EnergyPrice   *math.HexOrDecimal256
-	Nonce      math.HexOrDecimal64
-	EnergyLimit   []math.HexOrDecimal64
-	PrivateKey hexutil.Bytes
+	EnergyPrice *math.HexOrDecimal256
+	Nonce       math.HexOrDecimal64
+	EnergyLimit []math.HexOrDecimal64
+	PrivateKey  hexutil.Bytes
 }
 
 // getVMConfig takes a fork definition and returns a chain config.
@@ -204,7 +204,7 @@ func (t *StateTest) energyLimit(subtest StateSubtest) uint64 {
 	return t.json.Tx.EnergyLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Energy]
 }
 
-func MakePreState(db xcedb.Database, accounts core.GenesisAlloc) *state.StateDB {
+func MakePreState(db xccdb.Database, accounts core.GenesisAlloc) *state.StateDB {
 	sdb := state.NewDatabase(db)
 	statedb, _ := state.New(common.Hash{}, sdb)
 	for addr, a := range accounts {
@@ -223,13 +223,13 @@ func MakePreState(db xcedb.Database, accounts core.GenesisAlloc) *state.StateDB 
 
 func (t *StateTest) genesis(config *params.ChainConfig) *core.Genesis {
 	return &core.Genesis{
-		Config:     config,
-		Coinbase:   t.json.Env.Coinbase,
-		Difficulty: t.json.Env.Difficulty,
-		EnergyLimit:   t.json.Env.EnergyLimit,
-		Number:     t.json.Env.Number,
-		Timestamp:  t.json.Env.Timestamp,
-		Alloc:      t.json.Pre,
+		Config:      config,
+		Coinbase:    t.json.Env.Coinbase,
+		Difficulty:  t.json.Env.Difficulty,
+		EnergyLimit: t.json.Env.EnergyLimit,
+		Number:      t.json.Env.Number,
+		Timestamp:   t.json.Env.Timestamp,
+		Alloc:       t.json.Pre,
 	}
 }
 
