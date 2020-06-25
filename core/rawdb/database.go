@@ -24,17 +24,17 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb"
-	"github.com/core-coin/go-core/xcedb/leveldb"
-	"github.com/core-coin/go-core/xcedb/memorydb"
 	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xccdb/leveldb"
+	"github.com/core-coin/go-core/xccdb/memorydb"
 	"github.com/olekukonko/tablewriter"
 )
 
 // freezerdb is a database wrapper that enabled freezer data retrievals.
 type freezerdb struct {
-	xcedb.KeyValueStore
-	xcedb.AncientStore
+	xccdb.KeyValueStore
+	xccdb.AncientStore
 }
 
 // Close implements io.Closer, closing both the fast key-value store as well as
@@ -55,7 +55,7 @@ func (frdb *freezerdb) Close() error {
 
 // nofreezedb is a database wrapper that disables freezer data retrievals.
 type nofreezedb struct {
-	xcedb.KeyValueStore
+	xccdb.KeyValueStore
 }
 
 // HasAncient returns an error as we don't have a backing chain freezer.
@@ -95,7 +95,7 @@ func (db *nofreezedb) Sync() error {
 
 // NewDatabase creates a high level database on top of a given key-value data
 // store without a freezer moving immutable chain segments into cold storage.
-func NewDatabase(db xcedb.KeyValueStore) xcedb.Database {
+func NewDatabase(db xccdb.KeyValueStore) xccdb.Database {
 	return &nofreezedb{
 		KeyValueStore: db,
 	}
@@ -104,7 +104,7 @@ func NewDatabase(db xcedb.KeyValueStore) xcedb.Database {
 // NewDatabaseWithFreezer creates a high level database on top of a given key-
 // value data store with a freezer moving immutable chain segments into cold
 // storage.
-func NewDatabaseWithFreezer(db xcedb.KeyValueStore, freezer string, namespace string) (xcedb.Database, error) {
+func NewDatabaseWithFreezer(db xccdb.KeyValueStore, freezer string, namespace string) (xccdb.Database, error) {
 	// Create the idle freezer instance
 	frdb, err := newFreezer(freezer, namespace)
 	if err != nil {
@@ -182,20 +182,20 @@ func NewDatabaseWithFreezer(db xcedb.KeyValueStore, freezer string, namespace st
 
 // NewMemoryDatabase creates an ephemeral in-memory key-value database without a
 // freezer moving immutable chain segments into cold storage.
-func NewMemoryDatabase() xcedb.Database {
+func NewMemoryDatabase() xccdb.Database {
 	return NewDatabase(memorydb.New())
 }
 
 // NewMemoryDatabaseWithCap creates an ephemeral in-memory key-value database
 // with an initial starting capacity, but without a freezer moving immutable
 // chain segments into cold storage.
-func NewMemoryDatabaseWithCap(size int) xcedb.Database {
+func NewMemoryDatabaseWithCap(size int) xccdb.Database {
 	return NewDatabase(memorydb.NewWithCap(size))
 }
 
 // NewLevelDBDatabase creates a persistent key-value database without a freezer
 // moving immutable chain segments into cold storage.
-func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (xcedb.Database, error) {
+func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (xccdb.Database, error) {
 	db, err := leveldb.New(file, cache, handles, namespace)
 	if err != nil {
 		return nil, err
@@ -205,7 +205,7 @@ func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (
 
 // NewLevelDBDatabaseWithFreezer creates a persistent key-value database with a
 // freezer moving immutable chain segments into cold storage.
-func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer string, namespace string) (xcedb.Database, error) {
+func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer string, namespace string) (xccdb.Database, error) {
 	kvdb, err := leveldb.New(file, cache, handles, namespace)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer 
 
 // InspectDatabase traverses the entire database and checks the size
 // of all different categories of data.
-func InspectDatabase(db xcedb.Database) error {
+func InspectDatabase(db xccdb.Database) error {
 	it := db.NewIterator()
 	defer it.Release()
 
