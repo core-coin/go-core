@@ -37,7 +37,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xce/downloader"
+	"github.com/core-coin/go-core/xcc/downloader"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -80,6 +80,7 @@ The dumpgenesis command dumps the genesis block configuration in JSON format to 
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 			utils.GCModeFlag,
+			utils.SnapshotFlag,
 			utils.CacheDatabaseFlag,
 			utils.CacheGCFlag,
 			utils.MetricsEnabledFlag,
@@ -155,7 +156,7 @@ The export-preimages command export hash preimages to an RLP encoded stream`,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 			utils.FakePoWFlag,
-			utils.TestnetFlag,
+			utils.DevinFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -201,7 +202,7 @@ Use "core dump 0" to dump the genesis block.`,
 			utils.DataDirFlag,
 			utils.AncientFlag,
 			utils.CacheFlag,
-			utils.TestnetFlag,
+			utils.DevinFlag,
 			utils.KolibaFlag,
 			utils.SyncModeFlag,
 		},
@@ -488,7 +489,7 @@ func removeDB(ctx *cli.Context) error {
 		log.Info("Full node state database missing", "path", path)
 	}
 	// Remove the full node ancient database
-	path = config.Xce.DatabaseFreezer
+	path = config.Xcc.DatabaseFreezer
 	switch {
 	case path == "":
 		path = filepath.Join(stack.ResolvePath("chaindata"), "ancient")
@@ -555,7 +556,7 @@ func dump(ctx *cli.Context) error {
 			fmt.Println("{}")
 			utils.Fatalf("block not found")
 		} else {
-			state, err := state.New(block.Root(), state.NewDatabase(chainDb))
+			state, err := state.New(block.Root(), state.NewDatabase(chainDb), nil)
 			if err != nil {
 				utils.Fatalf("could not create new state: %v", err)
 			}

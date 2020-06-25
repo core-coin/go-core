@@ -81,20 +81,20 @@ network, you want to join the **test** network with your node, which is fully eq
 the main network, but with play-Core only.
 
 ```shell
-$ gcore --testnet console
+$ gcore --devin console
 ```
 
 The `console` subcommand has the exact same meaning as above and they are equally
-useful on the testnet too. Please see above for their explanations if you've skipped here.
+useful on the devin too. Please see above for their explanations if you've skipped here.
 
-Specifying the `--testnet` flag, however, will reconfigure your `gcore` instance a bit:
+Specifying the `--devin` flag, however, will reconfigure your `gcore` instance a bit:
 
  * Instead of using the default data directory (`~/core` on Linux for example), `gcore`
-   will nest itself one level deeper into a `testnet` subfolder (`~/core/testnet` on
-   Linux). Note, on OSX and Linux this also means that attaching to a running testnet node
+   will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on
+   Linux). Note, on OSX and Linux this also means that attaching to a running devin node
    requires the use of a custom endpoint since `gcore attach` will try to attach to a
    production node endpoint by default. E.g.
-   `gcore attach <datadir>/testnet/gcore.ipc`. Windows users are not affected by
+   `gcore attach <datadir>/devin/gcore.ipc`. Windows users are not affected by
    this.
  * Instead of connecting the main Core network, the client will connect to the test
    network, which uses different P2P bootnodes, different network IDs and genesis states.
@@ -175,15 +175,15 @@ HTTP based JSON-RPC API options:
   * `--rpc` Enable the HTTP-RPC server
   * `--rpcaddr` HTTP-RPC server listening interface (default: `localhost`)
   * `--rpcport` HTTP-RPC server listening port (default: `8545`)
-  * `--rpcapi` API's offered over the HTTP-RPC interface (default: `xce,net,web3`)
+  * `--rpcapi` API's offered over the HTTP-RPC interface (default: `xcc,net,web3`)
   * `--rpccorsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
   * `--ws` Enable the WS-RPC server
   * `--wsaddr` WS-RPC server listening interface (default: `localhost`)
   * `--wsport` WS-RPC server listening port (default: `8546`)
-  * `--wsapi` API's offered over the WS-RPC interface (default: `xce,net,web3`)
+  * `--wsapi` API's offered over the WS-RPC interface (default: `xcc,net,web3`)
   * `--wsorigins` Origins from which to accept websockets requests
   * `--ipcdisable` Disable the IPC-RPC server
-  * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xce,miner,net,personal,shh,txpool,web3`)
+  * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xcc,miner,net,personal,shh,txpool,web3`)
   * `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
 
 You'll need to use your own programming environments' capabilities (libraries, tools, etc) to
@@ -287,9 +287,9 @@ also need to configure a miner to process transactions and create new blocks for
 #### Running a private miner
 
 Mining on the public Core network is a complex task as it's only feasible using GPUs,
-requiring an OpenCL or CUDA enabled `xceminer` instance. For information on such a
+requiring an OpenCL or CUDA enabled `xccminer` instance. For information on such a
 setup, please consult the [CoreMining subreddit](https://www.reddit.com/r/CoreMining/)
-and the [xceminer](https://github.com/core-coin-mining/xceminer) repository.
+and the [xccminer](https://github.com/core-coin-mining/xccminer) repository.
 
 In a private network setting, however a single CPU miner instance is more than enough for
 practical purposes as it can produce a stable stream of blocks at the correct intervals
@@ -326,7 +326,7 @@ Please make sure your contributions adhere to our coding guidelines:
    guidelines.
  * Pull requests need to be based on and opened against the `master` branch.
  * Commit messages should be prefixed with the package(s) they modify.
-   * E.g. "xce, rpc: make trace configs optional"
+   * E.g. "xcc, rpc: make trace configs optional"
 
 Please see the [Developers' Guide](https://developer.coreblockchain.cc/Developers'-Guide)
 for more details on configuring your environment, managing project dependencies, and

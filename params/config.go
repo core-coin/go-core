@@ -27,8 +27,8 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
-	TestnetGenesisHash = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
+	MainnetGenesisHash = common.HexToHash("0xc379c94ac673ae4f89b67c3de22670b7ce72676ae02ceaeec8f3861d9ccb4d03")
+	DevinGenesisHash   = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
 	KolibaGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
 
@@ -36,7 +36,7 @@ var (
 // the chain it belongs to.
 var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 	MainnetGenesisHash: MainnetTrustedCheckpoint,
-	TestnetGenesisHash: TestnetTrustedCheckpoint,
+	DevinGenesisHash:   DevinTrustedCheckpoint,
 	KolibaGenesisHash:  KolibaTrustedCheckpoint,
 }
 
@@ -44,15 +44,15 @@ var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 // the chain it belongs to.
 var CheckpointOracles = map[common.Hash]*CheckpointOracleConfig{
 	MainnetGenesisHash: MainnetCheckpointOracle,
-	TestnetGenesisHash: TestnetCheckpointOracle,
+	DevinGenesisHash:   DevinCheckpointOracle,
 	KolibaGenesisHash:  KolibaCheckpointOracle,
 }
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(1),
-		Cryptore:              new(CryptoreConfig),
+		ChainID:  big.NewInt(1),
+		Cryptore: new(CryptoreConfig),
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -76,22 +76,22 @@ var (
 		Threshold: 2,
 	}
 
-	// TestnetChainConfig contains the chain parameters to run a node on the Testnet test network.
-	TestnetChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(3),
-		Cryptore:              new(CryptoreConfig),
+	// DevinChainConfig contains the chain parameters to run a node on the Devin test network.
+	DevinChainConfig = &ChainConfig{
+		ChainID:  big.NewInt(3),
+		Cryptore: new(CryptoreConfig),
 	}
 
-	// TestnetTrustedCheckpoint contains the light client trusted checkpoint for the Testnet test network.
-	TestnetTrustedCheckpoint = &TrustedCheckpoint{
+	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
+	DevinTrustedCheckpoint = &TrustedCheckpoint{
 		SectionIndex: 223,
 		SectionHead:  common.HexToHash("0x9aa51ca383f5075f816e0b8ce7125075cd562b918839ee286c03770722147661"),
 		CHTRoot:      common.HexToHash("0x755c6a5931b7bd36e55e47f3f1e81fa79c930ae15c55682d3a85931eedaf8cf2"),
 		BloomRoot:    common.HexToHash("0xabc37762d11b29dc7dde11b89846e2308ba681eeb015b6a202ef5e242bc107e8"),
 	}
 
-	// TestnetCheckpointOracle contains a set of configs for the Testnet test network oracle.
-	TestnetCheckpointOracle = &CheckpointOracleConfig{
+	// DevinCheckpointOracle contains a set of configs for the Devin test network oracle.
+	DevinCheckpointOracle = &CheckpointOracleConfig{
 		Address: common.HexToAddress("0xEF79475013f154E6A65b54cB2742867791bf0B84"),
 		Signers: []common.Address{
 			common.HexToAddress("0x32162F3581E88a5f62e8A61892B42C46E2c18f7b"), // Peter
@@ -105,7 +105,7 @@ var (
 
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(5),
+		ChainID: big.NewInt(5),
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
@@ -138,14 +138,14 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1337),nil,new(CryptoreConfig), nil}
+	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1337), nil, new(CryptoreConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (CIPs) introduced
 	// and accepted by the Core core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337),  nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
 	TestChainConfig = &ChainConfig{big.NewInt(1), nil, new(CryptoreConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
@@ -201,11 +201,11 @@ type CheckpointOracleConfig struct {
 type ChainConfig struct {
 	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
 
-	EWASMBlock          *big.Int `json:"ewasmBlock,omitempty"`          // EWASM switch block (nil = no fork, 0 = already activated)
+	EWASMBlock *big.Int `json:"ewasmBlock,omitempty"` // EWASM switch block (nil = no fork, 0 = already activated)
 
 	// Various consensus engines
 	Cryptore *CryptoreConfig `json:"cryptore,omitempty"`
-	Clique *CliqueConfig `json:"clique,omitempty"`
+	Clique   *CliqueConfig   `json:"clique,omitempty"`
 }
 
 // CryptoreConfig is the consensus engine configs for proof-of-work based sealing.
@@ -275,8 +275,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		block *big.Int
 	}
 	var lastFork fork
-	for _, cur := range []fork{
-	} {
+	for _, cur := range []fork{} {
 		if lastFork.name != "" {
 			// Next one must be higher number
 			if lastFork.block == nil && cur.block != nil {
@@ -363,7 +362,7 @@ func (err *ConfigCompatError) Error() string {
 // Rules is a one time interface meaning that it shouldn't be used in between transition
 // phases.
 type Rules struct {
-	ChainID                                                 *big.Int
+	ChainID *big.Int
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -373,6 +372,6 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		chainID = new(big.Int)
 	}
 	return Rules{
-		ChainID:          new(big.Int).Set(chainID),
+		ChainID: new(big.Int).Set(chainID),
 	}
 }
