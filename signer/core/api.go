@@ -31,7 +31,7 @@ import (
 	"github.com/core-coin/go-core/accounts/usbwallet"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/storage"
@@ -43,7 +43,7 @@ const (
 	// ExternalAPIVersion -- see extapi_changelog.md
 	ExternalAPIVersion = "6.0.0"
 	// InternalAPIVersion -- see intapi_changelog.md
-	InternalAPIVersion = "7.0.0"
+	InternalAPIVersion = "7.0.1"
 )
 
 // ExternalAPI defines the external API through which signing requests are made.
@@ -53,7 +53,7 @@ type ExternalAPI interface {
 	// New request to create a new account
 	New(ctx context.Context) (common.Address, error)
 	// SignTransaction request to sign the specified transaction
-	SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xceapi.SignTransactionResult, error)
+	SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xccapi.SignTransactionResult, error)
 	// SignData - request to sign the given data (plus prefix)
 	SignData(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (hexutil.Bytes, error)
 	// SignTypedData - request to sign the given structured data (plus prefix)
@@ -82,7 +82,7 @@ type UIClientAPI interface {
 	ShowInfo(message string)
 	// OnApprovedTx notifies the UI about a transaction having been successfully signed.
 	// This method can be used by a UI to keep track of e.g. how much has been sent to a particular recipient.
-	OnApprovedTx(tx xceapi.SignTransactionResult)
+	OnApprovedTx(tx xccapi.SignTransactionResult)
 	// OnSignerStartup is invoked when the signer boots, and tells the UI info about external API location and version
 	// information
 	OnSignerStartup(info StartupInfo)
@@ -272,6 +272,7 @@ func NewSignerAPI(am *accounts.Manager, chainID int64, noUSB bool, ui UIClientAP
 	}
 	return signer
 }
+
 // startUSBListener starts a listener for USB events, for hardware wallet interaction
 func (api *SignerAPI) startUSBListener() {
 	events := make(chan accounts.WalletEvent, 16)
@@ -344,8 +345,7 @@ func (api *SignerAPI) List(ctx context.Context) ([]common.Address, error) {
 // the given password. Users are responsible to backup the private key that is stored
 // in the keystore location thas was specified when this API was created.
 func (api *SignerAPI) New(ctx context.Context) (common.Address, error) {
-	be := api.am.Backends(keystore.KeyStoreType)
-	if len(be) == 0 {
+	if be := api.am.Backends(keystore.KeyStoreType); len(be) == 0 {
 		return common.Address{}, errors.New("password based accounts not supported")
 	}
 	if resp, err := api.UI.ApproveNewAccount(&NewAccountRequest{MetadataFromContext(ctx)}); err != nil {
@@ -353,7 +353,16 @@ func (api *SignerAPI) New(ctx context.Context) (common.Address, error) {
 	} else if !resp.Approved {
 		return common.Address{}, ErrRequestDenied
 	}
+	return api.newAccount()
+}
 
+// newAccount is the internal method to create a new account. It should be used
+// _after_ user-approval has been obtained
+func (api *SignerAPI) newAccount() (common.Address, error) {
+	be := api.am.Backends(keystore.KeyStoreType)
+	if len(be) == 0 {
+		return common.Address{}, errors.New("password based accounts not supported")
+	}
 	// Three retries to get a valid password
 	for i := 0; i < 3; i++ {
 		resp, err := api.UI.OnInputRequired(UserInputRequest{
@@ -446,7 +455,7 @@ func (api *SignerAPI) lookupOrQueryPassword(address common.Address, title, promp
 }
 
 // SignTransaction signs the given Transaction and returns it both as json and rlp-encoded form
-func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xceapi.SignTransactionResult, error) {
+func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xccapi.SignTransactionResult, error) {
 	var (
 		err    error
 		result SignTxResponse
@@ -504,7 +513,7 @@ func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, meth
 	if err != nil {
 		return nil, err
 	}
-	response := xceapi.SignTransactionResult{Raw: rlpdata, Tx: signedTx}
+	response := xccapi.SignTransactionResult{Raw: rlpdata, Tx: signedTx}
 
 	// Finally, send the signed tx to the UI
 	api.UI.OnApprovedTx(response)

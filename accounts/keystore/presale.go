@@ -52,7 +52,7 @@ func importPreSaleKey(keyStore keyStore, keyJSON []byte, password string) (accou
 func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error) {
 	preSaleKeyStruct := struct {
 		EncSeed string
-		XceAddr string
+		XccAddr string
 		Email   string
 		BtcAddr string
 	}{}
@@ -70,9 +70,9 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 	iv := encSeedBytes[:16]
 	cipherText := encSeedBytes[16:]
 	/*
-		See https://github.com/core-coin/pyxcealetool
+		See https://github.com/core-coin/pyxccaletool
 
-		pyxcealetool generates the encryption key from password by
+		pyxccaletool generates the encryption key from password by
 		2000 rounds of PBKDF2 with HMAC-SHA-256 using password as salt (:().
 		16 byte key length within PBKDF2 and resulting key is used as AES key
 	*/
@@ -82,8 +82,8 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 	if err != nil {
 		return nil, err
 	}
-	xcePriv := crypto.Keccak256(plainText)
-	ecKey := crypto.ToEDDSAUnsafe(xcePriv)
+	xccPriv := crypto.Keccak256(plainText)
+	ecKey := crypto.ToEDDSAUnsafe(xccPriv)
 
 	key = &Key{
 		Id:         nil,
@@ -91,7 +91,7 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 		PrivateKey: ecKey,
 	}
 	derivedAddr := hex.EncodeToString(key.Address.Bytes()) // needed because .Hex() gives leading "0x"
-	expectedAddr := preSaleKeyStruct.XceAddr
+	expectedAddr := preSaleKeyStruct.XccAddr
 	if derivedAddr != expectedAddr {
 		err = fmt.Errorf("decrypted addr '%s' not equal to expected addr '%s'", derivedAddr, expectedAddr)
 	}

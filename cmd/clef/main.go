@@ -43,7 +43,7 @@ import (
 	"github.com/core-coin/go-core/console"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
@@ -95,7 +95,7 @@ var (
 	chainIdFlag = cli.Int64Flag{
 		Name:  "chainid",
 		Value: params.MainnetChainConfig.ChainID.Int64(),
-		Usage: "Chain id to use for signing (1=mainnet, 3=Testnet, 5=Koliba)",
+		Usage: "Chain id to use for signing (1=mainnet, 3=Devin, 5=Koliba)",
 	}
 	rpcPortFlag = cli.IntFlag{
 		Name:  "rpcport",
@@ -187,6 +187,21 @@ The setpw command stores a password for a given address (keyfile).
 		Description: `
 The delpw command removes a password for a given address (keyfile).
 `}
+	newAccountCommand = cli.Command{
+		Action:    utils.MigrateFlags(newAccount),
+		Name:      "newaccount",
+		Usage:     "Create a new account",
+		ArgsUsage: "",
+		Flags: []cli.Flag{
+			logLevelFlag,
+			keystoreFlag,
+			utils.LightKDFFlag,
+		},
+		Description: `
+	The newaccount command creates a new keystore-backed account. It is a convenience-method
+	which can be used in lieu of an external UI.`,
+	}
+
 	gendocCommand = cli.Command{
 		Action: GenDoc,
 		Name:   "gendoc",
@@ -222,7 +237,12 @@ func init() {
 		advancedMode,
 	}
 	app.Action = signer
-	app.Commands = []cli.Command{initCommand, attestCommand, setCredentialCommand, delCredentialCommand, gendocCommand}
+	app.Commands = []cli.Command{initCommand,
+		attestCommand,
+		setCredentialCommand,
+		delCredentialCommand,
+		newAccountCommand,
+		gendocCommand}
 	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
 }
 
@@ -382,6 +402,31 @@ func removeCredential(ctx *cli.Context) error {
 	return nil
 }
 
+func newAccount(c *cli.Context) error {
+	if err := initialize(c); err != nil {
+		return err
+	}
+	// The newaccount is meant for users using the CLI, since 'real' external
+	// UIs can use the UI-api instead. So we'll just use the native CLI UI here.
+	var (
+		ui                        = core.NewCommandlineUI()
+		pwStorage storage.Storage = &storage.NoStorage{}
+		ksLoc                     = c.GlobalString(keystoreFlag.Name)
+		lightKdf                  = c.GlobalBool(utils.LightKDFFlag.Name)
+	)
+	log.Info("Starting clef", "keystore", ksLoc, "light-kdf", lightKdf)
+	am := core.StartClefAccountManager(ksLoc, true, lightKdf, "")
+	// This gives is us access to the external API
+	apiImpl := core.NewSignerAPI(am, 0, true, ui, nil, false, pwStorage)
+	// This gives us access to the internal API
+	internalApi := core.NewUIServerAPI(apiImpl)
+	addr, err := internalApi.New(context.Background())
+	if err == nil {
+		fmt.Printf("Generated account %v\n", addr.String())
+	}
+	return err
+}
+
 func initialize(c *cli.Context) error {
 	// Set up the logger to print everything
 	logOutput := os.Stdout
@@ -457,7 +502,6 @@ func signer(c *cli.Context) error {
 		api       core.ExternalAPI
 		pwStorage storage.Storage = &storage.NoStorage{}
 	)
-
 	configDir := c.GlobalString(configdirFlag.Name)
 	if stretchedKey, err := readMasterKey(c, ui); err != nil {
 		log.Warn("Failed to open master, rules disabled", "err", err)
@@ -1019,7 +1063,7 @@ func GenDoc(ctx *cli.Context) {
 		rlpdata := common.FromHex("0xf85d640101948a8eafb1cf62bfbeb1741769dae1a9dd47996192018026a0716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293a04e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed")
 		var tx types.Transaction
 		rlp.DecodeBytes(rlpdata, &tx)
-		add("OnApproved - SignTransactionResult", desc, &xceapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
+		add("OnApproved - SignTransactionResult", desc, &xccapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
 
 	}
 	{ // User input

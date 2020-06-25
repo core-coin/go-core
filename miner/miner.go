@@ -29,10 +29,10 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 // Backend wraps all methods required for mining.
@@ -43,14 +43,14 @@ type Backend interface {
 
 // Config is the configuration parameters of mining.
 type Config struct {
-	Corebase common.Address `toml:",omitempty"` // Public address for block mining rewards (default = first account)
-	Notify    []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in cryptore).
-	ExtraData hexutil.Bytes  `toml:",omitempty"` // Block extra data set by the miner
-	EnergyFloor  uint64         // Target energy floor for mined blocks.
-	EnergyCeil   uint64         // Target energy ceiling for mined blocks.
-	EnergyPrice  *big.Int       // Minimum energy price for mining a transaction
-	Recommit  time.Duration  // The time interval for miner to re-create mining work.
-	Noverify  bool           // Disable remote mining solution verification(only useful in cryptore).
+	Corebase    common.Address `toml:",omitempty"` // Public address for block mining rewards (default = first account)
+	Notify      []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in cryptore).
+	ExtraData   hexutil.Bytes  `toml:",omitempty"` // Block extra data set by the miner
+	EnergyFloor uint64         // Target energy floor for mined blocks.
+	EnergyCeil  uint64         // Target energy ceiling for mined blocks.
+	EnergyPrice *big.Int       // Minimum energy price for mining a transaction
+	Recommit    time.Duration  // The time interval for miner to re-create mining work.
+	Noverify    bool           // Disable remote mining solution verification(only useful in cryptore).
 }
 
 // Miner creates blocks and searches for proof-of-work values.
@@ -58,7 +58,7 @@ type Miner struct {
 	mux      *event.TypeMux
 	worker   *worker
 	coinbase common.Address
-	xce      Backend
+	xcc      Backend
 	engine   consensus.Engine
 	exitCh   chan struct{}
 
@@ -66,13 +66,13 @@ type Miner struct {
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(xce Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
+func New(xcc Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
 	miner := &Miner{
-		xce:      xce,
+		xcc:      xcc,
 		mux:      mux,
 		engine:   engine,
 		exitCh:   make(chan struct{}),
-		worker:   newWorker(config, chainConfig, engine, xce, mux, isLocalBlock, true),
+		worker:   newWorker(config, chainConfig, engine, xcc, mux, isLocalBlock, true),
 		canStart: 1,
 	}
 	go miner.update()

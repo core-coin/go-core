@@ -17,13 +17,14 @@
 package main
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
@@ -97,8 +98,8 @@ var (
 )
 
 const (
-	rootTTL     = 1
-	treeNodeTTL = 2147483647
+	rootTTL     = 30 * 60              // 30 min
+	treeNodeTTL = 4 * 7 * 24 * 60 * 60 // 4 weeks
 )
 
 // dnsSync performs dnsSyncCommand.

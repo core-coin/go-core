@@ -155,7 +155,7 @@ func (s *UIServerAPI) ChainId() math.HexOrDecimal64 {
 }
 
 // SetChainId sets the chain id to use when signing transactions.
-// Example call to set Testnet:
+// Example call to set Devin:
 // {"jsonrpc":"2.0","method":"clef_setChainId","params":["3"], "id":8}
 func (s *UIServerAPI) SetChainId(id math.HexOrDecimal64) math.HexOrDecimal64 {
 	s.extApi.chainID = new(big.Int).SetUint64(uint64(id))
@@ -192,6 +192,16 @@ func (api *UIServerAPI) Import(ctx context.Context, keyJSON json.RawMessage, old
 		return accounts.Account{}, fmt.Errorf("password requirements not met: %v", err)
 	}
 	return be[0].(*keystore.KeyStore).Import(keyJSON, oldPassphrase, newPassphrase)
+}
+
+// New creates a new password protected Account. The private key is protected with
+// the given password. Users are responsible to backup the private key that is stored
+// in the keystore location that was specified when this API was created.
+// This method is the same as New on the external API, the difference being that
+// this implementation does not ask for confirmation, since it's initiated by
+// the user
+func (api *UIServerAPI) New(ctx context.Context) (common.Address, error) {
+	return api.extApi.newAccount()
 }
 
 // Other methods to be added, not yet implemented are:

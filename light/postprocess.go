@@ -29,11 +29,11 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // IndexerConfig includes a set of configs for chain indexers.
@@ -112,7 +112,7 @@ type ChtNode struct {
 }
 
 // GetChtRoot reads the CHT root associated to the given section from the database
-func GetChtRoot(db xcedb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetChtRoot(db xccdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -120,7 +120,7 @@ func GetChtRoot(db xcedb.Database, sectionIdx uint64, sectionHead common.Hash) c
 }
 
 // StoreChtRoot writes the CHT root associated to the given section into the database
-func StoreChtRoot(db xcedb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreChtRoot(db xccdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -128,7 +128,7 @@ func StoreChtRoot(db xcedb.Database, sectionIdx uint64, sectionHead, root common
 
 // ChtIndexerBackend implements core.ChainIndexerBackend.
 type ChtIndexerBackend struct {
-	diskdb, trieTable    xcedb.Database
+	diskdb, trieTable    xccdb.Database
 	odr                  OdrBackend
 	triedb               *trie.Database
 	section, sectionSize uint64
@@ -137,7 +137,7 @@ type ChtIndexerBackend struct {
 }
 
 // NewChtIndexer creates a Cht chain indexer
-func NewChtIndexer(db xcedb.Database, odr OdrBackend, size, confirms uint64) *core.ChainIndexer {
+func NewChtIndexer(db xccdb.Database, odr OdrBackend, size, confirms uint64) *core.ChainIndexer {
 	trieTable := rawdb.NewTable(db, ChtTablePrefix)
 	backend := &ChtIndexerBackend{
 		diskdb:      db,
@@ -229,7 +229,7 @@ var (
 )
 
 // GetBloomTrieRoot reads the BloomTrie root assoctiated to the given section from the database
-func GetBloomTrieRoot(db xcedb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetBloomTrieRoot(db xccdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -237,7 +237,7 @@ func GetBloomTrieRoot(db xcedb.Database, sectionIdx uint64, sectionHead common.H
 }
 
 // StoreBloomTrieRoot writes the BloomTrie root assoctiated to the given section into the database
-func StoreBloomTrieRoot(db xcedb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreBloomTrieRoot(db xccdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -245,7 +245,7 @@ func StoreBloomTrieRoot(db xcedb.Database, sectionIdx uint64, sectionHead, root 
 
 // BloomTrieIndexerBackend implements core.ChainIndexerBackend
 type BloomTrieIndexerBackend struct {
-	diskdb, trieTable xcedb.Database
+	diskdb, trieTable xccdb.Database
 	triedb            *trie.Database
 	odr               OdrBackend
 	section           uint64
@@ -257,7 +257,7 @@ type BloomTrieIndexerBackend struct {
 }
 
 // NewBloomTrieIndexer creates a BloomTrie chain indexer
-func NewBloomTrieIndexer(db xcedb.Database, odr OdrBackend, parentSize, size uint64) *core.ChainIndexer {
+func NewBloomTrieIndexer(db xccdb.Database, odr OdrBackend, parentSize, size uint64) *core.ChainIndexer {
 	trieTable := rawdb.NewTable(db, BloomTrieTablePrefix)
 	backend := &BloomTrieIndexerBackend{
 		diskdb:     db,
