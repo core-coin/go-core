@@ -30,6 +30,7 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
+	"github.com/core-coin/go-core/core/state/snapshot"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
@@ -145,8 +146,8 @@ func (t *StateTest) Subtests() []StateSubtest {
 }
 
 // Run executes a specific subtest and verifies the post-state and logs
-func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config) (*state.StateDB, error) {
-	statedb, root, err := t.RunNoVerify(subtest, vmconfig)
+func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*state.StateDB, error) {
+	statedb, root, err := t.RunNoVerify(subtest, vmconfig, snapshotter)
 	if err != nil {
 		return statedb, err
 	}
@@ -163,14 +164,14 @@ func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config) (*state.StateD
 }
 
 // RunNoVerify runs a specific subtest and returns the statedb and post-state root
-func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config) (*state.StateDB, common.Hash, error) {
+func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*state.StateDB, common.Hash, error) {
 	config, cips, err := getVMConfig(subtest.Fork)
 	if err != nil {
 		return nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
 	}
 	vmconfig.ExtraCips = cips
 	block := t.genesis(config).ToBlock(nil)
-	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre)
+	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
 
 	post := t.json.Post[subtest.Fork][subtest.Index]
 	msg, err := t.json.Tx.toMessage(post)
@@ -204,9 +205,9 @@ func (t *StateTest) energyLimit(subtest StateSubtest) uint64 {
 	return t.json.Tx.EnergyLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Energy]
 }
 
-func MakePreState(db xccdb.Database, accounts core.GenesisAlloc) *state.StateDB {
+func MakePreState(db xccdb.Database, accounts core.GenesisAlloc, snapshotter bool) *state.StateDB {
 	sdb := state.NewDatabase(db)
-	statedb, _ := state.New(common.Hash{}, sdb)
+	statedb, _ := state.New(common.Hash{}, sdb, nil)
 	for addr, a := range accounts {
 		statedb.SetCode(addr, a.Code)
 		statedb.SetNonce(addr, a.Nonce)
@@ -217,7 +218,12 @@ func MakePreState(db xccdb.Database, accounts core.GenesisAlloc) *state.StateDB 
 	}
 	// Commit and re-open to start with a clean state.
 	root, _ := statedb.Commit(false)
-	statedb, _ = state.New(root, sdb)
+
+	var snaps *snapshot.Tree
+	if snapshotter {
+		snaps = snapshot.New(db, sdb.TrieDB(), 1, root, false)
+	}
+	statedb, _ = state.New(root, sdb, snaps)
 	return statedb
 }
 
