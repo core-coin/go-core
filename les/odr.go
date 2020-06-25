@@ -22,21 +22,21 @@ import (
 
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // LesOdr implements light.OdrBackend
 type LesOdr struct {
-	db                                         xcedb.Database
+	db                                         xccdb.Database
 	indexerConfig                              *light.IndexerConfig
 	chtIndexer, bloomTrieIndexer, bloomIndexer *core.ChainIndexer
 	retriever                                  *retrieveManager
 	stop                                       chan struct{}
 }
 
-func NewLesOdr(db xcedb.Database, config *light.IndexerConfig, retriever *retrieveManager) *LesOdr {
+func NewLesOdr(db xccdb.Database, config *light.IndexerConfig, retriever *retrieveManager) *LesOdr {
 	return &LesOdr{
 		db:            db,
 		indexerConfig: config,
@@ -51,7 +51,7 @@ func (odr *LesOdr) Stop() {
 }
 
 // Database returns the backing database
-func (odr *LesOdr) Database() xcedb.Database {
+func (odr *LesOdr) Database() xccdb.Database {
 	return odr.db
 }
 

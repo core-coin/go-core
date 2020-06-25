@@ -17,8 +17,8 @@
 package discover
 
 import (
-	"github.com/core-coin/eddsa"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"net"
 	"sort"
 	"testing"
@@ -33,13 +33,13 @@ func TestUDPv4_Lookup(t *testing.T) {
 	test := newUDPTest(t)
 
 	// Lookup on empty table returns no nodes.
-	targetKey, _ := decodePubkey(crypto.S256(), lookupTestnet.target)
+	targetKey, _ := decodePubkey(lookupDevin.target)
 	if results := test.udp.LookupPubkey(targetKey); len(results) > 0 {
 		t.Fatalf("lookup on empty table returned %d results: %#v", len(results), results)
 	}
 
 	// Seed table with initial node.
-	fillTable(test.table, []*node{wrapNode(lookupTestnet.node(256, 0))})
+	fillTable(test.table, []*node{wrapNode(lookupDevin.node(256, 0))})
 
 	// Start the lookup.
 	resultC := make(chan []*enode.Node, 1)
@@ -49,18 +49,18 @@ func TestUDPv4_Lookup(t *testing.T) {
 	}()
 
 	// Answer lookup packets.
-	serveTestnet(test, lookupTestnet)
+	serveDevin(test, lookupDevin)
 
 	// Verify result nodes.
 	results := <-resultC
 	t.Logf("results:")
 	for _, e := range results {
-		t.Logf("  ld=%d, %x", enode.LogDist(lookupTestnet.target.id(), e.ID()), e.ID().Bytes())
+		t.Logf("  ld=%d, %x", enode.LogDist(lookupDevin.target.id(), e.ID()), e.ID().Bytes())
 	}
 	if len(results) != bucketSize {
 		t.Errorf("wrong number of results: got %d, want %d", len(results), bucketSize)
 	}
-	checkLookupResults(t, lookupTestnet, results)
+	checkLookupResults(t, lookupDevin, results)
 }
 
 func TestUDPv4_LookupIterator(t *testing.T) {
@@ -69,28 +69,28 @@ func TestUDPv4_LookupIterator(t *testing.T) {
 	defer test.close()
 
 	// Seed table with initial nodes.
-	bootnodes := make([]*node, len(lookupTestnet.dists[256]))
-	for i := range lookupTestnet.dists[256] {
-		bootnodes[i] = wrapNode(lookupTestnet.node(256, i))
+	bootnodes := make([]*node, len(lookupDevin.dists[256]))
+	for i := range lookupDevin.dists[256] {
+		bootnodes[i] = wrapNode(lookupDevin.node(256, i))
 	}
 	fillTable(test.table, bootnodes)
-	go serveTestnet(test, lookupTestnet)
+	go serveDevin(test, lookupDevin)
 
 	// Create the iterator and collect the nodes it yields.
 	iter := test.udp.RandomNodes()
 	seen := make(map[enode.ID]*enode.Node)
-	for limit := lookupTestnet.len(); iter.Next() && len(seen) < limit; {
+	for limit := lookupDevin.len(); iter.Next() && len(seen) < limit; {
 		seen[iter.Node().ID()] = iter.Node()
 	}
 	iter.Close()
 
-	// Check that all nodes in lookupTestnet were seen by the iterator.
+	// Check that all nodes in lookupDevin were seen by the iterator.
 	results := make([]*enode.Node, 0, len(seen))
 	for _, n := range seen {
 		results = append(results, n)
 	}
 	sortByID(results)
-	want := lookupTestnet.nodes()
+	want := lookupDevin.nodes()
 	if err := checkNodesEqual(results, want); err != nil {
 		t.Fatal(err)
 	}
@@ -104,12 +104,12 @@ func TestUDPv4_LookupIteratorClose(t *testing.T) {
 	defer test.close()
 
 	// Seed table with initial nodes.
-	bootnodes := make([]*node, len(lookupTestnet.dists[256]))
-	for i := range lookupTestnet.dists[256] {
-		bootnodes[i] = wrapNode(lookupTestnet.node(256, i))
+	bootnodes := make([]*node, len(lookupDevin.dists[256]))
+	for i := range lookupDevin.dists[256] {
+		bootnodes[i] = wrapNode(lookupDevin.node(256, i))
 	}
 	fillTable(test.table, bootnodes)
-	go serveTestnet(test, lookupTestnet)
+	go serveDevin(test, lookupDevin)
 
 	it := test.udp.RandomNodes()
 	if ok := it.Next(); !ok || it.Node() == nil {
@@ -133,16 +133,16 @@ func TestUDPv4_LookupIteratorClose(t *testing.T) {
 	}
 }
 
-func serveTestnet(test *udpTest, testnet *preminedTestnet) {
+func serveDevin(test *udpTest, devin *preminedDevin) {
 	for done := false; !done; {
 		done = test.waitPacketOut(func(p packetV4, to *net.UDPAddr, hash []byte) {
-			n, key := testnet.nodeByAddr(to)
+			n, key := devin.nodeByAddr(to)
 			switch p.(type) {
 			case *pingV4:
 				test.packetInFrom(nil, key, to, &pongV4{Expiration: futureExp, ReplyTok: hash})
 			case *findnodeV4:
-				dist := enode.LogDist(n.ID(), testnet.target.id())
-				nodes := testnet.nodesAtDistance(dist - 1)
+				dist := enode.LogDist(n.ID(), devin.target.id())
+				nodes := devin.nodesAtDistance(dist - 1)
 				test.packetInFrom(nil, key, to, &neighborsV4{Expiration: futureExp, Nodes: nodes})
 			}
 		})
@@ -151,7 +151,7 @@ func serveTestnet(test *udpTest, testnet *preminedTestnet) {
 
 // checkLookupResults verifies that the results of a lookup are the closest nodes to
 // the testnet's target.
-func checkLookupResults(t *testing.T, tn *preminedTestnet, results []*enode.Node) {
+func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) {
 	t.Helper()
 	t.Logf("results:")
 	for _, e := range results {
@@ -170,8 +170,8 @@ func checkLookupResults(t *testing.T, tn *preminedTestnet, results []*enode.Node
 }
 
 // This is the test network for the Lookup test.
-// The nodes were obtained by running lookupTestnet.mine with a random NodeID as target.
-var lookupTestnet = &preminedTestnet{
+// The nodes were obtained by running lookupDevin.mine with a random NodeID as target.
+var lookupDevin = &preminedDevin{
 	target: hexEncPubkey("5d485bdcbe9bc89314a10ae9231e429d33853e3a8fa2af39f5f827370a2e4185e344ace5d16237491dad41f278f1d3785210d29ace76cd62"),
 	dists: [257][]*eddsa.PrivateKey{
 		251: {
@@ -229,12 +229,12 @@ var lookupTestnet = &preminedTestnet{
 	},
 }
 
-type preminedTestnet struct {
+type preminedDevin struct {
 	target encPubkey
 	dists  [hashBits + 1][]*eddsa.PrivateKey
 }
 
-func (tn *preminedTestnet) len() int {
+func (tn *preminedDevin) len() int {
 	n := 0
 	for _, keys := range tn.dists {
 		n += len(keys)
@@ -242,7 +242,7 @@ func (tn *preminedTestnet) len() int {
 	return n
 }
 
-func (tn *preminedTestnet) nodes() []*enode.Node {
+func (tn *preminedDevin) nodes() []*enode.Node {
 	result := make([]*enode.Node, 0, tn.len())
 	for dist, keys := range tn.dists {
 		for index := range keys {
@@ -253,7 +253,7 @@ func (tn *preminedTestnet) nodes() []*enode.Node {
 	return result
 }
 
-func (tn *preminedTestnet) node(dist, index int) *enode.Node {
+func (tn *preminedDevin) node(dist, index int) *enode.Node {
 	key := tn.dists[dist][index]
 	rec := new(enr.Record)
 	rec.Set(enr.IP{127, byte(dist >> 8), byte(dist), byte(index)})
@@ -263,14 +263,14 @@ func (tn *preminedTestnet) node(dist, index int) *enode.Node {
 	return n
 }
 
-func (tn *preminedTestnet) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.PrivateKey) {
+func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.PrivateKey) {
 	dist := int(addr.IP[1])<<8 + int(addr.IP[2])
 	index := int(addr.IP[3])
 	key := tn.dists[dist][index]
 	return tn.node(dist, index), key
 }
 
-func (tn *preminedTestnet) nodesAtDistance(dist int) []rpcNode {
+func (tn *preminedDevin) nodesAtDistance(dist int) []rpcNode {
 	result := make([]rpcNode, len(tn.dists[dist]))
 	for i := range result {
 		result[i] = nodeToRPC(wrapNode(tn.node(dist, i)))
@@ -278,11 +278,11 @@ func (tn *preminedTestnet) nodesAtDistance(dist int) []rpcNode {
 	return result
 }
 
-func (tn *preminedTestnet) neighborsAtDistance(base *enode.Node, distance uint, elems int) []*enode.Node {
+func (tn *preminedDevin) neighborsAtDistance(base *enode.Node, distance uint, elems int) []*enode.Node {
 	nodes := nodesByDistance{target: base.ID()}
-	for d := range lookupTestnet.dists {
-		for i := range lookupTestnet.dists[d] {
-			n := lookupTestnet.node(d, i)
+	for d := range lookupDevin.dists {
+		for i := range lookupDevin.dists[d] {
+			n := lookupDevin.node(d, i)
 			if uint(enode.LogDist(n.ID(), base.ID())) == distance {
 				nodes.push(wrapNode(n), elems)
 			}
@@ -291,7 +291,7 @@ func (tn *preminedTestnet) neighborsAtDistance(base *enode.Node, distance uint, 
 	return unwrapNodes(nodes.entries)
 }
 
-func (tn *preminedTestnet) closest(n int) (nodes []*enode.Node) {
+func (tn *preminedDevin) closest(n int) (nodes []*enode.Node) {
 	for d := range tn.dists {
 		for i := range tn.dists[d] {
 			nodes = append(nodes, tn.node(d, i))
@@ -303,11 +303,11 @@ func (tn *preminedTestnet) closest(n int) (nodes []*enode.Node) {
 	return nodes[:n]
 }
 
-var _ = (*preminedTestnet).mine // avoid linter warning about mine being dead code.
+var _ = (*preminedDevin).mine // avoid linter warning about mine being dead code.
 
-// mine generates a testnet struct literal with nodes at
+// mine generates a devin struct literal with nodes at
 // various distances to the network's target.
-func (tn *preminedTestnet) mine() {
+func (tn *preminedDevin) mine() {
 	// Clear existing slices first (useful when re-mining).
 	for i := range tn.dists {
 		tn.dists[i] = nil
@@ -324,7 +324,7 @@ func (tn *preminedTestnet) mine() {
 			fmt.Printf("found ID with ld %d (%d/%d)\n", ld, found, need)
 		}
 	}
-	fmt.Printf("&preminedTestnet{\n")
+	fmt.Printf("&preminedDevin{\n")
 	fmt.Printf("	target: hexEncPubkey(\"%x\"),\n", tn.target[:])
 	fmt.Printf("	dists: [%d][]*eddsa.PrivateKey{\n", len(tn.dists))
 	for ld, ns := range tn.dists {
