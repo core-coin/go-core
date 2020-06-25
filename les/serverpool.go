@@ -28,8 +28,6 @@ import (
 
 	"github.com/core-coin/eddsa"
 
-	"github.com/core-coin/eddsa"
-
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/les/utils"
