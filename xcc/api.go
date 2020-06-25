@@ -357,35 +357,34 @@ const AccountRangeMaxResults = 256
 func (api *PublicDebugAPI) AccountRange(blockNrOrHash rpc.BlockNumberOrHash, start []byte, maxResults int, nocode, nostorage, incompletes bool) (state.IteratorDump, error) {
 	var stateDb *state.StateDB
 	var err error
-	block := api.xcc.blockchain.CurrentBlock()
 
 	if number, ok := blockNrOrHash.Number(); ok {
 		if number == rpc.PendingBlockNumber {
 			// If we're dumping the pending state, we need to request
 			// both the pending block as well as the pending state from
 			// the miner and operate on those
-			_, stateDb = api.xce.miner.Pending()
+			_, stateDb = api.xcc.miner.Pending()
 		} else {
 			var block *types.Block
 			if number == rpc.LatestBlockNumber {
-				block = api.xce.blockchain.CurrentBlock()
+				block = api.xcc.blockchain.CurrentBlock()
 			} else {
-				block = api.xce.blockchain.GetBlockByNumber(uint64(number))
+				block = api.xcc.blockchain.GetBlockByNumber(uint64(number))
 			}
 			if block == nil {
 				return state.IteratorDump{}, fmt.Errorf("block #%d not found", number)
 			}
-			stateDb, err = api.xce.BlockChain().StateAt(block.Root())
+			stateDb, err = api.xcc.BlockChain().StateAt(block.Root())
 			if err != nil {
 				return state.IteratorDump{}, err
 			}
 		}
 	} else if hash, ok := blockNrOrHash.Hash(); ok {
-		block := api.xce.blockchain.GetBlockByHash(hash)
+		block := api.xcc.blockchain.GetBlockByHash(hash)
 		if block == nil {
 			return state.IteratorDump{}, fmt.Errorf("block %s not found", hash.Hex())
 		}
-		stateDb, err = api.xce.BlockChain().StateAt(block.Root())
+		stateDb, err = api.xcc.BlockChain().StateAt(block.Root())
 		if err != nil {
 			return state.IteratorDump{}, err
 		}
