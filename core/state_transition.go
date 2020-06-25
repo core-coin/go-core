@@ -49,15 +49,15 @@ The state transitioning model does all the necessary work to work out a valid ne
 6) Derive new state root
 */
 type StateTransition struct {
-	gp         *EnergyPool
-	msg        Message
+	gp            *EnergyPool
+	msg           Message
 	energy        uint64
 	energyPrice   *big.Int
 	initialEnergy uint64
-	value      *big.Int
-	data       []byte
-	state      vm.StateDB
-	cvm        *vm.CVM
+	value         *big.Int
+	data          []byte
+	state         vm.StateDB
+	cvm           *vm.CVM
 }
 
 // Message represents a message sent to a contract.
@@ -111,13 +111,13 @@ func IntrinsicEnergy(data []byte, contractCreation bool) (uint64, error) {
 // NewStateTransition initialises and returns a new state transition object.
 func NewStateTransition(cvm *vm.CVM, msg Message, gp *EnergyPool) *StateTransition {
 	return &StateTransition{
-		gp:       gp,
-		cvm:      cvm,
-		msg:      msg,
+		gp:          gp,
+		cvm:         cvm,
+		msg:         msg,
 		energyPrice: msg.EnergyPrice(),
-		value:    msg.Value(),
-		data:     msg.Data(),
-		state:    cvm.StateDB,
+		value:       msg.Value(),
+		data:        msg.Data(),
+		state:       cvm.StateDB,
 	}
 }
 
@@ -234,7 +234,7 @@ func (st *StateTransition) refundEnergy() {
 	}
 	st.energy += refund
 
-	// Return XCE for remaining energy, exchanged at the original rate.
+	// Return XCC for remaining energy, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.energy), st.energyPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 

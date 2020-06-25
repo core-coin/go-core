@@ -174,7 +174,7 @@ func discv4Crawl(ctx *cli.Context) error {
 }
 
 func parseBootnodes(ctx *cli.Context) ([]*enode.Node, error) {
-	s := append(params.TestnetBootnodes, params.KolibaBootnodes...)
+	s := append(params.DevinBootnodes, params.KolibaBootnodes...)
 	if ctx.IsSet(bootnodesFlag.Name) {
 		s = strings.Split(ctx.String(bootnodesFlag.Name), ",")
 	}
