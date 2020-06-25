@@ -48,7 +48,7 @@ const (
 	// non-trivial consequences: larger transactions are significantly harder and
 	// more expensive to propagate; larger transactions also take more resources
 	// to validate whether they fit into the pool or not.
-	txMaxSize = 2 * txSlotSize // 64KB, don't bump without CIP-2464 support
+	txMaxSize = 4 * txSlotSize // 128KB
 )
 
 var (
@@ -228,14 +228,14 @@ type TxPool struct {
 	config      TxPoolConfig
 	chainconfig *params.ChainConfig
 	chain       blockChain
-	energyPrice    *big.Int
+	energyPrice *big.Int
 	txFeed      event.Feed
 	scope       event.SubscriptionScope
 	signer      types.Signer
 	mu          sync.RWMutex
 
-	currentState  *state.StateDB // Current state in the blockchain head
-	pendingNonces *txNoncer      // Pending state tracking virtual nonces
+	currentState     *state.StateDB // Current state in the blockchain head
+	pendingNonces    *txNoncer      // Pending state tracking virtual nonces
 	currentMaxEnergy uint64         // Current energy limit for transaction caps
 
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
@@ -283,7 +283,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		queueTxEventCh:  make(chan *types.Transaction),
 		reorgDoneCh:     make(chan chan struct{}),
 		reorgShutdownCh: make(chan struct{}),
-		energyPrice:        new(big.Int).SetUint64(config.PriceLimit),
+		energyPrice:     new(big.Int).SetUint64(config.PriceLimit),
 	}
 	pool.locals = newAccountSet(pool.signer)
 	for _, addr := range config.Locals {

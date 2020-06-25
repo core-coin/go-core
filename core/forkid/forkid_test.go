@@ -43,13 +43,13 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0xfc64ec04), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0xbf810387), Next: 0}},
 			},
 		},
-		// Testnet test cases
+		// Devin test cases
 		{
-			params.TestnetChainConfig,
-			params.TestnetGenesisHash,
+			params.DevinChainConfig,
+			params.DevinGenesisHash,
 			[]testcase{
 				{10, ID{Hash: checksumToBytes(0x30c7ddbc), Next: 0}},
 			},
