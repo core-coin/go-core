@@ -167,7 +167,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		Code:    []byte{},
 		Balance: big.NewInt(500000000000000),
 	}
-	statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), alloc)
+	statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), alloc, false)
 
 	// Create the tracer, the CVM environment and run it
 	tracer, err := New("prestateTracer")
@@ -242,7 +242,7 @@ func TestCallTracer(t *testing.T) {
 				EnergyLimit: uint64(test.Context.EnergyLimit),
 				EnergyPrice: tx.EnergyPrice(),
 			}
-			statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), test.Genesis.Alloc)
+			statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), test.Genesis.Alloc, false)
 
 			// Create the tracer, the CVM environment and run it
 			tracer, err := New("callTracer")
