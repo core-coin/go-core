@@ -29,11 +29,11 @@ import (
 	"time"
 
 	"github.com/core-coin/eddsa"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
-	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/core-coin/go-core/common/mclock"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/p2p/netutil"
 )
 
 const (

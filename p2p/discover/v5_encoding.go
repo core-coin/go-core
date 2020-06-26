@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/sha256"
 	"errors"
@@ -202,10 +201,10 @@ func (h *authHeader) DecodeRLP(r *rlp.Stream) error {
 }
 
 // ephemeralKey decodes the ephemeral public key in the header.
-func (h *authHeaderList) ephemeralKey(curve elliptic.Curve) *eddsa.PublicKey {
+func (h *authHeaderList) ephemeralKey() *eddsa.PublicKey {
 	var key encPubkey
 	copy(key[:], h.EphemeralKey)
-	pubkey, _ := decodePubkey(curve, key)
+	pubkey, _ := decodePubkey(key)
 	return pubkey
 }
 
@@ -335,7 +334,7 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 	if err := challenge.node.Load((*enode.Secp256k1)(remotePubkey)); err != nil {
 		return nil, nil, fmt.Errorf("can't find secp256k1 key for recipient")
 	}
-	ephkey, err := crypto.GenerateKey()
+	ephkey, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't generate ephemeral key")
 	}
@@ -506,7 +505,7 @@ func (c *wireCodec) decodeAuthResp(fromID enode.ID, fromAddr string, head *authH
 	if head.Scheme != authSchemeName {
 		return nil, nil, errUnknownAuthScheme
 	}
-	ephkey := head.ephemeralKey(c.privkey.Curve)
+	ephkey := head.ephemeralKey()
 	if ephkey == nil {
 		return nil, nil, errInvalidAuthKey
 	}
