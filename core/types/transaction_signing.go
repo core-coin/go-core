@@ -107,7 +107,7 @@ func (s NucleusSigner) Equal(s2 Signer) bool {
 }
 
 func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
-	if tx.data.ChainID != 0 {
+	if s.chainId.Int64() != 0 {
 		if tx.data.ChainID != uint(s.chainId.Int64()) {
 			return common.Address{}, ErrInvalidChainId
 		}
@@ -141,7 +141,7 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	if tx.data.ChainID != 0 {
+	if signer.ChainID() != 0 {
 		hash := signer.Hash(tx)
 		if !crypto.VerifySignature(pubk.X, hash[:], tx.data.Signature[:]) {
 			return common.Address{}, ErrInvalidSig

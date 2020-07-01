@@ -300,7 +300,7 @@ func (a *Address) UnmarshalJSON(input []byte) error {
 	// input has string like `"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"` or without 0x `"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"`
 	if string(input[1:3]) == "0x" {
 		if len(input) != 2+2+AddressChecksumLength*2+AddressLength*2 {
-			return errors.New("invalid address, want checksum with lenght 2 and address with length 20")
+			return errors.New("invalid address, want checksum with length 2 and address with length 20")
 		}
 		if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
 			return errors.New("invalid checksum")
