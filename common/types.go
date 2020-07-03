@@ -297,6 +297,9 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
+	if len(input) != 2+2*AddressChecksumLength+2*AddressLength && len(input) != 4+2*AddressChecksumLength+2*AddressLength {
+		return errors.New("invalid address")
+	}
 	if string(input[1:3]) == "0x" {
 		input = append(input[:1], input[3:]...)
 	}
