@@ -31,15 +31,14 @@ package ecies
 
 import (
 	"crypto/cipher"
-	"github.com/core-coin/eddsa"
-	"github.com/core-coin/go-core/crypto"
 	"crypto/hmac"
 	"crypto/subtle"
 	"encoding/binary"
 	"fmt"
+	"github.com/core-coin/eddsa"
+	"github.com/core-coin/go-core/crypto"
 	"hash"
 	"io"
-	"math/big"
 )
 
 var (
@@ -52,7 +51,7 @@ var (
 
 // PublicKey is a representation of an elliptic curve public key.
 type PublicKey struct {
-	X []byte
+	X      []byte
 	Params *ECIESParams
 }
 
@@ -214,7 +213,7 @@ func Encrypt(rand io.Reader, pub *PublicKey, m, s1, s2 []byte) (ct []byte, err e
 		return nil, err
 	}
 
-	R, err := GenerateKey(rand, pub.Curve, params)
+	R, err := GenerateKey(rand, params)
 	if err != nil {
 		return nil, err
 	}
@@ -257,22 +256,9 @@ func (prv *PrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
 	var (
 		rLen   int = len(prv.PublicKey.X)
 		hLen   int = hash.Size()
-		mStart int = rLen;
+		mStart int = rLen
 		mEnd   int = len(c) - hLen
 	)
-
-	switch c[0] {
-	case 2, 3, 4:
-		rLen = (prv.PublicKey.Curve.Params().BitSize + 7) / 4
-		if len(c) < (rLen + hLen + 1) {
-			return nil, ErrInvalidMessage
-		}
-	default:
-		return nil, ErrInvalidPublicKey
-	}
-
-	mStart = rLen
-	mEnd = len(c) - hLen
 
 	R := new(PublicKey)
 	R.X = c[:rLen]

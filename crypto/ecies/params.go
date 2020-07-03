@@ -75,7 +75,7 @@ func ParamsFromCurve() (params *ECIESParams) {
 func pubkeyParams(key *PublicKey) (*ECIESParams, error) {
 	params := key.Params
 	if params == nil {
-		if params = ParamsFromCurve(key.Curve); params == nil {
+		if params = ParamsFromCurve(); params == nil {
 			return nil, ErrUnsupportedECIESParameters
 		}
 	}
