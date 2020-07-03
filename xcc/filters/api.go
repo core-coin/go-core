@@ -560,16 +560,10 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 }
 
 func decodeAddress(s string) (common.Address, error) {
-	if len(s) != 44 && len(s) != 46 && len(s) != 42 {
-		return common.Address{}, errors.New("invalid address, want checksum with length 2 and address with length 20")
+	if addr, verified := common.ParseAddress(s); verified {
+		return addr, nil
 	}
-	if s[:2] == "0x" {
-		s = s[:2]
-	}
-	if !common.VerifyChecksum(s[:2], s[2:]) {
-		return common.Address{}, errors.New("invalid checksum")
-	}
-	return common.HexToAddress(s[2:]), nil
+	return common.Address{}, errors.New("Invalid address")
 }
 
 func decodeTopic(s string) (common.Hash, error) {

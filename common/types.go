@@ -39,6 +39,8 @@ const (
 	AddressLength = 20
 	// AddressChecksumLength is the length of checksum prefix
 	AddressChecksumLength = 1
+	// FullHexAddressLength is the length of address with checksum in hex
+	FullHexAddressLength = 42
 )
 
 var (
@@ -221,8 +223,23 @@ func CalculateChecksum(address string) string {
 	return strconv.Itoa(int(resInt))
 }
 
-func VerifyChecksum(checksum, addr string) bool {
-	return checksum == CalculateChecksum(addr)
+func ParseAddress(addr []byte) (Address, bool) {
+	addr = removeZeroXPrexif(addr)
+	addr = Hex2Bytes(string(addr))
+	if len(addr) != AddressLength+AddressChecksumLength {
+		return Address{}, false
+	}
+	verified := Bytes2Hex(addr[:1]) == CalculateChecksum(Bytes2Hex(addr[1:]))
+	return BytesToAddress(addr[1:]), verified
+}
+
+func removeZeroXPrexif(addr []byte) []byte {
+	if string(addr[:1]) == "0x" {
+		return addr[1:]
+	} else if string(addr[:2]) == "0x" {
+		return addr[2:]
+	}
+	return addr
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -232,17 +249,10 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
-	if len(s) == 2+AddressChecksumLength*2+AddressLength*2 { // "0x" + 2 digits checksum + 20 digits address
-		if s[:2] == "0x" { // cut off "0x"
-			s = s[2:]
-		}
-		checksum := s[0 : AddressChecksumLength*2]
-		if !VerifyChecksum(checksum, s[AddressChecksumLength*2:]) {
-			return Address{}
-		}
-		return BytesToAddress(FromHex(s[AddressChecksumLength*2:]))
+	if addr, verified := ParseAddress(Hex2Bytes(s)); verified {
+		return addr
 	}
-	return BytesToAddress(FromHex(s))
+	return Address{}
 }
 
 // IsHexAddress verifies whether a string can represent a valid hex-encoded
@@ -251,7 +261,7 @@ func IsHexAddress(s string) bool {
 	if has0xPrefix(s) {
 		s = s[2:]
 	}
-	return len(s) == 2*AddressLength && isHex(s)
+	return (len(s) == 2*AddressLength || len(s) == FullHexAddressLength) && isHex(s)
 }
 
 // Bytes gets the string representation of the underlying address.
@@ -262,7 +272,7 @@ func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns hex string representation of the address.
 func (a Address) Hex() string {
-	return CalculateChecksum(hex.EncodeToString(a[:])) + hex.EncodeToString(a[:])
+	return CalculateChecksum(Bytes2Hex(a[:])) + hex.EncodeToString(a[:])
 }
 
 // String implements fmt.Stringer.
@@ -287,7 +297,7 @@ func (a *Address) SetBytes(b []byte) {
 
 // MarshalText returns the hex representation of a.
 func (a Address) MarshalText() ([]byte, error) {
-	return []byte(CalculateChecksum(hex.EncodeToString(a[:])) + hex.EncodeToString(a[:])), nil
+	return []byte(CalculateChecksum(Bytes2Hex(a[:])) + hex.EncodeToString(a[:])), nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
@@ -297,16 +307,11 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	if len(input) != 2+2*AddressChecksumLength+2*AddressLength && len(input) != 4+2*AddressChecksumLength+2*AddressLength {
-		return errors.New("invalid address")
+	if addr, verified := ParseAddress(input[1 : len(input)-1]); verified {
+		copy(a[:], addr[:])
+		return nil
 	}
-	if string(input[1:3]) == "0x" {
-		input = append(input[:1], input[3:]...)
-	}
-	if !VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
-		return errors.New("invalid checksum")
-	}
-	return hexutil.UnmarshalFixedJSON(addressT, append([]byte("\"0x"), input[3:]...), a[:])
+	return errors.New("invalid address")
 }
 
 // S n implements Scanner for database/sql.
