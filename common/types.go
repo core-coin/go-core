@@ -223,23 +223,20 @@ func CalculateChecksum(address string) string {
 	return strconv.Itoa(int(resInt))
 }
 
-func ParseAddress(addr []byte) (Address, bool) {
-	addr = removeZeroXPrexif(addr)
-	addr = Hex2Bytes(string(addr))
-	if len(addr) != AddressLength+AddressChecksumLength {
+func ParseAddress(addr string) (Address, bool) {
+	addrBytes := removeZeroXPrefix(addr)
+	if len(addrBytes) != AddressLength+AddressChecksumLength {
 		return Address{}, false
 	}
-	verified := Bytes2Hex(addr[:1]) == CalculateChecksum(Bytes2Hex(addr[1:]))
-	return BytesToAddress(addr[1:]), verified
+	verified := Bytes2Hex(addrBytes[:1]) == CalculateChecksum(Bytes2Hex(addrBytes[1:]))
+	return BytesToAddress(addrBytes[1:]), verified
 }
 
-func removeZeroXPrexif(addr []byte) []byte {
-	if string(addr[:1]) == "0x" {
-		return addr[1:]
-	} else if string(addr[:2]) == "0x" {
-		return addr[2:]
+func removeZeroXPrefix(addr string) []byte {
+	if addr[:2] == "0x" {
+		return Hex2Bytes(addr[2:])
 	}
-	return addr
+	return Hex2Bytes(addr)
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -249,7 +246,10 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
-	if addr, verified := ParseAddress(Hex2Bytes(s)); verified {
+	if len(s) < 40 {
+		return Address{}
+	}
+	if addr, verified := ParseAddress(s); verified {
 		return addr
 	}
 	return Address{}
@@ -307,7 +307,7 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	if addr, verified := ParseAddress(input[1 : len(input)-1]); verified {
+	if addr, verified := ParseAddress(string(input[1 : len(input)-1])); verified {
 		copy(a[:], addr[:])
 		return nil
 	}
