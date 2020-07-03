@@ -206,7 +206,7 @@ func makeDiscoveryConfig(ctx *cli.Context) (*enode.LocalNode, discover.Config) {
 		}
 		cfg.PrivateKey = key
 	} else {
-		cfg.PrivateKey, _ = crypto.GenerateKey()
+		cfg.PrivateKey, _ = crypto.GenerateKey(rand.Reader)
 	}
 
 	if commandHasFlag(ctx, bootnodesFlag) {
@@ -242,7 +242,7 @@ func listen(ln *enode.LocalNode, addr string) *net.UDPConn {
 }
 
 func parseBootnodes(ctx *cli.Context) ([]*enode.Node, error) {
-	s := params.RinkebyBootnodes
+	s := params.DevinBootnodes
 	if ctx.IsSet(bootnodesFlag.Name) {
 		s = strings.Split(ctx.String(bootnodesFlag.Name), ",")
 	}
