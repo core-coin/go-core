@@ -404,37 +404,37 @@ func TestUDPv5_lookup(t *testing.T) {
 	test := newUDPV5Test(t)
 
 	// Lookup on empty table returns no nodes.
-	if results := test.udp.Lookup(lookupTestnet.target.id()); len(results) > 0 {
+	if results := test.udp.Lookup(lookupDevin.target.id()); len(results) > 0 {
 		t.Fatalf("lookup on empty table returned %d results: %#v", len(results), results)
 	}
 
-	// Ensure the tester knows all nodes in lookupTestnet by IP.
-	for d, nn := range lookupTestnet.dists {
+	// Ensure the tester knows all nodes in lookupDevin by IP.
+	for d, nn := range lookupDevin.dists {
 		for i, key := range nn {
-			n := lookupTestnet.node(d, i)
+			n := lookupDevin.node(d, i)
 			test.getNode(key, &net.UDPAddr{IP: n.IP(), Port: n.UDP()})
 		}
 	}
 
 	// Seed table with initial node.
-	fillTable(test.table, []*node{wrapNode(lookupTestnet.node(256, 0))})
+	fillTable(test.table, []*node{wrapNode(lookupDevin.node(256, 0))})
 
 	// Start the lookup.
 	resultC := make(chan []*enode.Node, 1)
 	go func() {
-		resultC <- test.udp.Lookup(lookupTestnet.target.id())
+		resultC <- test.udp.Lookup(lookupDevin.target.id())
 		test.close()
 	}()
 
 	// Answer lookup packets.
 	for done := false; !done; {
 		done = test.waitPacketOut(func(p packetV5, to *net.UDPAddr, authTag []byte) {
-			recipient, key := lookupTestnet.nodeByAddr(to)
+			recipient, key := lookupDevin.nodeByAddr(to)
 			switch p := p.(type) {
 			case *pingV5:
 				test.packetInFrom(key, to, &pongV5{ReqID: p.ReqID})
 			case *findnodeV5:
-				nodes := lookupTestnet.neighborsAtDistance(recipient, p.Distance, 3)
+				nodes := lookupDevin.neighborsAtDistance(recipient, p.Distance, 3)
 				response := &nodesV5{ReqID: p.ReqID, Total: 1, Nodes: nodesToRecords(nodes)}
 				test.packetInFrom(key, to, response)
 			}
@@ -442,7 +442,7 @@ func TestUDPv5_lookup(t *testing.T) {
 	}
 
 	// Verify result nodes.
-	checkLookupResults(t, lookupTestnet, <-resultC)
+	checkLookupResults(t, lookupDevin, <-resultC)
 }
 
 // udpV5Test is the framework for all tests above.

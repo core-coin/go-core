@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"github.com/core-coin/eddsa"
-	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
@@ -617,14 +616,7 @@ func xorTag(a []byte, b enode.ID) enode.ID {
 
 // ecdh creates a shared secret.
 func ecdh(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
-	secX, secY := pubkey.ScalarMult(pubkey.X, pubkey.Y, privkey.D.Bytes())
-	if secX == nil {
-		return nil
-	}
-	sec := make([]byte, 33)
-	sec[0] = 0x02 | byte(secY.Bit(0))
-	math.ReadBits(secX, sec[1:])
-	return sec
+	return crypto.ComputeSecret(privkey, pubkey)
 }
 
 // encryptGCM encrypts pt using AES-GCM with the given key and nonce.
