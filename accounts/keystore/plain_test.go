@@ -194,7 +194,7 @@ func TestV1_1(t *testing.T) {
 func TestV1_2(t *testing.T) {
 	t.Parallel()
 	ks := &keyStorePassphrase{"testdata/v1", LightScryptN, LightScryptP, true}
-	addr := common.HexToAddress("ef566e72dc223cf2a06281b2c186901fda79f09e")
+	addr := common.HexToAddress("81ef566e72dc223cf2a06281b2c186901fda79f09e")
 	file := "testdata/v1/ef566e72dc223cf2a06281b2c186901fda79f09e"
 	k, err := ks.GetKey(addr, file, "g")
 	if err != nil {

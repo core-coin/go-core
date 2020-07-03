@@ -34,20 +34,20 @@ var testKey, _ = crypto.HexToEDDSA("b2fb76df787478beafecf1f6078ac7aca04f3fca47a7
 
 var waitDeployedTests = map[string]struct {
 	code        string
-	energy         uint64
+	energy      uint64
 	wantAddress common.Address
 	wantErr     error
 }{
 	"successful deploy": {
 		code:        `6060604052600a8060106000396000f360606040526008565b00`,
-		energy:         3000000,
-		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
+		energy:      3000000,
+		wantAddress: common.HexToAddress("4992654452bc78c8aa4af175c7eb25478e588a7e79"),
 	},
 	"empty code": {
 		code:        ``,
-		energy:         300000,
+		energy:      300000,
 		wantErr:     bind.ErrNoCodeAfterDeploy,
-		wantAddress: common.HexToAddress("0x92654452Bc78C8Aa4Af175C7eB25478e588A7e79"),
+		wantAddress: common.HexToAddress("4992654452bc78c8aa4af175c7eb25478e588a7e79"),
 	},
 }
 
