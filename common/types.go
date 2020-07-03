@@ -300,7 +300,7 @@ func (a *Address) UnmarshalJSON(input []byte) error {
 	if string(input[1:3]) == "0x" {
 		input = append(input[:1], input[3:]...)
 	}
-	if VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
+	if !VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
 		return errors.New("invalid checksum")
 	}
 	return hexutil.UnmarshalFixedJSON(addressT, append([]byte("\"0x"), input[3:]...), a[:])
