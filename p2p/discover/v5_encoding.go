@@ -402,7 +402,7 @@ func (c *wireCodec) signIDNonce(nonce, ephkey []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't sign: %v", err)
 	}
-	return idsig[:len(idsig)-1], nil // remove recovery ID
+	return idsig[:len(idsig)], nil // remove recovery ID
 }
 
 // idNonceHash computes the hash of id nonce with prefix.
