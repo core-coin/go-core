@@ -101,6 +101,7 @@ func TestKeyStorePassphraseDecryptionFail(t *testing.T) {
 }
 
 func TestImportPreSaleKey(t *testing.T) {
+	fmt.Println(common.CalculateChecksum("ffffffffffffffffffffffffffffffffffffffff"))
 	t.Skip()
 	dir, ks := tmpKeyStoreIface(t, true)
 	defer os.RemoveAll(dir)

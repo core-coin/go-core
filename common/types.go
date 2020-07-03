@@ -22,9 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"math/rand"
+	"os"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -247,12 +250,31 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) Address {
 	if len(s) < 40 {
-		return Address{}
+		fatal("too short address", s)
 	}
 	if addr, verified := ParseAddress(s); verified {
 		return addr
 	}
+	fatal("invalid checksum in address", s)
 	return Address{}
+}
+
+// Fatal prints an error and exits the program
+func fatal(format string, args ...interface{}) {
+	w := io.MultiWriter(os.Stdout, os.Stderr)
+	if runtime.GOOS == "windows" {
+		// The SameFile check below doesn't work on Windows.
+		// stdout is unlikely to get redirected though, so just print there.
+		w = os.Stdout
+	} else {
+		outf, _ := os.Stdout.Stat()
+		errf, _ := os.Stderr.Stat()
+		if outf != nil && errf != nil && os.SameFile(outf, errf) {
+			w = os.Stderr
+		}
+	}
+	fmt.Fprintf(w, "Fatal: "+format+"\n", args...)
+	os.Exit(1)
 }
 
 // IsHexAddress verifies whether a string can represent a valid hex-encoded

@@ -759,7 +759,7 @@ func testExternalUI(api *core.SignerAPI) {
 	ctx = context.WithValue(ctx, "local", "main")
 	errs := make([]string, 0)
 
-	a := common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
+	a := common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
 	addErr := func(errStr string) {
 		log.Info("Test error", "err", errStr)
 		errs = append(errs, errStr)
@@ -807,7 +807,7 @@ func testExternalUI(api *core.SignerAPI) {
 		cliqueHeader := types.Header{
 			ParentHash:  common.HexToHash("0000H45H"),
 			UncleHash:   common.HexToHash("0000H45H"),
-			Coinbase:    common.HexToAddress("0000H45H"),
+			Coinbase:    common.HexToAddress("96deadbeef000000000000000000000000deadbeff"),
 			Root:        common.HexToHash("0000H00H"),
 			TxHash:      common.HexToHash("0000H45H"),
 			ReceiptHash: common.HexToHash("0000H45H"),
@@ -956,8 +956,8 @@ func decryptSeed(keyjson []byte, auth string) ([]byte, error) {
 func GenDoc(ctx *cli.Context) {
 
 	var (
-		a    = common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
-		b    = common.HexToAddress("0x1111111122222222222233333333334444444444")
+		a    = common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
+		b    = common.HexToAddress("151111111122222222222233333333334444444444")
 		meta = core.Metadata{
 			Scheme:    "http",
 			Local:     "localhost:8545",
@@ -1088,11 +1088,11 @@ func GenDoc(ctx *cli.Context) {
 			&core.ListResponse{
 				Accounts: []accounts.Account{
 					{
-						Address: common.HexToAddress("0xcowbeef000000cowbeef00000000000000000c0w"),
+						Address: common.HexToAddress("cowbeef000000cowbeef00000000000000000c0w"),
 						URL:     accounts.URL{Path: ".. ignored .."},
 					},
 					{
-						Address: common.HexToAddress("0xffffffffffffffffffffffffffffffffffffffff"),
+						Address: common.HexToAddress("37ffffffffffffffffffffffffffffffffffffffff"),
 					},
 				}})
 	}
