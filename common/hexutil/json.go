@@ -19,7 +19,9 @@ package hexutil
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/common"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -97,6 +99,15 @@ func (b *Bytes) UnmarshalGraphQL(input interface{}) error {
 func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
 	if !isString(input) {
 		return errNonString(typ)
+	}
+	if typ == reflect.TypeOf(common.Address{}) {
+		if string(input[1:3]) == "0x" {
+			input = append(input[:1], input[3:]...)
+		}
+		if !common.VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
+			return errors.New("invalid checksum")
+		}
+		return wrapTypeError(UnmarshalFixedText(typ.String(), input[3:len(input)-1], out), typ)
 	}
 	return wrapTypeError(UnmarshalFixedText(typ.String(), input[1:len(input)-1], out), typ)
 }

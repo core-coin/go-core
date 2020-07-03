@@ -297,22 +297,7 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	// input has string like `"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"` or without 0x `"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed"`
-	if string(input[1:3]) == "0x" {
-		if len(input) != 2+2+AddressChecksumLength*2+AddressLength*2 {
-			return errors.New("invalid address, want checksum with length 2 and address with length 20")
-		}
-		if !VerifyChecksum(string(input[3:5]), string(input[5:len(input)-1])) {
-			return errors.New("invalid checksum")
-		}
-		return hexutil.UnmarshalFixedJSON(addressT, append(input[:3], input[5:]...), a[:])
-	} else if len(input) == 2+AddressChecksumLength*2+AddressLength*2 {
-		if !VerifyChecksum(string(input[1:3]), string(input[3:len(input)-1])) {
-			return errors.New("invalid checksum")
-		}
-		return hexutil.UnmarshalFixedJSON(addressT, append([]byte("\"0x"), input[3:]...), a[:])
-	}
-	return errors.New("invalid address")
+	return hexutil.UnmarshalFixedJSON(addressT, input, a[:])
 }
 
 // S n implements Scanner for database/sql.
