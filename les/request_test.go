@@ -92,7 +92,7 @@ func testAccess(t *testing.T, protocol int, fn accessTestFn) {
 		for i := uint64(0); i <= server.handler.blockchain.CurrentHeader().Number.Uint64(); i++ {
 			bhash := rawdb.ReadCanonicalHash(server.db, i)
 			if req := fn(client.db, bhash, i); req != nil {
-				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+				ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 				err := client.handler.backend.odr.Retrieve(ctx, req)
 				cancel()
 
