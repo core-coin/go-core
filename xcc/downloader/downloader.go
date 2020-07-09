@@ -1845,7 +1845,7 @@ func (d *Downloader) requestRTT() time.Duration {
 func (d *Downloader) requestTTL() time.Duration {
 	var (
 		rtt  = time.Duration(atomic.LoadUint64(&d.rttEstimate))
-		conf = float64(atomic.LoadUint64(&d.rttConfidence)) / 1000000.0
+		conf = float64(atomic.LoadUint64(&d.rttConfidence)) / 10000.0
 	)
 	ttl := time.Duration(ttlScaling) * time.Duration(float64(rtt)/conf)
 	if ttl > ttlLimit {
