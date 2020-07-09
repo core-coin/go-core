@@ -223,7 +223,7 @@ func init() {
 		// See config.go
 		dumpConfigCommand,
 		// See retestxcc.go
-		retestxceCommand,
+		retestxccCommand,
 		// See cmd/utils/flags_legacy.go
 		utils.ShowDeprecated,
 	}
