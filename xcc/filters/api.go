@@ -560,10 +560,11 @@ func (args *FilterCriteria) UnmarshalJSON(data []byte) error {
 }
 
 func decodeAddress(s string) (common.Address, error) {
-	if addr, verified := common.ParseAddress(s); verified {
-		return addr, nil
+	b, err := hexutil.Decode(s)
+	if err == nil && len(b) != common.AddressLength {
+		err = fmt.Errorf("hex has invalid length %d after decoding; expected %d for address", len(b), common.AddressLength)
 	}
-	return common.Address{}, errors.New("Invalid address")
+	return common.BytesToAddress(b), err
 }
 
 func decodeTopic(s string) (common.Hash, error) {

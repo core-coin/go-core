@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
 	"time"
@@ -140,7 +141,10 @@ func odrGetReceipts(ctx context.Context, db xccdb.Database, bc *core.BlockChain,
 func TestOdrAccountsLes2(t *testing.T) { testChainOdr(t, 1, odrAccounts) }
 
 func odrAccounts(ctx context.Context, db xccdb.Database, bc *core.BlockChain, lc *LightChain, bhash common.Hash) ([]byte, error) {
-	dummyAddr := common.HexToAddress("1234567812345678123456781234567812345678")
+	dummyAddr, err := common.HexToAddress("021234567812345678123456781234567812345678")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	acc := []common.Address{testBankAddress, acc1Addr, acc2Addr, dummyAddr}
 
 	var st *state.StateDB

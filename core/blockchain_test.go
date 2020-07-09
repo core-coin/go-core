@@ -2119,6 +2119,10 @@ func TestReorgToShorterRemovesCanonMappingHeaderChain(t *testing.T) {
 
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
+	addr, err := common.HexToAddress("0xc0de")
+	if err != nil {
+		b.Error(err)
+	}
 	var (
 		testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
@@ -2127,7 +2131,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 			Config: params.TestChainConfig,
 			Alloc: GenesisAlloc{
 				testBankAddress: {Balance: bankFunds},
-				common.HexToAddress("0xc0de"): {
+				addr: {
 					Code:    []byte{0x60, 0x01, 0x50},
 					Balance: big.NewInt(0),
 				}, // push 1, pop
@@ -2282,8 +2286,8 @@ func TestSideImportPrunedBlocks(t *testing.T) {
 // first, but the journal wiped the entire state object on create-revert.
 func TestDeleteCreateRevert(t *testing.T) {
 	var (
-		aa = common.HexToAddress("0x000000000000000000000000000000000000aaaa")
-		bb = common.HexToAddress("0x000000000000000000000000000000000000bbbb")
+		aa, err1 = common.HexToAddress("57000000000000000000000000000000000000aaaa")
+		bb, err2 = common.HexToAddress("53000000000000000000000000000000000000bbbb")
 		// Generate a canonical chain to act as the main dataset
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()
@@ -2322,7 +2326,12 @@ func TestDeleteCreateRevert(t *testing.T) {
 		}
 		genesis = gspec.MustCommit(db)
 	)
-
+	if err1 != nil {
+		t.Error(err1)
+	}
+	if err2 != nil {
+		t.Error(err2)
+	}
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 1, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to AAAA

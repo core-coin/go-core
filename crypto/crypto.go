@@ -71,13 +71,17 @@ func Keccak512(data ...[]byte) []byte {
 // CreateAddress creates an core address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	addr := Keccak256(data)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 // CreateAddress2 creates an core address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+	addr := Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 // ToEDDSA creates a private key with the given D value.
@@ -182,7 +186,9 @@ func PubkeyToAddress(p eddsa.PublicKey) common.Address {
 	if pubBytes == nil {
 		return common.Address{}
 	}
-	return common.BytesToAddress(Keccak256(pubBytes)[12:])
+	addr := Keccak256(pubBytes)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 func zeroBytes(bytes []byte) {

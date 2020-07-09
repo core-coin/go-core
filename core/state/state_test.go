@@ -42,13 +42,15 @@ func newStateTest() *stateTest {
 
 func TestDump(t *testing.T) {
 	s := newStateTest()
-
+	addr1, _ := common.HexToAddress("330000000000000000000000000000000000000102")
+	addr2, _ := common.HexToAddress("950000000000000000000000000000000000000002")
+	addr3, _ := common.HexToAddress("960000000000000000000000000000000000000001")
 	// generate a few entries
-	obj1 := s.state.GetOrNewStateObject(toAddr([]byte{0x01}))
+	obj1 := s.state.GetOrNewStateObject(addr1)
 	obj1.AddBalance(big.NewInt(22))
-	obj2 := s.state.GetOrNewStateObject(toAddr([]byte{0x01, 0x02}))
+	obj2 := s.state.GetOrNewStateObject(addr2)
 	obj2.SetCode(crypto.Keccak256Hash([]byte{3, 3, 3, 3, 3, 3, 3}), []byte{3, 3, 3, 3, 3, 3, 3})
-	obj3 := s.state.GetOrNewStateObject(toAddr([]byte{0x02}))
+	obj3 := s.state.GetOrNewStateObject(addr3)
 	obj3.SetBalance(big.NewInt(44))
 
 	// write some of them to the trie
@@ -59,23 +61,23 @@ func TestDump(t *testing.T) {
 	// check that dump contains the state objects that are in trie
 	got := string(s.state.Dump(false, false, true))
 	want := `{
-    "root": "71edff0130dd2385947095001c73d9e28d862fc286fca2b922ca6f6f3cddfdd2",
+    "root": "5d3cbb9a7ccff464891983f0894c3f496152c1fb2ef2ddc60906d90366123073",
     "accounts": {
         "330000000000000000000000000000000000000102": {
+            "balance": "22",
+            "nonce": 0,
+            "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+            "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        "950000000000000000000000000000000000000002": {
             "balance": "0",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "87874902497a5bb968da31a2998d8f22e949d1ef6214bcdedd8bae24cca4b9e3",
             "code": "03030303030303"
         },
-        "950000000000000000000000000000000000000002": {
-            "balance": "44",
-            "nonce": 0,
-            "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-            "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
-        },
         "960000000000000000000000000000000000000001": {
-            "balance": "22",
+            "balance": "44",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
@@ -89,7 +91,10 @@ func TestDump(t *testing.T) {
 
 func TestNull(t *testing.T) {
 	s := newStateTest()
-	address := common.HexToAddress("0x823140710bf13990e4500136726d8b55")
+	address, err := common.HexToAddress("9100000000823140710bf13990e4500136726d8b55")
+	if err != nil {
+		t.Error(err)
+	}
 	s.state.CreateAccount(address)
 	//value := common.FromHex("0x823140710bf13990e4500136726d8b55")
 	var value common.Hash

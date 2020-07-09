@@ -264,7 +264,7 @@ func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) 
 }
 
 func ambiguousAddrRecovery(ks *keystore.KeyStore, err *keystore.AmbiguousAddrError, auth string) accounts.Account {
-	fmt.Printf("Multiple key files exist for address %s:\n", err.Addr.Hex())
+	fmt.Printf("Multiple key files exist for address %x:\n", err.Addr)
 	for _, a := range err.Matches {
 		fmt.Println("  ", a.URL)
 	}

@@ -19,6 +19,7 @@ package les
 import (
 	"bytes"
 	"context"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
 	"time"
@@ -80,13 +81,15 @@ func TestOdrAccountsLes2(t *testing.T) { testOdr(t, 2, 1, true, odrAccounts) }
 func TestOdrAccountsLes3(t *testing.T) { testOdr(t, 3, 1, true, odrAccounts) }
 
 func odrAccounts(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
-	dummyAddr := common.HexToAddress("1234567812345678123456781234567812345678")
+	dummyAddr, err := common.HexToAddress("021234567812345678123456781234567812345678")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	acc := []common.Address{bankAddr, userAddr1, userAddr2, dummyAddr}
 
 	var (
 		res []byte
 		st  *state.StateDB
-		err error
 	)
 	for _, addr := range acc {
 		if bc != nil {

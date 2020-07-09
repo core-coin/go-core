@@ -19,17 +19,12 @@ package common
 import (
 	"database/sql/driver"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/big"
 	"math/rand"
-	"os"
 	"reflect"
-	"runtime"
 	"strconv"
-	"strings"
 
 	"github.com/core-coin/go-core/common/hexutil"
 )
@@ -39,17 +34,15 @@ const (
 	// HashLength is the expected length of the hash
 	HashLength = 32
 	// AddressLength is the expected length of the address
-	AddressLength = 20
-	// AddressChecksumLength is the length of checksum prefix
-	AddressChecksumLength = 1
-	// FullHexAddressLength is the length of address with checksum in hex
-	FullHexAddressLength = 42
+	AddressLength = 21
 )
 
 var (
 	hashT    = reflect.TypeOf(Hash{})
 	addressT = reflect.TypeOf(Address{})
 )
+
+var invalidAddress = errors.New("Invalid address")
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
@@ -190,10 +183,11 @@ func BytesToAddress(b []byte) Address {
 	return a
 }
 
-func CalculateChecksum(address string) string {
+func CalculateChecksum(address []byte) string {
+	addrString := Bytes2Hex(address)
 	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
 	mods := ""
-	for _, c := range address {
+	for _, c := range addrString {
 		// Get character code point value
 		i := int(c)
 
@@ -226,20 +220,11 @@ func CalculateChecksum(address string) string {
 	return strconv.Itoa(int(resInt))
 }
 
-func ParseAddress(addr string) (Address, bool) {
-	addrBytes := removeZeroXPrefix(addr)
-	if len(addrBytes) != AddressLength+AddressChecksumLength {
-		return Address{}, false
+func verifyAddress(addr Address) bool {
+	if Bytes2Hex(addr[:1]) != CalculateChecksum(addr[1:]) {
+		return false
 	}
-	verified := Bytes2Hex(addrBytes[:1]) == CalculateChecksum(Bytes2Hex(addrBytes[1:]))
-	return BytesToAddress(addrBytes[1:]), verified
-}
-
-func removeZeroXPrefix(addr string) []byte {
-	if addr[:2] == "0x" {
-		return Hex2Bytes(addr[2:])
-	}
-	return Hex2Bytes(addr)
+	return true
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -248,33 +233,12 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
-func HexToAddress(s string) Address {
-	if len(s) < 40 {
-		fatal("too short address", s)
+func HexToAddress(s string) (Address, error) {
+	addr := BytesToAddress(FromHex(s))
+	if !verifyAddress(addr) {
+		return addr, invalidAddress
 	}
-	if addr, verified := ParseAddress(s); verified {
-		return addr
-	}
-	fatal("invalid checksum in address", s)
-	return Address{}
-}
-
-// Fatal prints an error and exits the program
-func fatal(format string, args ...interface{}) {
-	w := io.MultiWriter(os.Stdout, os.Stderr)
-	if runtime.GOOS == "windows" {
-		// The SameFile check below doesn't work on Windows.
-		// stdout is unlikely to get redirected though, so just print there.
-		w = os.Stdout
-	} else {
-		outf, _ := os.Stdout.Stat()
-		errf, _ := os.Stderr.Stat()
-		if outf != nil && errf != nil && os.SameFile(outf, errf) {
-			w = os.Stderr
-		}
-	}
-	fmt.Fprintf(w, "Fatal: "+format+"\n", args...)
-	os.Exit(1)
+	return addr, nil
 }
 
 // IsHexAddress verifies whether a string can represent a valid hex-encoded
@@ -283,7 +247,7 @@ func IsHexAddress(s string) bool {
 	if has0xPrefix(s) {
 		s = s[2:]
 	}
-	return (len(s) == 2*AddressLength || len(s) == FullHexAddressLength) && isHex(s)
+	return (len(s) == 2*AddressLength) && isHex(s)
 }
 
 // Bytes gets the string representation of the underlying address.
@@ -294,7 +258,7 @@ func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns hex string representation of the address.
 func (a Address) Hex() string {
-	return CalculateChecksum(Bytes2Hex(a[:])) + hex.EncodeToString(a[:])
+	return hex.EncodeToString(a[:])
 }
 
 // String implements fmt.Stringer.
@@ -319,7 +283,7 @@ func (a *Address) SetBytes(b []byte) {
 
 // MarshalText returns the hex representation of a.
 func (a Address) MarshalText() ([]byte, error) {
-	return []byte(CalculateChecksum(Bytes2Hex(a[:])) + hex.EncodeToString(a[:])), nil
+	return []byte(Bytes2Hex(a[:])), nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
@@ -329,11 +293,13 @@ func (a *Address) UnmarshalText(input []byte) error {
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	if addr, verified := ParseAddress(string(input[1 : len(input)-1])); verified {
-		copy(a[:], addr[:])
-		return nil
+	if err := hexutil.UnmarshalFixedJSON(addressT, input, a[:]); err != nil {
+		return err
 	}
-	return errors.New("invalid address")
+	if verified := verifyAddress(*a); !verified {
+		return invalidAddress
+	}
+	return nil
 }
 
 // S n implements Scanner for database/sql.
@@ -380,64 +346,4 @@ func (a *UnprefixedAddress) UnmarshalText(input []byte) error {
 // MarshalText encodes the address as hex.
 func (a UnprefixedAddress) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(a[:])), nil
-}
-
-// MixedcaseAddress retains the original string, which may or may not be
-// correctly checksummed
-type MixedcaseAddress struct {
-	addr     Address
-	original string
-}
-
-// NewMixedcaseAddress constructor (mainly for testing)
-func NewMixedcaseAddress(addr Address) MixedcaseAddress {
-	return MixedcaseAddress{addr: addr, original: addr.Hex()}
-}
-
-// NewMixedcaseAddressFromString is mainly meant for unit-testing
-func NewMixedcaseAddressFromString(hexaddr string) (*MixedcaseAddress, error) {
-	if !IsHexAddress(hexaddr) {
-		return nil, errors.New("invalid address")
-	}
-	a := FromHex(hexaddr)
-	return &MixedcaseAddress{addr: BytesToAddress(a), original: hexaddr}, nil
-}
-
-// UnmarshalJSON parses MixedcaseAddress
-func (ma *MixedcaseAddress) UnmarshalJSON(input []byte) error {
-	if err := hexutil.UnmarshalFixedJSON(addressT, input, ma.addr[:]); err != nil {
-		return err
-	}
-	return json.Unmarshal(input, &ma.original)
-}
-
-// MarshalJSON marshals the original value
-func (ma *MixedcaseAddress) MarshalJSON() ([]byte, error) {
-	if strings.HasPrefix(ma.original, "0x") || strings.HasPrefix(ma.original, "0X") {
-		return json.Marshal(fmt.Sprintf("0x%s", ma.original[2:]))
-	}
-	return json.Marshal(fmt.Sprintf("0x%s", ma.original))
-}
-
-// Address returns the address
-func (ma *MixedcaseAddress) Address() Address {
-	return ma.addr
-}
-
-// String implements fmt.Stringer
-func (ma *MixedcaseAddress) String() string {
-	if ma.ValidChecksum() {
-		return fmt.Sprintf("%s [chksum ok]", ma.original)
-	}
-	return fmt.Sprintf("%s [chksum INVALID]", ma.original)
-}
-
-// ValidChecksum returns true if the address has valid checksum
-func (ma *MixedcaseAddress) ValidChecksum() bool {
-	return ma.original == ma.addr.Hex()
-}
-
-// Original returns the mixed-case input string
-func (ma *MixedcaseAddress) Original() string {
-	return ma.original
 }

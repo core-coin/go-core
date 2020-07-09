@@ -261,14 +261,18 @@ func ExampleJSON() {
 	if err != nil {
 		panic(err)
 	}
-	out, err := abi.Pack("isBar", common.HexToAddress("960000000000000000000000000000000000000001"))
+	addr, err := common.HexToAddress("960000000000000000000000000000000000000001")
+	if err != nil {
+		panic(err)
+	}
+	out, err := abi.Pack("isBar", addr)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("%x\n", out)
 	// Output:
-	// 1f2c40920000000000000000000000000000000000000000000000000000000000000001
+	// 1f2c40920000000000000000000000960000000000000000000000000000000000000001
 }
 
 func TestInputVariableInputLength(t *testing.T) {
@@ -724,8 +728,12 @@ func TestUnpackEventIntoMap(t *testing.T) {
 	}
 
 	receivedMap := map[string]interface{}{}
+	sender, err := common.HexToAddress("52376c47978271565f56deb45495afa69e59c16ab2")
+	if err != nil {
+		t.Error(err)
+	}
 	expectedReceivedMap := map[string]interface{}{
-		"sender": common.HexToAddress("52376c47978271565f56deb45495afa69e59c16ab2"),
+		"sender": sender,
 		"amount": big.NewInt(1),
 		"memo":   []byte{88},
 	}
@@ -868,8 +876,12 @@ func TestUnpackIntoMapNamingConflict(t *testing.T) {
 	if len(data)%32 == 0 {
 		t.Errorf("len(data) is %d, want a non-multiple of 32", len(data))
 	}
+	sender, err := common.HexToAddress("52376c47978271565f56deb45495afa69e59c16ab2")
+	if err != nil {
+		t.Error(err)
+	}
 	expectedReceivedMap := map[string]interface{}{
-		"sender": common.HexToAddress("52376c47978271565f56deb45495afa69e59c16ab2"),
+		"sender": sender,
 		"amount": big.NewInt(1),
 		"memo":   []byte{88},
 	}

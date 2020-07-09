@@ -101,7 +101,6 @@ func TestKeyStorePassphraseDecryptionFail(t *testing.T) {
 }
 
 func TestImportPreSaleKey(t *testing.T) {
-	fmt.Println(common.CalculateChecksum("ffffffffffffffffffffffffffffffffffffffff"))
 	t.Skip()
 	dir, ks := tmpKeyStoreIface(t, true)
 	defer os.RemoveAll(dir)
@@ -115,7 +114,11 @@ func TestImportPreSaleKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if account.Address != common.HexToAddress("d4584b5f6229b7be90727b0fc8c6b91bb427821f") {
+	matchAddr, err := common.HexToAddress("d4584b5f6229b7be90727b0fc8c6b91bb427821f")
+	if err != nil {
+		t.Error(err)
+	}
+	if account.Address != matchAddr {
 		t.Errorf("imported account has wrong address %x", account.Address)
 	}
 	if !strings.HasPrefix(account.URL.Path, dir) {
@@ -195,7 +198,10 @@ func TestV1_1(t *testing.T) {
 func TestV1_2(t *testing.T) {
 	t.Parallel()
 	ks := &keyStorePassphrase{"testdata/v1", LightScryptN, LightScryptP, true}
-	addr := common.HexToAddress("81ef566e72dc223cf2a06281b2c186901fda79f09e")
+	addr, err := common.HexToAddress("81ef566e72dc223cf2a06281b2c186901fda79f09e")
+	if err != nil {
+		t.Error(err)
+	}
 	file := "testdata/v1/ef566e72dc223cf2a06281b2c186901fda79f09e"
 	k, err := ks.GetKey(addr, file, "g")
 	if err != nil {

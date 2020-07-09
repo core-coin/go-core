@@ -47,8 +47,11 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			encodeAsV3StoredReceiptRLP,
 		},
 	}
-
-	tx := NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil)
+	addr, err := common.HexToAddress("960000000000000000000000000000000000000001")
+	if err != nil {
+		t.Error(err)
+	}
+	tx := NewTransaction(1, addr, big.NewInt(1), 1, big.NewInt(1), nil)
 	receipt := &Receipt{
 		Status:               ReceiptStatusFailed,
 		CumulativeEnergyUsed: 1,
@@ -153,10 +156,14 @@ func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 // Tests that receipt data can be correctly derived from the contextual infos
 func TestDeriveFields(t *testing.T) {
+	address, err := common.HexToAddress("950000000000000000000000000000000000000002")
+	if err != nil {
+		t.Error(err)
+	}
 	// Create a few transactions to have receipts for
 	txs := Transactions{
 		NewContractCreation(1, big.NewInt(1), 1, big.NewInt(1), nil),
-		NewTransaction(2, common.HexToAddress("0x2"), big.NewInt(2), 2, big.NewInt(2), nil),
+		NewTransaction(2, address, big.NewInt(2), 2, big.NewInt(2), nil),
 	}
 	// Create the corresponding receipts
 	receipts := Receipts{

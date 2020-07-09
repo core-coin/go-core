@@ -17,6 +17,7 @@
 package runtime
 
 import (
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"strings"
 	"testing"
@@ -99,7 +100,10 @@ func TestExecute(t *testing.T) {
 
 func TestCall(t *testing.T) {
 	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
-	address := common.HexToAddress("0x0a")
+	address, err := common.HexToAddress("87000000000000000000000000000000000000000a")
+	if err != nil {
+		t.Error(err)
+	}
 	state.SetCode(address, []byte{
 		byte(vm.PUSH1), 10,
 		byte(vm.PUSH1), 0,
@@ -164,13 +168,13 @@ func benchmarkCVM_Create(bench *testing.B, code string) {
 	runtimeConfig := Config{
 		Origin:      sender,
 		State:       statedb,
-		EnergyLimit:    10000000,
+		EnergyLimit: 10000000,
 		Difficulty:  big.NewInt(0x200000),
 		Time:        new(big.Int).SetUint64(0),
 		Coinbase:    common.Address{},
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
-			ChainID:             big.NewInt(1),
+			ChainID: big.NewInt(1),
 		},
 		CVMConfig: vm.Config{},
 	}
@@ -200,15 +204,19 @@ func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 }
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
+	coinbase, err := common.HexToAddress("5700000000000000000000000000000000deadbeef")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	header := types.Header{
-		Coinbase:   common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
-		Number:     big.NewInt(int64(n)),
-		ParentHash: parentHash,
-		Time:       1000,
-		Nonce:      types.BlockNonce{0x1},
-		Extra:      []byte{},
-		Difficulty: big.NewInt(0),
-		EnergyLimit:   100000,
+		Coinbase:    coinbase,
+		Number:      big.NewInt(int64(n)),
+		ParentHash:  parentHash,
+		Time:        1000,
+		Nonce:       types.BlockNonce{0x1},
+		Extra:       []byte{},
+		Difficulty:  big.NewInt(0),
+		EnergyLimit: 100000,
 	}
 	return &header
 }
