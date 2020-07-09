@@ -19,4 +19,3 @@ jobs:
       run: go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
-      continue-on-error: ${{ matrix.platform }} == "windows-latest"
