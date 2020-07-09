@@ -238,7 +238,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 	// still expect all retrievals to pass, now data should be cached locally
 	if checkCached {
 		client.handler.backend.peers.unregister(client.peer.speer.id)
-		time.Sleep(time.Millisecond * 10) // ensure that all peerSetNotify callbacks are executed
+		time.Sleep(time.Second * 1) // ensure that all peerSetNotify callbacks are executed
 		test(5)
 	}
 }
