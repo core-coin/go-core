@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcc"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -55,12 +55,12 @@ var (
 	LegacyMinerEnergyTargetFlag = cli.Uint64Flag{
 		Name:  "targetenergylimit",
 		Usage: "Target energy floor for mined blocks (deprecated, use --miner.energytarget)",
-		Value: xce.DefaultConfig.Miner.EnergyFloor,
+		Value: xcc.DefaultConfig.Miner.EnergyFloor,
 	}
 	LegacyMinerEnergyPriceFlag = BigFlag{
 		Name:  "energyprice",
 		Usage: "Minimum energy price for mining a transaction (deprecated, use --miner.energyprice)",
-		Value: xce.DefaultConfig.Miner.EnergyPrice,
+		Value: xcc.DefaultConfig.Miner.EnergyPrice,
 	}
 	LegacyMinerCorebaseFlag = cli.StringFlag{
 		Name:  "corebase",
@@ -76,12 +76,12 @@ var (
 	LegacyLightServFlag = cli.IntFlag{
 		Name:  "lightserv",
 		Usage: "Maximum percentage of time allowed for serving LES requests (deprecated, use --light.serve)",
-		Value: xce.DefaultConfig.LightServ,
+		Value: xcc.DefaultConfig.LightServ,
 	}
 	LegacyLightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to  (deprecated, use --light.maxpeers)",
-		Value: xce.DefaultConfig.LightPeers,
+		Value: xcc.DefaultConfig.LightPeers,
 	}
 
 	// (Deprecated April 2020)
@@ -141,12 +141,12 @@ var (
 	LegacyGpoBlocksFlag = cli.IntFlag{
 		Name:  "gpoblocks",
 		Usage: "Number of recent blocks to check for energy prices (deprecated, use --gpo.blocks)",
-		Value: xce.DefaultConfig.GPO.Blocks,
+		Value: xcc.DefaultConfig.GPO.Blocks,
 	}
 	LegacyGpoPercentileFlag = cli.IntFlag{
 		Name:  "gpopercentile",
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices (deprecated, use --gpo.percentile)",
-		Value: xce.DefaultConfig.GPO.Percentile,
+		Value: xcc.DefaultConfig.GPO.Percentile,
 	}
 )
 
