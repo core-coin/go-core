@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -151,7 +151,7 @@ func (e *GenesisMismatchError) Error() string {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func SetupGenesisBlock(db xcedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+func SetupGenesisBlock(db xccdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllCryptoreProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -236,8 +236,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
 		return params.MainnetChainConfig
-	case ghash == params.TestnetGenesisHash:
-		return params.TestnetChainConfig
+	case ghash == params.DevinGenesisHash:
+		return params.DevinChainConfig
 	default:
 		return params.AllCryptoreProtocolChanges
 	}
@@ -245,7 +245,7 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 
 // ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
-func (g *Genesis) ToBlock(db xcedb.Database) *types.Block {
+func (g *Genesis) ToBlock(db xccdb.Database) *types.Block {
 	if db == nil {
 		db = rawdb.NewMemoryDatabase()
 	}
@@ -286,7 +286,7 @@ func (g *Genesis) ToBlock(db xcedb.Database) *types.Block {
 
 // Commit writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
-func (g *Genesis) Commit(db xcedb.Database) (*types.Block, error) {
+func (g *Genesis) Commit(db xccdb.Database) (*types.Block, error) {
 	block := g.ToBlock(db)
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
@@ -311,7 +311,7 @@ func (g *Genesis) Commit(db xcedb.Database) (*types.Block, error) {
 
 // MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
-func (g *Genesis) MustCommit(db xcedb.Database) *types.Block {
+func (g *Genesis) MustCommit(db xccdb.Database) *types.Block {
 	block, err := g.Commit(db)
 	if err != nil {
 		panic(err)
@@ -320,7 +320,7 @@ func (g *Genesis) MustCommit(db xcedb.Database) *types.Block {
 }
 
 // GenesisBlockForTesting creates and writes a block in which addr has the given ore balance.
-func GenesisBlockForTesting(db xcedb.Database, addr common.Address, balance *big.Int) *types.Block {
+func GenesisBlockForTesting(db xccdb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{Alloc: GenesisAlloc{addr: {Balance: balance}}}
 	return g.MustCommit(db)
 }
@@ -337,15 +337,15 @@ func DefaultGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultTestnetGenesisBlock returns the Testnet network genesis block.
-func DefaultTestnetGenesisBlock() *Genesis {
+// DefaultDevinGenesisBlock returns the Devin network genesis block.
+func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:      params.TestnetChainConfig,
+		Config:      params.DevinChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
 		EnergyLimit: 16777216,
 		Difficulty:  big.NewInt(1048576),
-		Alloc:       decodePrealloc(testnetAllocData),
+		Alloc:       decodePrealloc(devinAllocData),
 	}
 }
 

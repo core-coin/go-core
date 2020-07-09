@@ -58,11 +58,11 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
-	"github.com/core-coin/go-core/xcestats"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
+	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xccstats"
 	pcsclite "github.com/gballet/go-libpcsclite"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -163,12 +163,12 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Testnet)",
-		Value: xce.DefaultConfig.NetworkId,
+		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Devin)",
+		Value: xcc.DefaultConfig.NetworkId,
 	}
-	TestnetFlag = cli.BoolFlag{
-		Name:  "testnet",
-		Usage: "Testnet network: pre-configured proof-of-work test network",
+	DevinFlag = cli.BoolFlag{
+		Name:  "devin",
+		Usage: "Devin network: pre-configured proof-of-work test network",
 	}
 	KolibaFlag = cli.BoolFlag{
 		Name:  "koliba",
@@ -215,7 +215,7 @@ var (
 		Name:  "nocode",
 		Usage: "Exclude contract code (save db lookups)",
 	}
-	defaultSyncMode = xce.DefaultConfig.SyncMode
+	defaultSyncMode = xcc.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("fast", "full", or "light")`,
@@ -237,32 +237,32 @@ var (
 	LightServeFlag = cli.IntFlag{
 		Name:  "light.serve",
 		Usage: "Maximum percentage of time allowed for serving LES requests (multi-threaded processing allows values over 100)",
-		Value: xce.DefaultConfig.LightServ,
+		Value: xcc.DefaultConfig.LightServ,
 	}
 	LightIngressFlag = cli.IntFlag{
 		Name:  "light.ingress",
 		Usage: "Incoming bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xce.DefaultConfig.LightIngress,
+		Value: xcc.DefaultConfig.LightIngress,
 	}
 	LightEgressFlag = cli.IntFlag{
 		Name:  "light.egress",
 		Usage: "Outgoing bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xce.DefaultConfig.LightEgress,
+		Value: xcc.DefaultConfig.LightEgress,
 	}
 	LightMaxPeersFlag = cli.IntFlag{
 		Name:  "light.maxpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to",
-		Value: xce.DefaultConfig.LightPeers,
+		Value: xcc.DefaultConfig.LightPeers,
 	}
 	UltraLightServersFlag = cli.StringFlag{
 		Name:  "ulc.servers",
 		Usage: "List of trusted ultra-light servers",
-		Value: strings.Join(xce.DefaultConfig.UltraLightServers, ","),
+		Value: strings.Join(xcc.DefaultConfig.UltraLightServers, ","),
 	}
 	UltraLightFractionFlag = cli.IntFlag{
 		Name:  "ulc.fraction",
 		Usage: "Minimum % of trusted ultra-light servers required to announce a new head",
-		Value: xce.DefaultConfig.UltraLightFraction,
+		Value: xcc.DefaultConfig.UltraLightFraction,
 	}
 	UltraLightOnlyAnnounceFlag = cli.BoolFlag{
 		Name:  "ulc.onlyannounce",
@@ -290,37 +290,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum energy price limit to enforce for acceptance into the pool",
-		Value: xce.DefaultConfig.TxPool.PriceLimit,
+		Value: xcc.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: xce.DefaultConfig.TxPool.PriceBump,
+		Value: xcc.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: xce.DefaultConfig.TxPool.AccountSlots,
+		Value: xcc.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: xce.DefaultConfig.TxPool.GlobalSlots,
+		Value: xcc.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: xce.DefaultConfig.TxPool.AccountQueue,
+		Value: xcc.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: xce.DefaultConfig.TxPool.GlobalQueue,
+		Value: xcc.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: xce.DefaultConfig.TxPool.Lifetime,
+		Value: xcc.DefaultConfig.TxPool.Lifetime,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -364,17 +364,17 @@ var (
 	MinerEnergyTargetFlag = cli.Uint64Flag{
 		Name:  "miner.energytarget",
 		Usage: "Target energy floor for mined blocks",
-		Value: xce.DefaultConfig.Miner.EnergyFloor,
+		Value: xcc.DefaultConfig.Miner.EnergyFloor,
 	}
 	MinerEnergyLimitFlag = cli.Uint64Flag{
 		Name:  "miner.energylimit",
 		Usage: "Target energy ceiling for mined blocks",
-		Value: xce.DefaultConfig.Miner.EnergyCeil,
+		Value: xcc.DefaultConfig.Miner.EnergyCeil,
 	}
 	MinerEnergyPriceFlag = BigFlag{
 		Name:  "miner.energyprice",
 		Usage: "Minimum energy price for mining a transaction",
-		Value: xce.DefaultConfig.Miner.EnergyPrice,
+		Value: xcc.DefaultConfig.Miner.EnergyPrice,
 	}
 	MinerCorebaseFlag = cli.StringFlag{
 		Name:  "miner.corebase",
@@ -388,7 +388,7 @@ var (
 	MinerRecommitIntervalFlag = cli.DurationFlag{
 		Name:  "miner.recommit",
 		Usage: "Time interval to recreate the block being mined",
-		Value: xce.DefaultConfig.Miner.Recommit,
+		Value: xcc.DefaultConfig.Miner.Recommit,
 	}
 	MinerNoVerfiyFlag = cli.BoolFlag{
 		Name:  "miner.noverify",
@@ -420,12 +420,12 @@ var (
 	}
 	RPCGlobalEnergyCap = cli.Uint64Flag{
 		Name:  "rpc.energycap",
-		Usage: "Sets a cap on energy that can be used in xce_call/estimateEnergy",
+		Usage: "Sets a cap on energy that can be used in xcc_call/estimateEnergy",
 	}
 	// Logging and debug settings
-	XceStatsURLFlag = cli.StringFlag{
-		Name:  "xcestats",
-		Usage: "Reporting URL of a xcestats service (nodename:secret@host:port)",
+	XccStatsURLFlag = cli.StringFlag{
+		Name:  "xccstats",
+		Usage: "Reporting URL of a xccstats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -607,12 +607,12 @@ var (
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpo.blocks",
 		Usage: "Number of recent blocks to check for energy prices",
-		Value: xce.DefaultConfig.GPO.Blocks,
+		Value: xcc.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpo.percentile",
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
-		Value: xce.DefaultConfig.GPO.Percentile,
+		Value: xcc.DefaultConfig.GPO.Percentile,
 	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
@@ -689,12 +689,12 @@ var (
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating
-// if none (or the empty string) is specified. If the node is starting a testnet,
+// if none (or the empty string) is specified. If the node is starting a devin,
 // the a subdirectory of the specified datadir will be used.
 func MakeDataDir(ctx *cli.Context) string {
 	if path := ctx.GlobalString(DataDirFlag.Name); path != "" {
-		if ctx.GlobalBool(TestnetFlag.Name) {
-			return filepath.Join(path, "testnet")
+		if ctx.GlobalBool(DevinFlag.Name) {
+			return filepath.Join(path, "devin")
 		}
 		if ctx.GlobalBool(KolibaFlag.Name) {
 			return filepath.Join(path, "koliba")
@@ -749,8 +749,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		} else {
 			urls = splitAndTrim(ctx.GlobalString(BootnodesFlag.Name))
 		}
-	case ctx.GlobalBool(TestnetFlag.Name):
-		urls = params.TestnetBootnodes
+	case ctx.GlobalBool(DevinFlag.Name):
+		urls = params.DevinBootnodes
 	case ctx.GlobalBool(KolibaFlag.Name):
 		urls = params.KolibaBootnodes
 	case cfg.BootstrapNodes != nil:
@@ -949,7 +949,7 @@ func setIPC(ctx *cli.Context, cfg *node.Config) {
 }
 
 // setLes configures the les server and ultra light client settings from the command line flags.
-func setLes(ctx *cli.Context, cfg *xce.Config) {
+func setLes(ctx *cli.Context, cfg *xcc.Config) {
 	if ctx.GlobalIsSet(LegacyLightServFlag.Name) {
 		cfg.LightServ = ctx.GlobalInt(LegacyLightServFlag.Name)
 		log.Warn("The flag --lightserv is deprecated and will be removed in the future, please use --light.serve")
@@ -977,8 +977,8 @@ func setLes(ctx *cli.Context, cfg *xce.Config) {
 		cfg.UltraLightFraction = ctx.GlobalInt(UltraLightFractionFlag.Name)
 	}
 	if cfg.UltraLightFraction <= 0 && cfg.UltraLightFraction > 100 {
-		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xce.DefaultConfig.UltraLightFraction)
-		cfg.UltraLightFraction = xce.DefaultConfig.UltraLightFraction
+		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xcc.DefaultConfig.UltraLightFraction)
+		cfg.UltraLightFraction = xcc.DefaultConfig.UltraLightFraction
 	}
 	if ctx.GlobalIsSet(UltraLightOnlyAnnounceFlag.Name) {
 		cfg.UltraLightOnlyAnnounce = ctx.GlobalBool(UltraLightOnlyAnnounceFlag.Name)
@@ -1026,7 +1026,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setCorebase retrieves the corebase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xce.Config) {
+func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xcc.Config) {
 	// Extract the current corebase, new flag overriding legacy one
 	var corebase string
 	if ctx.GlobalIsSet(LegacyMinerCorebaseFlag.Name) {
@@ -1103,11 +1103,11 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	xcePeers := cfg.MaxPeers - lightPeers
+	xccPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		xcePeers = 0
+		xccPeers = 0
 	}
-	log.Info("Maximum peer count", "XCE", xcePeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "XCC", xccPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -1198,8 +1198,8 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 		cfg.DataDir = ctx.GlobalString(DataDirFlag.Name)
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		cfg.DataDir = "" // unless explicitly requested, use memory databases
-	case ctx.GlobalBool(TestnetFlag.Name) && cfg.DataDir == node.DefaultDataDir():
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
+	case ctx.GlobalBool(DevinFlag.Name) && cfg.DataDir == node.DefaultDataDir():
+		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devin")
 	case ctx.GlobalBool(KolibaFlag.Name) && cfg.DataDir == node.DefaultDataDir():
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "koliba")
 	}
@@ -1302,7 +1302,7 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	}
 }
 
-func setWhitelist(ctx *cli.Context, cfg *xce.Config) {
+func setWhitelist(ctx *cli.Context, cfg *xcc.Config) {
 	whitelist := ctx.GlobalString(WhitelistFlag.Name)
 	if whitelist == "" {
 		return
@@ -1379,10 +1379,10 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetXceConfig applies xce-related command line flags to the config.
-func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
+// SetXccConfig applies xcc-related command line flags to the config.
+func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, DeveloperFlag, TestnetFlag, KolibaFlag)
+	CheckExclusive(ctx, DeveloperFlag, DevinFlag, KolibaFlag)
 	CheckExclusive(ctx, LegacyLightServFlag, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 
@@ -1458,12 +1458,12 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
+	case ctx.GlobalBool(DevinFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 3
 		}
-		cfg.Genesis = core.DefaultTestnetGenesisBlock()
-		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.TestnetGenesisHash])
+		cfg.Genesis = core.DefaultDevinGenesisBlock()
+		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
 	case ctx.GlobalBool(KolibaFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 5
@@ -1505,15 +1505,15 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 
 // setDNSDiscoveryDefaults configures DNS discovery with the given URL if
 // no URLs are set.
-func setDNSDiscoveryDefaults(cfg *xce.Config, url string) {
+func setDNSDiscoveryDefaults(cfg *xcc.Config, url string) {
 	if cfg.DiscoveryURLs != nil {
 		return
 	}
 	cfg.DiscoveryURLs = []string{url}
 }
 
-// RegisterXceService adds an Core client to the stack.
-func RegisterXceService(stack *node.Node, cfg *xce.Config) {
+// RegisterXccService adds an Core client to the stack.
+func RegisterXccService(stack *node.Node, cfg *xcc.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1521,7 +1521,7 @@ func RegisterXceService(stack *node.Node, cfg *xce.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := xce.New(ctx, cfg)
+			fullNode, err := xcc.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1543,19 +1543,19 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterXceStatsService configures the Core Stats daemon and adds it to
+// RegisterXccStatsService configures the Core Stats daemon and adds it to
 // the given node.
-func RegisterXceStatsService(stack *node.Node, url string) {
+func RegisterXccStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both xce and les services
-		var xceServ *xce.Core
-		ctx.Service(&xceServ)
+		// Retrieve both xcc and les services
+		var xccServ *xcc.Core
+		ctx.Service(&xccServ)
 
 		var lesServ *les.LightCore
 		ctx.Service(&lesServ)
 
-		// Let xcestats use whichever is not nil
-		return xcestats.New(url, xceServ, lesServ)
+		// Let xccstats use whichever is not nil
+		return xccstats.New(url, xccServ, lesServ)
 	}); err != nil {
 		Fatalf("Failed to register the Core Stats service: %v", err)
 	}
@@ -1565,9 +1565,9 @@ func RegisterXceStatsService(stack *node.Node, url string) {
 func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Try to construct the GraphQL service backed by a full node
-		var xceServ *xce.Core
-		if err := ctx.Service(&xceServ); err == nil {
-			return graphql.New(xceServ.APIBackend, endpoint, cors, vhosts, timeouts)
+		var xccServ *xcc.Core
+		if err := ctx.Service(&xccServ); err == nil {
+			return graphql.New(xccServ.APIBackend, endpoint, cors, vhosts, timeouts)
 		}
 		// Try to construct the GraphQL service backed by a light node
 		var lesServ *les.LightCore
@@ -1620,7 +1620,7 @@ func SplitTagsFlag(tagsFlag string) map[string]string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcedb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xccdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1639,8 +1639,8 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcedb.Database {
 func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	var genesis *core.Genesis
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
-		genesis = core.DefaultTestnetGenesisBlock()
+	case ctx.GlobalBool(DevinFlag.Name):
+		genesis = core.DefaultDevinGenesisBlock()
 	case ctx.GlobalBool(KolibaFlag.Name):
 		genesis = core.DefaultKolibaGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):
@@ -1650,7 +1650,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xcedb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xccdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
@@ -1670,11 +1670,11 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)
 	}
 	cache := &core.CacheConfig{
-		TrieCleanLimit:      xce.DefaultConfig.TrieCleanCache,
+		TrieCleanLimit:      xcc.DefaultConfig.TrieCleanCache,
 		TrieCleanNoPrefetch: ctx.GlobalBool(CacheNoPrefetchFlag.Name),
-		TrieDirtyLimit:      xce.DefaultConfig.TrieDirtyCache,
+		TrieDirtyLimit:      xcc.DefaultConfig.TrieDirtyCache,
 		TrieDirtyDisabled:   ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieTimeLimit:       xce.DefaultConfig.TrieTimeout,
+		TrieTimeLimit:       xcc.DefaultConfig.TrieTimeout,
 	}
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheTrieFlag.Name) {
 		cache.TrieCleanLimit = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheTrieFlag.Name) / 100

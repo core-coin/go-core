@@ -22,20 +22,20 @@ import "github.com/core-coin/go-core/common"
 // the main Core network.
 var MainnetBootnodes = []string{
 	// Core Foundation Go Bootnodes
-	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
+	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-devin-eu-fr
 }
 
-// TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Testnet test network.
-var TestnetBootnodes = []string{
-	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
+// DevinBootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// Devin test network.
+var DevinBootnodes = []string{
+	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-devin-eu-fr
 }
 
 // KolibaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Koliba test network.
 var KolibaBootnodes = []string{
 	// Upstream bootnodes
-	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-testnet-eu-fr
+	"enode://7081d1a8a52a9d0b8bdc0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-devin-eu-fr
 }
 
 // DiscoveryV5Bootnodes are the enode URLs of the P2P bootstrap nodes for the
@@ -44,10 +44,10 @@ var DiscoveryV5Bootnodes = []string{}
 
 const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@"
 
-// These DNS names provide bootstrap connectivity for public testnets and the mainnet.
+// These DNS names provide bootstrap connectivity for public devins and the mainnet.
 // See https://github.com/core-coin/discv4-dns-lists for more information.
 var KnownDNSNetworks = map[common.Hash]string{
-	MainnetGenesisHash: dnsPrefix + "all.mainnet.xcedisco.net",
-	TestnetGenesisHash: dnsPrefix + "all.testnet.xcedisco.net",
-	KolibaGenesisHash:  dnsPrefix + "all.koliba.xcedisco.net",
+	MainnetGenesisHash: dnsPrefix + "all.mainnet.xccdisco.net",
+	DevinGenesisHash:   dnsPrefix + "all.devin.xccdisco.net",
+	KolibaGenesisHash:  dnsPrefix + "all.koliba.xccdisco.net",
 }

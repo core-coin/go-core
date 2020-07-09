@@ -31,8 +31,8 @@ import (
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 func errResp(code errCode, format string, v ...interface{}) error {
@@ -57,10 +57,10 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *xce.Config
+	config                       *xcc.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
-	chainDb                      xcedb.Database
+	chainDb                      xccdb.Database
 	chainReader                  chainReader
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 	oracle                       *checkpointoracle.CheckpointOracle
@@ -72,7 +72,7 @@ type lesCommons struct {
 // NodeInfo represents a short summary of the Core sub-protocol metadata
 // known about the host peer.
 type NodeInfo struct {
-	Network    uint64                   `json:"network"`    // Core network ID (1=Nucleus, 2=Morden, Testnet=3)
+	Network    uint64                   `json:"network"`    // Core network ID (1=Nucleus, 2=Morden, Devin=3)
 	Difficulty *big.Int                 `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash              `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Config     *params.ChainConfig      `json:"config"`     // Chain configuration for the fork rules
