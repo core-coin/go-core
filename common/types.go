@@ -221,10 +221,7 @@ func CalculateChecksum(address []byte) string {
 }
 
 func verifyAddress(addr Address) bool {
-	if Bytes2Hex(addr[:1]) != CalculateChecksum(addr[1:]) {
-		return false
-	}
-	return true
+	return Bytes2Hex(addr[:1]) != CalculateChecksum(addr[1:])
 }
 
 // BigToAddress returns Address with byte values of b.
