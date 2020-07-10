@@ -107,7 +107,7 @@ func TestRemoteMultiNotify(t *testing.T) {
 	for i := 0; i < cap(sink); i++ {
 		select {
 		case <-sink:
-		case <-time.After(10 * time.Second):
+		case <-time.After(25 * time.Second):
 			t.Fatalf("notification %d timed out", i)
 		}
 	}
