@@ -723,6 +723,42 @@ type CallArgs struct {
 	Data        *hexutil.Bytes  `json:"data"`
 }
 
+// ToMessage converts CallArgs to the Message type used by the core cvm
+func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
+	// Set sender address or use zero address if none specified.
+	var addr common.Address
+	if args.From != nil {
+		addr = *args.From
+	}
+
+	// Set default gas & gas price if none were set
+	energy := uint64(math.MaxUint64 / 2)
+	if args.Energy != nil {
+		energy = uint64(*args.Energy)
+	}
+	if globalEnergyCap != nil && globalEnergyCap.Uint64() < energy {
+		log.Warn("Caller energy above allowance, capping", "requested", energy, "cap", globalEnergyCap)
+		energy = globalEnergyCap.Uint64()
+	}
+	energyPrice := new(big.Int)
+	if args.EnergyPrice != nil {
+		energyPrice = args.EnergyPrice.ToInt()
+	}
+
+	value := new(big.Int)
+	if args.Value != nil {
+		value = args.Value.ToInt()
+	}
+
+	var data []byte
+	if args.Data != nil {
+		data = []byte(*args.Data)
+	}
+
+	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
+	return msg
+}
+
 // account indicates the overriding fields of account during the execution of
 // a message call.
 // Note, state and stateDiff can't be specified at the same time. If state is
@@ -743,12 +779,6 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, 0, false, err
-	}
-
-	// Set sender address or use zero address if none specified.
-	var addr common.Address
-	if args.From != nil {
-		addr = *args.From
 	}
 
 	// Override the fields of specified contracts before execution.
@@ -779,32 +809,6 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 			}
 		}
 	}
-	// Set default energy & energy price if none were set
-	energy := uint64(math.MaxUint64 / 2)
-	if args.Energy != nil {
-		energy = uint64(*args.Energy)
-	}
-	if globalEnergyCap != nil && globalEnergyCap.Uint64() < energy {
-		log.Warn("Caller energy above allowance, capping", "requested", energy, "cap", globalEnergyCap)
-		energy = globalEnergyCap.Uint64()
-	}
-	energyPrice := new(big.Int)
-	if args.EnergyPrice != nil {
-		energyPrice = args.EnergyPrice.ToInt()
-	}
-
-	value := new(big.Int)
-	if args.Value != nil {
-		value = args.Value.ToInt()
-	}
-
-	var data []byte
-	if args.Data != nil {
-		data = []byte(*args.Data)
-	}
-
-	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered energy, setup a context with a timeout.
@@ -819,6 +823,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	defer cancel()
 
 	// Get a new instance of the CVM.
+	msg := args.ToMessage(globalEnergyCap)
 	cvm, vmError, err := b.GetCVM(ctx, msg, state, header)
 	if err != nil {
 		return nil, 0, false, err
