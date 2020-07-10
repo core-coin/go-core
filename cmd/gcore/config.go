@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xce"
+	"github.com/core-coin/go-core/xcc"
 	"github.com/naoina/toml"
 )
 
@@ -68,15 +68,15 @@ var tomlSettings = toml.Config{
 	},
 }
 
-type xcestatsConfig struct {
+type xccstatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
 type gcoreConfig struct {
-	Xce      xce.Config
+	Xcc      xcc.Config
 	Shh      whisper.Config
 	Node     node.Config
-	Xcestats xcestatsConfig
+	Xccstats xccstatsConfig
 }
 
 func loadConfig(file string, cfg *gcoreConfig) error {
@@ -98,8 +98,8 @@ func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
-	cfg.HTTPModules = append(cfg.HTTPModules, "xce")
-	cfg.WSModules = append(cfg.WSModules, "xce")
+	cfg.HTTPModules = append(cfg.HTTPModules, "xcc")
+	cfg.WSModules = append(cfg.WSModules, "xcc")
 	cfg.IPCPath = "gcore.ipc"
 	return cfg
 }
@@ -107,7 +107,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	// Load defaults.
 	cfg := gcoreConfig{
-		Xce:  xce.DefaultConfig,
+		Xcc:  xcc.DefaultConfig,
 		Shh:  whisper.DefaultConfig,
 		Node: defaultNodeConfig(),
 	}
@@ -125,9 +125,9 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetXceConfig(ctx, stack, &cfg.Xce)
-	if ctx.GlobalIsSet(utils.XceStatsURLFlag.Name) {
-		cfg.Xcestats.URL = ctx.GlobalString(utils.XceStatsURLFlag.Name)
+	utils.SetXccConfig(ctx, stack, &cfg.Xcc)
+	if ctx.GlobalIsSet(utils.XccStatsURLFlag.Name) {
+		cfg.Xccstats.URL = ctx.GlobalString(utils.XccStatsURLFlag.Name)
 	}
 	utils.SetShhConfig(ctx, stack, &cfg.Shh)
 
@@ -146,7 +146,7 @@ func enableWhisper(ctx *cli.Context) bool {
 
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
-	utils.RegisterXceService(stack, &cfg.Xce)
+	utils.RegisterXccService(stack, &cfg.Xcc)
 
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
 	shhEnabled := enableWhisper(ctx)
@@ -168,8 +168,8 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
 	}
 	// Add the Core Stats daemon if requested.
-	if cfg.Xcestats.URL != "" {
-		utils.RegisterXceStatsService(stack, cfg.Xcestats.URL)
+	if cfg.Xccstats.URL != "" {
+		utils.RegisterXccStatsService(stack, cfg.Xccstats.URL)
 	}
 	return stack
 }
@@ -179,8 +179,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.Xce.Genesis != nil {
-		cfg.Xce.Genesis = nil
+	if cfg.Xcc.Genesis != nil {
+		cfg.Xcc.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

@@ -1,6 +1,6 @@
 """
 This implements a dispatcher which listens to localhost:8550, and proxies
-requests via qrexec to the service qubes.XceSign on a target domain
+requests via qrexec to the service qubes.XccSign on a target domain
 """
 
 import http.server
