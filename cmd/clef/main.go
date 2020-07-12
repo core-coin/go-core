@@ -222,11 +222,11 @@ func init() {
 		utils.LightKDFFlag,
 		utils.NoUSBFlag,
 		utils.SmartCardDaemonPathFlag,
-		utils.RPCListenAddrFlag,
-		utils.RPCVirtualHostsFlag,
+		utils.HTTPListenAddrFlag,
+		utils.HTTPVirtualHostsFlag,
 		utils.IPCDisabledFlag,
 		utils.IPCPathFlag,
-		utils.RPCEnabledFlag,
+		utils.HTTPEnabledFlag,
 		rpcPortFlag,
 		signerSecretFlag,
 		customDBFlag,
@@ -584,12 +584,12 @@ func signer(c *cli.Context) error {
 			Service:   api,
 			Version:   "1.0"},
 	}
-	if c.GlobalBool(utils.RPCEnabledFlag.Name) {
-		vhosts := splitAndTrim(c.GlobalString(utils.RPCVirtualHostsFlag.Name))
-		cors := splitAndTrim(c.GlobalString(utils.RPCCORSDomainFlag.Name))
+	if c.GlobalBool(utils.HTTPEnabledFlag.Name) {
+		vhosts := splitAndTrim(c.GlobalString(utils.HTTPVirtualHostsFlag.Name))
+		cors := splitAndTrim(c.GlobalString(utils.HTTPCORSDomainFlag.Name))
 
 		// start http server
-		httpEndpoint := fmt.Sprintf("%s:%d", c.GlobalString(utils.RPCListenAddrFlag.Name), c.Int(rpcPortFlag.Name))
+		httpEndpoint := fmt.Sprintf("%s:%d", c.GlobalString(utils.HTTPEnabledFlag.Name), c.Int(rpcPortFlag.Name))
 		listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"account"}, cors, vhosts, rpc.DefaultHTTPTimeouts)
 		if err != nil {
 			utils.Fatalf("Could not start RPC api: %v", err)
