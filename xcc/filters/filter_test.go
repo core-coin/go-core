@@ -127,7 +127,8 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			gen.AddUncheckedTx(types.NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil))
+			addr, _ := common.HexToAddress("96000000000000000000000000000000000000001")
+			gen.AddUncheckedTx(types.NewTransaction(1, addr, big.NewInt(1), 1, big.NewInt(1), nil))
 		case 2:
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
@@ -137,7 +138,8 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			gen.AddUncheckedTx(types.NewTransaction(2, common.HexToAddress("0x2"), big.NewInt(2), 2, big.NewInt(2), nil))
+			addr, _ := common.HexToAddress("95000000000000000000000000000000000000002")
+			gen.AddUncheckedTx(types.NewTransaction(2, addr, big.NewInt(2), 2, big.NewInt(2), nil))
 
 		case 998:
 			receipt := types.NewReceipt(nil, false, 0)
@@ -148,7 +150,11 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			gen.AddUncheckedTx(types.NewTransaction(998, common.HexToAddress("0x998"), big.NewInt(998), 998, big.NewInt(998), nil))
+			addr, err := common.HexToAddress("660000000000000000000000000000000000000998")
+			if err != nil {
+				t.Error(err)
+			}
+			gen.AddUncheckedTx(types.NewTransaction(998, addr, big.NewInt(998), 998, big.NewInt(998), nil))
 		case 999:
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
@@ -158,7 +164,11 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			gen.AddUncheckedTx(types.NewTransaction(999, common.HexToAddress("0x999"), big.NewInt(999), 999, big.NewInt(999), nil))
+			addr, err := common.HexToAddress("650000000000000000000000000000000000000999")
+			if err != nil {
+				t.Error(err)
+			}
+			gen.AddUncheckedTx(types.NewTransaction(999, addr, big.NewInt(999), 999, big.NewInt(999), nil))
 		}
 	})
 	for i, block := range chain {

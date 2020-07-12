@@ -37,7 +37,7 @@ import (
 
 const (
 	testInstance = "console-tester"
-	testAddress  = "0x8605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	testAddress  = "398605cdbbdb6d264aa742e77020dcbc58fcdce182"
 )
 
 // hookedPrompter implements UserPrompter to simulate use input via channels.
@@ -96,10 +96,14 @@ func newTester(t *testing.T, confOverride func(*xcc.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
+	corebase, err := common.HexToAddress(testAddress)
+	if err != nil {
+		t.Fatalf("failed to set corebase: %v", err)
+	}
 	xccConf := &xcc.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
-			Corebase: common.HexToAddress(testAddress),
+			Corebase: corebase,
 		},
 		Cryptore: cryptore.Config{
 			PowMode: cryptore.ModeTest,

@@ -355,7 +355,10 @@ func setCredential(ctx *cli.Context) error {
 	if !common.IsHexAddress(addr) {
 		utils.Fatalf("Invalid address specified: %s", addr)
 	}
-	address := common.HexToAddress(addr)
+	address, err := common.HexToAddress(addr)
+	if err != nil {
+		utils.Fatalf("Invalid address specified: %s", err)
+	}
 	password := getPassPhrase("Please enter a password to store for this address:", true)
 	fmt.Println()
 
@@ -385,8 +388,10 @@ func removeCredential(ctx *cli.Context) error {
 	if !common.IsHexAddress(addr) {
 		utils.Fatalf("Invalid address specified: %s", addr)
 	}
-	address := common.HexToAddress(addr)
-
+	address, err := common.HexToAddress(addr)
+	if err != nil {
+		return err
+	}
 	stretchedKey, err := readMasterKey(ctx, nil)
 	if err != nil {
 		utils.Fatalf(err.Error())
@@ -759,12 +764,14 @@ func testExternalUI(api *core.SignerAPI) {
 	ctx = context.WithValue(ctx, "local", "main")
 	errs := make([]string, 0)
 
-	a := common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
 	addErr := func(errStr string) {
 		log.Info("Test error", "err", errStr)
 		errs = append(errs, errStr)
 	}
-
+	a, err := common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
+	if err != nil {
+		addErr("Invalid address, " + err.Error())
+	}
 	queryUser := func(q string) string {
 		resp, err := api.UI.OnInputRequired(core.UserInputRequest{
 			Title:  "Testing",
@@ -804,10 +811,14 @@ func testExternalUI(api *core.SignerAPI) {
 	{ // Sign data test - clique header
 		api.UI.ShowInfo("Please approve the next request for signing a clique header")
 		time.Sleep(delay)
+		coinbase, err := common.HexToAddress("96deadbeef000000000000000000000000deadbeff")
+		if err != nil {
+			addErr("Invalid address, " + err.Error())
+		}
 		cliqueHeader := types.Header{
 			ParentHash:  common.HexToHash("0000H45H"),
 			UncleHash:   common.HexToHash("0000H45H"),
-			Coinbase:    common.HexToAddress("0000H45H"),
+			Coinbase:    coinbase,
 			Root:        common.HexToHash("0000H00H"),
 			TxHash:      common.HexToHash("0000H45H"),
 			ReceiptHash: common.HexToHash("0000H45H"),
@@ -823,33 +834,33 @@ func testExternalUI(api *core.SignerAPI) {
 		if err != nil {
 			utils.Fatalf("Should not error: %v", err)
 		}
-		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
-		_, err = api.SignData(ctx, accounts.MimetypeClique, *addr, hexutil.Encode(cliqueRlp))
+		addr, _ := common.HexToAddress("0011223344556677889900112233445566778899")
+		_, err = api.SignData(ctx, accounts.MimetypeClique, addr, hexutil.Encode(cliqueRlp))
 		expectApprove("signdata - clique header", err)
 	}
 	{ // Sign data test - typed data
 		api.UI.ShowInfo("Please approve the next request for signing CIP-712 typed data")
 		time.Sleep(delay)
-		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
+		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
 		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
 		var typedData core.TypedData
 		json.Unmarshal([]byte(data), &typedData)
-		_, err := api.SignTypedData(ctx, *addr, typedData)
+		_, err := api.SignTypedData(ctx, addr, typedData)
 		expectApprove("sign 712 typed data", err)
 	}
 	{ // Sign data test - plain text
 		api.UI.ShowInfo("Please approve the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
-		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, *addr, hexutil.Encode([]byte("hello world")))
+		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectApprove("signdata - text", err)
 	}
 	{ // Sign data test - plain text reject
 		api.UI.ShowInfo("Please deny the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
-		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, *addr, hexutil.Encode([]byte("hello world")))
+		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectDeny("signdata - text", err)
 	}
 	{ // Sign transaction
@@ -857,12 +868,12 @@ func testExternalUI(api *core.SignerAPI) {
 		api.UI.ShowInfo("Please reject next transaction")
 		time.Sleep(delay)
 		data := hexutil.Bytes([]byte{})
-		to := common.NewMixedcaseAddress(a)
+		to := a
 		tx := core.SendTxArgs{
 			Data:        &data,
 			Nonce:       0x1,
 			Value:       hexutil.Big(*big.NewInt(6)),
-			From:        common.NewMixedcaseAddress(a),
+			From:        a,
 			To:          &to,
 			EnergyPrice: hexutil.Big(*big.NewInt(5)),
 			Energy:      1000,
@@ -956,9 +967,9 @@ func decryptSeed(keyjson []byte, auth string) ([]byte, error) {
 func GenDoc(ctx *cli.Context) {
 
 	var (
-		a    = common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
-		b    = common.HexToAddress("0x1111111122222222222233333333334444444444")
-		meta = core.Metadata{
+		a, err  = common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
+		b, err2 = common.HexToAddress("151111111122222222222233333333334444444444")
+		meta    = core.Metadata{
 			Scheme:    "http",
 			Local:     "localhost:8545",
 			Origin:    "www.malicious.ru",
@@ -974,7 +985,12 @@ func GenDoc(ctx *cli.Context) {
 			}
 		}
 	)
-
+	if err != nil {
+		utils.Fatalf(err.Error())
+	}
+	if err2 != nil {
+		utils.Fatalf(err2.Error())
+	}
 	{ // Sign plain text request
 		desc := "SignDataRequest contains information about a pending request to sign some data. " +
 			"The data to be signed can be of various types, defined by content-type. Clef has done most " +
@@ -984,7 +1000,7 @@ func GenDoc(ctx *cli.Context) {
 		messages := []*core.NameValueType{{Name: "message", Value: msg, Typ: accounts.MimetypeTextPlain}}
 
 		add("SignDataRequest", desc, &core.SignDataRequest{
-			Address:     common.NewMixedcaseAddress(a),
+			Address:     a,
 			Meta:        meta,
 			ContentType: accounts.MimetypeTextPlain,
 			Rawdata:     []byte(msg),
@@ -1019,7 +1035,7 @@ func GenDoc(ctx *cli.Context) {
 				Data:        &data,
 				Nonce:       0x1,
 				Value:       hexutil.Big(*big.NewInt(6)),
-				From:        common.NewMixedcaseAddress(a),
+				From:        a,
 				To:          nil,
 				EnergyPrice: hexutil.Big(*big.NewInt(5)),
 				Energy:      1000,
@@ -1035,7 +1051,7 @@ func GenDoc(ctx *cli.Context) {
 					Data:        &data,
 					Nonce:       0x4,
 					Value:       hexutil.Big(*big.NewInt(6)),
-					From:        common.NewMixedcaseAddress(a),
+					From:        a,
 					To:          nil,
 					EnergyPrice: hexutil.Big(*big.NewInt(5)),
 					Energy:      1000,
@@ -1073,6 +1089,14 @@ func GenDoc(ctx *cli.Context) {
 			&core.UserInputResponse{Text: "The textual response from user"})
 	}
 	{ // List request
+		addr1, err := common.HexToAddress("cowbeef000000cowbeef00000000000000000c0w")
+		if err != nil {
+			utils.Fatalf(err.Error())
+		}
+		addr2, err := common.HexToAddress("37ffffffffffffffffffffffffffffffffffffffff")
+		if err != nil {
+			utils.Fatalf(err.Error())
+		}
 		add("ListRequest", "Sent when a request has been made to list addresses. The UI is provided with the "+
 			"full `account`s, including local directory names. Note: this information is not passed back to the external caller, "+
 			"who only sees the `address`es. ",
@@ -1088,11 +1112,11 @@ func GenDoc(ctx *cli.Context) {
 			&core.ListResponse{
 				Accounts: []accounts.Account{
 					{
-						Address: common.HexToAddress("0xcowbeef000000cowbeef00000000000000000c0w"),
+						Address: addr1,
 						URL:     accounts.URL{Path: ".. ignored .."},
 					},
 					{
-						Address: common.HexToAddress("0xffffffffffffffffffffffffffffffffffffffff"),
+						Address: addr2,
 					},
 				}})
 	}
