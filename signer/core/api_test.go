@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hpcloud/tail/util"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -223,8 +224,12 @@ func TestNewAcc(t *testing.T) {
 	}
 }
 
-func mkTestTx(from common.MixedcaseAddress) core.SendTxArgs {
-	to := common.NewMixedcaseAddress(common.HexToAddress("0x1337"))
+func mkTestTx(from common.Address) core.SendTxArgs {
+	addr, err := common.HexToAddress("280000000000000000000000000000000000001337")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
+	to := addr
 	energy := hexutil.Uint64(21000)
 	energyPrice := (hexutil.Big)(*big.NewInt(2000000000))
 	value := (hexutil.Big)(*big.NewInt(1e18))
@@ -255,7 +260,7 @@ func TestSignTx(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a := common.NewMixedcaseAddress(list[0])
+	a := list[0]
 
 	methodSig := "test(uint)"
 	tx := mkTestTx(a)

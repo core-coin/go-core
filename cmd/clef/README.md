@@ -96,7 +96,7 @@ Some snags and todos
 * Gcore todos
     - The signer should pass the `Origin` header as call-info to the UI. As of right now, the way that info about the request is put together is a bit of a hack into the HTTP server. This could probably be greatly improved.
     - Relay: Gcore should be started in `gcore --signer localhost:8550`.
-    - Currently, the Gcore APIs use `common.Address` in the arguments to transaction submission (e.g `to` field). This type is 20 `bytes`, and is incapable of carrying checksum information. The signer uses `common.MixedcaseAddress`, which retains the original input.
+    - Currently, the Gcore APIs use `common.Address` in the arguments to transaction submission (e.g `to` field). This type is 20 `bytes`, and is incapable of carrying checksum information. The signer uses `common.Address`, which retains the original input.
     - The Gcore API should switch to use the same type, and relay `to`-account verbatim to the external API.
 * [x] Storage
     * [x] An encrypted key-value storage should be implemented.

@@ -50,7 +50,7 @@ func newStatePrefetcher(config *params.ChainConfig, bc *BlockChain, engine conse
 // only goal is to pre-cache transaction signatures and state trie nodes.
 func (p *statePrefetcher) Prefetch(block *types.Block, statedb *state.StateDB, cfg vm.Config, interrupt *uint32) {
 	var (
-		header  = block.Header()
+		header     = block.Header()
 		energypool = new(EnergyPool).AddEnergy(block.EnergyLimit())
 	)
 	// Iterate over and process the individual transactions
@@ -72,7 +72,7 @@ func (p *statePrefetcher) Prefetch(block *types.Block, statedb *state.StateDB, c
 // the transaction successfully, rather to warm up touched data slots.
 func precacheTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, energypool *EnergyPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, cfg vm.Config) error {
 	// Convert the transaction into an executable message and pre-cache its sender
-	msg, err := tx.AsMessage(types.MakeSigner())
+	msg, err := tx.AsMessage(types.MakeSigner(config.ChainID))
 	if err != nil {
 		return err
 	}

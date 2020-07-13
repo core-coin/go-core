@@ -142,13 +142,12 @@ var AppHelpFlagGroups = []flagGroup{
 		Flags: []cli.Flag{
 			utils.IPCDisabledFlag,
 			utils.IPCPathFlag,
-			utils.RPCEnabledFlag,
-			utils.RPCListenAddrFlag,
-			utils.RPCPortFlag,
-			utils.RPCApiFlag,
-			utils.RPCGlobalEnergyCap,
-			utils.RPCCORSDomainFlag,
-			utils.RPCVirtualHostsFlag,
+			utils.HTTPEnabledFlag,
+			utils.HTTPListenAddrFlag,
+			utils.HTTPPortFlag,
+			utils.HTTPApiFlag,
+			utils.HTTPCORSDomainFlag,
+			utils.HTTPVirtualHostsFlag,
 			utils.WSEnabledFlag,
 			utils.WSListenAddrFlag,
 			utils.WSPortFlag,
@@ -159,6 +158,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.GraphQLPortFlag,
 			utils.GraphQLCORSDomainFlag,
 			utils.GraphQLVirtualHostsFlag,
+			utils.RPCGlobalEnergyCap,
 			utils.JSpathFlag,
 			utils.ExecFlag,
 			utils.PreloadJSFlag,
@@ -229,19 +229,28 @@ var AppHelpFlagGroups = []flagGroup{
 		Flags: whisperFlags,
 	},
 	{
-		Name: "DEPRECATED",
-		Flags: []cli.Flag{
-			utils.LightLegacyServFlag,
-			utils.LightLegacyPeersFlag,
-			utils.MinerLegacyThreadsFlag,
-			utils.MinerLegacyEnergyTargetFlag,
-			utils.MinerLegacyEnergyPriceFlag,
-			utils.MinerLegacyCorebaseFlag,
-			utils.MinerLegacyExtraDataFlag,
-		},
+		Name: "ALIASED (deprecated)",
+		Flags: append([]cli.Flag{
+			utils.LegacyRPCEnabledFlag,
+			utils.LegacyRPCListenAddrFlag,
+			utils.LegacyRPCPortFlag,
+			utils.LegacyRPCCORSDomainFlag,
+			utils.LegacyRPCVirtualHostsFlag,
+			utils.LegacyRPCApiFlag,
+			utils.LegacyWSListenAddrFlag,
+			utils.LegacyWSPortFlag,
+			utils.LegacyWSAllowedOriginsFlag,
+			utils.LegacyWSApiFlag,
+			utils.LegacyGpoBlocksFlag,
+			utils.LegacyGpoPercentileFlag,
+		}, debug.DeprecatedFlags...),
 	},
 	{
 		Name: "MISC",
+		Flags: []cli.Flag{
+			utils.SnapshotFlag,
+			cli.HelpFlag,
+		},
 	},
 }
 
@@ -299,10 +308,17 @@ func init() {
 					categorized[flag.String()] = struct{}{}
 				}
 			}
+			deprecated := make(map[string]struct{})
+			for _, flag := range utils.DeprecatedFlags {
+				deprecated[flag.String()] = struct{}{}
+			}
+			// Only add uncategorized flags if they are not deprecated
 			var uncategorized []cli.Flag
 			for _, flag := range data.(*cli.App).Flags {
 				if _, ok := categorized[flag.String()]; !ok {
-					uncategorized = append(uncategorized, flag)
+					if _, ok := deprecated[flag.String()]; !ok {
+						uncategorized = append(uncategorized, flag)
+					}
 				}
 			}
 			if len(uncategorized) > 0 {

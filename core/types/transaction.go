@@ -26,7 +26,6 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/crypto"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -47,10 +46,11 @@ type txdata struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
 	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
+	ChainID      uint            `json:"chain_id" gencodec:"required"`
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
-	Spender      common.Address  `json:"from"`
+	Signature    []byte          `json:"signature"    gencodec:"required"`
 
 	// This is only used when marshaling to JSON.
 	Hash *common.Hash `json:"hash" rlp:"-"`
@@ -59,7 +59,7 @@ type txdata struct {
 type txdataMarshaling struct {
 	AccountNonce hexutil.Uint64
 	Price        *hexutil.Big
-	EnergyLimit     hexutil.Uint64
+	EnergyLimit  hexutil.Uint64
 	Amount       *hexutil.Big
 	Payload      hexutil.Bytes
 }
@@ -81,9 +81,10 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 		Recipient:    to,
 		Payload:      data,
 		Amount:       new(big.Int),
-		EnergyLimit:     energyLimit,
+		EnergyLimit:  energyLimit,
 		Price:        new(big.Int),
-		Spender:      common.Address{},
+		Signature:    []byte{},
+		ChainID:      0,
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -129,12 +130,14 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte       { return common.CopyBytes(tx.data.Payload) }
-func (tx *Transaction) Energy() uint64        { return tx.data.EnergyLimit }
-func (tx *Transaction) EnergyPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
-func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
-func (tx *Transaction) CheckNonce() bool   { return true }
+func (tx *Transaction) Data() []byte            { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Energy() uint64          { return tx.data.EnergyLimit }
+func (tx *Transaction) EnergyPrice() *big.Int   { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) Value() *big.Int         { return new(big.Int).Set(tx.data.Amount) }
+func (tx *Transaction) Nonce() uint64           { return tx.data.AccountNonce }
+func (tx *Transaction) CheckNonce() bool        { return true }
+func (tx *Transaction) ChainID() uint           { return tx.data.ChainID }
+func (tx *Transaction) SetChainID(chainID uint) { tx.data.ChainID = chainID }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -175,34 +178,25 @@ func (tx *Transaction) Size() common.StorageSize {
 //
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
+	from, _ := recoverPlain(s, tx)
 	msg := Message{
-		nonce:      tx.data.AccountNonce,
-		energyLimit:   tx.data.EnergyLimit,
-		energyPrice:   new(big.Int).Set(tx.data.Price),
-		to:         tx.data.Recipient,
-		amount:     tx.data.Amount,
-		data:       tx.data.Payload,
-		from:       tx.data.Spender,
-		checkNonce: true,
+		nonce:       tx.data.AccountNonce,
+		energyLimit: tx.data.EnergyLimit,
+		energyPrice: new(big.Int).Set(tx.data.Price),
+		to:          tx.data.Recipient,
+		amount:      tx.data.Amount,
+		data:        tx.data.Payload,
+		from:        from,
+		checkNonce:  true,
 	}
 	return msg, nil
 }
 
 // WithSignature returns a new transaction with the given signature.
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
-	pubk, err := crypto.SigToPub(nil, sig)
-	if err != nil {
-		return nil, err
-	}
-
-	hash := signer.Hash(tx)
-	if !crypto.VerifySignature(pubk.X, hash[:], sig) {
-		return nil, ErrInvalidSig
-	}
-
 	cpy := &Transaction{data: tx.data}
-	from := crypto.PubkeyToAddress(*pubk)
-	copy(cpy.data.Spender[:], from[:])
+	cpy.data.ChainID = uint(signer.ChainID())
+	cpy.data.Signature = sig[:]
 	return cpy, nil
 }
 
@@ -341,34 +335,34 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {
-	to         *common.Address
-	from       common.Address
-	nonce      uint64
-	amount     *big.Int
-	energyLimit   uint64
-	energyPrice   *big.Int
-	data       []byte
-	checkNonce bool
+	to          *common.Address
+	from        common.Address
+	nonce       uint64
+	amount      *big.Int
+	energyLimit uint64
+	energyPrice *big.Int
+	data        []byte
+	checkNonce  bool
 }
 
 func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, energyLimit uint64, energyPrice *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
-		from:       from,
-		to:         to,
-		nonce:      nonce,
-		amount:     amount,
-		energyLimit:   energyLimit,
-		energyPrice:   energyPrice,
-		data:       data,
-		checkNonce: checkNonce,
+		from:        from,
+		to:          to,
+		nonce:       nonce,
+		amount:      amount,
+		energyLimit: energyLimit,
+		energyPrice: energyPrice,
+		data:        data,
+		checkNonce:  checkNonce,
 	}
 }
 
-func (m Message) From() common.Address { return m.from }
-func (m Message) To() *common.Address  { return m.to }
-func (m Message) EnergyPrice() *big.Int   { return m.energyPrice }
-func (m Message) Value() *big.Int      { return m.amount }
-func (m Message) Energy() uint64          { return m.energyLimit }
-func (m Message) Nonce() uint64        { return m.nonce }
-func (m Message) Data() []byte         { return m.data }
-func (m Message) CheckNonce() bool     { return m.checkNonce }
+func (m Message) From() common.Address  { return m.from }
+func (m Message) To() *common.Address   { return m.to }
+func (m Message) EnergyPrice() *big.Int { return m.energyPrice }
+func (m Message) Value() *big.Int       { return m.amount }
+func (m Message) Energy() uint64        { return m.energyLimit }
+func (m Message) Nonce() uint64         { return m.nonce }
+func (m Message) Data() []byte          { return m.data }
+func (m Message) CheckNonce() bool      { return m.checkNonce }

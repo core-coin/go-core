@@ -175,7 +175,12 @@ func (info *faucetInfos) Report() map[string]string {
 			Address string `json:"address"`
 		}
 		if err := json.Unmarshal([]byte(info.node.keyJSON), &key); err == nil {
-			report["Funding account"] = common.HexToAddress(key.Address).Hex()
+			addr, err := common.HexToAddress(key.Address)
+			if err != nil {
+				log.Error("Failed to retrieve signer address: invalid address", "err", err)
+				return report
+			}
+			report["Funding account"] = addr.Hex()
 		} else {
 			log.Error("Failed to retrieve signer address", "err", err)
 		}

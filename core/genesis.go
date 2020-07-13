@@ -43,6 +43,8 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
+var defaultCoinbase, _ = common.HexToAddress("970000000000000000000000000000000000000000")
+
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
@@ -321,13 +323,16 @@ func (g *Genesis) MustCommit(db xccdb.Database) *types.Block {
 
 // GenesisBlockForTesting creates and writes a block in which addr has the given ore balance.
 func GenesisBlockForTesting(db xccdb.Database, addr common.Address, balance *big.Int) *types.Block {
-	g := Genesis{Alloc: GenesisAlloc{addr: {Balance: balance}}}
+	g := Genesis{
+		Coinbase: defaultCoinbase,
+		Alloc:    GenesisAlloc{addr: {Balance: balance}}}
 	return g.MustCommit(db)
 }
 
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      params.MainnetChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
@@ -340,6 +345,7 @@ func DefaultGenesisBlock() *Genesis {
 // DefaultDevinGenesisBlock returns the Devin network genesis block.
 func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      params.DevinChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
@@ -352,6 +358,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 // DefaultKolibaGenesisBlock returns the Koliba network genesis block.
 func DefaultKolibaGenesisBlock() *Genesis {
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      params.KolibaChainConfig,
 		Timestamp:   1548854791,
 		ExtraData:   hexutil.MustDecode("0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
@@ -369,6 +376,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      &config,
 		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
 		EnergyLimit: 6283185,

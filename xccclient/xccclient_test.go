@@ -54,8 +54,12 @@ var (
 
 func TestToFilterArg(t *testing.T) {
 	blockHashErr := fmt.Errorf("cannot specify both BlockHash and FromBlock/ToBlock")
+	addr, err := common.HexToAddress("56D36722ADeC3EdCB29c8e7b5a47f352D701393462")
+	if err != nil {
+		t.Error(err)
+	}
 	addresses := []common.Address{
-		common.HexToAddress("0xD36722ADeC3EdCB29c8e7b5a47f352D701393462"),
+		addr,
 	}
 	blockHash := common.HexToHash(
 		"0xeb94bb7d78b73657a9d7a99792413f50c0a45c51fc62bdcb08a53f18e9a2b4eb",
@@ -195,7 +199,9 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 func generateTestChain() (*core.Genesis, []*types.Block) {
 	db := rawdb.NewMemoryDatabase()
 	config := params.AllCryptoreProtocolChanges
+	coinbase, _ := common.HexToAddress("970000000000000000000000000000000000000000")
 	genesis := &core.Genesis{
+		Coinbase:  coinbase,
 		Config:    config,
 		Alloc:     core.GenesisAlloc{testAddr: {Balance: testBalance}},
 		ExtraData: []byte("test genesis"),
