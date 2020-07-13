@@ -55,9 +55,9 @@ type ExternalAPI interface {
 	// SignTransaction request to sign the specified transaction
 	SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*xccapi.SignTransactionResult, error)
 	// SignData - request to sign the given data (plus prefix)
-	SignData(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (hexutil.Bytes, error)
+	SignData(ctx context.Context, contentType string, addr common.Address, data interface{}) (hexutil.Bytes, error)
 	// SignTypedData - request to sign the given structured data (plus prefix)
-	SignTypedData(ctx context.Context, addr common.MixedcaseAddress, data TypedData) (hexutil.Bytes, error)
+	SignTypedData(ctx context.Context, addr common.Address, data TypedData) (hexutil.Bytes, error)
 	// EcRecover - recover public key from given message and signature
 	EcRecover(ctx context.Context, data hexutil.Bytes, sig hexutil.Bytes) (common.Address, error)
 	// Version info about the APIs
@@ -216,12 +216,12 @@ type (
 		Approved    bool       `json:"approved"`
 	}
 	SignDataRequest struct {
-		ContentType string                  `json:"content_type"`
-		Address     common.MixedcaseAddress `json:"address"`
-		Rawdata     []byte                  `json:"raw_data"`
-		Messages    []*NameValueType        `json:"messages"`
-		Hash        hexutil.Bytes           `json:"hash"`
-		Meta        Metadata                `json:"meta"`
+		ContentType string           `json:"content_type"`
+		Address     common.Address   `json:"address"`
+		Rawdata     []byte           `json:"raw_data"`
+		Messages    []*NameValueType `json:"messages"`
+		Hash        hexutil.Bytes    `json:"hash"`
+		Meta        Metadata         `json:"meta"`
 	}
 	SignDataResponse struct {
 		Approved bool `json:"approved"`
@@ -489,7 +489,7 @@ func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, meth
 		acc    accounts.Account
 		wallet accounts.Wallet
 	)
-	acc = accounts.Account{Address: result.Transaction.From.Address()}
+	acc = accounts.Account{Address: result.Transaction.From}
 	wallet, err = api.am.Find(acc)
 	if err != nil {
 		return nil, err

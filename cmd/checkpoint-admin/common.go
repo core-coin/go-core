@@ -51,7 +51,7 @@ func newRPCClient(url string) *rpc.Client {
 
 // getContractAddr retrieves the register contract address through
 // rpc request.
-func getContractAddr(client *rpc.Client) common.Address {
+func getContractAddr(client *rpc.Client) (common.Address, error) {
 	var addr string
 	if err := client.Call(&addr, "les_getCheckpointContractAddress"); err != nil {
 		utils.Fatalf("Failed to fetch checkpoint oracle address: %v", err)
@@ -99,7 +99,10 @@ func getCheckpoint(ctx *cli.Context, client *rpc.Client) *params.TrustedCheckpoi
 // newContract creates a registrar contract instance with specified
 // contract address or the default contracts for mainnet or devin.
 func newContract(client *rpc.Client) (common.Address, *checkpointoracle.CheckpointOracle) {
-	addr := getContractAddr(client)
+	addr, err := getContractAddr(client)
+	if err != nil {
+		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
+	}
 	if addr == (common.Address{}) {
 		utils.Fatalf("No specified registrar contract address")
 	}
@@ -116,5 +119,9 @@ func newClefSigner(ctx *cli.Context) *bind.TransactOpts {
 	if err != nil {
 		utils.Fatalf("Failed to create clef signer %v", err)
 	}
-	return bind.NewClefTransactor(clef, accounts.Account{Address: common.HexToAddress(ctx.String(signerFlag.Name))})
+	addr, err := common.HexToAddress(ctx.String(signerFlag.Name))
+	if err != nil {
+		utils.Fatalf("Failed to create clef signer %v", err)
+	}
+	return bind.NewClefTransactor(clef, accounts.Account{Address: addr})
 }

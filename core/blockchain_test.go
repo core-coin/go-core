@@ -600,7 +600,7 @@ func TestFastVsFullChains(t *testing.T) {
 			Alloc:  GenesisAlloc{address: {Balance: funds}},
 		}
 		genesis = gspec.MustCommit(gendb)
-		signer  = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer  = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 	blocks, receipts := GenerateChain(gspec.Config, genesis, cryptore.NewFaker(), gendb, 1024, func(i int, block *BlockGen) {
 		block.SetCoinbase(common.Address{0x00})
@@ -835,7 +835,7 @@ func TestChainTxReorgs(t *testing.T) {
 			},
 		}
 		genesis = gspec.MustCommit(db)
-		signer  = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer  = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 
 	// Create two transactions shared between the chains:
@@ -940,7 +940,7 @@ func TestLogReorgs(t *testing.T) {
 		code    = common.Hex2Bytes("60606040525b7f24ec1d3ff24c2f6ff210738839dbc339cd45a5294d85c79361016243157aae7b60405180905060405180910390a15b600a8060416000396000f360606040526008565b00")
 		gspec   = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{addr1: {Balance: big.NewInt(10000000000000)}}}
 		genesis = gspec.MustCommit(db)
-		signer  = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer  = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 
 	blockchain, _ := NewBlockChain(db, nil, gspec.Config, cryptore.NewFaker(), vm.Config{}, nil)
@@ -992,7 +992,7 @@ func TestLogRebirth(t *testing.T) {
 		code        = common.Hex2Bytes("60606040525b7f24ec1d3ff24c2f6ff210738839dbc339cd45a5294d85c79361016243157aae7b60405180905060405180910390a15b600a8060416000396000f360606040526008565b00")
 		gspec       = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{addr1: {Balance: big.NewInt(10000000000000)}}}
 		genesis     = gspec.MustCommit(db)
-		signer      = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer      = types.NewNucleusSigner(gspec.Config.ChainID)
 		newLogCh    = make(chan bool)
 		removeLogCh = make(chan bool)
 	)
@@ -1113,7 +1113,7 @@ func TestSideLogRebirth(t *testing.T) {
 		code     = common.Hex2Bytes("60606040525b7f24ec1d3ff24c2f6ff210738839dbc339cd45a5294d85c79361016243157aae7b60405180905060405180910390a15b600a8060416000396000f360606040526008565b00")
 		gspec    = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{addr1: {Balance: big.NewInt(10000000000000)}}}
 		genesis  = gspec.MustCommit(db)
-		signer   = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer   = types.NewNucleusSigner(gspec.Config.ChainID)
 		newLogCh = make(chan bool)
 	)
 
@@ -1197,7 +1197,7 @@ func TestReorgSideEvent(t *testing.T) {
 			Alloc:  GenesisAlloc{addr1: {Balance: big.NewInt(10000000000000)}},
 		}
 		genesis = gspec.MustCommit(db)
-		signer  = types.NewCIP155Signer(gspec.Config.ChainID)
+		signer  = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 
 	blockchain, _ := NewBlockChain(db, nil, gspec.Config, cryptore.NewFaker(), vm.Config{}, nil)
@@ -1345,31 +1345,31 @@ func TestCIP155Transition(t *testing.T) {
 		)
 		switch i {
 		case 0:
-			tx, err = basicTx(types.NucleusSigner{})
+			tx, err = basicTx(types.NewNucleusSigner(blockchain.chainConfig.ChainID))
 			if err != nil {
 				t.Fatal(err)
 			}
 			block.AddTx(tx)
 		case 2:
-			tx, err = basicTx(types.NucleusSigner{})
+			tx, err = basicTx(types.NewNucleusSigner(blockchain.chainConfig.ChainID))
 			if err != nil {
 				t.Fatal(err)
 			}
 			block.AddTx(tx)
 
-			tx, err = basicTx(types.NewCIP155Signer(gspec.Config.ChainID))
+			tx, err = basicTx(types.NewNucleusSigner(gspec.Config.ChainID))
 			if err != nil {
 				t.Fatal(err)
 			}
 			block.AddTx(tx)
 		case 3:
-			tx, err = basicTx(types.NucleusSigner{})
+			tx, err = basicTx(types.NewNucleusSigner(blockchain.chainConfig.ChainID))
 			if err != nil {
 				t.Fatal(err)
 			}
 			block.AddTx(tx)
 
-			tx, err = basicTx(types.NewCIP155Signer(gspec.Config.ChainID))
+			tx, err = basicTx(types.NewNucleusSigner(gspec.Config.ChainID))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1395,7 +1395,7 @@ func TestCIP155Transition(t *testing.T) {
 			}
 		)
 		if i == 0 {
-			tx, err = basicTx(types.NewCIP155Signer(big.NewInt(2)))
+			tx, err = basicTx(types.NewNucleusSigner(big.NewInt(2)))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1431,7 +1431,7 @@ func TestCIP161AccountRemoval(t *testing.T) {
 		var (
 			tx     *types.Transaction
 			err    error
-			signer = types.NewCIP155Signer(gspec.Config.ChainID)
+			signer = types.NewNucleusSigner(gspec.Config.ChainID)
 		)
 		switch i {
 		case 0:
@@ -2119,8 +2119,11 @@ func TestReorgToShorterRemovesCanonMappingHeaderChain(t *testing.T) {
 
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
+	addr, err := common.HexToAddress("0xc0de")
+	if err != nil {
+		b.Error(err)
+	}
 	var (
-		signer          = types.NucleusSigner{}
 		testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
 		bankFunds       = big.NewInt(100000000000000000)
@@ -2128,13 +2131,14 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 			Config: params.TestChainConfig,
 			Alloc: GenesisAlloc{
 				testBankAddress: {Balance: bankFunds},
-				common.HexToAddress("0xc0de"): {
+				addr: {
 					Code:    []byte{0x60, 0x01, 0x50},
 					Balance: big.NewInt(0),
 				}, // push 1, pop
 			},
 			EnergyLimit: 100e6, // 100 M
 		}
+		signer = types.NewNucleusSigner(gspec.Config.ChainID)
 	)
 	// Generate the original common chain segment and the two competing forks
 	engine := cryptore.NewFaker()
@@ -2282,8 +2286,8 @@ func TestSideImportPrunedBlocks(t *testing.T) {
 // first, but the journal wiped the entire state object on create-revert.
 func TestDeleteCreateRevert(t *testing.T) {
 	var (
-		aa = common.HexToAddress("0x000000000000000000000000000000000000aaaa")
-		bb = common.HexToAddress("0x000000000000000000000000000000000000bbbb")
+		aa, err1 = common.HexToAddress("57000000000000000000000000000000000000aaaa")
+		bb, err2 = common.HexToAddress("53000000000000000000000000000000000000bbbb")
 		// Generate a canonical chain to act as the main dataset
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()
@@ -2322,16 +2326,21 @@ func TestDeleteCreateRevert(t *testing.T) {
 		}
 		genesis = gspec.MustCommit(db)
 	)
-
+	if err1 != nil {
+		t.Error(err1)
+	}
+	if err2 != nil {
+		t.Error(err2)
+	}
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 1, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to AAAA
 		tx, _ := types.SignTx(types.NewTransaction(0, aa,
-			big.NewInt(0), 50000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 50000, big.NewInt(1), nil), types.NewNucleusSigner(params.TestChainConfig.ChainID), key)
 		b.AddTx(tx)
 		// One transaction to BBBB
 		tx, _ = types.SignTx(types.NewTransaction(1, bb,
-			big.NewInt(0), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 100000, big.NewInt(1), nil), types.NewNucleusSigner(params.TestChainConfig.ChainID), key)
 		b.AddTx(tx)
 	})
 	// Import the canonical chain

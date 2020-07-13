@@ -63,7 +63,7 @@ const (
 	txSizeCostLimit = 0x4000
 
 	// handshakeTimeout is the timeout LES handshake will be treated as failed.
-	handshakeTimeout = 5 * time.Second
+	handshakeTimeout = 15 * time.Second
 
 	// retrySendCachePeriod is the time interval a caching retry is performed.
 	retrySendCachePeriod = time.Millisecond * 100

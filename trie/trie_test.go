@@ -593,15 +593,15 @@ func TestTinyTrie(t *testing.T) {
 	_, accounts := makeAccounts(10000)
 	trie := newEmpty()
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001337"), accounts[3])
-	if exp, root := common.HexToHash("4fa6efd292cffa2db0083b8bedd23add2798ae73802442f52486e95c3df7111c"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("421ba75ef8b9c55db9fb8fc0121601c119caeeaf5044d58426c8ccb522896d24"), trie.Hash(); exp != root {
 		t.Fatalf("1: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001338"), accounts[4])
-	if exp, root := common.HexToHash("cb5fb1213826dad9e604f095f8ceb5258fe6b5c01805ce6ef019a50699d2d479"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("2400286d876b5d36f578dc48b6a395aaf77bb9867045dc24f376cd0fe3caa4e6"), trie.Hash(); exp != root {
 		t.Fatalf("2: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001339"), accounts[4])
-	if exp, root := common.HexToHash("ed7e06b4010057d8703e7b9a160a6d42cf4021f9020da3c8891030349a646987"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("099fdd6e8ce927ce7c42f88a5b2e9408c08ea7163e5c1c25ae13b184d661e298"), trie.Hash(); exp != root {
 		t.Fatalf("3: got %x, exp %x", root, exp)
 	}
 
@@ -626,7 +626,7 @@ func TestCommitAfterHash(t *testing.T) {
 	trie.Hash()
 	trie.Commit(nil)
 	root := trie.Hash()
-	exp := common.HexToHash("e5e9c29bb50446a4081e6d1d748d2892c6101c1e883a1f77cf21d4094b697822")
+	exp := common.HexToHash("c2eaf653d80a1089f4a1b04e637b343af25c8e373f911bc7c0400418aa1bb02f")
 	if exp != root {
 		t.Errorf("got %x, exp %x", root, exp)
 	}
@@ -636,15 +636,17 @@ func TestCommitAfterHash(t *testing.T) {
 	}
 }
 
-func makeAccounts(size int) (addresses [][20]byte, accounts [][]byte) {
+func makeAccounts(size int) (addresses [][21]byte, accounts [][]byte) {
 	// Make the random benchmark deterministic
 	random := rand.New(rand.NewSource(0))
 	// Create a realistic account trie to hash
-	addresses = make([][20]byte, size)
+	addresses = make([][21]byte, size)
 	for i := 0; i < len(addresses); i++ {
 		for j := 0; j < len(addresses[i]); j++ {
 			addresses[i][j] = byte(random.Intn(256))
 		}
+		checksum := common.CalculateChecksum(addresses[i][1:])
+		addresses[i][1] = checksum[0]
 	}
 	accounts = make([][]byte, len(addresses))
 	for i := 0; i < len(accounts); i++ {
@@ -702,7 +704,7 @@ func BenchmarkHashFixedSize(b *testing.B) {
 	})
 }
 
-func benchmarkHashFixedSize(b *testing.B, addresses [][20]byte, accounts [][]byte) {
+func benchmarkHashFixedSize(b *testing.B, addresses [][21]byte, accounts [][]byte) {
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
@@ -753,7 +755,7 @@ func BenchmarkCommitAfterHashFixedSize(b *testing.B) {
 	})
 }
 
-func benchmarkCommitAfterHashFixedSize(b *testing.B, addresses [][20]byte, accounts [][]byte) {
+func benchmarkCommitAfterHashFixedSize(b *testing.B, addresses [][21]byte, accounts [][]byte) {
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
@@ -805,7 +807,7 @@ func BenchmarkDerefRootFixedSize(b *testing.B) {
 	})
 }
 
-func benchmarkDerefRootFixedSize(b *testing.B, addresses [][20]byte, accounts [][]byte) {
+func benchmarkDerefRootFixedSize(b *testing.B, addresses [][21]byte, accounts [][]byte) {
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {

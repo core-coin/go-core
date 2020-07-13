@@ -105,7 +105,7 @@ contract test {
 func prepare(n int, backend *backends.SimulatedBackend) {
 	var (
 		ctx    = context.Background()
-		signer = types.NucleusSigner{}
+		signer = types.NewNucleusSigner(backend.Blockchain().Config().ChainID)
 	)
 	for i := 0; i < n; i++ {
 		switch i {

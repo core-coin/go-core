@@ -49,17 +49,17 @@ const (
 // Receipt represents the results of a transaction.
 type Receipt struct {
 	// Consensus fields: These fields are defined by the Yellow Paper
-	PostState         []byte `json:"root"`
-	Status            uint64 `json:"status"`
+	PostState            []byte `json:"root"`
+	Status               uint64 `json:"status"`
 	CumulativeEnergyUsed uint64 `json:"cumulativeEnergyUsed" gencodec:"required"`
-	Bloom             Bloom  `json:"logsBloom"         gencodec:"required"`
-	Logs              []*Log `json:"logs"              gencodec:"required"`
+	Bloom                Bloom  `json:"logsBloom"         gencodec:"required"`
+	Logs                 []*Log `json:"logs"              gencodec:"required"`
 
 	// Implementation fields: These fields are added by gcore when processing a transaction.
 	// They are stored in the chain database.
 	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress common.Address `json:"contractAddress"`
-	EnergyUsed         uint64         `json:"energyUsed" gencodec:"required"`
+	EnergyUsed      uint64         `json:"energyUsed" gencodec:"required"`
 
 	// Inclusion information: These fields provide information about the inclusion of the
 	// transaction corresponding to this receipt.
@@ -69,47 +69,47 @@ type Receipt struct {
 }
 
 type receiptMarshaling struct {
-	PostState         hexutil.Bytes
-	Status            hexutil.Uint64
+	PostState            hexutil.Bytes
+	Status               hexutil.Uint64
 	CumulativeEnergyUsed hexutil.Uint64
 	EnergyUsed           hexutil.Uint64
-	BlockNumber       *hexutil.Big
-	TransactionIndex  hexutil.Uint
+	BlockNumber          *hexutil.Big
+	TransactionIndex     hexutil.Uint
 }
 
 // receiptRLP is the consensus encoding of a receipt.
 type receiptRLP struct {
-	PostStateOrStatus []byte
+	PostStateOrStatus    []byte
 	CumulativeEnergyUsed uint64
-	Bloom             Bloom
-	Logs              []*Log
+	Bloom                Bloom
+	Logs                 []*Log
 }
 
 // storedReceiptRLP is the storage encoding of a receipt.
 type storedReceiptRLP struct {
-	PostStateOrStatus []byte
+	PostStateOrStatus    []byte
 	CumulativeEnergyUsed uint64
-	Logs              []*LogForStorage
+	Logs                 []*LogForStorage
 }
 
 // v4StoredReceiptRLP is the storage encoding of a receipt used in database version 4.
 type v4StoredReceiptRLP struct {
-	PostStateOrStatus []byte
+	PostStateOrStatus    []byte
 	CumulativeEnergyUsed uint64
-	TxHash            common.Hash
-	ContractAddress   common.Address
-	Logs              []*LogForStorage
+	TxHash               common.Hash
+	ContractAddress      common.Address
+	Logs                 []*LogForStorage
 	EnergyUsed           uint64
 }
 
 // v3StoredReceiptRLP is the original storage encoding of a receipt including some unnecessary fields.
 type v3StoredReceiptRLP struct {
-	PostStateOrStatus []byte
+	PostStateOrStatus    []byte
 	CumulativeEnergyUsed uint64
-	Bloom             Bloom
-	TxHash            common.Hash
-	ContractAddress   common.Address
-	Logs              []*LogForStorage
+	Bloom                Bloom
+	TxHash               common.Hash
+	ContractAddress      common.Address
+	Logs                 []*LogForStorage
 	EnergyUsed           uint64
 }
 
@@ -188,9 +188,9 @@ type ReceiptForStorage Receipt
 // into an RLP stream.
 func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	enc := &storedReceiptRLP{
-		PostStateOrStatus: (*Receipt)(r).statusEncoding(),
+		PostStateOrStatus:    (*Receipt)(r).statusEncoding(),
 		CumulativeEnergyUsed: r.CumulativeEnergyUsed,
-		Logs:              make([]*LogForStorage, len(r.Logs)),
+		Logs:                 make([]*LogForStorage, len(r.Logs)),
 	}
 	for i, log := range r.Logs {
 		enc.Logs[i] = (*LogForStorage)(log)
@@ -295,7 +295,7 @@ func (r Receipts) GetRlp(i int) []byte {
 // DeriveFields fills the receipts with their computed fields based on consensus
 // data and contextual infos like containing block and transactions.
 func (r Receipts) DeriveFields(config *params.ChainConfig, hash common.Hash, number uint64, txs Transactions) error {
-	signer := MakeSigner()
+	signer := MakeSigner(config.ChainID)
 
 	logIndex := uint(0)
 	if len(txs) != len(r) {

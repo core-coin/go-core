@@ -358,7 +358,7 @@ func (api *RetestxccAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 		// Return nil is not by mistake - some tests include sending transaction where energyLimit overflows uint64
 		return common.Hash{}, nil
 	}
-	signer := types.MakeSigner()
+	signer := types.MakeSigner(api.blockchain.Config().ChainID)
 	sender, err := types.Sender(signer, tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -588,7 +588,7 @@ func (api *RetestxccAPI) AccountRange(ctx context.Context,
 			return AccountRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner()
+		signer := types.MakeSigner(api.blockchain.Config().ChainID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -697,7 +697,7 @@ func (api *RetestxccAPI) StorageRangeAt(ctx context.Context,
 			return StorageRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner()
+		signer := types.MakeSigner(api.blockchain.Config().ChainID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -802,8 +802,8 @@ func retestxcc(ctx *cli.Context) error {
 			Version:   "1.0",
 		},
 	}
-	vhosts := splitAndTrim(ctx.GlobalString(utils.RPCVirtualHostsFlag.Name))
-	cors := splitAndTrim(ctx.GlobalString(utils.RPCCORSDomainFlag.Name))
+	vhosts := splitAndTrim(ctx.GlobalString(utils.HTTPVirtualHostsFlag.Name))
+	cors := splitAndTrim(ctx.GlobalString(utils.HTTPCORSDomainFlag.Name))
 
 	// start http server
 	var RetestxccHTTPTimeouts = rpc.HTTPTimeouts{
@@ -811,7 +811,7 @@ func retestxcc(ctx *cli.Context) error {
 		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.RPCListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
+	httpEndpoint := fmt.Sprintf("%s:%d", ctx.GlobalString(utils.HTTPListenAddrFlag.Name), ctx.Int(rpcPortFlag.Name))
 	listener, _, err := rpc.StartHTTPEndpoint(httpEndpoint, rpcAPI, []string{"test", "xcc", "debug", "web3"}, cors, vhosts, RetestxccHTTPTimeouts)
 	if err != nil {
 		utils.Fatalf("Could not start RPC api: %v", err)

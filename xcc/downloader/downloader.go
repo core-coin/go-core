@@ -222,7 +222,7 @@ func New(checkpoint uint64, stateDb xccdb.Database, stateBloom *trie.SyncBloom, 
 		queue:          newQueue(),
 		peers:          newPeerSet(),
 		rttEstimate:    uint64(rttMaxEstimate),
-		rttConfidence:  uint64(1000000),
+		rttConfidence:  uint64(100000),
 		blockchain:     chain,
 		lightchain:     lightchain,
 		dropPeer:       dropPeer,
@@ -1789,11 +1789,11 @@ func (d *Downloader) qosTuner() {
 
 		// A new RTT cycle passed, increase our confidence in the estimated RTT
 		conf := atomic.LoadUint64(&d.rttConfidence)
-		conf = conf + (1000000-conf)/2
+		conf = conf + (100000-conf)/2
 		atomic.StoreUint64(&d.rttConfidence, conf)
 
 		// Log the new QoS values and sleep until the next RTT
-		log.Debug("Recalculated downloader QoS values", "rtt", rtt, "confidence", float64(conf)/1000000.0, "ttl", d.requestTTL())
+		log.Debug("Recalculated downloader QoS values", "rtt", rtt, "confidence", float64(conf)/100000.0, "ttl", d.requestTTL())
 		select {
 		case <-d.quitCh:
 			return
@@ -1812,7 +1812,7 @@ func (d *Downloader) qosReduceConfidence() {
 		return
 	}
 	if peers == 1 {
-		atomic.StoreUint64(&d.rttConfidence, 1000000)
+		atomic.StoreUint64(&d.rttConfidence, 100000)
 		return
 	}
 	// If we have a ton of peers, don't drop confidence)
@@ -1821,13 +1821,13 @@ func (d *Downloader) qosReduceConfidence() {
 	}
 	// Otherwise drop the confidence factor
 	conf := atomic.LoadUint64(&d.rttConfidence) * (peers - 1) / peers
-	if float64(conf)/1000000 < rttMinConfidence {
-		conf = uint64(rttMinConfidence * 1000000)
+	if float64(conf)/100000 < rttMinConfidence {
+		conf = uint64(rttMinConfidence * 100000)
 	}
 	atomic.StoreUint64(&d.rttConfidence, conf)
 
 	rtt := time.Duration(atomic.LoadUint64(&d.rttEstimate))
-	log.Debug("Relaxed downloader QoS values", "rtt", rtt, "confidence", float64(conf)/1000000.0, "ttl", d.requestTTL())
+	log.Debug("Relaxed downloader QoS values", "rtt", rtt, "confidence", float64(conf)/100000.0, "ttl", d.requestTTL())
 }
 
 // requestRTT returns the current target round trip time for a download request
@@ -1845,7 +1845,7 @@ func (d *Downloader) requestRTT() time.Duration {
 func (d *Downloader) requestTTL() time.Duration {
 	var (
 		rtt  = time.Duration(atomic.LoadUint64(&d.rttEstimate))
-		conf = float64(atomic.LoadUint64(&d.rttConfidence)) / 10000.0
+		conf = float64(atomic.LoadUint64(&d.rttConfidence)) / 100000.0
 	)
 	ttl := time.Duration(ttlScaling) * time.Duration(float64(rtt)/conf)
 	if ttl > ttlLimit {
