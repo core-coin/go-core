@@ -30,8 +30,8 @@ import (
 
 var (
 	retryQueue         = time.Millisecond * 100
-	softRequestTimeout = time.Millisecond * 500
-	hardRequestTimeout = time.Second * 10
+	softRequestTimeout = time.Second
+	hardRequestTimeout = time.Second * 30
 )
 
 // retrieveManager is a layer on top of requestDistributor which takes care of
