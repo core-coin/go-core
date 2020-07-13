@@ -67,8 +67,7 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 		signer      types.Signer
 		fork        ttFork
 	}{
-		{"Nucleus", types.NucleusSigner{}, tt.Nucleus},
-		{"CIP150", types.NucleusSigner{}, tt.CIP150},
+		{"Nucleus", types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tt.Nucleus},
 	} {
 		sender, txhash, err := validateTx(tt.RLP, testcase.signer)
 

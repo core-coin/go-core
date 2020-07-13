@@ -136,12 +136,20 @@ func runCmd(ctx *cli.Context) error {
 		genesisConfig = new(core.Genesis)
 	}
 	if ctx.GlobalString(SenderFlag.Name) != "" {
-		sender = common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		if err != nil {
+			return err
+		}
+		sender = addr
 	}
 	statedb.CreateAccount(sender)
 
 	if ctx.GlobalString(ReceiverFlag.Name) != "" {
-		receiver = common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		if err != nil {
+			return err
+		}
+		receiver = addr
 	}
 
 	var code []byte

@@ -25,10 +25,6 @@
     },
     "config": {
       "chainId": 3,
-      "cip150Block": 0,
-      "cip150Hash": "0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
-      "cip155Block": 10,
-      "cip158Block": 10,
       "cryptore": {}
     },
     "difficulty": "3699098917",
