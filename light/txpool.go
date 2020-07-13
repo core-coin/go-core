@@ -87,7 +87,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewCIP155Signer(config.ChainID),
+		signer:      types.NewNucleusSigner(config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),
@@ -345,7 +345,7 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	// Validate the transaction sender and it's sig. Throw
 	// if the from fields is invalid.
 	if from, err = types.Sender(pool.signer, tx); err != nil {
-		return core.ErrInvalidSender
+		return err
 	}
 	// Last but not least check for nonce errors
 	currentState := pool.currentState(ctx)
@@ -402,7 +402,10 @@ func (pool *TxPool) add(ctx context.Context, tx *types.Transaction) error {
 
 		nonce := tx.Nonce() + 1
 
-		addr, _ := types.Sender(pool.signer, tx)
+		addr, err := types.Sender(pool.signer, tx)
+		if err != nil {
+			return err
+		}
 		if nonce > pool.nonce[addr] {
 			pool.nonce[addr] = nonce
 		}

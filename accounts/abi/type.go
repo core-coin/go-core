@@ -153,7 +153,7 @@ func NewType(t string, internalType string, components []ArgumentMarshaling) (ty
 	case "address":
 		typ.Kind = reflect.Array
 		typ.Type = addressT
-		typ.Size = 20
+		typ.Size = 21
 		typ.T = AddressTy
 	case "string":
 		typ.Kind = reflect.String

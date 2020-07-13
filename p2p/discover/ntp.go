@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	ntpChecks = 3 // Number of measurements to do against the NTP server
+	ntpChecks = 10 // Number of measurements to do against the NTP server
 )
 
 // durationSlice attaches the methods of sort.Interface to []time.Duration,

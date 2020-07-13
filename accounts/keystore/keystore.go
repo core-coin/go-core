@@ -21,7 +21,6 @@
 package keystore
 
 import (
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -32,6 +31,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -280,10 +281,7 @@ func (ks *KeyStore) SignTx(a accounts.Account, tx *types.Transaction, chainID *b
 		return nil, ErrLocked
 	}
 	// Depending on the presence of the chain ID, sign with CIP155 or nucleus
-	if chainID != nil {
-		return types.SignTx(tx, types.NewCIP155Signer(chainID), unlockedKey.PrivateKey)
-	}
-	return types.SignTx(tx, types.NucleusSigner{}, unlockedKey.PrivateKey)
+	return types.SignTx(tx, types.NewNucleusSigner(chainID), unlockedKey.PrivateKey)
 }
 
 // SignHashWithPassphrase signs hash if the private key matching the given address
@@ -307,11 +305,7 @@ func (ks *KeyStore) SignTxWithPassphrase(a accounts.Account, passphrase string, 
 	}
 	defer zeroKey(key.PrivateKey)
 
-	// Depending on the presence of the chain ID, sign with CIP155 or nuclear
-	if chainID != nil {
-		return types.SignTx(tx, types.NewCIP155Signer(chainID), key.PrivateKey)
-	}
-	return types.SignTx(tx, types.NucleusSigner{}, key.PrivateKey)
+	return types.SignTx(tx, types.NewNucleusSigner(chainID), key.PrivateKey)
 }
 
 // Unlock unlocks the given account indefinitely.

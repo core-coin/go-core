@@ -17,12 +17,13 @@
 package crypto
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
@@ -70,13 +71,17 @@ func Keccak512(data ...[]byte) []byte {
 // CreateAddress creates an core address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	addr := Keccak256(data)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 // CreateAddress2 creates an core address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+	addr := Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 // ToEDDSA creates a private key with the given D value.
@@ -137,7 +142,7 @@ func HexToEDDSA(hexkey string) (*eddsa.PrivateKey, error) {
 
 // LoadEDDSA loads a secp256k1 private key from the given file.
 func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
-	buf := make([]byte, 144 * 2)
+	buf := make([]byte, 144*2)
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -168,7 +173,7 @@ func GenerateKey(read io.Reader) (*eddsa.PrivateKey, error) {
 // ValidateSignatureValues verifies whether the signature values are valid with
 // the given chain rules. The v value is assumed to be either 0 or 1.
 func ValidateSignatureValues(v byte) bool {
-    return v == 0 || v == 1
+	return v == 0 || v == 1
 }
 
 func ComputeSecret(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
@@ -181,7 +186,9 @@ func PubkeyToAddress(p eddsa.PublicKey) common.Address {
 	if pubBytes == nil {
 		return common.Address{}
 	}
-	return common.BytesToAddress(Keccak256(pubBytes)[12:])
+	addr := Keccak256(pubBytes)[12:]
+	checksum := common.CalculateChecksum(addr)
+	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
 }
 
 func zeroBytes(bytes []byte) {

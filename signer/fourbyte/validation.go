@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/signer/core"
 )
 
@@ -66,11 +65,7 @@ func (db *Database) ValidateTransaction(selector *string, tx *core.SendTxArgs) (
 		}
 		return messages, nil
 	}
-	// Not a contract creation, validate as a plain transaction
-	if !tx.To.ValidChecksum() {
-		messages.Warn("Invalid checksum on recipient address")
-	}
-	if bytes.Equal(tx.To.Address().Bytes(), common.Address{}.Bytes()) {
+	if tx.To.Hex() == "970000000000000000000000000000000000000000" {
 		messages.Crit("Transaction recipient is the zero address")
 	}
 	// Semantic fields validated, try to make heads or tails of the call data

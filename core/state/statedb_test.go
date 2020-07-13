@@ -477,8 +477,11 @@ func TestTouchDelete(t *testing.T) {
 // TestCopyOfCopy tests that modified objects are carried over to the copy, and the copy of the copy.
 // See https://github.com/core-coin/go-core/pull/15225#issuecomment-380191512
 func TestCopyOfCopy(t *testing.T) {
-	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()), nil)
-	addr := common.HexToAddress("aaaa")
+	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()))
+	addr, err := common.HexToAddress("57000000000000000000000000000000000000aaaa")
+	if err != nil {
+		t.Error(err)
+	}
 	state.SetBalance(addr, big.NewInt(42))
 
 	if got := state.Copy().GetBalance(addr).Uint64(); got != 42 {
@@ -497,7 +500,10 @@ func TestCopyCommitCopy(t *testing.T) {
 	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()), nil)
 
 	// Create an account and check if the retrieved balance is correct
-	addr := common.HexToAddress("0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	addr, err := common.HexToAddress("51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	if err != nil {
+		t.Error(err)
+	}
 	skey := common.HexToHash("aaa")
 	sval := common.HexToHash("bbb")
 
@@ -569,7 +575,10 @@ func TestCopyCopyCommitCopy(t *testing.T) {
 	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()), nil)
 
 	// Create an account and check if the retrieved balance is correct
-	addr := common.HexToAddress("0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	addr, err := common.HexToAddress("51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	if err != nil {
+		t.Error(err)
+	}
 	skey := common.HexToHash("aaa")
 	sval := common.HexToHash("bbb")
 

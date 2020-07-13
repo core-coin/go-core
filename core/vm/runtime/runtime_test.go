@@ -17,6 +17,7 @@
 package runtime
 
 import (
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"strings"
 	"testing"
@@ -98,8 +99,11 @@ func TestExecute(t *testing.T) {
 }
 
 func TestCall(t *testing.T) {
-	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
-	address := common.HexToAddress("0x0a")
+	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
+	address, err := common.HexToAddress("87000000000000000000000000000000000000000a")
+	if err != nil {
+		t.Error(err)
+	}
 	state.SetCode(address, []byte{
 		byte(vm.PUSH1), 10,
 		byte(vm.PUSH1), 0,
@@ -200,8 +204,12 @@ func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 }
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
+	coinbase, err := common.HexToAddress("5700000000000000000000000000000000deadbeef")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	header := types.Header{
-		Coinbase:    common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
+		Coinbase:    coinbase,
 		Number:      big.NewInt(int64(n)),
 		ParentHash:  parentHash,
 		Time:        1000,

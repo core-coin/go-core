@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/rlp"
@@ -107,8 +106,8 @@ func (h *Header) GetReceiptHash() *Hash  { return &Hash{h.header.ReceiptHash} }
 func (h *Header) GetBloom() *Bloom       { return &Bloom{h.header.Bloom} }
 func (h *Header) GetDifficulty() *BigInt { return &BigInt{h.header.Difficulty} }
 func (h *Header) GetNumber() int64       { return h.header.Number.Int64() }
-func (h *Header) GetEnergyLimit() int64     { return int64(h.header.EnergyLimit) }
-func (h *Header) GetEnergyUsed() int64      { return int64(h.header.EnergyUsed) }
+func (h *Header) GetEnergyLimit() int64  { return int64(h.header.EnergyLimit) }
+func (h *Header) GetEnergyUsed() int64   { return int64(h.header.EnergyUsed) }
 func (h *Header) GetTime() int64         { return int64(h.header.Time) }
 func (h *Header) GetExtra() []byte       { return h.header.Extra }
 func (h *Header) GetMixDigest() *Hash    { return &Hash{h.header.MixDigest} }
@@ -178,8 +177,8 @@ func (b *Block) GetReceiptHash() *Hash          { return &Hash{b.block.ReceiptHa
 func (b *Block) GetBloom() *Bloom               { return &Bloom{b.block.Bloom()} }
 func (b *Block) GetDifficulty() *BigInt         { return &BigInt{b.block.Difficulty()} }
 func (b *Block) GetNumber() int64               { return b.block.Number().Int64() }
-func (b *Block) GetEnergyLimit() int64             { return int64(b.block.EnergyLimit()) }
-func (b *Block) GetEnergyUsed() int64              { return int64(b.block.EnergyUsed()) }
+func (b *Block) GetEnergyLimit() int64          { return int64(b.block.EnergyLimit()) }
+func (b *Block) GetEnergyUsed() int64           { return int64(b.block.EnergyUsed()) }
 func (b *Block) GetTime() int64                 { return int64(b.block.Time()) }
 func (b *Block) GetExtra() []byte               { return b.block.Extra() }
 func (b *Block) GetMixDigest() *Hash            { return &Hash{b.block.MixDigest()} }
@@ -245,24 +244,21 @@ func (tx *Transaction) EncodeJSON() (string, error) {
 	return string(data), err
 }
 
-func (tx *Transaction) GetData() []byte      { return tx.tx.Data() }
+func (tx *Transaction) GetData() []byte         { return tx.tx.Data() }
 func (tx *Transaction) GetEnergy() int64        { return int64(tx.tx.Energy()) }
 func (tx *Transaction) GetEnergyPrice() *BigInt { return &BigInt{tx.tx.EnergyPrice()} }
-func (tx *Transaction) GetValue() *BigInt    { return &BigInt{tx.tx.Value()} }
-func (tx *Transaction) GetNonce() int64      { return int64(tx.tx.Nonce()) }
+func (tx *Transaction) GetValue() *BigInt       { return &BigInt{tx.tx.Value()} }
+func (tx *Transaction) GetNonce() int64         { return int64(tx.tx.Nonce()) }
 
 func (tx *Transaction) GetHash() *Hash   { return &Hash{tx.tx.Hash()} }
 func (tx *Transaction) GetCost() *BigInt { return &BigInt{tx.tx.Cost()} }
 
 // Deprecated: GetSigHash cannot know which signer to use.
-func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.NucleusSigner{}.Hash(tx.tx)} }
+func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.NewNucleusSigner(nil).Hash(tx.tx)} }
 
 // Deprecated: use CoreClient.TransactionSender
 func (tx *Transaction) GetFrom(chainID *BigInt) (address *Address, _ error) {
-	var signer types.Signer = types.NucleusSigner{}
-	if chainID != nil {
-		signer = types.NewCIP155Signer(chainID.bigint)
-	}
+	var signer = types.NewNucleusSigner(chainID.bigint)
 	from, err := types.Sender(signer, tx.tx)
 	return &Address{from}, err
 }
@@ -275,10 +271,7 @@ func (tx *Transaction) GetTo() *Address {
 }
 
 func (tx *Transaction) WithSignature(sig []byte, chainID *BigInt) (signedTx *Transaction, _ error) {
-	var signer types.Signer = types.NucleusSigner{}
-	if chainID != nil {
-		signer = types.NewCIP155Signer(chainID.bigint)
-	}
+	var signer = types.NewNucleusSigner(chainID.bigint)
 	rawTx, err := tx.tx.WithSignature(signer, common.CopyBytes(sig))
 	return &Transaction{rawTx}, err
 }
@@ -337,14 +330,14 @@ func (r *Receipt) EncodeJSON() (string, error) {
 	return string(data), err
 }
 
-func (r *Receipt) GetStatus() int               { return int(r.receipt.Status) }
-func (r *Receipt) GetPostState() []byte         { return r.receipt.PostState }
-func (r *Receipt) GetCumulativeEnergyUsed() int64  { return int64(r.receipt.CumulativeEnergyUsed) }
-func (r *Receipt) GetBloom() *Bloom             { return &Bloom{r.receipt.Bloom} }
-func (r *Receipt) GetLogs() *Logs               { return &Logs{r.receipt.Logs} }
-func (r *Receipt) GetTxHash() *Hash             { return &Hash{r.receipt.TxHash} }
-func (r *Receipt) GetContractAddress() *Address { return &Address{r.receipt.ContractAddress} }
-func (r *Receipt) GetEnergyUsed() int64            { return int64(r.receipt.EnergyUsed) }
+func (r *Receipt) GetStatus() int                 { return int(r.receipt.Status) }
+func (r *Receipt) GetPostState() []byte           { return r.receipt.PostState }
+func (r *Receipt) GetCumulativeEnergyUsed() int64 { return int64(r.receipt.CumulativeEnergyUsed) }
+func (r *Receipt) GetBloom() *Bloom               { return &Bloom{r.receipt.Bloom} }
+func (r *Receipt) GetLogs() *Logs                 { return &Logs{r.receipt.Logs} }
+func (r *Receipt) GetTxHash() *Hash               { return &Hash{r.receipt.TxHash} }
+func (r *Receipt) GetContractAddress() *Address   { return &Address{r.receipt.ContractAddress} }
+func (r *Receipt) GetEnergyUsed() int64           { return int64(r.receipt.EnergyUsed) }
 
 // Info represents a diagnostic information about the whisper node.
 type Info struct {
