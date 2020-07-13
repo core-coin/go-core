@@ -445,6 +445,10 @@ func initialize(c *cli.Context) error {
 		}
 		fmt.Println()
 	}
+
+	chainId := c.GlobalInt64(chainIdFlag.Name)
+	common.DefaultNetworkID = common.NetworkID(chainId)
+
 	usecolor := (isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
 	output := io.Writer(logOutput)
 	if usecolor {
@@ -478,6 +482,9 @@ func ipcEndpoint(ipcPath, datadir string) string {
 
 func signer(c *cli.Context) error {
 	// If we have some unrecognized command, bail out
+	chainId := c.GlobalInt64(chainIdFlag.Name)
+	common.DefaultNetworkID = common.NetworkID(chainId)
+
 	if args := c.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
@@ -548,7 +555,6 @@ func signer(c *cli.Context) error {
 		}
 	}
 	var (
-		chainId  = c.GlobalInt64(chainIdFlag.Name)
 		ksLoc    = c.GlobalString(keystoreFlag.Name)
 		lightKdf = c.GlobalBool(utils.LightKDFFlag.Name)
 		advanced = c.GlobalBool(advancedMode.Name)

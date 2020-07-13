@@ -72,7 +72,7 @@ var (
 
 	// DevinChainConfig contains the chain parameters to run a node on the Devin test network.
 	DevinChainConfig = &ChainConfig{
-		ChainID:  big.NewInt(3),
+		ChainID:  big.NewInt(2),
 		Cryptore: new(CryptoreConfig),
 	}
 
@@ -93,7 +93,7 @@ var (
 
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
-		ChainID: big.NewInt(5),
+		ChainID: big.NewInt(3),
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
@@ -120,16 +120,16 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1337), nil, new(CryptoreConfig), nil}
+	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1), nil, new(CryptoreConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (CIPs) introduced
 	// and accepted by the Core core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), nil, new(CryptoreConfig), nil}
+	TestChainConfig = &ChainConfig{big.NewInt(2), nil, new(CryptoreConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 

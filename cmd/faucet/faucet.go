@@ -245,6 +245,9 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}); err != nil {
 		return nil, err
 	}
+
+	common.DefaultNetworkID = common.NetworkID(network)
+
 	// Assemble the xccstats monitoring and reporting service'
 	if stats != "" {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -707,7 +710,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 	if err != nil {
 		return "", "", common.Address{}, err
 	}
-	address, err := common.HexToAddress(string(regexp.MustCompile("[0-9a-fA-F]{42}").Find(body)))
+	address, err := common.HexToAddress(string(regexp.MustCompile("[0-9a-fA-F]{44}").Find(body)))
 	if err != nil {
 		return "", "", common.Address{}, err
 	}
@@ -746,7 +749,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 	if err != nil {
 		return "", "", common.Address{}, err
 	}
-	address, err := common.HexToAddress(string(regexp.MustCompile("[0-9a-fA-F]{42}").Find(body)))
+	address, err := common.HexToAddress(string(regexp.MustCompile("[0-9a-fA-F]{44}").Find(body)))
 	if err != nil {
 		return "", "", common.Address{}, err
 	}
@@ -765,7 +768,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 // without actually performing any remote authentication. This mode is prone to
 // Byzantine attack, so only ever use for truly private networks.
 func authNoAuth(url string) (string, string, common.Address, error) {
-	address, err := common.HexToAddress(regexp.MustCompile("[0-9a-fA-F]{42}").FindString(url))
+	address, err := common.HexToAddress(regexp.MustCompile("[0-9a-fA-F]{44}").FindString(url))
 	if err != nil {
 		return "", "", common.Address{}, err
 	}

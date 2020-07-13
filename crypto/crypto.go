@@ -19,6 +19,7 @@ package crypto
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/core-coin/go-core/params"
 	"io"
 	"io/ioutil"
 	"os"
@@ -72,16 +73,18 @@ func Keccak512(data ...[]byte) []byte {
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	addr := Keccak256(data)[12:]
-	checksum := common.CalculateChecksum(addr)
-	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
+	prefix := common.DefaultNetworkID.Bytes()
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 
 // CreateAddress2 creates an core address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
 	addr := Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:]
-	checksum := common.CalculateChecksum(addr)
-	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
+	prefix := common.DefaultNetworkID.Bytes()
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 
 // ToEDDSA creates a private key with the given D value.
@@ -187,8 +190,9 @@ func PubkeyToAddress(p eddsa.PublicKey) common.Address {
 		return common.Address{}
 	}
 	addr := Keccak256(pubBytes)[12:]
-	checksum := common.CalculateChecksum(addr)
-	return common.BytesToAddress(append(common.Hex2Bytes(checksum), addr...))
+	prefix := common.DefaultNetworkID.Bytes()
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 
 func zeroBytes(bytes []byte) {

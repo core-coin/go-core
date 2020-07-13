@@ -545,7 +545,7 @@ func (typedData *TypedData) EncodePrimitiveValue(encType string, encValue interf
 		if err != nil {
 			return nil, err
 		}
-		copy(retval[12:], addr.Bytes())
+		copy(retval[10:], addr.Bytes())
 		return retval, nil
 	case "bool":
 		boolValue, ok := encValue.(bool)

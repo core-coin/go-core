@@ -17,6 +17,7 @@
 package common
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
@@ -27,6 +28,7 @@ import (
 	"strconv"
 
 	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/params"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -34,8 +36,10 @@ const (
 	// HashLength is the expected length of the hash
 	HashLength = 32
 	// AddressLength is the expected length of the address
-	AddressLength = 21
+	AddressLength = 22
 )
+
+var DefaultNetworkID = Mainnet // NetworkID which is using in addresses
 
 var (
 	hashT    = reflect.TypeOf(Hash{})
@@ -221,7 +225,7 @@ func CalculateChecksum(address []byte) string {
 }
 
 func verifyAddress(addr Address) bool {
-	return Bytes2Hex(addr[:1]) == CalculateChecksum(addr[1:])
+	return Bytes2Hex(addr[1:2]) == CalculateChecksum(addr[2:]) && bytes.Equal(addr[:1], DefaultNetworkID.Bytes())
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -343,4 +347,26 @@ func (a *UnprefixedAddress) UnmarshalText(input []byte) error {
 // MarshalText encodes the address as hex.
 func (a UnprefixedAddress) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(a[:])), nil
+}
+
+type NetworkID int64
+
+const (
+	Mainnet NetworkID = 1 + iota
+	Testnet
+	Privatenet
+)
+
+var networkIds = [...]string{
+	"cc",
+	"cf",
+	"cf",
+}
+
+func (day NetworkID) String() string {
+	return networkIds[day-1]
+}
+
+func (day NetworkID) Bytes() []byte {
+	return Hex2Bytes(day.String())
 }
