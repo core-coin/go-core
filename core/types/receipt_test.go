@@ -47,10 +47,13 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			encodeAsV3StoredReceiptRLP,
 		},
 	}
-
-	tx := NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil)
+	addr, err := common.HexToAddress("960000000000000000000000000000000000000001")
+	if err != nil {
+		t.Error(err)
+	}
+	tx := NewTransaction(1, addr, big.NewInt(1), 1, big.NewInt(1), nil)
 	receipt := &Receipt{
-		Status:            ReceiptStatusFailed,
+		Status:               ReceiptStatusFailed,
 		CumulativeEnergyUsed: 1,
 		Logs: []*Log{
 			{
@@ -66,7 +69,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 		},
 		TxHash:          tx.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-		EnergyUsed:         111111,
+		EnergyUsed:      111111,
 	}
 	receipt.Bloom = CreateBloom(Receipts{receipt})
 
@@ -110,9 +113,9 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 
 func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &storedReceiptRLP{
-		PostStateOrStatus: want.statusEncoding(),
+		PostStateOrStatus:    want.statusEncoding(),
 		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
-		Logs:              make([]*LogForStorage, len(want.Logs)),
+		Logs:                 make([]*LogForStorage, len(want.Logs)),
 	}
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
@@ -122,11 +125,11 @@ func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v4StoredReceiptRLP{
-		PostStateOrStatus: want.statusEncoding(),
+		PostStateOrStatus:    want.statusEncoding(),
 		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
-		TxHash:            want.TxHash,
-		ContractAddress:   want.ContractAddress,
-		Logs:              make([]*LogForStorage, len(want.Logs)),
+		TxHash:               want.TxHash,
+		ContractAddress:      want.ContractAddress,
+		Logs:                 make([]*LogForStorage, len(want.Logs)),
 		EnergyUsed:           want.EnergyUsed,
 	}
 	for i, log := range want.Logs {
@@ -137,12 +140,12 @@ func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v3StoredReceiptRLP{
-		PostStateOrStatus: want.statusEncoding(),
+		PostStateOrStatus:    want.statusEncoding(),
 		CumulativeEnergyUsed: want.CumulativeEnergyUsed,
-		Bloom:             want.Bloom,
-		TxHash:            want.TxHash,
-		ContractAddress:   want.ContractAddress,
-		Logs:              make([]*LogForStorage, len(want.Logs)),
+		Bloom:                want.Bloom,
+		TxHash:               want.TxHash,
+		ContractAddress:      want.ContractAddress,
+		Logs:                 make([]*LogForStorage, len(want.Logs)),
 		EnergyUsed:           want.EnergyUsed,
 	}
 	for i, log := range want.Logs {
@@ -153,15 +156,19 @@ func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 // Tests that receipt data can be correctly derived from the contextual infos
 func TestDeriveFields(t *testing.T) {
+	address, err := common.HexToAddress("950000000000000000000000000000000000000002")
+	if err != nil {
+		t.Error(err)
+	}
 	// Create a few transactions to have receipts for
 	txs := Transactions{
 		NewContractCreation(1, big.NewInt(1), 1, big.NewInt(1), nil),
-		NewTransaction(2, common.HexToAddress("0x2"), big.NewInt(2), 2, big.NewInt(2), nil),
+		NewTransaction(2, address, big.NewInt(2), 2, big.NewInt(2), nil),
 	}
 	// Create the corresponding receipts
 	receipts := Receipts{
 		&Receipt{
-			Status:            ReceiptStatusFailed,
+			Status:               ReceiptStatusFailed,
 			CumulativeEnergyUsed: 1,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x11})},
@@ -169,10 +176,10 @@ func TestDeriveFields(t *testing.T) {
 			},
 			TxHash:          txs[0].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-			EnergyUsed:         1,
+			EnergyUsed:      1,
 		},
 		&Receipt{
-			PostState:         common.Hash{2}.Bytes(),
+			PostState:            common.Hash{2}.Bytes(),
 			CumulativeEnergyUsed: 3,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x22})},
@@ -180,7 +187,7 @@ func TestDeriveFields(t *testing.T) {
 			},
 			TxHash:          txs[1].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-			EnergyUsed:         2,
+			EnergyUsed:      2,
 		},
 	}
 	// Clear all the computed fields and re-derive them
@@ -192,7 +199,7 @@ func TestDeriveFields(t *testing.T) {
 		t.Fatalf("DeriveFields(...) = %v, want <nil>", err)
 	}
 	// Iterate over all the computed fields and check that they're correct
-	signer := MakeSigner()
+	signer := MakeSigner(params.TestChainConfig.ChainID)
 
 	logIndex := uint(0)
 	for i := range receipts {

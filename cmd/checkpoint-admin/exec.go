@@ -90,7 +90,11 @@ func deploy(ctx *cli.Context) error {
 		if trimmed := strings.TrimSpace(account); !common.IsHexAddress(trimmed) {
 			utils.Fatalf("Invalid account in --signers: '%s'", trimmed)
 		}
-		addrs = append(addrs, common.HexToAddress(account))
+		addr, err := common.HexToAddress(account)
+		if err != nil {
+			utils.Fatalf(err.Error())
+		}
+		addrs = append(addrs, addr)
 	}
 	// Retrieve and validate the signing threshold
 	needed := ctx.Int(thresholdFlag.Name)
@@ -148,13 +152,21 @@ func sign(ctx *cli.Context) error {
 		if !ctx.IsSet(oracleFlag.Name) {
 			utils.Fatalf("Please specify oracle address (--oracle) to sign in offline mode")
 		}
-		address = common.HexToAddress(ctx.String(oracleFlag.Name))
+		addr, err := common.HexToAddress(ctx.String(oracleFlag.Name))
+		if err != nil {
+			utils.Fatalf(err.Error())
+		}
+		address = addr
 	} else {
 		// Interactive mode signing, retrieve the data from the remote node
 		node = newRPCClient(ctx.GlobalString(nodeURLFlag.Name))
 
 		checkpoint := getCheckpoint(ctx, node)
-		chash, cindex, address = checkpoint.Hash(), checkpoint.SectionIndex, getContractAddr(node)
+		addr, err := getContractAddr(node)
+		if err != nil {
+			utils.Fatalf(err.Error())
+		}
+		chash, cindex, address = checkpoint.Hash(), checkpoint.SectionIndex, addr
 
 		// Check the validity of checkpoint
 		reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -205,7 +217,11 @@ func sign(ctx *cli.Context) error {
 	signer = ctx.String(signerFlag.Name)
 
 	if !offline {
-		if err := isAdmin(common.HexToAddress(signer)); err != nil {
+		addr, err := common.HexToAddress(signer)
+		if err != nil {
+			return err
+		}
+		if err := isAdmin(addr); err != nil {
 			return err
 		}
 	}

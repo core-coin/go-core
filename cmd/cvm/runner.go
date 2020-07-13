@@ -72,10 +72,10 @@ func readGenesis(genesisPath string) *core.Genesis {
 
 func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uint64, time.Duration, error) {
 	var (
-		output   []byte
-		energyLeft  uint64
-		execTime time.Duration
-		err      error
+		output     []byte
+		energyLeft uint64
+		execTime   time.Duration
+		err        error
 	)
 
 	if bench {
@@ -136,12 +136,20 @@ func runCmd(ctx *cli.Context) error {
 		genesisConfig = new(core.Genesis)
 	}
 	if ctx.GlobalString(SenderFlag.Name) != "" {
-		sender = common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		if err != nil {
+			return err
+		}
+		sender = addr
 	}
 	statedb.CreateAccount(sender)
 
 	if ctx.GlobalString(ReceiverFlag.Name) != "" {
-		receiver = common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		if err != nil {
+			return err
+		}
+		receiver = addr
 	}
 
 	var code []byte
@@ -195,8 +203,8 @@ func runCmd(ctx *cli.Context) error {
 	runtimeConfig := runtime.Config{
 		Origin:      sender,
 		State:       statedb,
-		EnergyLimit:    initialEnergy,
-		EnergyPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
+		EnergyLimit: initialEnergy,
+		EnergyPrice: utils.GlobalBig(ctx, PriceFlag.Name),
 		Value:       utils.GlobalBig(ctx, ValueFlag.Name),
 		Difficulty:  genesisConfig.Difficulty,
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),

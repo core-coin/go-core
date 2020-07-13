@@ -60,7 +60,7 @@ func (l *AuditLogger) SignTransaction(ctx context.Context, args SendTxArgs, meth
 	return res, e
 }
 
-func (l *AuditLogger) SignData(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (hexutil.Bytes, error) {
+func (l *AuditLogger) SignData(ctx context.Context, contentType string, addr common.Address, data interface{}) (hexutil.Bytes, error) {
 	l.log.Info("SignData", "type", "request", "metadata", MetadataFromContext(ctx).String(),
 		"addr", addr.String(), "data", data, "content-type", contentType)
 	b, e := l.api.SignData(ctx, contentType, addr, data)
@@ -68,7 +68,7 @@ func (l *AuditLogger) SignData(ctx context.Context, contentType string, addr com
 	return b, e
 }
 
-func (l *AuditLogger) SignTypedData(ctx context.Context, addr common.MixedcaseAddress, data TypedData) (hexutil.Bytes, error) {
+func (l *AuditLogger) SignTypedData(ctx context.Context, addr common.Address, data TypedData) (hexutil.Bytes, error) {
 	l.log.Info("SignTypedData", "type", "request", "metadata", MetadataFromContext(ctx).String(),
 		"addr", addr.String(), "data", data)
 	b, e := l.api.SignTypedData(ctx, addr, data)

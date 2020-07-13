@@ -18,7 +18,6 @@ package keystore
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -28,6 +27,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -152,7 +153,7 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 		panic("key generation: eddsa.GenerateKey failed: " + err.Error())
 	}
 	key := newKeyFromEDDSA(privateKeyEDDSA)
-	if !strings.HasPrefix(key.Address.Hex(), "0x00") {
+	if !strings.HasPrefix(key.Address.Hex(), "0") {
 		return NewKeyForDirectICAP(rand)
 	}
 	return key

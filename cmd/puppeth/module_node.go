@@ -196,7 +196,12 @@ func (info *nodeInfos) Report() map[string]string {
 				Address string `json:"address"`
 			}
 			if err := json.Unmarshal([]byte(info.keyJSON), &key); err == nil {
-				report["Signer account"] = common.HexToAddress(key.Address).Hex()
+				addr, err := common.HexToAddress(key.Address)
+				if err != nil {
+					log.Error("Failed to retrieve signer address: invalid address", "err", err)
+					return report
+				}
+				report["Signer account"] = addr.Hex()
 			} else {
 				log.Error("Failed to retrieve signer address", "err", err)
 			}

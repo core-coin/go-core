@@ -107,7 +107,11 @@ It is possible to refer to a file containing the message.`,
 		if !common.IsHexAddress(addressStr) {
 			utils.Fatalf("Invalid address: %s", addressStr)
 		}
-		address := common.HexToAddress(addressStr)
+		address, err := common.HexToAddress(addressStr)
+		if err != nil {
+			utils.Fatalf("Invalid address: %s", err)
+
+		}
 		signature, err := hex.DecodeString(signatureHex)
 		if err != nil {
 			utils.Fatalf("Signature encoding is not hexadecimal: %v", err)

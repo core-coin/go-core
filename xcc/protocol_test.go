@@ -193,7 +193,7 @@ func TestForkIDSplit(t *testing.T) {
 	select {
 	case err := <-errc:
 		t.Fatalf("nofork <-> profork failed: %v", err)
-	case <-time.After(250 * time.Millisecond):
+	case <-time.After(1 * time.Second):
 		p2pNoFork.Close()
 		p2pProFork.Close()
 	}
