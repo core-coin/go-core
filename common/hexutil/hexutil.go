@@ -198,7 +198,9 @@ func checkNumber(input string) (raw string, err error) {
 		return "", ErrEmptyString
 	}
 	if !has0xPrefix(input) {
-		return "", ErrMissingPrefix
+		if len(input) != 42 { // (len != 42) == (!common.Address)
+			return "", ErrMissingPrefix
+		}
 	}
 	input = input[2:]
 	if len(input) == 0 {

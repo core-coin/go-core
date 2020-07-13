@@ -17,7 +17,6 @@
 package common
 
 import (
-	"bytes"
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
@@ -25,10 +24,8 @@ import (
 	"math/big"
 	"math/rand"
 	"reflect"
-	"strconv"
 
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/params"
 )
 
 // Lengths of hashes and addresses in bytes.

@@ -84,11 +84,11 @@ var (
 		utils.ExitWhenSyncedFlag,
 		utils.GCModeFlag,
 		utils.LightServeFlag,
-		utils.LightLegacyServFlag,
+		utils.LegacyLightServFlag,
 		utils.LightIngressFlag,
 		utils.LightEgressFlag,
 		utils.LightMaxPeersFlag,
-		utils.LightLegacyPeersFlag,
+		utils.LegacyLightPeersFlag,
 		utils.LightKDFFlag,
 		utils.UltraLightServersFlag,
 		utils.UltraLightFractionFlag,
@@ -104,17 +104,17 @@ var (
 		utils.MaxPendingPeersFlag,
 		utils.MiningEnabledFlag,
 		utils.MinerThreadsFlag,
-		utils.MinerLegacyThreadsFlag,
+		utils.LegacyMinerThreadsFlag,
 		utils.MinerNotifyFlag,
 		utils.MinerEnergyTargetFlag,
-		utils.MinerLegacyEnergyTargetFlag,
+		utils.LegacyMinerEnergyTargetFlag,
 		utils.MinerEnergyLimitFlag,
 		utils.MinerEnergyPriceFlag,
-		utils.MinerLegacyEnergyPriceFlag,
+		utils.LegacyMinerEnergyPriceFlag,
 		utils.MinerCorebaseFlag,
-		utils.MinerLegacyCorebaseFlag,
+		utils.LegacyMinerCorebaseFlag,
 		utils.MinerExtraDataFlag,
-		utils.MinerLegacyExtraDataFlag,
+		utils.LegacyMinerExtraDataFlag,
 		utils.MinerRecommitIntervalFlag,
 		utils.MinerNoVerfiyFlag,
 		utils.NATFlag,
@@ -128,6 +128,7 @@ var (
 		utils.DeveloperPeriodFlag,
 		utils.NtpServerFlag,
 		utils.DevinFlag,
+		utils.SnapshotFlag,
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
@@ -135,29 +136,41 @@ var (
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
+		utils.LegacyGpoBlocksFlag,
 		utils.GpoPercentileFlag,
+		utils.LegacyGpoPercentileFlag,
 		utils.EWASMInterpreterFlag,
 		utils.CVMInterpreterFlag,
 		configFileFlag,
 	}
 
 	rpcFlags = []cli.Flag{
-		utils.RPCEnabledFlag,
-		utils.RPCListenAddrFlag,
-		utils.RPCPortFlag,
-		utils.RPCCORSDomainFlag,
-		utils.RPCVirtualHostsFlag,
+		utils.HTTPEnabledFlag,
+		utils.HTTPListenAddrFlag,
+		utils.HTTPPortFlag,
+		utils.HTTPCORSDomainFlag,
+		utils.HTTPVirtualHostsFlag,
+		utils.LegacyRPCEnabledFlag,
+		utils.LegacyRPCListenAddrFlag,
+		utils.LegacyRPCPortFlag,
+		utils.LegacyRPCCORSDomainFlag,
+		utils.LegacyRPCVirtualHostsFlag,
 		utils.GraphQLEnabledFlag,
 		utils.GraphQLListenAddrFlag,
 		utils.GraphQLPortFlag,
 		utils.GraphQLCORSDomainFlag,
 		utils.GraphQLVirtualHostsFlag,
-		utils.RPCApiFlag,
+		utils.HTTPApiFlag,
+		utils.LegacyRPCApiFlag,
 		utils.WSEnabledFlag,
 		utils.WSListenAddrFlag,
+		utils.LegacyWSListenAddrFlag,
 		utils.WSPortFlag,
+		utils.LegacyWSPortFlag,
 		utils.WSApiFlag,
+		utils.LegacyWSApiFlag,
 		utils.WSAllowedOriginsFlag,
+		utils.LegacyWSAllowedOriginsFlag,
 		utils.IPCDisabledFlag,
 		utils.IPCPathFlag,
 		utils.InsecureUnlockAllowedFlag,
@@ -211,6 +224,8 @@ func init() {
 		dumpConfigCommand,
 		// See retestxcc.go
 		retestxccCommand,
+		// See cmd/utils/flags_legacy.go
+		utils.ShowDeprecated,
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
 
@@ -218,6 +233,7 @@ func init() {
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, consoleFlags...)
 	app.Flags = append(app.Flags, debug.Flags...)
+	app.Flags = append(app.Flags, debug.DeprecatedFlags...)
 	app.Flags = append(app.Flags, whisperFlags...)
 	app.Flags = append(app.Flags, metricsFlags...)
 
@@ -322,7 +338,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
-	if ctx.GlobalInt(utils.LightLegacyServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
+	if ctx.GlobalInt(utils.LegacyLightServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
 		var xccService *xcc.Core
 		if err := stack.Service(&xccService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
@@ -407,16 +423,18 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 			utils.Fatalf("Core service not running: %v", err)
 		}
 		// Set the energy price to the limits from the CLI and start mining
-		energyprice := utils.GlobalBig(ctx, utils.MinerLegacyEnergyPriceFlag.Name)
-		if ctx.IsSet(utils.MinerEnergyPriceFlag.Name) {
-			energyprice = utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
+		energyprice := utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
+		if ctx.GlobalIsSet(utils.LegacyMinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(utils.MinerEnergyPriceFlag.Name) {
+			energyprice = utils.GlobalBig(ctx, utils.LegacyMinerEnergyPriceFlag.Name)
 		}
 		core.TxPool().SetEnergyPrice(energyprice)
 
-		threads := ctx.GlobalInt(utils.MinerLegacyThreadsFlag.Name)
-		if ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
-			threads = ctx.GlobalInt(utils.MinerThreadsFlag.Name)
+		threads := ctx.GlobalInt(utils.MinerThreadsFlag.Name)
+		if ctx.GlobalIsSet(utils.LegacyMinerThreadsFlag.Name) && !ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
+			threads = ctx.GlobalInt(utils.LegacyMinerThreadsFlag.Name)
+			log.Warn("The flag --minerthreads is deprecated and will be removed in the future, please use --miner.threads")
 		}
+
 		if err := core.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
