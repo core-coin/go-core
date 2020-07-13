@@ -221,7 +221,6 @@ func CalculateChecksum(address []byte) string {
 }
 
 func verifyAddress(addr Address) bool {
-	fmt.Println(CalculateChecksum(addr[1:]), addr.Hex())
 	return Bytes2Hex(addr[:1]) == CalculateChecksum(addr[1:])
 }
 
