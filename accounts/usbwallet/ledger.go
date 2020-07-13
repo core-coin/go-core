@@ -349,13 +349,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 	signature := append(reply[1:], reply[0])
 
 	// Create the correct signer and signature transform based on the chain ID
-	var signer types.Signer
-	if chainID == nil {
-		signer = new(types.NucleusSigner)
-	} else {
-		signer = types.NewCIP155Signer(chainID)
-		//signature[64] -= byte(chainID.Uint64()*2 + 35)
-	}
+	signer := types.NewNucleusSigner(chainID)
 	signed, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		return common.Address{}, nil, err

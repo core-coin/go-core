@@ -18,6 +18,7 @@ package rules
 
 import (
 	"fmt"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"strings"
 	"testing"
@@ -68,8 +69,9 @@ function test(thing){
 
 `
 
-func mixAddr(a string) (*common.MixedcaseAddress, error) {
-	return common.NewMixedcaseAddressFromString(a)
+func mixAddr(a string) (*common.Address, error) {
+	addr, err := common.HexToAddress(a)
+	return &addr, err
 }
 
 type alwaysDenyUI struct{}
@@ -158,8 +160,8 @@ func TestSignTxRequest(t *testing.T) {
 		console.log("transaction.to", r.transaction.to);
 		console.log("transaction.value", r.transaction.value);
 		console.log("transaction.nonce", r.transaction.nonce);
-		if(r.transaction.from.toLowerCase()=="0x0000000000000000000000000000000000001337"){ return "Approve"}
-		if(r.transaction.from.toLowerCase()=="0x000000000000000000000000000000000000dead"){ return "Reject"}
+		if(r.transaction.from.toLowerCase()=="280000000000000000000000000000000000001337"){ return "Approve"}
+		if(r.transaction.from.toLowerCase()=="31000000000000000000000000000000000000dead"){ return "Reject"}
 	}`
 
 	r, err := initRuleEngine(js)
@@ -167,18 +169,18 @@ func TestSignTxRequest(t *testing.T) {
 		t.Errorf("Couldn't create evaluator %v", err)
 		return
 	}
-	to, err := mixAddr("000000000000000000000000000000000000dead")
+	to, err := mixAddr("31000000000000000000000000000000000000dead")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	from, err := mixAddr("0000000000000000000000000000000000001337")
+	from, err := mixAddr("280000000000000000000000000000000000001337")
 
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Logf("to %v", to.Address().String())
+	t.Logf("to %v", to.String())
 	resp, err := r.ApproveTx(&core.SignTxRequest{
 		Transaction: core.SendTxArgs{
 			From: *from,
@@ -454,7 +456,10 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 }
 
 func dummySigned(value *big.Int) *types.Transaction {
-	to := common.HexToAddress("000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("31000000000000000000000000000000000000dead")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	energy := uint64(21000)
 	energyPrice := big.NewInt(2000000)
 	data := make([]byte, 0)
@@ -584,7 +589,7 @@ func TestSignData(t *testing.T) {
     return "Approve"
 }
 function ApproveSignData(r){
-    if( r.address.toLowerCase() == "0x694267f14675d7e1b9494fd8d72fefe1755710fa")
+    if( r.address.toLowerCase() == "29694267f14675d7e1b9494fd8d72fefe1755710fa")
     {
         if(r.messages[0].value.indexOf("bazonk") >= 0){
             return "Approve"
@@ -600,9 +605,9 @@ function ApproveSignData(r){
 	}
 	message := "baz bazonk foo"
 	hash, rawdata := accounts.TextAndHash([]byte(message))
-	addr, _ := mixAddr("0x694267f14675d7e1b9494fd8d72fefe1755710fa")
+	addr, _ := mixAddr("29694267f14675d7e1b9494fd8d72fefe1755710fa")
 
-	t.Logf("address %v %v\n", addr.String(), addr.Original())
+	t.Logf("address %v %v\n", addr.String(), addr.String())
 
 	nvt := []*core.NameValueType{
 		{

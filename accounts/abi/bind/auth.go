@@ -17,10 +17,11 @@
 package bind
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
 	"io"
 	"io/ioutil"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/external"
@@ -53,6 +54,7 @@ func NewKeyStoreTransactor(keystore *keystore.KeyStore, account accounts.Account
 			if address != account.Address {
 				return nil, errors.New("not authorized to sign this account")
 			}
+			tx.SetChainID(uint(signer.ChainID()))
 			signature, err := keystore.SignHash(account, signer.Hash(tx).Bytes())
 			if err != nil {
 				return nil, err
@@ -72,6 +74,7 @@ func NewKeyedTransactor(key *eddsa.PrivateKey) *TransactOpts {
 			if address != keyAddr {
 				return nil, errors.New("not authorized to sign this account")
 			}
+			tx.SetChainID(uint(signer.ChainID()))
 			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
 			if err != nil {
 				return nil, err

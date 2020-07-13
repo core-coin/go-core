@@ -106,7 +106,12 @@ func (w *wizard) deployNode(boot bool) {
 				}
 			} else {
 				fmt.Printf("What address should the miner use? (default = %s)\n", infos.corebase)
-				infos.corebase = w.readDefaultAddress(common.HexToAddress(infos.corebase)).Hex()
+				addr, err := common.HexToAddress(infos.corebase)
+				if err != nil {
+					log.Error("Invalid address:" + infos.corebase)
+					return
+				}
+				infos.corebase = w.readDefaultAddress(addr).Hex()
 			}
 		} else if w.conf.Genesis.Config.Clique != nil {
 			// If a previous signer was already set, offer to reuse it

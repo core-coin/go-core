@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	blockDelayTimeout    = time.Second * 10 // timeout for a peer to announce a head that has already been confirmed by others
+	blockDelayTimeout    = time.Second * 30 // timeout for a peer to announce a head that has already been confirmed by others
 	maxNodeCount         = 20               // maximum number of fetcherTreeNode entries remembered for each peer
 	serverStateAvailable = 100              // number of recent blocks where state availability is assumed
 )
