@@ -98,10 +98,7 @@ func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, erro
 	oreval := request.Transaction.Value.ToInt()
 	fmt.Printf("--------- Transaction request-------------\n")
 	if to := request.Transaction.To; to != nil {
-		fmt.Printf("to:    %v\n", to.Original())
-		if !to.ValidChecksum() {
-			fmt.Printf("\nWARNING: Invalid checksum on to-address!\n\n")
-		}
+		fmt.Printf("to:    %v\n", to.Hex())
 	} else {
 		fmt.Printf("to:    <contact creation>\n")
 	}

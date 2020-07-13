@@ -21,13 +21,13 @@ package main
 
 import (
 	"bufio"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -599,6 +599,7 @@ func messageLoop() {
 	}
 
 	ticker := time.NewTicker(time.Millisecond * 50)
+	defer ticker.Stop()
 
 	for {
 		select {

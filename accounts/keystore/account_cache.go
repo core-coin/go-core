@@ -27,10 +27,10 @@ import (
 	"sync"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/log"
+	mapset "github.com/deckarep/golang-set"
 )
 
 // Minimum amount of time between cache reloads. This limit applies if the platform does
@@ -258,9 +258,9 @@ func (ac *accountCache) scanAccounts() error {
 		// Parse the address.
 		key.Address = ""
 		err = json.NewDecoder(buf).Decode(&key)
-		addr := common.HexToAddress(key.Address)
+		addr, addrErr := common.HexToAddress(key.Address)
 		switch {
-		case err != nil:
+		case err != nil || addrErr != nil:
 			log.Debug("Failed to decode keystore key", "path", path, "err", err)
 		case (addr == common.Address{}):
 			log.Debug("Failed to decode keystore key", "path", path, "err", "missing or zero address")

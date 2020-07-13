@@ -59,7 +59,7 @@ const (
 	// (we leave room for trying new ones if there is any)
 	targetKnownSelect = 3
 	// after dialTimeout, consider the server unavailable and adjust statistics
-	dialTimeout = time.Second * 30
+	dialTimeout = time.Second * 500
 	// targetConnTime is the minimum expected connection duration before a server
 	// drops a client without any specific reason
 	targetConnTime = time.Minute * 10

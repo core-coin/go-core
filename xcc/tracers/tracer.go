@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -356,7 +357,11 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-1); ptr != nil {
 			addr = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			addr = common.HexToAddress(ctx.GetString(-1))
+			address, err := common.HexToAddress(ctx.GetString(-1))
+			if err != nil {
+				util.Fatal(err.Error())
+			}
+			addr = address
 		}
 		ctx.Pop()
 		copy(makeSlice(ctx.PushFixedBuffer(20), 20), addr[:])
@@ -367,7 +372,11 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-2); ptr != nil {
 			from = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			from = common.HexToAddress(ctx.GetString(-2))
+			address, err := common.HexToAddress(ctx.GetString(-2))
+			if err != nil {
+				util.Fatal(err.Error())
+			}
+			from = address
 		}
 		nonce := uint64(ctx.GetInt(-1))
 		ctx.Pop2()
@@ -381,7 +390,11 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-3); ptr != nil {
 			from = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			from = common.HexToAddress(ctx.GetString(-3))
+			address, err := common.HexToAddress(ctx.GetString(-3))
+			if err != nil {
+				util.Fatal(err.Error())
+			}
+			from = address
 		}
 		// Retrieve salt hex string from js stack
 		salt := common.HexToHash(ctx.GetString(-2))
