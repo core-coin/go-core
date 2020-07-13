@@ -1509,6 +1509,8 @@ func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 			setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.MainnetGenesisHash])
 		}
 	}
+
+	common.DefaultNetworkID = common.NetworkID(cfg.NetworkId)
 }
 
 // setDNSDiscoveryDefaults configures DNS discovery with the given URL if

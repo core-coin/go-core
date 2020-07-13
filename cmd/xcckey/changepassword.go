@@ -39,11 +39,14 @@ var commandChangePassphrase = cli.Command{
 Change the password of a keyfile.`,
 	Flags: []cli.Flag{
 		passphraseFlag,
+		utils.NetworkIdFlag,
 		newPassphraseFlag,
 	},
 	Action: func(ctx *cli.Context) error {
 		keyfilepath := ctx.Args().First()
-
+		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
 		// Read key from file.
 		keyjson, err := ioutil.ReadFile(keyfilepath)
 		if err != nil {

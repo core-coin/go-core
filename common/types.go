@@ -17,6 +17,7 @@
 package common
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
@@ -24,6 +25,7 @@ import (
 	"math/big"
 	"math/rand"
 	"reflect"
+	"strconv"
 
 	"github.com/core-coin/go-core/common/hexutil"
 )
@@ -43,7 +45,8 @@ var (
 	addressT = reflect.TypeOf(Address{})
 )
 
-var invalidAddress = errors.New("Invalid address")
+var invalidPrefix = errors.New("Invalid network id prefix in address")
+var invalidChecksum = errors.New("Invalid checksum in address")
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
@@ -221,8 +224,13 @@ func CalculateChecksum(address []byte) string {
 	return strconv.Itoa(int(resInt))
 }
 
-func verifyAddress(addr Address) bool {
-	return Bytes2Hex(addr[1:2]) == CalculateChecksum(addr[2:]) && bytes.Equal(addr[:1], DefaultNetworkID.Bytes())
+func verifyAddress(addr Address) (bool, error) {
+	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
+		return false, invalidPrefix
+	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:]) {
+		return false, invalidChecksum
+	}
+	return true, nil
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -233,8 +241,8 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) (Address, error) {
 	addr := BytesToAddress(FromHex(s))
-	if !verifyAddress(addr) {
-		return addr, invalidAddress
+	if ok, err := verifyAddress(addr); !ok {
+		return addr, err
 	}
 	return addr, nil
 }
@@ -294,8 +302,8 @@ func (a *Address) UnmarshalJSON(input []byte) error {
 	if err := hexutil.UnmarshalFixedJSON(addressT, input, a[:]); err != nil {
 		return err
 	}
-	if verified := verifyAddress(*a); !verified {
-		return invalidAddress
+	if ok, err := verifyAddress(*a); !ok {
+		return err
 	}
 	return nil
 }
@@ -360,10 +368,14 @@ var networkIds = [...]string{
 	"cf",
 }
 
-func (day NetworkID) String() string {
-	return networkIds[day-1]
+func (network NetworkID) String() string {
+	return networkIds[network-1]
 }
 
-func (day NetworkID) Bytes() []byte {
-	return Hex2Bytes(day.String())
+func (network NetworkID) Bytes() []byte {
+	return Hex2Bytes(network.String())
+}
+
+func (network NetworkID) Int64() int64 {
+	return int64(network - 1)
 }

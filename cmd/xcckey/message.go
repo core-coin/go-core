@@ -53,7 +53,9 @@ To sign a message contained in a file, use the --msgfile flag.
 	},
 	Action: func(ctx *cli.Context) error {
 		message := getMessage(ctx, 1)
-
+		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
 		// Load the keyfile.
 		keyfilepath := ctx.Args().First()
 		keyjson, err := ioutil.ReadFile(keyfilepath)
@@ -98,10 +100,14 @@ It is possible to refer to a file containing the message.`,
 	Flags: []cli.Flag{
 		jsonFlag,
 		msgfileFlag,
+		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
 		addressStr := ctx.Args().First()
 		signatureHex := ctx.Args().Get(1)
+		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
 		message := getMessage(ctx, 2)
 
 		if !common.IsHexAddress(addressStr) {

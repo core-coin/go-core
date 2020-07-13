@@ -54,6 +54,7 @@ passwordfile as argument containing the wallet password in plaintext.`,
 					utils.KeyStoreDirFlag,
 					utils.PasswordFileFlag,
 					utils.LightKDFFlag,
+					utils.NetworkIdFlag,
 				},
 				Description: `
 	gcore wallet [options] /path/to/my/presale.wallet
@@ -97,6 +98,7 @@ Make sure you backup your keys regularly.`,
 				Flags: []cli.Flag{
 					utils.DataDirFlag,
 					utils.KeyStoreDirFlag,
+					utils.NetworkIdFlag,
 				},
 				Description: `
 Print a short summary of all accounts`,
@@ -110,6 +112,7 @@ Print a short summary of all accounts`,
 					utils.KeyStoreDirFlag,
 					utils.PasswordFileFlag,
 					utils.LightKDFFlag,
+					utils.NetworkIdFlag,
 				},
 				Description: `
     gcore account new
@@ -135,6 +138,7 @@ password to file or expose in any other way.
 					utils.DataDirFlag,
 					utils.KeyStoreDirFlag,
 					utils.LightKDFFlag,
+					utils.NetworkIdFlag,
 				},
 				Description: `
     gcore account update <address>
@@ -164,6 +168,7 @@ changing your password is only possible interactively.
 					utils.KeyStoreDirFlag,
 					utils.PasswordFileFlag,
 					utils.LightKDFFlag,
+					utils.NetworkIdFlag,
 				},
 				ArgsUsage: "<keyFile>",
 				Description: `
@@ -291,14 +296,13 @@ func ambiguousAddrRecovery(ks *keystore.KeyStore, err *keystore.AmbiguousAddrErr
 
 // accountCreate creates a new account into the keystore defined by the CLI flags.
 func accountCreate(ctx *cli.Context) error {
-	cfg := gcoreConfig{Node: defaultNodeConfig()}
-	// Load config file.
+	_, cfg := makeConfigNode(ctx)
+
 	if file := ctx.GlobalString(configFileFlag.Name); file != "" {
 		if err := loadConfig(file, &cfg); err != nil {
 			utils.Fatalf("%v", err)
 		}
 	}
-	utils.SetNodeConfig(ctx, &cfg.Node)
 	scryptN, scryptP, keydir, err := cfg.Node.AccountConfig()
 
 	if err != nil {

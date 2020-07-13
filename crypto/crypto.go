@@ -19,7 +19,6 @@ package crypto
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/core-coin/go-core/params"
 	"io"
 	"io/ioutil"
 	"os"

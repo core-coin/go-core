@@ -45,6 +45,7 @@ make sure to use this feature with great caution!`,
 	Flags: []cli.Flag{
 		passphraseFlag,
 		jsonFlag,
+		utils.NetworkIdFlag,
 		cli.BoolFlag{
 			Name:  "private",
 			Usage: "include the private key in the output",
@@ -52,7 +53,9 @@ make sure to use this feature with great caution!`,
 	},
 	Action: func(ctx *cli.Context) error {
 		keyfilepath := ctx.Args().First()
-
+		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
 		// Read key from file.
 		keyjson, err := ioutil.ReadFile(keyfilepath)
 		if err != nil {

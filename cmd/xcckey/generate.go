@@ -48,6 +48,7 @@ If you want to encrypt an existing private key, it can be specified by setting
 `,
 	Flags: []cli.Flag{
 		passphraseFlag,
+		utils.NetworkIdFlag,
 		jsonFlag,
 		cli.StringFlag{
 			Name:  "privatekey",
@@ -63,6 +64,9 @@ If you want to encrypt an existing private key, it can be specified by setting
 		keyfilepath := ctx.Args().First()
 		if keyfilepath == "" {
 			keyfilepath = defaultKeyfileName
+		}
+		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
 		}
 		if _, err := os.Stat(keyfilepath); err == nil {
 			utils.Fatalf("Keyfile already exists at %s.", keyfilepath)
