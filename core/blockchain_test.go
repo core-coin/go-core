@@ -2119,7 +2119,7 @@ func TestReorgToShorterRemovesCanonMappingHeaderChain(t *testing.T) {
 
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
-	addr, err := common.HexToAddress("0xc0de")
+	addr, err := common.HexToAddress("97000000000000000000000000000000000000c0de")
 	if err != nil {
 		b.Error(err)
 	}
@@ -2372,7 +2372,7 @@ func TestDeleteRecreateSlots(t *testing.T) {
 		key, _    = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		address   = crypto.PubkeyToAddress(key.PublicKey)
 		funds     = big.NewInt(1000000000)
-		bb        = common.HexToAddress("0x000000000000000000000000000000000000bbbb")
+		bb, _     = common.HexToAddress("53000000000000000000000000000000000000bbbb")
 		aaStorage = make(map[common.Hash]common.Hash)          // Initial storage in AA
 		aaCode    = []byte{byte(vm.PC), byte(vm.SELFDESTRUCT)} // Code for AA (simple selfdestruct)
 	)
@@ -2443,15 +2443,16 @@ func TestDeleteRecreateSlots(t *testing.T) {
 		},
 	}
 	genesis := gspec.MustCommit(db)
+	signer := types.NewNucleusSigner(params.TestChainConfig.ChainID)
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 1, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to AA, to kill it
 		tx, _ := types.SignTx(types.NewTransaction(0, aa,
-			big.NewInt(0), 50000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 50000, big.NewInt(1), nil), signer, key)
 		b.AddTx(tx)
 		// One transaction to BB, to recreate AA
 		tx, _ = types.SignTx(types.NewTransaction(1, bb,
-			big.NewInt(0), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 100000, big.NewInt(1), nil), signer, key)
 		b.AddTx(tx)
 	})
 	// Import the canonical chain
@@ -2499,7 +2500,7 @@ func TestDeleteRecreateAccount(t *testing.T) {
 		address = crypto.PubkeyToAddress(key.PublicKey)
 		funds   = big.NewInt(1000000000)
 
-		aa        = common.HexToAddress("0x7217d81b76bdd8707601e959454e3d776aee5f43")
+		aa, _     = common.HexToAddress("917217d81b76bdd8707601e959454e3d776aee5f43")
 		aaStorage = make(map[common.Hash]common.Hash)          // Initial storage in AA
 		aaCode    = []byte{byte(vm.PC), byte(vm.SELFDESTRUCT)} // Code for AA (simple selfdestruct)
 	)
@@ -2522,16 +2523,17 @@ func TestDeleteRecreateAccount(t *testing.T) {
 		},
 	}
 	genesis := gspec.MustCommit(db)
+	signer := types.NewNucleusSigner(params.TestChainConfig.ChainID)
 
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 1, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to AA, to kill it
 		tx, _ := types.SignTx(types.NewTransaction(0, aa,
-			big.NewInt(0), 50000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 50000, big.NewInt(1), nil), signer, key)
 		b.AddTx(tx)
 		// One transaction to AA, to recreate it (but without storage
 		tx, _ = types.SignTx(types.NewTransaction(1, aa,
-			big.NewInt(1), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(1), 100000, big.NewInt(1), nil), signer, key)
 		b.AddTx(tx)
 	})
 	// Import the canonical chain
@@ -2574,7 +2576,7 @@ func TestDeleteRecreateSlotsAcrossManyBlocks(t *testing.T) {
 		key, _    = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		address   = crypto.PubkeyToAddress(key.PublicKey)
 		funds     = big.NewInt(1000000000)
-		bb        = common.HexToAddress("0x000000000000000000000000000000000000bbbb")
+		bb, _     = common.HexToAddress("53000000000000000000000000000000000000bbbb")
 		aaStorage = make(map[common.Hash]common.Hash)          // Initial storage in AA
 		aaCode    = []byte{byte(vm.PC), byte(vm.SELFDESTRUCT)} // Code for AA (simple selfdestruct)
 	)
@@ -2659,9 +2661,10 @@ func TestDeleteRecreateSlotsAcrossManyBlocks(t *testing.T) {
 		values:   map[int]int{1: 1, 2: 2},
 	}
 	var expectations []*expectation
+	signer := types.NewNucleusSigner(params.TestChainConfig.ChainID)
 	var newDestruct = func(e *expectation) *types.Transaction {
 		tx, _ := types.SignTx(types.NewTransaction(nonce, aa,
-			big.NewInt(0), 50000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 50000, big.NewInt(1), nil), signer, key)
 		nonce++
 		if e.exist {
 			e.exist = false
@@ -2672,7 +2675,7 @@ func TestDeleteRecreateSlotsAcrossManyBlocks(t *testing.T) {
 	}
 	var newResurrect = func(e *expectation) *types.Transaction {
 		tx, _ := types.SignTx(types.NewTransaction(nonce, bb,
-			big.NewInt(0), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 100000, big.NewInt(1), nil), signer, key)
 		nonce++
 		if !e.exist {
 			e.exist = true
@@ -2776,7 +2779,7 @@ func TestInitThenFailCreateContract(t *testing.T) {
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
 		address = crypto.PubkeyToAddress(key.PublicKey)
 		funds   = big.NewInt(1000000000)
-		bb      = common.HexToAddress("0x000000000000000000000000000000000000bbbb")
+		bb, _   = common.HexToAddress("53000000000000000000000000000000000000bbbb")
 	)
 
 	// The bb-code needs to CREATE2 the aa contract. It consists of
@@ -2832,11 +2835,12 @@ func TestInitThenFailCreateContract(t *testing.T) {
 	}
 	genesis := gspec.MustCommit(db)
 	nonce := uint64(0)
+	signer := types.NewNucleusSigner(params.TestChainConfig.ChainID)
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 4, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		// One transaction to BB
 		tx, _ := types.SignTx(types.NewTransaction(nonce, bb,
-			big.NewInt(0), 100000, big.NewInt(1), nil), types.NucleusSigner{}, key)
+			big.NewInt(0), 100000, big.NewInt(1), nil), signer, key)
 		b.AddTx(tx)
 		nonce++
 	})
