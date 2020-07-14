@@ -774,7 +774,7 @@ func testExternalUI(api *core.SignerAPI) {
 		log.Info("Test error", "err", errStr)
 		errs = append(errs, errStr)
 	}
-	a, err := common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
+	a, err := common.HexToAddress("cc15deadbeef000000000000000000000000deadbeef")
 	if err != nil {
 		addErr("Invalid address, " + err.Error())
 	}
@@ -817,7 +817,7 @@ func testExternalUI(api *core.SignerAPI) {
 	{ // Sign data test - clique header
 		api.UI.ShowInfo("Please approve the next request for signing a clique header")
 		time.Sleep(delay)
-		coinbase, err := common.HexToAddress("96deadbeef000000000000000000000000deadbeff")
+		coinbase, err := common.HexToAddress("cc96deadbeef000000000000000000000000deadbeff")
 		if err != nil {
 			addErr("Invalid address, " + err.Error())
 		}
@@ -840,14 +840,14 @@ func testExternalUI(api *core.SignerAPI) {
 		if err != nil {
 			utils.Fatalf("Should not error: %v", err)
 		}
-		addr, _ := common.HexToAddress("0011223344556677889900112233445566778899")
+		addr, _ := common.HexToAddress("cc0011223344556677889900112233445566778899")
 		_, err = api.SignData(ctx, accounts.MimetypeClique, addr, hexutil.Encode(cliqueRlp))
 		expectApprove("signdata - clique header", err)
 	}
 	{ // Sign data test - typed data
 		api.UI.ShowInfo("Please approve the next request for signing CIP-712 typed data")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		addr, _ := common.HexToAddress("cc330011223344556677889900112233445566778899")
 		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
 		var typedData core.TypedData
@@ -858,14 +858,14 @@ func testExternalUI(api *core.SignerAPI) {
 	{ // Sign data test - plain text
 		api.UI.ShowInfo("Please approve the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		addr, _ := common.HexToAddress("cc330011223344556677889900112233445566778899")
 		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectApprove("signdata - text", err)
 	}
 	{ // Sign data test - plain text reject
 		api.UI.ShowInfo("Please deny the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		addr, _ := common.HexToAddress("cccc0011223344556677889900112233445566778899")
 		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectDeny("signdata - text", err)
 	}
@@ -973,8 +973,8 @@ func decryptSeed(keyjson []byte, auth string) ([]byte, error) {
 func GenDoc(ctx *cli.Context) {
 
 	var (
-		a, err  = common.HexToAddress("15deadbeef000000000000000000000000deadbeef")
-		b, err2 = common.HexToAddress("151111111122222222222233333333334444444444")
+		a, err  = common.HexToAddress("cc15deadbeef000000000000000000000000deadbeef")
+		b, err2 = common.HexToAddress("cc151111111122222222222233333333334444444444")
 		meta    = core.Metadata{
 			Scheme:    "http",
 			Local:     "localhost:8545",
@@ -1095,11 +1095,11 @@ func GenDoc(ctx *cli.Context) {
 			&core.UserInputResponse{Text: "The textual response from user"})
 	}
 	{ // List request
-		addr1, err := common.HexToAddress("cowbeef000000cowbeef00000000000000000c0w")
+		addr1, err := common.HexToAddress("cccowbeef000000cowbeef00000000000000000c0w")
 		if err != nil {
 			utils.Fatalf(err.Error())
 		}
-		addr2, err := common.HexToAddress("37ffffffffffffffffffffffffffffffffffffffff")
+		addr2, err := common.HexToAddress("cc37ffffffffffffffffffffffffffffffffffffffff")
 		if err != nil {
 			utils.Fatalf(err.Error())
 		}

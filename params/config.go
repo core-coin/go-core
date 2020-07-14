@@ -27,8 +27,8 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0xb7c3c4c85934421c0b6e5a958c0c42e640a58c5d597b2789b0942a1e746e8939")
-	DevinGenesisHash   = common.HexToHash("0x3a4a542f5a9c50e6478fc5b69ff3a5dcf18b95c82d84d7a1898cff73696c49d4")
+	MainnetGenesisHash = common.HexToHash("0x2da91f4b9f17f335c3ee754992333a2f8e1ee752dfb7b7980d5d80adc141af01")
+	DevinGenesisHash   = common.HexToHash("0xe85b7a92c50a87352ebdae06945823149aee48fc3182ccce8a9e1caa567c156f")
 	KolibaGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
 
@@ -72,7 +72,7 @@ var (
 
 	// DevinChainConfig contains the chain parameters to run a node on the Devin test network.
 	DevinChainConfig = &ChainConfig{
-		ChainID:  big.NewInt(2),
+		ChainID:  big.NewInt(3),
 		Cryptore: new(CryptoreConfig),
 	}
 
@@ -93,7 +93,7 @@ var (
 
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
-		ChainID: big.NewInt(3),
+		ChainID: big.NewInt(4),
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,

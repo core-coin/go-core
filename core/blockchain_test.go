@@ -2119,7 +2119,7 @@ func TestReorgToShorterRemovesCanonMappingHeaderChain(t *testing.T) {
 
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
-	addr, err := common.HexToAddress("0xc0de")
+	addr, err := common.HexToAddress("cccc0011223344556677889900112233445566778899")
 	if err != nil {
 		b.Error(err)
 	}
@@ -2286,8 +2286,8 @@ func TestSideImportPrunedBlocks(t *testing.T) {
 // first, but the journal wiped the entire state object on create-revert.
 func TestDeleteCreateRevert(t *testing.T) {
 	var (
-		aa, err1 = common.HexToAddress("57000000000000000000000000000000000000aaaa")
-		bb, err2 = common.HexToAddress("53000000000000000000000000000000000000bbbb")
+		aa, err1 = common.HexToAddress("cc57000000000000000000000000000000000000aaaa")
+		bb, err2 = common.HexToAddress("cc53000000000000000000000000000000000000bbbb")
 		// Generate a canonical chain to act as the main dataset
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()

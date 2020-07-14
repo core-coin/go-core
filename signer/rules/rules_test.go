@@ -160,8 +160,8 @@ func TestSignTxRequest(t *testing.T) {
 		console.log("transaction.to", r.transaction.to);
 		console.log("transaction.value", r.transaction.value);
 		console.log("transaction.nonce", r.transaction.nonce);
-		if(r.transaction.from.toLowerCase()=="280000000000000000000000000000000000001337"){ return "Approve"}
-		if(r.transaction.from.toLowerCase()=="31000000000000000000000000000000000000dead"){ return "Reject"}
+		if(r.transaction.from.toLowerCase()=="cc280000000000000000000000000000000000001337"){ return "Approve"}
+		if(r.transaction.from.toLowerCase()=="cc31000000000000000000000000000000000000dead"){ return "Reject"}
 	}`
 
 	r, err := initRuleEngine(js)
@@ -169,12 +169,12 @@ func TestSignTxRequest(t *testing.T) {
 		t.Errorf("Couldn't create evaluator %v", err)
 		return
 	}
-	to, err := mixAddr("31000000000000000000000000000000000000dead")
+	to, err := mixAddr("cc31000000000000000000000000000000000000dead")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	from, err := mixAddr("280000000000000000000000000000000000001337")
+	from, err := mixAddr("cc280000000000000000000000000000000000001337")
 
 	if err != nil {
 		t.Error(err)
@@ -427,8 +427,8 @@ const ExampleTxWindow = `
 `
 
 func dummyTx(value hexutil.Big) *core.SignTxRequest {
-	to, _ := mixAddr("000000000000000000000000000000000000dead")
-	from, _ := mixAddr("000000000000000000000000000000000000dead")
+	to, _ := mixAddr("cc000000000000000000000000000000000000dead")
+	from, _ := mixAddr("cc000000000000000000000000000000000000dead")
 	n := hexutil.Uint64(3)
 	energy := hexutil.Uint64(21000)
 	energyPrice := hexutil.Big(*big.NewInt(2000000))
@@ -456,7 +456,7 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 }
 
 func dummySigned(value *big.Int) *types.Transaction {
-	to, err := common.HexToAddress("31000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("cc31000000000000000000000000000000000000dead")
 	if err != nil {
 		util.Fatal(err.Error())
 	}
@@ -589,7 +589,7 @@ func TestSignData(t *testing.T) {
     return "Approve"
 }
 function ApproveSignData(r){
-    if( r.address.toLowerCase() == "29694267f14675d7e1b9494fd8d72fefe1755710fa")
+    if( r.address.toLowerCase() == "cc29694267f14675d7e1b9494fd8d72fefe1755710fa")
     {
         if(r.messages[0].value.indexOf("bazonk") >= 0){
             return "Approve"
@@ -605,7 +605,7 @@ function ApproveSignData(r){
 	}
 	message := "baz bazonk foo"
 	hash, rawdata := accounts.TextAndHash([]byte(message))
-	addr, _ := mixAddr("29694267f14675d7e1b9494fd8d72fefe1755710fa")
+	addr, _ := mixAddr("cc29694267f14675d7e1b9494fd8d72fefe1755710fa")
 
 	t.Logf("address %v %v\n", addr.String(), addr.String())
 

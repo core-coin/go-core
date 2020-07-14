@@ -42,9 +42,9 @@ func newStateTest() *stateTest {
 
 func TestDump(t *testing.T) {
 	s := newStateTest()
-	addr1, _ := common.HexToAddress("330000000000000000000000000000000000000102")
-	addr2, _ := common.HexToAddress("950000000000000000000000000000000000000002")
-	addr3, _ := common.HexToAddress("960000000000000000000000000000000000000001")
+	addr1, _ := common.HexToAddress("cc330000000000000000000000000000000000000102")
+	addr2, _ := common.HexToAddress("cc950000000000000000000000000000000000000002")
+	addr3, _ := common.HexToAddress("cc960000000000000000000000000000000000000001")
 	// generate a few entries
 	obj1 := s.state.GetOrNewStateObject(addr1)
 	obj1.AddBalance(big.NewInt(22))
@@ -61,22 +61,22 @@ func TestDump(t *testing.T) {
 	// check that dump contains the state objects that are in trie
 	got := string(s.state.Dump(false, false, true))
 	want := `{
-    "root": "5d3cbb9a7ccff464891983f0894c3f496152c1fb2ef2ddc60906d90366123073",
+    "root": "e5c0572b58b3a6d137ea172f3b203ed47e943e4cd4067be3effe280a9244a3dc",
     "accounts": {
-        "330000000000000000000000000000000000000102": {
+        "cc330000000000000000000000000000000000000102": {
             "balance": "22",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
         },
-        "950000000000000000000000000000000000000002": {
+        "cc950000000000000000000000000000000000000002": {
             "balance": "0",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "87874902497a5bb968da31a2998d8f22e949d1ef6214bcdedd8bae24cca4b9e3",
             "code": "03030303030303"
         },
-        "960000000000000000000000000000000000000001": {
+        "cc960000000000000000000000000000000000000001": {
             "balance": "44",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -91,7 +91,7 @@ func TestDump(t *testing.T) {
 
 func TestNull(t *testing.T) {
 	s := newStateTest()
-	address, err := common.HexToAddress("9100000000823140710bf13990e4500136726d8b55")
+	address, err := common.HexToAddress("cc9100000000823140710bf13990e4500136726d8b55")
 	if err != nil {
 		t.Error(err)
 	}

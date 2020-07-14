@@ -17,7 +17,6 @@
 package keystore
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -25,7 +24,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/core-coin/eddsa"
@@ -134,27 +132,6 @@ func newKeyFromEDDSA(privateKeyEDDSA *eddsa.PrivateKey) *Key {
 		Id:         id,
 		Address:    crypto.PubkeyToAddress(privateKeyEDDSA.PublicKey),
 		PrivateKey: privateKeyEDDSA,
-	}
-	return key
-}
-
-// NewKeyForDirectICAP generates a key whose address fits into < 155 bits so it can fit
-// into the Direct ICAP spec. for simplicity and easier compatibility with other libs, we
-// retry until the first byte is 0.
-func NewKeyForDirectICAP(rand io.Reader) *Key {
-	randBytes := make([]byte, 64)
-	_, err := rand.Read(randBytes)
-	if err != nil {
-		panic("key generation: could not read from random source: " + err.Error())
-	}
-	reader := bytes.NewReader(randBytes)
-	privateKeyEDDSA, err := eddsa.Ed448().GenerateKey(reader)
-	if err != nil {
-		panic("key generation: eddsa.GenerateKey failed: " + err.Error())
-	}
-	key := newKeyFromEDDSA(privateKeyEDDSA)
-	if !strings.HasPrefix(key.Address.Hex(), "0") {
-		return NewKeyForDirectICAP(rand)
 	}
 	return key
 }
