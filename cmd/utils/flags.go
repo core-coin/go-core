@@ -163,7 +163,7 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Devin)",
+		Usage: "Network identifier (integer,1=Mainnet, 3=Devin, 4=Koliba)",
 		Value: xcc.DefaultConfig.NetworkId,
 	}
 	DevinFlag = cli.BoolFlag{
@@ -1474,7 +1474,7 @@ func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
 	case ctx.GlobalBool(KolibaFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 5
+			cfg.NetworkId = 4
 		}
 		cfg.Genesis = core.DefaultKolibaGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.KolibaGenesisHash])

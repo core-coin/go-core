@@ -366,7 +366,7 @@ const (
 var networkIds = [...]string{
 	"cc",       // 1 - Mainnet
 	"wrong id", // 2 - wrong
-	"ca",       // 3 - Devin
+	"cb",       // 3 - Devin
 	"cb",       // 4 - Koliba
 	"cf",       // 5 - Privatenet
 }
