@@ -40,17 +40,23 @@ import (
 	"github.com/core-coin/go-core/crypto"
 )
 
-// Ensure the KDF generates appropriately sized keys.
 func TestKDF(t *testing.T) {
-	msg := []byte("Hello, world")
-	h := sha256.New()
-
-	k, err := concatKDF(h, msg, nil, 64)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		length int
+		output []byte
+	}{
+		{6, decode("858b192fa2ed")},
+		{32, decode("858b192fa2ed4395e2bf88dd8d5770d67dc284ee539f12da8bceaa45d06ebae0")},
+		{48, decode("858b192fa2ed4395e2bf88dd8d5770d67dc284ee539f12da8bceaa45d06ebae0700f1ab918a5f0413b8140f9940d6955")},
+		{64, decode("858b192fa2ed4395e2bf88dd8d5770d67dc284ee539f12da8bceaa45d06ebae0700f1ab918a5f0413b8140f9940d6955f3467fd6672cce1024c5b1effccc0f61")},
 	}
-	if len(k) != 64 {
-		t.Fatalf("KDF: generated key is the wrong size (%d instead of 64\n", len(k))
+
+	for _, test := range tests {
+		h := sha256.New()
+		k := concatKDF(h, []byte("input"), nil, test.length)
+		if !bytes.Equal(k, test.output) {
+			t.Fatalf("KDF: generated key %x does not match expected output %x", k, test.output)
+		}
 	}
 }
 
@@ -96,8 +102,8 @@ func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
 	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
 	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
-	pub0 := hexPub("919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1")
-	pub1 := hexPub("68f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13b")
+	pub0 := decode("919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1")
+	pub1 := decode("68f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13b")
 	if !bytes.Equal(prv0.PublicKey.X, pub0) {
 		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X, pub0)
 	}
@@ -222,8 +228,8 @@ func TestParamSelection(t *testing.T) {
 
 func testParamSelection(t *testing.T, c testCase) {
 	params := ParamsFromCurve()
-	if params == nil && c.Expected != nil {
-		t.Fatalf("%s (%s)\n", ErrInvalidParams.Error(), c.Name)
+	if params == nil {
+		t.Fatal("ParamsFromCurve returned nil")
 	} else if params != nil && !cmpParams(params, c.Expected) {
 		t.Fatalf("ecies: parameters should be invalid (%s)\n", c.Name)
 	}
@@ -305,7 +311,7 @@ func TestSharedKeyStatic(t *testing.T) {
 		t.Fatal(ErrBadSharedKeys)
 	}
 
-	sk, _ := hex.DecodeString("ecdba3fbaadf7769d0846084d39efd53de415fea7247feacc85c1ffcb312a6b796205337ae282b2278b3f44ad53be8b65372b0f22470d722279e440debd46b69")
+	sk := decode("ecdba3fbaadf7769d0846084d39efd53de415fea7247feacc85c1ffcb312a6b796205337ae282b2278b3f44ad53be8b65372b0f22470d722279e440debd46b69")
 	if !bytes.Equal(sk1, sk) {
 		t.Fatalf("shared secret mismatch: want: %x have: %x", sk, sk1)
 	}
@@ -319,16 +325,10 @@ func hexKey(prv string) *PrivateKey {
 	return ImportEDDSA(key)
 }
 
-func hexPub(key string) []byte {
-	b, err := hex.DecodeString(key)
+func decode(s string) []byte {
+	bytes, err := hex.DecodeString(s)
 	if err != nil {
 		panic(err)
 	}
-
-	pub, err := crypto.UnmarshalPubkey(b)
-	if err != nil {
-		panic(err)
-	}
-	return pub.X
+	return bytes
 }
-
