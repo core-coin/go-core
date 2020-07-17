@@ -478,7 +478,7 @@ func TestTouchDelete(t *testing.T) {
 // See https://github.com/core-coin/go-core/pull/15225#issuecomment-380191512
 func TestCopyOfCopy(t *testing.T) {
 	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()))
-	addr, err := common.HexToAddress("cc57000000000000000000000000000000000000aaaa")
+	addr, err := common.HexToAddress("cb57000000000000000000000000000000000000aaaa")
 	if err != nil {
 		t.Error(err)
 	}
@@ -500,7 +500,7 @@ func TestCopyCommitCopy(t *testing.T) {
 	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()))
 
 	// Create an account and check if the retrieved balance is correct
-	addr, err := common.HexToAddress("cc51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	addr, err := common.HexToAddress("cb51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
 	if err != nil {
 		t.Error(err)
 	}
@@ -575,7 +575,7 @@ func TestCopyCopyCommitCopy(t *testing.T) {
 	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()))
 
 	// Create an account and check if the retrieved balance is correct
-	addr, err := common.HexToAddress("cc51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
+	addr, err := common.HexToAddress("cb51affeaffeaffeaffeaffeaffeaffeaffeaffeaffe")
 	if err != nil {
 		t.Error(err)
 	}

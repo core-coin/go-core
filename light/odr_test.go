@@ -141,7 +141,7 @@ func odrGetReceipts(ctx context.Context, db xccdb.Database, bc *core.BlockChain,
 func TestOdrAccountsLes2(t *testing.T) { testChainOdr(t, 1, odrAccounts) }
 
 func odrAccounts(ctx context.Context, db xccdb.Database, bc *core.BlockChain, lc *LightChain, bhash common.Hash) ([]byte, error) {
-	dummyAddr, err := common.HexToAddress("cc021234567812345678123456781234567812345678")
+	dummyAddr, err := common.HexToAddress("cb021234567812345678123456781234567812345678")
 	if err != nil {
 		util.Fatal(err.Error())
 	}

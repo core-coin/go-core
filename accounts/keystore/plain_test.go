@@ -114,7 +114,7 @@ func TestImportPreSaleKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	matchAddr, err := common.HexToAddress("ccd4584b5f6229b7be90727b0fc8c6b91bb427821f")
+	matchAddr, err := common.HexToAddress("cbd4584b5f6229b7be90727b0fc8c6b91bb427821f")
 	if err != nil {
 		t.Error(err)
 	}
@@ -198,7 +198,7 @@ func TestV1_1(t *testing.T) {
 func TestV1_2(t *testing.T) {
 	t.Parallel()
 	ks := &keyStorePassphrase{"testdata/v1", LightScryptN, LightScryptP, true}
-	addr, err := common.HexToAddress("cc81ef566e72dc223cf2a06281b2c186901fda79f09e")
+	addr, err := common.HexToAddress("cb81ef566e72dc223cf2a06281b2c186901fda79f09e")
 	if err != nil {
 		t.Error(err)
 	}

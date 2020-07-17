@@ -211,7 +211,7 @@ func TestBlockSubscription(t *testing.T) {
 // TestPendingTxFilter tests whether pending tx filters retrieve all pending transactions that are posted to the event mux.
 func TestPendingTxFilter(t *testing.T) {
 	t.Parallel()
-	addr, err := common.HexToAddress("cc39b794f5ea0ba39494ce83a213fffba74279579268")
+	addr, err := common.HexToAddress("cb39b794f5ea0ba39494ce83a213fffba74279579268")
 	if err != nil {
 		t.Error(err)
 	}
@@ -366,10 +366,10 @@ func TestLogFilter(t *testing.T) {
 		backend = &testBackend{db: db}
 		api     = NewPublicFilterAPI(backend, false)
 
-		firstAddr, err1      = common.HexToAddress("cc931111111111111111111111111111111111111111")
-		secondAddr, err2     = common.HexToAddress("cc892222222222222222222222222222222222222222")
-		thirdAddress, err3   = common.HexToAddress("cc853333333333333333333333333333333333333333")
-		notUsedAddress, err4 = common.HexToAddress("cc619999999999999999999999999999999999999999")
+		firstAddr, err1      = common.HexToAddress("cb931111111111111111111111111111111111111111")
+		secondAddr, err2     = common.HexToAddress("cb892222222222222222222222222222222222222222")
+		thirdAddress, err3   = common.HexToAddress("cb853333333333333333333333333333333333333333")
+		notUsedAddress, err4 = common.HexToAddress("cb619999999999999999999999999999999999999999")
 		firstTopic           = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
 		secondTopic          = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
 		notUsedTopic         = common.HexToHash("0x9999999999999999999999999999999999999999999999999999999999999999")
@@ -483,10 +483,10 @@ func TestPendingLogsSubscription(t *testing.T) {
 		backend = &testBackend{db: db}
 		api     = NewPublicFilterAPI(backend, false)
 
-		firstAddr, err1      = common.HexToAddress("cc931111111111111111111111111111111111111111")
-		secondAddr, err2     = common.HexToAddress("cc892222222222222222222222222222222222222222")
-		thirdAddress, err3   = common.HexToAddress("cc853333333333333333333333333333333333333333")
-		notUsedAddress, err4 = common.HexToAddress("cc619999999999999999999999999999999999999999")
+		firstAddr, err1      = common.HexToAddress("cb931111111111111111111111111111111111111111")
+		secondAddr, err2     = common.HexToAddress("cb892222222222222222222222222222222222222222")
+		thirdAddress, err3   = common.HexToAddress("cb853333333333333333333333333333333333333333")
+		notUsedAddress, err4 = common.HexToAddress("cb619999999999999999999999999999999999999999")
 		firstTopic           = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
 		secondTopic          = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
 		thirdTopic           = common.HexToHash("0x3333333333333333333333333333333333333333333333333333333333333333")

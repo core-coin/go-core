@@ -271,11 +271,11 @@ func TestHeadStorage(t *testing.T) {
 // Tests that receipts associated with a single block can be stored and retrieved.
 func TestBlockReceiptStorage(t *testing.T) {
 	db := NewMemoryDatabase()
-	addr1, err := common.HexToAddress("cc960000000000000000000000000000000000000001")
+	addr1, err := common.HexToAddress("cb960000000000000000000000000000000000000001")
 	if err != nil {
 		t.Error(err)
 	}
-	addr2, err := common.HexToAddress("cc950000000000000000000000000000000000000002")
+	addr2, err := common.HexToAddress("cb950000000000000000000000000000000000000002")
 	if err != nil {
 		t.Error(err)
 	}

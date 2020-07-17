@@ -120,7 +120,7 @@ type callTracerTest struct {
 }
 
 func TestPrestateTracerCreate2(t *testing.T) {
-	addr, err := common.HexToAddress("cc5700000000000000000000000000000000deadbeef")
+	addr, err := common.HexToAddress("cb5700000000000000000000000000000000deadbeef")
 	if err != nil {
 		t.Error(err)
 	}
@@ -197,8 +197,8 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err := json.Unmarshal(res, &ret); err != nil {
 		t.Fatalf("failed to unmarshal trace result: %v", err)
 	}
-	if _, has := ret["0xcc14822d051602910c94e9f336eb6061b58e600d"]; !has {
-		t.Fatalf("Expected 0xcc14822d051602910c94e9f336eb6061b58e600d in result")
+	if _, has := ret["0xcb497c29a2505dfc709318c1794c18a31f1dafa4"]; !has {
+		t.Fatalf("Expected 0xcb497c29a2505dfc709318c1794c18a31f1dafa4 in result")
 	}
 }
 

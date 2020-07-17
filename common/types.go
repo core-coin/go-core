@@ -354,24 +354,25 @@ func (a UnprefixedAddress) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(a[:])), nil
 }
 
-type NetworkID int64
+type NetworkID uint64
 
 const (
 	Mainnet NetworkID = iota + 1
 	Devin             = iota + 1
 	Koliba
-	Privatenet
 )
 
 var networkIds = [...]string{
-	"cc",       // 1 - Mainnet
+	"cb",       // 1 - Mainnet
 	"wrong id", // 2 - wrong
-	"cb",       // 3 - Devin
-	"cb",       // 4 - Koliba
-	"cf",       // 5 - Privatenet
+	"ab",       // 3 - Devin
+	"ab",       // 4 - Koliba
 }
 
 func (network NetworkID) String() string {
+	if network > 4 {
+		return "ce" // everything else except main net, devin and koliba - private nets
+	}
 	return networkIds[network-1]
 }
 

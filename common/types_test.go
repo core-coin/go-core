@@ -89,8 +89,8 @@ func TestHashJsonValidation(t *testing.T) {
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
-	firstValue, _ := new(big.Int).SetString("76421788222620711067415788559552813621085676768223929", 10)
-	secondValue, _ := new(big.Int).SetString("76524525752129338824142448522381122171609576422953289", 10)
+	firstValue, _ := new(big.Int).SetString("76047643803463999920355645242377445168053758037222073", 10)
+	secondValue, _ := new(big.Int).SetString("76150381332972627677082305205205753718577657691951433", 10)
 	var tests = []struct {
 		Input     string
 		ShouldErr bool
@@ -104,8 +104,8 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"cd41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil}, // wrong prefix (network id = 1)
 		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},   // without prefix
 		{`"e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},     // without prefix and checksum
-		{`"cc88348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
-		{`"cc41e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
+		{`"cb88348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
+		{`"cb41e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
 	}
 	for i, test := range tests {
 		var v Address
@@ -125,7 +125,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 }
 
 func BenchmarkAddressHex(b *testing.B) {
-	testAddr, err := HexToAddress("cc335aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
+	testAddr, err := HexToAddress("cb335aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
 	if err != nil {
 		b.Error(err)
 	}

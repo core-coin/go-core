@@ -100,7 +100,7 @@ func TestExecute(t *testing.T) {
 
 func TestCall(t *testing.T) {
 	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
-	address, err := common.HexToAddress("cc87000000000000000000000000000000000000000a")
+	address, err := common.HexToAddress("cb87000000000000000000000000000000000000000a")
 	if err != nil {
 		t.Error(err)
 	}
@@ -204,7 +204,7 @@ func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 }
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
-	coinbase, err := common.HexToAddress("cc5700000000000000000000000000000000deadbeef")
+	coinbase, err := common.HexToAddress("cb5700000000000000000000000000000000deadbeef")
 	if err != nil {
 		util.Fatal(err.Error())
 	}

@@ -52,7 +52,7 @@ func verify(t *testing.T, jsondata, calldata string, exp []interface{}) {
 }
 
 func TestNewUnpacker(t *testing.T) {
-	addr, err := common.HexToAddress("cc7700000133700000deadbeef000000000000000000")
+	addr, err := common.HexToAddress("cb7700000133700000deadbeef000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -87,7 +87,7 @@ func TestNewUnpacker(t *testing.T) {
 			[]interface{}{big.NewInt(0x12)},
 		}, {
 			`[{"type":"function","name":"compareAndApprove","inputs":[{"type":"address"},{"type":"uint256"},{"type":"uint256"}]}]`,
-			"751e107900000000000000000000cc7700000133700000deadbeef00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+			"751e107900000000000000000000cb7700000133700000deadbeef00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
 			[]interface{}{
 				addr,
 				new(big.Int).SetBytes([]byte{0x00}),

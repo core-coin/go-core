@@ -34,14 +34,14 @@ import (
 )
 
 var (
-	addr1, err1       = common.HexToAddress("cc67feefe02c246be13166ddebab5e102eca211e496f")
-	addr2, err2       = common.HexToAddress("cc70df9af33454ea4b84373adbdb3102bedb7838a228")
-	addr3, err3       = common.HexToAddress("cc36af52d4eae20e8199abbe74a94392c01ed5cdcfab")
+	addr1, err1       = common.HexToAddress("cb67feefe02c246be13166ddebab5e102eca211e496f")
+	addr2, err2       = common.HexToAddress("cb70df9af33454ea4b84373adbdb3102bedb7838a228")
+	addr3, err3       = common.HexToAddress("cb36af52d4eae20e8199abbe74a94392c01ed5cdcfab")
 	cachetestDir, _   = filepath.Abs(filepath.Join("testdata", "keystore"))
 	cachetestAccounts = []accounts.Account{
 		{
 			Address: addr1,
-			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-07T10-47-53.209137411Z--cc67feefe02c246be13166ddebab5e102eca211e496f")},
+			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-07T10-47-53.209137411Z--cb67feefe02c246be13166ddebab5e102eca211e496f")},
 		},
 		{
 			Address: addr2,
@@ -148,31 +148,31 @@ func TestCacheInitialReload(t *testing.T) {
 func TestCacheAddDeleteOrder(t *testing.T) {
 	cache, _ := newAccountCache("testdata/no-such-dir")
 	cache.watcher.running = true // prevent unexpected reloads
-	addr1, err := common.HexToAddress("cc92095e7baea6a6c7c4c2dfeb977efac326af552d87")
+	addr1, err := common.HexToAddress("cb92095e7baea6a6c7c4c2dfeb977efac326af552d87")
 	if err != nil {
 		t.Error(err)
 	}
-	addr2, err := common.HexToAddress("cc462cac1adea150210703ba75ed097ddfe24e14f213")
+	addr2, err := common.HexToAddress("cb462cac1adea150210703ba75ed097ddfe24e14f213")
 	if err != nil {
 		t.Error(err)
 	}
-	addr3, err := common.HexToAddress("cc678bda78331c916a08481428e4b07c96d3e916d165")
+	addr3, err := common.HexToAddress("cb678bda78331c916a08481428e4b07c96d3e916d165")
 	if err != nil {
 		t.Error(err)
 	}
-	addr4, err := common.HexToAddress("cc42d49ff4eeb0b2686ed89c0fc0f2b6ea533ddbbd5e")
+	addr4, err := common.HexToAddress("cb42d49ff4eeb0b2686ed89c0fc0f2b6ea533ddbbd5e")
 	if err != nil {
 		t.Error(err)
 	}
-	addr5, err := common.HexToAddress("cc41e8cf4629acb360350399b6cff367a97cf36e62b9")
+	addr5, err := common.HexToAddress("cb41e8cf4629acb360350399b6cff367a97cf36e62b9")
 	if err != nil {
 		t.Error(err)
 	}
-	addr6, err := common.HexToAddress("cc655337dc760bff449e5c187e080797283ad42e69bd")
+	addr6, err := common.HexToAddress("cb655337dc760bff449e5c187e080797283ad42e69bd")
 	if err != nil {
 		t.Error(err)
 	}
-	addr7, err := common.HexToAddress("cc88348d6db8bfe52ab1199deeacbc4c1ffa0686d149")
+	addr7, err := common.HexToAddress("cb88348d6db8bfe52ab1199deeacbc4c1ffa0686d149")
 	if err != nil {
 		t.Error(err)
 	}
@@ -195,7 +195,7 @@ func TestCacheAddDeleteOrder(t *testing.T) {
 		},
 		{
 			Address: addr5,
-			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: "UTC--2020-02-27T09-51-06.983129511Z--e8cf4629acb360350399b6cff367a97cf36e62b9"},
+			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: "UTC--2020-02-27T09-51-06.983129511Z--cb41e8cf4629acb360350399b6cff367a97cf36e62b9"},
 		},
 		{
 			Address: addr6,
@@ -226,7 +226,7 @@ func TestCacheAddDeleteOrder(t *testing.T) {
 			t.Errorf("expected hasAccount(%x) to return true", a.Address)
 		}
 	}
-	wrongAcc, err := common.HexToAddress("cc86fd9bd350f08ee3c0c19b85a8e16114a11a60aa4e")
+	wrongAcc, err := common.HexToAddress("cb86fd9bd350f08ee3c0c19b85a8e16114a11a60aa4e")
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,15 +265,15 @@ func TestCacheFind(t *testing.T) {
 	cache, _ := newAccountCache(dir)
 	cache.watcher.running = true // prevent unexpected reloads
 
-	addr1, err := common.HexToAddress("cc92095e7baea6a6c7c4c2dfeb977efac326af552d87")
+	addr1, err := common.HexToAddress("cb92095e7baea6a6c7c4c2dfeb977efac326af552d87")
 	if err != nil {
 		t.Error(err)
 	}
-	addr2, err := common.HexToAddress("cc462cac1adea150210703ba75ed097ddfe24e14f213")
+	addr2, err := common.HexToAddress("cb462cac1adea150210703ba75ed097ddfe24e14f213")
 	if err != nil {
 		t.Error(err)
 	}
-	addr3, err := common.HexToAddress("cc42d49ff4eeb0b2686ed89c0fc0f2b6ea533ddbbd5e")
+	addr3, err := common.HexToAddress("cb42d49ff4eeb0b2686ed89c0fc0f2b6ea533ddbbd5e")
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,7 +299,7 @@ func TestCacheFind(t *testing.T) {
 		cache.add(a)
 	}
 
-	nomatchAddr, err := common.HexToAddress("cccc655337dc760bff449e5c187e080797283ad42e69bd")
+	nomatchAddr, err := common.HexToAddress("cb655337dc760bff449e5c187e080797283ad42e69bd")
 	if err != nil {
 		t.Error(err)
 	}

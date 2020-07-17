@@ -225,7 +225,7 @@ func TestNewAcc(t *testing.T) {
 }
 
 func mkTestTx(from common.Address) core.SendTxArgs {
-	addr, err := common.HexToAddress("cc280000000000000000000000000000000000001337")
+	addr, err := common.HexToAddress("cb280000000000000000000000000000000000001337")
 	if err != nil {
 		util.Fatal(err.Error())
 	}
