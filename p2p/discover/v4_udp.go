@@ -211,7 +211,7 @@ type UDPv4 struct {
 	addReplyMatcher chan *replyMatcher
 	gotreply        chan reply
 	closeCtx        context.Context
-	cancelCloseCtx  func()
+	cancelCloseCtx  context.CancelFunc
 }
 
 // replyMatcher represents a pending reply.
@@ -260,6 +260,7 @@ type reply struct {
 }
 
 func ListenV4(c UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv4, error) {
+	cfg = cfg.withDefaults()
 	closeCtx, cancel := context.WithCancel(context.Background())
 	t := &UDPv4{
 		conn:            c,
@@ -272,9 +273,6 @@ func ListenV4(c UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv4, error) {
 		closeCtx:        closeCtx,
 		cancelCloseCtx:  cancel,
 		log:             cfg.Log,
-	}
-	if t.log == nil {
-		t.log = log.Root()
 	}
 
 	tab, err := newTable(t, ln.Database(), cfg.Bootnodes, t.log)
