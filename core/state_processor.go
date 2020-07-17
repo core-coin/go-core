@@ -54,11 +54,11 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 // transactions failed to execute due to insufficient energy it will return an error.
 func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, []*types.Log, uint64, error) {
 	var (
-		receipts types.Receipts
-		usedEnergy  = new(uint64)
-		header   = block.Header()
-		allLogs  []*types.Log
-		gp       = new(EnergyPool).AddEnergy(block.EnergyLimit())
+		receipts   types.Receipts
+		usedEnergy = new(uint64)
+		header     = block.Header()
+		allLogs    []*types.Log
+		gp         = new(EnergyPool).AddEnergy(block.EnergyLimit())
 	)
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {

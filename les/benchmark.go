@@ -17,11 +17,11 @@
 package les
 
 import (
+	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"math/big"
 	"math/rand"
-	crand "crypto/rand"
 	"sync"
 	"time"
 

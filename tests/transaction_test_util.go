@@ -29,9 +29,9 @@ import (
 
 // TransactionTest checks RLP decoding and sender derivation of transactions.
 type TransactionTest struct {
-	RLP            hexutil.Bytes `json:"rlp"`
-	Nucleus       ttFork
-	CIP150 ttFork
+	RLP     hexutil.Bytes `json:"rlp"`
+	Nucleus ttFork
+	CIP150  ttFork
 }
 
 type ttFork struct {
@@ -63,9 +63,9 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 	}
 
 	for _, testcase := range []struct {
-		name        string
-		signer      types.Signer
-		fork        ttFork
+		name   string
+		signer types.Signer
+		fork   ttFork
 	}{
 		{"Nucleus", types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID), tt.Nucleus},
 	} {
