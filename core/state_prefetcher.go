@@ -65,6 +65,7 @@ func (p *statePrefetcher) Prefetch(block *types.Block, statedb *state.StateDB, c
 			return // Ugh, something went horribly wrong, bail out
 		}
 	}
+	statedb.IntermediateRoot(true)
 }
 
 // precacheTransaction attempts to apply a transaction to the given state database
