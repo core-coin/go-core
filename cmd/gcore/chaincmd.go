@@ -49,6 +49,7 @@ var (
 		ArgsUsage: "<genesisPath>",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -65,6 +66,7 @@ It expects the genesis file as argument.`,
 		ArgsUsage: "",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -91,6 +93,7 @@ The dumpgenesis command dumps the genesis block configuration in JSON format to 
 			utils.MetricsInfluxDBUsernameFlag,
 			utils.MetricsInfluxDBPasswordFlag,
 			utils.MetricsInfluxDBTagsFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -109,6 +112,7 @@ processing will proceed even if an individual RLP-file import failure occurs.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -127,6 +131,7 @@ be gzipped.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -141,6 +146,7 @@ be gzipped.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -157,6 +163,7 @@ The export-preimages command export hash preimages to an RLP encoded stream`,
 			utils.SyncModeFlag,
 			utils.FakePoWFlag,
 			utils.DevinFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -169,6 +176,7 @@ The first argument must be the directory containing the blockchain to download f
 		ArgsUsage: " ",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -187,6 +195,7 @@ Remove blockchain and state databases`,
 			utils.ExcludeCodeFlag,
 			utils.ExcludeStorageFlag,
 			utils.IncludeIncompletesFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -205,6 +214,7 @@ Use "core dump 0" to dump the genesis block.`,
 			utils.DevinFlag,
 			utils.KolibaFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 	}

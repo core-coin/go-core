@@ -27,8 +27,8 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0xb7c3c4c85934421c0b6e5a958c0c42e640a58c5d597b2789b0942a1e746e8939")
-	DevinGenesisHash   = common.HexToHash("0x3a4a542f5a9c50e6478fc5b69ff3a5dcf18b95c82d84d7a1898cff73696c49d4")
+	MainnetGenesisHash = common.HexToHash("0x0fd2fd2988c27b96b2c75c0ba5352bd03ef7542c8e15c803ecace50cb782936e")
+	DevinGenesisHash   = common.HexToHash("0xe9489866bb033ab58297fb48f6b4fc1955d792072794b9149b1a7800c03fcf41")
 	KolibaGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
 
@@ -93,7 +93,7 @@ var (
 
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
-		ChainID: big.NewInt(5),
+		ChainID: big.NewInt(4),
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
@@ -120,16 +120,16 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1337), nil, new(CryptoreConfig), nil}
+	AllCryptoreProtocolChanges = &ChainConfig{big.NewInt(1), nil, new(CryptoreConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (CIPs) introduced
 	// and accepted by the Core core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), nil, new(CryptoreConfig), nil}
+	TestChainConfig = &ChainConfig{big.NewInt(2), nil, new(CryptoreConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 

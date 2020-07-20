@@ -127,7 +127,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, _ := common.HexToAddress("96000000000000000000000000000000000000001")
+			addr, _ := common.HexToAddress("cb96000000000000000000000000000000000000001")
 			gen.AddUncheckedTx(types.NewTransaction(1, addr, big.NewInt(1), 1, big.NewInt(1), nil))
 		case 2:
 			receipt := types.NewReceipt(nil, false, 0)
@@ -138,7 +138,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, _ := common.HexToAddress("95000000000000000000000000000000000000002")
+			addr, _ := common.HexToAddress("cb95000000000000000000000000000000000000002")
 			gen.AddUncheckedTx(types.NewTransaction(2, addr, big.NewInt(2), 2, big.NewInt(2), nil))
 
 		case 998:
@@ -150,7 +150,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, err := common.HexToAddress("660000000000000000000000000000000000000998")
+			addr, err := common.HexToAddress("cb740000000000000000000000000000000000000998")
 			if err != nil {
 				t.Error(err)
 			}
@@ -164,7 +164,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, err := common.HexToAddress("650000000000000000000000000000000000000999")
+			addr, err := common.HexToAddress("cb470000000000000000000000000000000000000999")
 			if err != nil {
 				t.Error(err)
 			}

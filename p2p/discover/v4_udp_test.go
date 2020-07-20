@@ -18,11 +18,11 @@ package discover
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"github.com/core-coin/eddsa"
 	"io"
 	"math/rand"
 	"net"
@@ -31,7 +31,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/internal/testlog"
@@ -39,6 +38,7 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // shared test variables

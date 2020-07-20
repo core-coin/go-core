@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/core-coin/go-core/common"
 	"io/ioutil"
 	"strings"
 
@@ -88,4 +89,8 @@ func mustPrintJSON(jsonObject interface{}) {
 		utils.Fatalf("Failed to marshal JSON object: %v", err)
 	}
 	fmt.Println(string(str))
+}
+
+func setDefaultNetworkId(id uint64) {
+	common.DefaultNetworkID = common.NetworkID(id)
 }

@@ -35,7 +35,7 @@ func TestKeyEncryptDecrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 	password := ""
-	address, err := common.HexToAddress("37798682fac39cfe662bb6d451827fd16b4a1a7172")
+	address, err := common.HexToAddress("cb25798682fac39cfe662bb6d451827fd16b4a1a7172")
 	if err != nil {
 		t.Error(err)
 	}

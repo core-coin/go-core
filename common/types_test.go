@@ -42,10 +42,10 @@ func TestIsHexAddress(t *testing.T) {
 		str string
 		exp bool
 	}{
-		{"115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
-		{"115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
-		{"11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
-		{"11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
+		{"cc115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
+		{"ca115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
+		{"cf11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
+		{"cd11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
 		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed1", false},
 		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beae", false},
 		{"0xxaaeb6053f3e94c9b9a09f33669435e7ef1beaed", false},
@@ -89,8 +89,8 @@ func TestHashJsonValidation(t *testing.T) {
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
-	firstValue, _ := new(big.Int).SetString("96326714651637067146551855777649202574255643845305", 10)
-	secondValue, _ := new(big.Int).SetString("199064244160264823873211818605957753098155298574665", 10)
+	firstValue, _ := new(big.Int).SetString("76119257383693214163347625799180543036016898731827897", 10)
+	secondValue, _ := new(big.Int).SetString("76029076697074162734871399364090302227946215290884425", 10)
 	var tests = []struct {
 		Input     string
 		ShouldErr bool
@@ -101,8 +101,11 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"0x"`, true, nil},
 		{`"0x00"`, true, nil},
 		{`"0xG000000000000000000000000000000000000000"`, true, nil},
-		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
-		{`"88348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
+		{`"cd41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil}, // wrong prefix (network id = 1)
+		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},   // without prefix
+		{`"e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},     // without prefix and checksum
+		{`"cb35348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
+		{`"cb72e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
 	}
 	for i, test := range tests {
 		var v Address
@@ -122,7 +125,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 }
 
 func BenchmarkAddressHex(b *testing.B) {
-	testAddr, err := HexToAddress("0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
+	testAddr, err := HexToAddress("cb335aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
 	if err != nil {
 		b.Error(err)
 	}
@@ -234,7 +237,7 @@ func TestAddress_Scan(t *testing.T) {
 		{
 			name: "working scan",
 			args: args{src: []byte{
-				0x01,
+				0xcc, 0x01,
 				0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
 				0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
 			}},
@@ -277,7 +280,7 @@ func TestAddress_Scan(t *testing.T) {
 
 func TestAddress_Value(t *testing.T) {
 	b := []byte{
-		0x01,
+		0xcc, 0x01,
 		0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
 		0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
 	}

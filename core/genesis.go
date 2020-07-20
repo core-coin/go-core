@@ -43,7 +43,7 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
-var defaultCoinbase, _ = common.HexToAddress("970000000000000000000000000000000000000000")
+var defaultCoinbase, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.

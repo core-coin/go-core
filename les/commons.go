@@ -72,7 +72,7 @@ type lesCommons struct {
 // NodeInfo represents a short summary of the Core sub-protocol metadata
 // known about the host peer.
 type NodeInfo struct {
-	Network    uint64                   `json:"network"`    // Core network ID (1=Nucleus, 2=Morden, Devin=3)
+	Network    uint64                   `json:"network"`    // Core network ID (1=Mainnet, 3=Devin, 4=Koliba)
 	Difficulty *big.Int                 `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash              `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Config     *params.ChainConfig      `json:"config"`     // Chain configuration for the fork rules

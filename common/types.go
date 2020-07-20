@@ -17,6 +17,7 @@
 package common
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
@@ -25,6 +26,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/core-coin/go-core/common/hexutil"
 )
@@ -34,15 +36,18 @@ const (
 	// HashLength is the expected length of the hash
 	HashLength = 32
 	// AddressLength is the expected length of the address
-	AddressLength = 21
+	AddressLength = 22
 )
+
+var DefaultNetworkID = Mainnet // NetworkID which is using in addresses
 
 var (
 	hashT    = reflect.TypeOf(Hash{})
 	addressT = reflect.TypeOf(Address{})
 )
 
-var invalidAddress = errors.New("Invalid address")
+var invalidPrefix = errors.New("Invalid network id prefix in address")
+var invalidChecksum = errors.New("Invalid checksum in address")
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
@@ -183,16 +188,15 @@ func BytesToAddress(b []byte) Address {
 	return a
 }
 
-func CalculateChecksum(address []byte) string {
-	addrString := Bytes2Hex(address)
+func CalculateChecksum(address, prefix []byte) string {
+	addrString := strings.ToUpper(Bytes2Hex(append(address, prefix...)) + "00")
 	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
 	mods := ""
 	for _, c := range addrString {
 		// Get character code point value
 		i := int(c)
-
-		// Check if c is characters A-F (codepoint 65 - 70)
-		if i > 64 && i < 70 {
+		// Check if c is characters A-F (codepoint 65 - 90)
+		if i > 64 && i < 91 {
 			// A=10, B=11 etc...
 			i -= 55
 			// Add int as string to mod string
@@ -203,25 +207,32 @@ func CalculateChecksum(address []byte) string {
 	}
 
 	// Create bignum from mod string and perform module
-	bigVal, success := new(big.Int).SetString(mods, 16)
+	bigVal, success := new(big.Int).SetString(mods, 10)
 	if !success {
 		return ""
 	}
 
-	val := new(big.Int).SetInt64(97)
-	resVal := new(big.Int).Mod(bigVal, val)
+	val97 := new(big.Int).SetInt64(97)
+	val98 := new(big.Int).SetInt64(98)
 
-	resVal = new(big.Int).Sub(val, resVal)
+	remainder := new(big.Int).Mod(bigVal, val97)
 
-	resInt := resVal.Int64()
+	checksum := new(big.Int).Sub(val98, remainder)
+
+	resInt := checksum.Int64()
 	if resInt < 10 {
 		return "0" + strconv.Itoa(int(resInt))
 	}
 	return strconv.Itoa(int(resInt))
 }
 
-func verifyAddress(addr Address) bool {
-	return Bytes2Hex(addr[:1]) == CalculateChecksum(addr[1:])
+func verifyAddress(addr Address) (bool, error) {
+	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
+		return false, invalidPrefix
+	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:], addr[:1]) {
+		return false, invalidChecksum
+	}
+	return true, nil
 }
 
 // BigToAddress returns Address with byte values of b.
@@ -232,8 +243,8 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) (Address, error) {
 	addr := BytesToAddress(FromHex(s))
-	if !verifyAddress(addr) {
-		return addr, invalidAddress
+	if ok, err := verifyAddress(addr); !ok {
+		return addr, err
 	}
 	return addr, nil
 }
@@ -293,8 +304,8 @@ func (a *Address) UnmarshalJSON(input []byte) error {
 	if err := hexutil.UnmarshalFixedJSON(addressT, input, a[:]); err != nil {
 		return err
 	}
-	if verified := verifyAddress(*a); !verified {
-		return invalidAddress
+	if ok, err := verifyAddress(*a); !ok {
+		return err
 	}
 	return nil
 }
@@ -343,4 +354,34 @@ func (a *UnprefixedAddress) UnmarshalText(input []byte) error {
 // MarshalText encodes the address as hex.
 func (a UnprefixedAddress) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(a[:])), nil
+}
+
+type NetworkID uint64
+
+const (
+	Mainnet NetworkID = iota + 1
+	Devin             = iota + 1
+	Koliba
+)
+
+var networkIds = [...]string{
+	"cb",       // 1 - Mainnet
+	"wrong id", // 2 - wrong
+	"ab",       // 3 - Devin
+	"ab",       // 4 - Koliba
+}
+
+func (network NetworkID) String() string {
+	if network > 4 {
+		return "ce" // everything else except main net, devin and koliba - private nets
+	}
+	return networkIds[network-1]
+}
+
+func (network NetworkID) Bytes() []byte {
+	return Hex2Bytes(network.String())
+}
+
+func (network NetworkID) Int64() int64 {
+	return int64(network)
 }

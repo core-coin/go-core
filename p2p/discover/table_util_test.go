@@ -18,10 +18,10 @@ package discover
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"math/rand"
 	"net"
 	"sort"

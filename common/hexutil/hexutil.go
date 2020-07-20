@@ -63,7 +63,7 @@ func Decode(input string) ([]byte, error) {
 	}
 	prefix := 2
 	if !has0xPrefix(input) {
-		if len(input) != 42 { // (len != 42) == (!common.Address)
+		if len(input) != 44 { // (len != 44) == (!common.Address)
 			return nil, ErrMissingPrefix
 		}
 		prefix = 0
@@ -198,7 +198,7 @@ func checkNumber(input string) (raw string, err error) {
 		return "", ErrEmptyString
 	}
 	if !has0xPrefix(input) {
-		if len(input) != 42 { // (len != 42) == (!common.Address)
+		if len(input) != 44 { // (len != 44) == (!common.Address)
 			return "", ErrMissingPrefix
 		}
 	}

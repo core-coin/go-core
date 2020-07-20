@@ -114,7 +114,7 @@ func TestImportPreSaleKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	matchAddr, err := common.HexToAddress("d4584b5f6229b7be90727b0fc8c6b91bb427821f")
+	matchAddr, err := common.HexToAddress("cbd4584b5f6229b7be90727b0fc8c6b91bb427821f")
 	if err != nil {
 		t.Error(err)
 	}
@@ -198,7 +198,7 @@ func TestV1_1(t *testing.T) {
 func TestV1_2(t *testing.T) {
 	t.Parallel()
 	ks := &keyStorePassphrase{"testdata/v1", LightScryptN, LightScryptP, true}
-	addr, err := common.HexToAddress("81ef566e72dc223cf2a06281b2c186901fda79f09e")
+	addr, err := common.HexToAddress("cb92ef566e72dc223cf2a06281b2c186901fda79f09e")
 	if err != nil {
 		t.Error(err)
 	}
@@ -252,14 +252,6 @@ func loadKeyStoreTestV1(file string, t *testing.T) map[string]KeyStoreTestV1 {
 		t.Fatal(err)
 	}
 	return tests
-}
-
-func TestKeyForDirectICAP(t *testing.T) {
-	t.Parallel()
-	key := NewKeyForDirectICAP(rand.Reader)
-	if !strings.HasPrefix(key.Address.Hex(), "0") {
-		t.Errorf("Expected first address byte to be zero, have: %s", key.Address.Hex())
-	}
 }
 
 func TestV3_31_Byte_Key(t *testing.T) {

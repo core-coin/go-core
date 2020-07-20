@@ -140,7 +140,11 @@ func runCmd(ctx *cli.Context) error {
 	} else {
 		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
 		genesisConfig = new(core.Genesis)
+		chainConfig = params.AllCryptoreProtocolChanges
 	}
+
+	common.DefaultNetworkID = common.NetworkID(chainConfig.ChainID.Int64())
+
 	if ctx.GlobalString(SenderFlag.Name) != "" {
 		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
 		if err != nil {
@@ -216,6 +220,7 @@ func runCmd(ctx *cli.Context) error {
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),
 		Coinbase:    genesisConfig.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(genesisConfig.Number),
+		ChainConfig: chainConfig,
 		CVMConfig: vm.Config{
 			Tracer:         tracer,
 			Debug:          ctx.GlobalBool(DebugFlag.Name) || ctx.GlobalBool(MachineFlag.Name),
@@ -234,12 +239,6 @@ func runCmd(ctx *cli.Context) error {
 			os.Exit(1)
 		}
 		defer pprof.StopCPUProfile()
-	}
-
-	if chainConfig != nil {
-		runtimeConfig.ChainConfig = chainConfig
-	} else {
-		runtimeConfig.ChainConfig = params.AllCryptoreProtocolChanges
 	}
 
 	var hexInput []byte
