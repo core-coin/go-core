@@ -26,11 +26,11 @@ import (
 )
 
 func TestInterfaceGetSet(t *testing.T) {
-	deadbeef, err := common.HexToAddress("cb3212345678123456781234567812345678deadbeef")
+	deadbeef, err := common.HexToAddress("cb3612345678123456781234567812345678deadbeef")
 	if err != nil {
 		t.Error(err)
 	}
-	cafebabe, err := common.HexToAddress("cb2412345678123456781234567812345678cafebabe")
+	cafebabe, err := common.HexToAddress("cb3312345678123456781234567812345678cafebabe")
 	if err != nil {
 		t.Error(err)
 	}

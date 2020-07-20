@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common"
 )
 
-var testAddrHex = "cb50b2a6f9a2c6925d2407314b99518f8109156d0b09"
+var testAddrHex = "cb67b2a6f9a2c6925d2407314b99518f8109156d0b09"
 var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 
 // These tests are sanity checks.
@@ -128,15 +128,15 @@ func TestNewContractAddress(t *testing.T) {
 	caddr1 := CreateAddress(addr, 1)
 	caddr2 := CreateAddress(addr, 2)
 
-	addr0, err := common.HexToAddress("cb3854ad88ce26fa43c6dc2a488a4e535a7e4887cfaa")
+	addr0, err := common.HexToAddress("cb16bc8042a51a30bd25ca538705ba30656ab0d54cac")
 	if err != nil {
 		t.Error(err)
 	}
-	addr1, err := common.HexToAddress("cb49bcaa7c71119a53929847f843f84800cfa81d4c59")
+	addr1, err := common.HexToAddress("cb9487a585423ccc4c03c4b56aa975b06d6c22c3cc24")
 	if err != nil {
 		t.Error(err)
 	}
-	addr2, err := common.HexToAddress("cb0207577044ff14c7478665d026d8abb897d0d79ec7")
+	addr2, err := common.HexToAddress("cb673456293a723fe81cf10dfd8e9ceefa491ecf44aa")
 	if err != nil {
 		t.Error(err)
 	}

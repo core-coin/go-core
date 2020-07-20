@@ -73,7 +73,7 @@ func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	addr := Keccak256(data)[12:]
 	prefix := common.DefaultNetworkID.Bytes()
-	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr, prefix))
 	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 
@@ -82,7 +82,7 @@ func CreateAddress(b common.Address, nonce uint64) common.Address {
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
 	addr := Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:]
 	prefix := common.DefaultNetworkID.Bytes()
-	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr, prefix))
 	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 
@@ -190,7 +190,7 @@ func PubkeyToAddress(p eddsa.PublicKey) common.Address {
 	}
 	addr := Keccak256(pubBytes)[12:]
 	prefix := common.DefaultNetworkID.Bytes()
-	checksum := common.Hex2Bytes(common.CalculateChecksum(addr))
+	checksum := common.Hex2Bytes(common.CalculateChecksum(addr, prefix))
 	return common.BytesToAddress(append(append(prefix, checksum...), addr...))
 }
 

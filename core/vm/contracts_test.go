@@ -405,7 +405,7 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb280000000000000000000000000000000000001337")
+	testAddr, err := common.HexToAddress("cb830000000000000000000000000000000000001337")
 	if err != nil {
 		t.Error(err)
 	}
@@ -432,7 +432,7 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb280000000000000000000000000000000000001337")
+	testAddr, err := common.HexToAddress("cb830000000000000000000000000000000000001337")
 	if err != nil {
 		t.Error(err)
 	}
@@ -458,7 +458,7 @@ func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb390000000000000000000000000000000000031337")
+	testAddr, err := common.HexToAddress("cb750000000000000000000000000000000000031337")
 	if err != nil {
 		t.Error(err)
 	}
@@ -489,7 +489,7 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
 	reqEnergy := p.RequiredEnergy(in)
-	testAddr, err := common.HexToAddress("cb390000000000000000000000000000000000031337")
+	testAddr, err := common.HexToAddress("cb750000000000000000000000000000000000031337")
 	if err != nil {
 		bench.Error(err)
 	}
@@ -564,80 +564,80 @@ func BenchmarkPrecompiledIdentity(bench *testing.B) {
 // Tests the sample inputs from the ModExp CIP 198.
 func TestPrecompiledModExp(t *testing.T) {
 	for _, test := range modexpTests {
-		testPrecompiled("cb920000000000000000000000000000000000000005", test, t)
+		testPrecompiled("cb100000000000000000000000000000000000000005", test, t)
 	}
 }
 
 // Benchmarks the sample inputs from the ModExp CIP 198.
 func BenchmarkPrecompiledModExp(bench *testing.B) {
 	for _, test := range modexpTests {
-		benchmarkPrecompiled("cb920000000000000000000000000000000000000005", test, bench)
+		benchmarkPrecompiled("cb100000000000000000000000000000000000000005", test, bench)
 	}
 }
 
 // Tests the sample inputs from the elliptic curve addition CIP 213.
 func TestPrecompiledBn256Add(t *testing.T) {
 	for _, test := range bn256AddTests {
-		testPrecompiled("cb910000000000000000000000000000000000000006", test, t)
+		testPrecompiled("cb460000000000000000000000000000000000000006", test, t)
 	}
 }
 
 // Benchmarks the sample inputs from the elliptic curve addition CIP 213.
 func BenchmarkPrecompiledBn256Add(bench *testing.B) {
 	for _, test := range bn256AddTests {
-		benchmarkPrecompiled("cb910000000000000000000000000000000000000006", test, bench)
+		benchmarkPrecompiled("cb460000000000000000000000000000000000000006", test, bench)
 	}
 }
 
 // Tests OOG
 func TestPrecompiledModExpOOG(t *testing.T) {
 	for _, test := range modexpTests {
-		testPrecompiledOOG("cb920000000000000000000000000000000000000005", test, t)
+		testPrecompiledOOG("cb100000000000000000000000000000000000000005", test, t)
 	}
 }
 
 // Tests the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func TestPrecompiledBn256ScalarMul(t *testing.T) {
 	for _, test := range bn256ScalarMulTests {
-		testPrecompiled("cb900000000000000000000000000000000000000007", test, t)
+		testPrecompiled("cb820000000000000000000000000000000000000007", test, t)
 	}
 }
 
 // Benchmarks the sample inputs from the elliptic curve scalar multiplication CIP 213.
 func BenchmarkPrecompiledBn256ScalarMul(bench *testing.B) {
 	for _, test := range bn256ScalarMulTests {
-		benchmarkPrecompiled("cb900000000000000000000000000000000000000007", test, bench)
+		benchmarkPrecompiled("cb820000000000000000000000000000000000000007", test, bench)
 	}
 }
 
 // Tests the sample inputs from the elliptic curve pairing check CIP 197.
 func TestPrecompiledBn256Pairing(t *testing.T) {
 	for _, test := range bn256PairingTests {
-		testPrecompiled("cb890000000000000000000000000000000000000008", test, t)
+		testPrecompiled("cb210000000000000000000000000000000000000008", test, t)
 	}
 }
 
 // Behcnmarks the sample inputs from the elliptic curve pairing check CIP 197.
 func BenchmarkPrecompiledBn256Pairing(bench *testing.B) {
 	for _, test := range bn256PairingTests {
-		benchmarkPrecompiled("cb890000000000000000000000000000000000000008", test, bench)
+		benchmarkPrecompiled("cb210000000000000000000000000000000000000008", test, bench)
 	}
 }
 func TestPrecompiledBlake2F(t *testing.T) {
 	for _, test := range blake2FTests {
-		testPrecompiled("cb880000000000000000000000000000000000000009", test, t)
+		testPrecompiled("cb570000000000000000000000000000000000000009", test, t)
 	}
 }
 
 func BenchmarkPrecompiledBlake2F(bench *testing.B) {
 	for _, test := range blake2FTests {
-		benchmarkPrecompiled("cb880000000000000000000000000000000000000009", test, bench)
+		benchmarkPrecompiled("cb570000000000000000000000000000000000000009", test, bench)
 	}
 }
 
 func TestPrecompileBlake2FMalformedInput(t *testing.T) {
 	for _, test := range blake2FMalformedInputTests {
-		testPrecompiledFailure("cb880000000000000000000000000000000000000009", test, t)
+		testPrecompiledFailure("cb570000000000000000000000000000000000000009", test, t)
 	}
 }
 
@@ -691,7 +691,7 @@ var ecRecoverTests = []precompiledTest{
 
 func TestPrecompiledEcrecover(t *testing.T) {
 	for _, test := range ecRecoverTests {
-		testPrecompiled("cb960000000000000000000000000000000000000001", test, t)
+		testPrecompiled("cb600000000000000000000000000000000000000001", test, t)
 	}
 
 }

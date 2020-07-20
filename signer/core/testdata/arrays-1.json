@@ -38,13 +38,13 @@
     "name": "Lorem",
     "version": "1",
     "chainId": "1",
-    "verifyingContract": "cb49CcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+    "verifyingContract": "cb06cccccccccccccccccccccccccccccccccccccccc"
   },
   "message": {
     "addys": [
-      "cb960000000000000000000000000000000000000001",
-      "cb950000000000000000000000000000000000000002",
-      "cb940000000000000000000000000000000000000003"
+      "cb600000000000000000000000000000000000000001",
+      "cb960000000000000000000000000000000000000002",
+      "cb350000000000000000000000000000000000000003"
     ],
     "stringies": [
       "lorem",

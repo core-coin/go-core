@@ -54,12 +54,12 @@
     "name": "Core Mail",
     "version": "1",
     "chainId": "1",
-    "verifyingContract": "cb49CcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+    "verifyingContract": "cb06cccccccccccccccccccccccccccccccccccccccc"
   },
   "message": {
     "from": {
       "name": "Cow",
-      "wallet": "cb66CD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+      "wallet": "cb73cd2a3d9f938e13cd947ec05abc7fe734df8dd826"
     },
     "to": {"baz": "foo"},
     "contents": "Hello, Bob!"

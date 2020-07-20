@@ -32,7 +32,7 @@ import (
 
 var testKey, _ = crypto.HexToEDDSA("b2fb76df787478beafecf1f6078ac7aca04f3fca47a72c0c1d6c86dd0b9ee2dae860c95215cf34876b08df18ccf7dea17088509293490d2f5525317c15925fb81176640fab59b644f31b253d97bc6b2a7379f671ac23fb378df28bf7fdcbb2fae277121c294f221f745a993a851ab7d69c6906ddc8f1aa0a2025379650111efe9c4413efe1a738dfd626df3916ff8406")
 
-var addr, addrErr = common.HexToAddress("cb260d018bcbdb7d304f0cf70c43bd954d0591f19ca0")
+var addr, addrErr = common.HexToAddress("cb67faa0f41598cd5a795ca4edc30530b15639ce20ee")
 
 var waitDeployedTests = map[string]struct {
 	code        string

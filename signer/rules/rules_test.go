@@ -160,8 +160,8 @@ func TestSignTxRequest(t *testing.T) {
 		console.log("transaction.to", r.transaction.to);
 		console.log("transaction.value", r.transaction.value);
 		console.log("transaction.nonce", r.transaction.nonce);
-		if(r.transaction.from.toLowerCase()=="cb280000000000000000000000000000000000001337"){ return "Approve"}
-		if(r.transaction.from.toLowerCase()=="cb31000000000000000000000000000000000000dead"){ return "Reject"}
+		if(r.transaction.from.toLowerCase()=="cb830000000000000000000000000000000000001337"){ return "Approve"}
+		if(r.transaction.from.toLowerCase()=="cb72000000000000000000000000000000000000dead"){ return "Reject"}
 	}`
 
 	r, err := initRuleEngine(js)
@@ -169,12 +169,12 @@ func TestSignTxRequest(t *testing.T) {
 		t.Errorf("Couldn't create evaluator %v", err)
 		return
 	}
-	to, err := mixAddr("cb31000000000000000000000000000000000000dead")
+	to, err := mixAddr("cb72000000000000000000000000000000000000dead")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	from, err := mixAddr("cb280000000000000000000000000000000000001337")
+	from, err := mixAddr("cb830000000000000000000000000000000000001337")
 
 	if err != nil {
 		t.Error(err)
@@ -456,7 +456,7 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 }
 
 func dummySigned(value *big.Int) *types.Transaction {
-	to, err := common.HexToAddress("cb31000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("cb72000000000000000000000000000000000000dead")
 	if err != nil {
 		util.Fatal(err.Error())
 	}

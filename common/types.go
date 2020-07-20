@@ -187,8 +187,8 @@ func BytesToAddress(b []byte) Address {
 	return a
 }
 
-func CalculateChecksum(address []byte) string {
-	addrString := Bytes2Hex(address)
+func CalculateChecksum(address, prefix []byte) string {
+	addrString := Bytes2Hex(append(address, prefix...)) + "00"
 	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
 	mods := ""
 	for _, c := range addrString {
@@ -227,7 +227,8 @@ func CalculateChecksum(address []byte) string {
 func verifyAddress(addr Address) (bool, error) {
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
 		return false, invalidPrefix
-	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:]) {
+	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:], addr[:1]) {
+		fmt.Println(CalculateChecksum(addr[2:], addr[:1]), addr.Hex())
 		return false, invalidChecksum
 	}
 	return true, nil

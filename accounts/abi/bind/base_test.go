@@ -50,7 +50,7 @@ func (mc *mockCaller) CallContract(ctx context.Context, call core.CallMsg, block
 func TestPassingBlockNumber(t *testing.T) {
 
 	mc := &mockCaller{}
-	addr, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	addr, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -87,11 +87,11 @@ func TestPassingBlockNumber(t *testing.T) {
 	}
 }
 
-const hexData = "0x00000000000000000000cb52376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158"
+const hexData = "0x00000000000000000000cb92376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158"
 
 func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 	hash := crypto.Keccak256Hash([]byte("testName"))
-	addr, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	addr, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,7 +112,7 @@ func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 
 	abiString := `[{"anonymous":false,"inputs":[{"indexed":true,"name":"name","type":"string"},{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"amount","type":"uint256"},{"indexed":false,"name":"memo","type":"bytes"}],"name":"received","type":"event"}]`
 	parsedAbi, _ := abi.JSON(strings.NewReader(abiString))
-	address, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	address, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -122,7 +122,7 @@ func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	address2, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	address2, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -159,7 +159,7 @@ func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	hash := crypto.Keccak256Hash(sliceBytes)
-	addr, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	addr, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -180,14 +180,14 @@ func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
 
 	abiString := `[{"anonymous":false,"inputs":[{"indexed":true,"name":"names","type":"string[]"},{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"amount","type":"uint256"},{"indexed":false,"name":"memo","type":"bytes"}],"name":"received","type":"event"}]`
 	parsedAbi, _ := abi.JSON(strings.NewReader(abiString))
-	address, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	address, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
 	bc := bind.NewBoundContract(address, parsedAbi, nil, nil, nil)
 
 	receivedMap := make(map[string]interface{})
-	address2, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	address2, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -219,11 +219,11 @@ func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
 }
 
 func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
-	addressEmpty, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	addressEmpty, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
-	addressNotEmpty, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	addressNotEmpty, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -252,7 +252,7 @@ func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
 	bc := bind.NewBoundContract(addressEmpty, parsedAbi, nil, nil, nil)
 
 	receivedMap := make(map[string]interface{})
-	sender, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	sender, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -285,7 +285,7 @@ func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
 
 func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	t.Skip("Need to rebuild abi and bytecode") // MISHA
-	mockAddress, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	mockAddress, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -295,7 +295,7 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	functionTyBytes := append(addrBytes, functionSelector...)
 	var functionTy [25]byte
 	copy(functionTy[:], functionTyBytes[0:25])
-	empty, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	empty, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -319,7 +319,7 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	bc := bind.NewBoundContract(empty, parsedAbi, nil, nil, nil)
 
 	receivedMap := make(map[string]interface{})
-	sender, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	sender, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -353,7 +353,7 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) {
 	byts := []byte{1, 2, 3, 4, 5}
 	hash := crypto.Keccak256Hash(byts)
-	addr, err := common.HexToAddress("cb970000000000000000000000000000000000000000")
+	addr, err := common.HexToAddress("cb240000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
 	}
@@ -377,7 +377,7 @@ func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) {
 	bc := bind.NewBoundContract(addr, parsedAbi, nil, nil, nil)
 
 	receivedMap := make(map[string]interface{})
-	sender, err := common.HexToAddress("cb52376c47978271565f56DEB45495afa69E59c16Ab2")
+	sender, err := common.HexToAddress("cb92376c47978271565f56deb45495afa69e59c16ab2")
 	if err != nil {
 		t.Error(err)
 	}

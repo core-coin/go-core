@@ -160,7 +160,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	var signer common.Address
 	address := crypto.Keccak256(pubkey)[12:]
 	prefix := common.DefaultNetworkID.Bytes()
-	checksum := common.Hex2Bytes(common.CalculateChecksum(address))
+	checksum := common.Hex2Bytes(common.CalculateChecksum(address, prefix))
 	copy(signer[:], append(append(prefix, checksum...), address...))
 
 	sigcache.Add(hash, signer)

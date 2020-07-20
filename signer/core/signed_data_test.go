@@ -133,17 +133,17 @@ var jsonTypedData = `
         "name": "Core Mail",
         "version": "1",
         "chainId": "1",
-        "verifyingContract": "cb49CcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        "verifyingContract": "cb06cccccccccccccccccccccccccccccccccccccccc"
       },
       "message": {
         "from": {
           "name": "Cow",
 		  "test": 3,
-          "wallet": "cb66CD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+          "wallet": "cb73cd2a3d9f938e13cd947ec05abc7fe734df8dd826"
         },
         "to": {
           "name": "Bob",
-          "wallet": "cb53bBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+          "wallet": "cb56bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
         "contents": "Hello, Bob!"
       }
@@ -156,18 +156,18 @@ var domainStandard = core.TypedDataDomain{
 	"Core Mail",
 	"1",
 	math.NewHexOrDecimal256(1),
-	"cb49CcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+	"cb06cccccccccccccccccccccccccccccccccccccccc",
 	"",
 }
 
 var messageStandard = map[string]interface{}{
 	"from": map[string]interface{}{
 		"name":   "Cow",
-		"wallet": "cb66CD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+		"wallet": "cb73cd2a3d9f938e13cd947ec05abc7fe734df8dd826",
 	},
 	"to": map[string]interface{}{
 		"name":   "Bob",
-		"wallet": "cb53bBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+		"wallet": "cb56bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 	},
 	"contents": "Hello, Bob!",
 }
@@ -269,7 +269,7 @@ func TestHashStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	mainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if mainHash != "0x4c671f05b59c0247c9f7ff8d13435912eb6fcbd049563b2f075442a24c267e8a" {
+	if mainHash != "0x3f53b607a04ea50bf21386ac44fe0b70100bc4b5ebd0c2f0d81dad0131f5989a" {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
@@ -278,7 +278,7 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0xe7b12d1c32f9a2ec20787952f329ea66e0ef0c70c98ff866549bb257d2ad344e" {
+	if domainHash != "0x6da3f3384f8c3fe14f1e70162893ffa61692a4a24965ab3ad44fe1010e4f8e9c" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
@@ -308,7 +308,7 @@ func TestEncodeData(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataEncoding := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if dataEncoding != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac251eec1c9b4b49e4aae8288b7a1bae749e657126acc5983d2e35a526cba26bdf40e06ae67611986f24b0d4493ec46770ab05c42a1c3fdcd1554462c5d0d03e7d4b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8" {
+	if dataEncoding != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2511da8e72cb2202bfcf4818917f5fa0666c0124ab2fb0e4761ab4fd7bc60a70a1ad454ae6ce090221cd22502c51c8fdc2e44070d725afaae2b5fcdf35e1f9758b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8" {
 		t.Errorf("Expected different encodeData result (got %s)", dataEncoding)
 	}
 }

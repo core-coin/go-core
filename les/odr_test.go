@@ -81,7 +81,7 @@ func TestOdrAccountsLes2(t *testing.T) { testOdr(t, 2, 1, true, odrAccounts) }
 func TestOdrAccountsLes3(t *testing.T) { testOdr(t, 3, 1, true, odrAccounts) }
 
 func odrAccounts(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
-	dummyAddr, err := common.HexToAddress("cb021234567812345678123456781234567812345678")
+	dummyAddr, err := common.HexToAddress("cb491234567812345678123456781234567812345678")
 	if err != nil {
 		util.Fatal(err.Error())
 	}

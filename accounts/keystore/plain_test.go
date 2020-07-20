@@ -198,7 +198,7 @@ func TestV1_1(t *testing.T) {
 func TestV1_2(t *testing.T) {
 	t.Parallel()
 	ks := &keyStorePassphrase{"testdata/v1", LightScryptN, LightScryptP, true}
-	addr, err := common.HexToAddress("cb81ef566e72dc223cf2a06281b2c186901fda79f09e")
+	addr, err := common.HexToAddress("cb18ef566e72dc223cf2a06281b2c186901fda79f09e")
 	if err != nil {
 		t.Error(err)
 	}

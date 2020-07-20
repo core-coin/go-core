@@ -47,7 +47,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			encodeAsV3StoredReceiptRLP,
 		},
 	}
-	addr, err := common.HexToAddress("cb960000000000000000000000000000000000000001")
+	addr, err := common.HexToAddress("cb600000000000000000000000000000000000000001")
 	if err != nil {
 		t.Error(err)
 	}
@@ -156,7 +156,7 @@ func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 // Tests that receipt data can be correctly derived from the contextual infos
 func TestDeriveFields(t *testing.T) {
-	address, err := common.HexToAddress("cb950000000000000000000000000000000000000002")
+	address, err := common.HexToAddress("cb960000000000000000000000000000000000000002")
 	if err != nil {
 		t.Error(err)
 	}

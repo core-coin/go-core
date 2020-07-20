@@ -30,7 +30,7 @@
     "name": "Core Mail",
     "version": "1",
     "chainId": "1",
-    "verifyingContract": "cb49CcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+    "verifyingContract": "cb06cccccccccccccccccccccccccccccccccccccccc"
   },
   "message": {
     "test": 255.3
