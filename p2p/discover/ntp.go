@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	ntpChecks = 3 // Number of measurements to do against the NTP server
+	ntpChecks = 10 // Number of measurements to do against the NTP server
 )
 
 // durationSlice attaches the methods of sort.Interface to []time.Duration,
@@ -91,7 +91,7 @@ func sntpDrift(measurements int) (time.Duration, error) {
 			return 0, err
 		}
 		// Retrieve the reply and calculate the elapsed time
-		conn.SetDeadline(time.Now().Add(5 * time.Second))
+		conn.SetDeadline(time.Now().Add(15 * time.Second))
 
 		reply := make([]byte, 48)
 		if _, err = conn.Read(reply); err != nil {

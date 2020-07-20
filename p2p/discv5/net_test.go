@@ -28,28 +28,28 @@ import (
 
 func TestNetwork_Lookup(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
-	network, err := newNetwork(lookupTestnet, key.PublicKey, "", nil)
+	network, err := newNetwork(lookupDevin, key.PublicKey, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lookupTestnet.net = network
+	lookupDevin.net = network
 	defer network.Close()
 
 	// lookup on empty table returns no nodes
-	// if results := network.Lookup(lookupTestnet.target, false); len(results) > 0 {
+	// if results := network.Lookup(lookupDevin.target, false); len(results) > 0 {
 	// 	t.Fatalf("lookup on empty table returned %d results: %#v", len(results), results)
 	// }
 	// seed table with initial node (otherwise lookup will terminate immediately)
-	seeds := []*Node{NewNode(lookupTestnet.dists[256][0], net.IP{10, 0, 2, 99}, lowPort+256, 999)}
+	seeds := []*Node{NewNode(lookupDevin.dists[256][0], net.IP{10, 0, 2, 99}, lowPort+256, 999)}
 	if err := network.SetFallbackNodes(seeds); err != nil {
 		t.Fatal(err)
 	}
 	time.Sleep(3 * time.Second)
 
-	results := network.Lookup(lookupTestnet.target)
+	results := network.Lookup(lookupDevin.target)
 	t.Logf("results:")
 	for _, e := range results {
-		t.Logf("  ld=%d, %x", logdist(lookupTestnet.targetSha, e.sha), e.sha[:])
+		t.Logf("  ld=%d, %x", logdist(lookupDevin.targetSha, e.sha), e.sha[:])
 	}
 	if len(results) != bucketSize {
 		t.Errorf("wrong number of results: got %d, want %d", len(results), bucketSize)
@@ -57,15 +57,15 @@ func TestNetwork_Lookup(t *testing.T) {
 	if hasDuplicates(results) {
 		t.Errorf("result set contains duplicate entries")
 	}
-	if !sortedByDistanceTo(lookupTestnet.targetSha, results) {
+	if !sortedByDistanceTo(lookupDevin.targetSha, results) {
 		t.Errorf("result set not sorted by distance to target")
 	}
 	// TODO: check result nodes are actually closest
 }
 
 // This is the test network for the Lookup test.
-// The nodes were obtained by running testnet.mine with a random NodeID as target.
-var lookupTestnet = &preminedTestnet{
+// The nodes were obtained by running devin.mine with a random NodeID as target.
+var lookupDevin = &preminedDevin{
 	target:    MustHexID("166aea4f556532c6d34e8b740e5d314af7e9ac0ca79833bd751d6b665f12dfd38ec563c363b32f02aef4a80b44fd3def94612d497b99cb5f"),
 	targetSha: crypto.SHA3Hash(common.Hex2Bytes("166aea4f556532c6d34e8b740e5d314af7e9ac0ca79833bd751d6b665f12dfd38ec563c363b32f02aef4a80b44fd3def94612d497b99cb5f")),
 	dists: [257][]NodeID{
@@ -258,14 +258,14 @@ var lookupTestnet = &preminedTestnet{
 	},
 }
 
-type preminedTestnet struct {
+type preminedDevin struct {
 	target    NodeID
 	targetSha common.Hash // sha3(target)
 	dists     [hashBits + 1][]NodeID
 	net       *Network
 }
 
-func (tn *preminedTestnet) sendFindnodeHash(to *Node, target common.Hash) {
+func (tn *preminedDevin) sendFindnodeHash(to *Node, target common.Hash) {
 	// current log distance is encoded in port number
 	// fmt.Println("findnode query at dist", toaddr.Port)
 	if to.UDP <= lowPort {
@@ -279,12 +279,12 @@ func (tn *preminedTestnet) sendFindnodeHash(to *Node, target common.Hash) {
 	injectResponse(tn.net, to, neighborsPacket, &neighbors{Nodes: result})
 }
 
-func (tn *preminedTestnet) sendPing(to *Node, addr *net.UDPAddr, topics []Topic) []byte {
+func (tn *preminedDevin) sendPing(to *Node, addr *net.UDPAddr, topics []Topic) []byte {
 	injectResponse(tn.net, to, pongPacket, &pong{ReplyTok: []byte{1}})
 	return []byte{1}
 }
 
-func (tn *preminedTestnet) send(to *Node, ptype nodeEvent, data interface{}) (hash []byte) {
+func (tn *preminedDevin) send(to *Node, ptype nodeEvent, data interface{}) (hash []byte) {
 	switch ptype {
 	case pingPacket:
 		injectResponse(tn.net, to, pongPacket, &pong{ReplyTok: []byte{1}})
@@ -308,21 +308,21 @@ func (tn *preminedTestnet) send(to *Node, ptype nodeEvent, data interface{}) (ha
 	return []byte{2}
 }
 
-func (tn *preminedTestnet) sendNeighbours(to *Node, nodes []*Node) {
+func (tn *preminedDevin) sendNeighbours(to *Node, nodes []*Node) {
 	panic("sendNeighbours called")
 }
 
-func (tn *preminedTestnet) sendTopicNodes(to *Node, queryHash common.Hash, nodes []*Node) {
+func (tn *preminedDevin) sendTopicNodes(to *Node, queryHash common.Hash, nodes []*Node) {
 	panic("sendTopicNodes called")
 }
 
-func (tn *preminedTestnet) sendTopicRegister(to *Node, topics []Topic, idx int, pong []byte) {
+func (tn *preminedDevin) sendTopicRegister(to *Node, topics []Topic, idx int, pong []byte) {
 	panic("sendTopicRegister called")
 }
 
-func (*preminedTestnet) Close() {}
+func (*preminedDevin) Close() {}
 
-func (*preminedTestnet) localAddr() *net.UDPAddr {
+func (*preminedDevin) localAddr() *net.UDPAddr {
 	return &net.UDPAddr{IP: net.ParseIP("10.0.1.1"), Port: 40000}
 }
 

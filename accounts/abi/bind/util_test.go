@@ -32,26 +32,31 @@ import (
 
 var testKey, _ = crypto.HexToEDDSA("b2fb76df787478beafecf1f6078ac7aca04f3fca47a72c0c1d6c86dd0b9ee2dae860c95215cf34876b08df18ccf7dea17088509293490d2f5525317c15925fb81176640fab59b644f31b253d97bc6b2a7379f671ac23fb378df28bf7fdcbb2fae277121c294f221f745a993a851ab7d69c6906ddc8f1aa0a2025379650111efe9c4413efe1a738dfd626df3916ff8406")
 
+var addr, addrErr = common.HexToAddress("cb44a947feda9272617981c7f27aef2bb8a498608356")
+
 var waitDeployedTests = map[string]struct {
 	code        string
-	energy         uint64
+	energy      uint64
 	wantAddress common.Address
 	wantErr     error
 }{
 	"successful deploy": {
 		code:        `6060604052600a8060106000396000f360606040526008565b00`,
-		energy:         3000000,
-		wantAddress: common.HexToAddress("0x32Cd64fb3504b2C2CE4c49fFD2253848aB1573CA"),
+		energy:      3000000,
+		wantAddress: addr,
 	},
 	"empty code": {
 		code:        ``,
-		energy:         300000,
+		energy:      300000,
 		wantErr:     bind.ErrNoCodeAfterDeploy,
-		wantAddress: common.HexToAddress("0x32Cd64fb3504b2C2CE4c49fFD2253848aB1573CA"),
+		wantAddress: addr,
 	},
 }
 
 func TestWaitDeployed(t *testing.T) {
+	if addrErr != nil {
+		t.Error(addrErr)
+	}
 	for name, test := range waitDeployedTests {
 		backend := backends.NewSimulatedBackend(
 			core.GenesisAlloc{
@@ -63,7 +68,7 @@ func TestWaitDeployed(t *testing.T) {
 
 		// Create the transaction.
 		tx := types.NewContractCreation(0, big.NewInt(0), test.energy, big.NewInt(1), common.FromHex(test.code))
-		tx, _ = types.SignTx(tx, types.NucleusSigner{}, testKey)
+		tx, _ = types.SignTx(tx, types.NewNucleusSigner(backend.Blockchain().Config().ChainID), testKey)
 
 		// Wait for it to get mined in the background.
 		var (

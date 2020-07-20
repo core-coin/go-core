@@ -30,12 +30,12 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcc/downloader"
 )
 
 func expectResponse(r p2p.MsgReader, msgcode, reqID, bv uint64, data interface{}) error {
@@ -524,7 +524,7 @@ func testTransactionStatus(t *testing.T, protocol int) {
 			t.Errorf("transaction status mismatch")
 		}
 	}
-	signer := types.NucleusSigner{}
+	signer := types.NewNucleusSigner(chain.Config().ChainID)
 
 	// test error status by sending an underpriced transaction
 	tx0, _ := types.SignTx(types.NewTransaction(0, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)

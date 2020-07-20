@@ -19,6 +19,7 @@ package les
 import (
 	"bytes"
 	"context"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
 	"time"
@@ -30,18 +31,18 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/xccdb"
 )
 
-type odrTestFn func(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte
+type odrTestFn func(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte
 
 func TestOdrGetBlockLes2(t *testing.T) { testOdr(t, 2, 1, true, odrGetBlock) }
 func TestOdrGetBlockLes3(t *testing.T) { testOdr(t, 3, 1, true, odrGetBlock) }
 
-func odrGetBlock(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
+func odrGetBlock(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
 	var block *types.Block
 	if bc != nil {
 		block = bc.GetBlockByHash(bhash)
@@ -58,7 +59,7 @@ func odrGetBlock(ctx context.Context, db xcedb.Database, config *params.ChainCon
 func TestOdrGetReceiptsLes2(t *testing.T) { testOdr(t, 2, 1, true, odrGetReceipts) }
 func TestOdrGetReceiptsLes3(t *testing.T) { testOdr(t, 3, 1, true, odrGetReceipts) }
 
-func odrGetReceipts(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
+func odrGetReceipts(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
 	var receipts types.Receipts
 	if bc != nil {
 		if number := rawdb.ReadHeaderNumber(db, bhash); number != nil {
@@ -79,19 +80,21 @@ func odrGetReceipts(ctx context.Context, db xcedb.Database, config *params.Chain
 func TestOdrAccountsLes2(t *testing.T) { testOdr(t, 2, 1, true, odrAccounts) }
 func TestOdrAccountsLes3(t *testing.T) { testOdr(t, 3, 1, true, odrAccounts) }
 
-func odrAccounts(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
-	dummyAddr := common.HexToAddress("1234567812345678123456781234567812345678")
+func odrAccounts(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
+	dummyAddr, err := common.HexToAddress("cb721234567812345678123456781234567812345678")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	acc := []common.Address{bankAddr, userAddr1, userAddr2, dummyAddr}
 
 	var (
 		res []byte
 		st  *state.StateDB
-		err error
 	)
 	for _, addr := range acc {
 		if bc != nil {
 			header := bc.GetHeaderByHash(bhash)
-			st, err = state.New(header.Root, state.NewDatabase(db))
+			st, err = state.New(header.Root, state.NewDatabase(db), nil)
 		} else {
 			header := lc.GetHeaderByHash(bhash)
 			st = light.NewState(ctx, header, lc.Odr())
@@ -114,7 +117,7 @@ type callmsg struct {
 
 func (callmsg) CheckNonce() bool { return false }
 
-func odrContractCall(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
+func odrContractCall(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
 	data := common.Hex2Bytes("60CD26850000000000000000000000000000000000000000000000000000000000000000")
 
 	var res []byte
@@ -122,7 +125,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 		data[35] = byte(i)
 		if bc != nil {
 			header := bc.GetHeaderByHash(bhash)
-			statedb, err := state.New(header.Root, state.NewDatabase(db))
+			statedb, err := state.New(header.Root, state.NewDatabase(db), nil)
 
 			if err == nil {
 				from := statedb.GetOrNewStateObject(bankAddr)
@@ -158,7 +161,7 @@ func odrContractCall(ctx context.Context, db xcedb.Database, config *params.Chai
 func TestOdrTxStatusLes2(t *testing.T) { testOdr(t, 2, 1, false, odrTxStatus) }
 func TestOdrTxStatusLes3(t *testing.T) { testOdr(t, 3, 1, false, odrTxStatus) }
 
-func odrTxStatus(ctx context.Context, db xcedb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
+func odrTxStatus(ctx context.Context, db xccdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
 	var txs types.Transactions
 	if bc != nil {
 		block := bc.GetBlockByHash(bhash)
@@ -235,7 +238,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 	// still expect all retrievals to pass, now data should be cached locally
 	if checkCached {
 		client.handler.backend.peers.unregister(client.peer.speer.id)
-		time.Sleep(time.Millisecond * 10) // ensure that all peerSetNotify callbacks are executed
+		time.Sleep(time.Second * 1) // ensure that all peerSetNotify callbacks are executed
 		test(5)
 	}
 }

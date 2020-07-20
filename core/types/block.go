@@ -77,8 +77,8 @@ type Header struct {
 	Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
 	Difficulty  *big.Int       `json:"difficulty"       gencodec:"required"`
 	Number      *big.Int       `json:"number"           gencodec:"required"`
-	EnergyLimit    uint64         `json:"energyLimit"         gencodec:"required"`
-	EnergyUsed     uint64         `json:"energyUsed"          gencodec:"required"`
+	EnergyLimit uint64         `json:"energyLimit"         gencodec:"required"`
+	EnergyUsed  uint64         `json:"energyUsed"          gencodec:"required"`
 	Time        uint64         `json:"timestamp"        gencodec:"required"`
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"`
@@ -87,16 +87,16 @@ type Header struct {
 
 // field type overrides for gencodec
 type headerMarshaling struct {
-	Difficulty *hexutil.Big
-	Number     *hexutil.Big
-	EnergyLimit   hexutil.Uint64
-	EnergyUsed    hexutil.Uint64
-	Time       hexutil.Uint64
-	Extra      hexutil.Bytes
-	Hash       common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
+	Difficulty  *hexutil.Big
+	Number      *hexutil.Big
+	EnergyLimit hexutil.Uint64
+	EnergyUsed  hexutil.Uint64
+	Time        hexutil.Uint64
+	Extra       hexutil.Bytes
+	Hash        common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
 }
 
-// Hash returns the block hash of the header, which is simply the keccak256 hash of its
+// Hash returns the block hash of the header, which is simply the SHA3 hash of its
 // RLP encoding.
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
@@ -157,7 +157,7 @@ type Block struct {
 	// of the chain up to and including the block.
 	td *big.Int
 
-	// These fields are used by package xce to track
+	// These fields are used by package xcc to track
 	// inter-peer block relay.
 	ReceivedAt   time.Time
 	ReceivedFrom interface{}
@@ -170,20 +170,20 @@ func (b *Block) DeprecatedTd() *big.Int {
 	return b.td
 }
 
-// [deprecated by xce/63]
+// [deprecated by xcc/63]
 // StorageBlock defines the RLP encoding of a Block stored in the
 // state database. The StorageBlock encoding contains fields that
 // would otherwise need to be recomputed.
 type StorageBlock Block
 
-// "external" block encoding. used for xce protocol, etc.
+// "external" block encoding. used for xcc protocol, etc.
 type extblock struct {
 	Header *Header
 	Txs    []*Transaction
 	Uncles []*Header
 }
 
-// [deprecated by xce/63]
+// [deprecated by xcc/63]
 // "storage" block encoding. used for database.
 type storageblock struct {
 	Header *Header
@@ -276,7 +276,7 @@ func (b *Block) EncodeRLP(w io.Writer) error {
 	})
 }
 
-// [deprecated by xce/63]
+// [deprecated by xcc/63]
 func (b *StorageBlock) DecodeRLP(s *rlp.Stream) error {
 	var sb storageblock
 	if err := s.Decode(&sb); err != nil {
@@ -301,8 +301,8 @@ func (b *Block) Transaction(hash common.Hash) *Transaction {
 }
 
 func (b *Block) Number() *big.Int     { return new(big.Int).Set(b.header.Number) }
-func (b *Block) EnergyLimit() uint64     { return b.header.EnergyLimit }
-func (b *Block) EnergyUsed() uint64      { return b.header.EnergyUsed }
+func (b *Block) EnergyLimit() uint64  { return b.header.EnergyLimit }
+func (b *Block) EnergyUsed() uint64   { return b.header.EnergyUsed }
 func (b *Block) Difficulty() *big.Int { return new(big.Int).Set(b.header.Difficulty) }
 func (b *Block) Time() uint64         { return b.header.Time }
 
@@ -381,7 +381,7 @@ func (b *Block) WithBody(transactions []*Transaction, uncles []*Header) *Block {
 	return block
 }
 
-// Hash returns the keccak256 hash of b's header.
+// Hash returns the SHA3 hash of b's header.
 // The hash is computed on the first call and cached thereafter.
 func (b *Block) Hash() common.Hash {
 	if hash := b.hash.Load(); hash != nil {

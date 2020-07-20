@@ -339,7 +339,9 @@ func checkText(input []byte, wantPrefix bool) ([]byte, error) {
 	if bytesHave0xPrefix(input) {
 		input = input[2:]
 	} else if wantPrefix {
-		return nil, ErrMissingPrefix
+		if len(string(input)) != 44 { // (len != 44) == (!common.Address)
+			return nil, ErrMissingPrefix
+		}
 	}
 	if len(input)%2 != 0 {
 		return nil, ErrOddLength

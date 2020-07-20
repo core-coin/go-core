@@ -236,7 +236,7 @@ func abigen(c *cli.Context) error {
 			nameParts := strings.Split(name, ":")
 			types = append(types, nameParts[len(nameParts)-1])
 
-			libPattern := crypto.SHA3Hash([]byte(name)).String()[2:36]
+			libPattern := crypto.SHA3Hash([]byte(name)).String()[:36]
 			libs[libPattern] = nameParts[len(nameParts)-1]
 		}
 	}

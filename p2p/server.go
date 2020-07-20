@@ -19,7 +19,6 @@ package p2p
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -28,6 +27,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/core-coin/eddsa"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
@@ -562,7 +563,11 @@ func (srv *Server) setupDiscovery() error {
 	srv.log.Debug("UDP listener up", "addr", realaddr)
 	if srv.NAT != nil {
 		if !realaddr.IP.IsLoopback() {
-			go nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "core discovery")
+			srv.loopWG.Add(1)
+			go func() {
+				nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "core discovery")
+				srv.loopWG.Done()
+			}()
 		}
 	}
 	srv.localnode.SetFallbackUDP(realaddr.Port)

@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.
@@ -29,7 +29,7 @@ func TestNodeIteratorCoverage(t *testing.T) {
 	// Create some arbitrary test state to iterate
 	db, root, _ := makeTestState()
 
-	state, err := New(root, db)
+	state, err := New(root, db, nil)
 	if err != nil {
 		t.Fatalf("failed to create state trie at %x: %v", root, err)
 	}
@@ -51,7 +51,7 @@ func TestNodeIteratorCoverage(t *testing.T) {
 			t.Errorf("state entry not reported %x", hash)
 		}
 	}
-	it := db.TrieDB().DiskDB().(xcedb.Database).NewIterator()
+	it := db.TrieDB().DiskDB().(xccdb.Database).NewIterator()
 	for it.Next() {
 		key := it.Key()
 		if bytes.HasPrefix(key, []byte("secure-key-")) {

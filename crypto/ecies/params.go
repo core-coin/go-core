@@ -44,7 +44,13 @@ import (
 var (
 	ErrUnsupportedECDHAlgorithm   = fmt.Errorf("ecies: unsupported ECDH algorithm")
 	ErrUnsupportedECIESParameters = fmt.Errorf("ecies: unsupported ECIES parameters")
+	ErrInvalidKeyLen              = fmt.Errorf("ecies: invalid key size (> %d) in ECIESParams", maxKeyLen)
 )
+
+// KeyLen is limited to prevent overflow of the counter
+// in concatKDF. While the theoretical limit is much higher,
+// no known cipher uses keys larger than 512 bytes.
+const maxKeyLen = 512
 
 type ECIESParams struct {
 	Hash      func() hash.Hash // hash function
@@ -64,4 +70,17 @@ var ECIES_AES128_SHA256 = &ECIESParams{
 
 func ParamsFromCurve() (params *ECIESParams) {
 	return ECIES_AES128_SHA256
+}
+
+func pubkeyParams(key *PublicKey) (*ECIESParams, error) {
+	params := key.Params
+	if params == nil {
+		if params = ParamsFromCurve(); params == nil {
+			return nil, ErrUnsupportedECIESParameters
+		}
+	}
+	if params.KeyLen > maxKeyLen {
+		return nil, ErrInvalidKeyLen
+	}
+	return params, nil
 }

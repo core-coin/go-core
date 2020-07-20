@@ -24,8 +24,8 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 var testBankSecureTrieKey = secAddr(bankAddr)
@@ -34,26 +34,26 @@ func secAddr(addr common.Address) []byte {
 	return crypto.SHA3(addr[:])
 }
 
-type accessTestFn func(db xcedb.Database, bhash common.Hash, number uint64) light.OdrRequest
+type accessTestFn func(db xccdb.Database, bhash common.Hash, number uint64) light.OdrRequest
 
 func TestBlockAccessLes2(t *testing.T) { testAccess(t, 2, tfBlockAccess) }
 func TestBlockAccessLes3(t *testing.T) { testAccess(t, 3, tfBlockAccess) }
 
-func tfBlockAccess(db xcedb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfBlockAccess(db xccdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	return &light.BlockRequest{Hash: bhash, Number: number}
 }
 
 func TestReceiptsAccessLes2(t *testing.T) { testAccess(t, 2, tfReceiptsAccess) }
 func TestReceiptsAccessLes3(t *testing.T) { testAccess(t, 3, tfReceiptsAccess) }
 
-func tfReceiptsAccess(db xcedb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfReceiptsAccess(db xccdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	return &light.ReceiptsRequest{Hash: bhash, Number: number}
 }
 
 func TestTrieEntryAccessLes2(t *testing.T) { testAccess(t, 2, tfTrieEntryAccess) }
 func TestTrieEntryAccessLes3(t *testing.T) { testAccess(t, 3, tfTrieEntryAccess) }
 
-func tfTrieEntryAccess(db xcedb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfTrieEntryAccess(db xccdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	if number := rawdb.ReadHeaderNumber(db, bhash); number != nil {
 		return &light.TrieRequest{Id: light.StateTrieID(rawdb.ReadHeader(db, bhash, *number)), Key: testBankSecureTrieKey}
 	}
@@ -63,7 +63,7 @@ func tfTrieEntryAccess(db xcedb.Database, bhash common.Hash, number uint64) ligh
 func TestCodeAccessLes2(t *testing.T) { testAccess(t, 2, tfCodeAccess) }
 func TestCodeAccessLes3(t *testing.T) { testAccess(t, 3, tfCodeAccess) }
 
-func tfCodeAccess(db xcedb.Database, bhash common.Hash, num uint64) light.OdrRequest {
+func tfCodeAccess(db xccdb.Database, bhash common.Hash, num uint64) light.OdrRequest {
 	number := rawdb.ReadHeaderNumber(db, bhash)
 	if number != nil {
 		return nil
@@ -92,7 +92,7 @@ func testAccess(t *testing.T, protocol int, fn accessTestFn) {
 		for i := uint64(0); i <= server.handler.blockchain.CurrentHeader().Number.Uint64(); i++ {
 			bhash := rawdb.ReadCanonicalHash(server.db, i)
 			if req := fn(client.db, bhash, i); req != nil {
-				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 				err := client.handler.backend.odr.Retrieve(ctx, req)
 				cancel()
 

@@ -22,9 +22,9 @@ var Modules = map[string]string{
 	"admin":      AdminJs,
 	"chequebook": ChequebookJs,
 	"clique":     CliqueJs,
-	"cryptore":     CryptoreJs,
+	"cryptore":   CryptoreJs,
 	"debug":      DebugJs,
-	"xce":        XceJs,
+	"xcc":        XccJs,
 	"miner":      MinerJs,
 	"net":        NetJs,
 	"personal":   PersonalJs,
@@ -74,7 +74,7 @@ web3._extend({
 			name: 'getSnapshot',
 			call: 'clique_getSnapshot',
 			params: 1,
-			inputFormatter: [web3._extend.utils.fromDecimal]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSnapshotAtHash',
@@ -85,7 +85,7 @@ web3._extend({
 			name: 'getSigners',
 			call: 'clique_getSigners',
 			params: 1,
-			inputFormatter: [web3._extend.utils.fromDecimal]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSignersAtHash',
@@ -465,81 +465,81 @@ web3._extend({
 });
 `
 
-const XceJs = `
+const XccJs = `
 web3._extend({
-	property: 'xce',
+	property: 'xcc',
 	methods: [
 		new web3._extend.Method({
 			name: 'chainId',
-			call: 'xce_chainId',
+			call: 'xcc_chainId',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'sign',
-			call: 'xce_sign',
+			call: 'xcc_sign',
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter, null]
 		}),
 		new web3._extend.Method({
 			name: 'resend',
-			call: 'xce_resend',
+			call: 'xcc_resend',
 			params: 3,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter, web3._extend.utils.fromDecimal, web3._extend.utils.fromDecimal]
 		}),
 		new web3._extend.Method({
 			name: 'signTransaction',
-			call: 'xce_signTransaction',
+			call: 'xcc_signTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'submitTransaction',
-			call: 'xce_submitTransaction',
+			call: 'xcc_submitTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'fillTransaction',
-			call: 'xce_fillTransaction',
+			call: 'xcc_fillTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getHeaderByNumber',
-			call: 'xce_getHeaderByNumber',
+			call: 'xcc_getHeaderByNumber',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getHeaderByHash',
-			call: 'xce_getHeaderByHash',
+			call: 'xcc_getHeaderByHash',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getBlockByNumber',
-			call: 'xce_getBlockByNumber',
+			call: 'xcc_getBlockByNumber',
 			params: 2
 		}),
 		new web3._extend.Method({
 			name: 'getBlockByHash',
-			call: 'xce_getBlockByHash',
+			call: 'xcc_getBlockByHash',
 			params: 2
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransaction',
-			call: 'xce_getRawTransactionByHash',
+			call: 'xcc_getRawTransactionByHash',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransactionFromBlock',
 			call: function(args) {
-				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xce_getRawTransactionByBlockHashAndIndex' : 'xce_getRawTransactionByBlockNumberAndIndex';
+				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getRawTransactionByBlockHashAndIndex' : 'xcc_getRawTransactionByBlockNumberAndIndex';
 			},
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter, web3._extend.utils.toHex]
 		}),
 		new web3._extend.Method({
 			name: 'getProof',
-			call: 'xce_getProof',
+			call: 'xcc_getProof',
 			params: 3,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter, null, web3._extend.formatters.inputBlockNumberFormatter]
 		}),
@@ -547,7 +547,7 @@ web3._extend({
 	properties: [
 		new web3._extend.Property({
 			name: 'pendingTransactions',
-			getter: 'xce_pendingTransactions',
+			getter: 'xcc_pendingTransactions',
 			outputFormatter: function(txs) {
 				var formatted = [];
 				for (var i = 0; i < txs.length; i++) {

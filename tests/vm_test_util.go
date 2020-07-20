@@ -44,42 +44,42 @@ func (t *VMTest) UnmarshalJSON(data []byte) error {
 }
 
 type vmJSON struct {
-	Env           stEnv                 `json:"env"`
-	Exec          vmExec                `json:"exec"`
-	Logs          common.UnprefixedHash `json:"logs"`
-	EnergyRemaining  *math.HexOrDecimal64  `json:"energy"`
-	Out           hexutil.Bytes         `json:"out"`
-	Pre           core.GenesisAlloc     `json:"pre"`
-	Post          core.GenesisAlloc     `json:"post"`
-	PostStateRoot common.Hash           `json:"postStateRoot"`
+	Env             stEnv                 `json:"env"`
+	Exec            vmExec                `json:"exec"`
+	Logs            common.UnprefixedHash `json:"logs"`
+	EnergyRemaining *math.HexOrDecimal64  `json:"energy"`
+	Out             hexutil.Bytes         `json:"out"`
+	Pre             core.GenesisAlloc     `json:"pre"`
+	Post            core.GenesisAlloc     `json:"post"`
+	PostStateRoot   common.Hash           `json:"postStateRoot"`
 }
 
 //go:generate gencodec -type vmExec -field-override vmExecMarshaling -out gen_vmexec.go
 
 type vmExec struct {
-	Address  common.Address `json:"address"  gencodec:"required"`
-	Caller   common.Address `json:"caller"   gencodec:"required"`
-	Origin   common.Address `json:"origin"   gencodec:"required"`
-	Code     []byte         `json:"code"     gencodec:"required"`
-	Data     []byte         `json:"data"     gencodec:"required"`
-	Value    *big.Int       `json:"value"    gencodec:"required"`
+	Address     common.Address `json:"address"  gencodec:"required"`
+	Caller      common.Address `json:"caller"   gencodec:"required"`
+	Origin      common.Address `json:"origin"   gencodec:"required"`
+	Code        []byte         `json:"code"     gencodec:"required"`
+	Data        []byte         `json:"data"     gencodec:"required"`
+	Value       *big.Int       `json:"value"    gencodec:"required"`
 	EnergyLimit uint64         `json:"energy"      gencodec:"required"`
 	EnergyPrice *big.Int       `json:"energyPrice" gencodec:"required"`
 }
 
 type vmExecMarshaling struct {
-	Address  common.UnprefixedAddress
-	Caller   common.UnprefixedAddress
-	Origin   common.UnprefixedAddress
-	Code     hexutil.Bytes
-	Data     hexutil.Bytes
-	Value    *math.HexOrDecimal256
+	Address     common.UnprefixedAddress
+	Caller      common.UnprefixedAddress
+	Origin      common.UnprefixedAddress
+	Code        hexutil.Bytes
+	Data        hexutil.Bytes
+	Value       *math.HexOrDecimal256
 	EnergyLimit math.HexOrDecimal64
 	EnergyPrice *math.HexOrDecimal256
 }
 
-func (t *VMTest) Run(vmconfig vm.Config) error {
-	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre)
+func (t *VMTest) Run(vmconfig vm.Config, snapshotter bool) error {
+	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
 	ret, energyRemaining, err := t.exec(statedb, vmconfig)
 
 	if t.json.EnergyRemaining == nil {
@@ -138,9 +138,9 @@ func (t *VMTest) newCVM(statedb *state.StateDB, vmconfig vm.Config) *vm.CVM {
 		Coinbase:    t.json.Env.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(t.json.Env.Number),
 		Time:        new(big.Int).SetUint64(t.json.Env.Timestamp),
-		EnergyLimit:    t.json.Env.EnergyLimit,
+		EnergyLimit: t.json.Env.EnergyLimit,
 		Difficulty:  t.json.Env.Difficulty,
-		EnergyPrice:    t.json.Exec.EnergyPrice,
+		EnergyPrice: t.json.Exec.EnergyPrice,
 	}
 	vmconfig.NoRecursion = true
 	return vm.NewCVM(context, statedb, params.MainnetChainConfig, vmconfig)

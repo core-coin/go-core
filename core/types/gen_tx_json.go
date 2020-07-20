@@ -19,20 +19,22 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  hexutil.Uint64  `json:"energy"      gencodec:"required"`
+		ChainID      uint            `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
-		Spender      common.Address  `json:"from"`
-		Hash         *common.Hash    `json:"hash"     rlp:"-"`
+		Signature    []byte          `json:"signature"    gencodec:"required"`
+		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var enc txdata
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
 	enc.Price = (*hexutil.Big)(t.Price)
 	enc.EnergyLimit = hexutil.Uint64(t.EnergyLimit)
+	enc.ChainID = t.ChainID
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
-	enc.Spender = t.Spender
+	enc.Signature = t.Signature
 	enc.Hash = t.Hash
 	return json.Marshal(&enc)
 }
@@ -43,11 +45,12 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  *hexutil.Uint64 `json:"energy"      gencodec:"required"`
+		ChainID      *uint           `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
-		Spender      *common.Address `json:"from"`
-		Hash         *common.Hash    `json:"hash"     rlp:"-"`
+		Signature    []byte          `json:"signature"    gencodec:"required"`
+		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var dec txdata
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -65,6 +68,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'energy' for txdata")
 	}
 	t.EnergyLimit = uint64(*dec.EnergyLimit)
+	if dec.ChainID == nil {
+		return errors.New("missing required field 'chain_id' for txdata")
+	}
+	t.ChainID = *dec.ChainID
 	if dec.Recipient != nil {
 		t.Recipient = dec.Recipient
 	}
@@ -76,9 +83,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'input' for txdata")
 	}
 	t.Payload = *dec.Payload
-	if dec.Spender != nil {
-		t.Spender = *dec.Spender
+	if dec.Signature == nil {
+		return errors.New("missing required field 'signature' for txdata")
 	}
+	t.Signature = dec.Signature
 	if dec.Hash != nil {
 		t.Hash = dec.Hash
 	}

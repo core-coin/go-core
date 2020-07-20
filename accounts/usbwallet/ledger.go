@@ -16,7 +16,7 @@
 
 // This file contains the implementation for interacting with the Ledger hardware
 // wallets. The wire protocol spec can be found in the Ledger Blue GitHub repo:
-// https://raw.githubusercontent.com/LedgerHQ/blue-app-xce/master/doc/xceapp.asc
+// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcc/master/doc/xccapp.asc
 
 package usbwallet
 
@@ -28,11 +28,11 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 )
@@ -349,13 +349,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 	signature := append(reply[1:], reply[0])
 
 	// Create the correct signer and signature transform based on the chain ID
-	var signer types.Signer
-	if chainID == nil {
-		signer = new(types.NucleusSigner)
-	} else {
-		signer = types.NewCIP155Signer(chainID)
-		//signature[64] -= byte(chainID.Uint64()*2 + 35)
-	}
+	signer := types.NewNucleusSigner(chainID)
 	signed, err := tx.WithSignature(signer, signature)
 	if err != nil {
 		return common.Address{}, nil, err

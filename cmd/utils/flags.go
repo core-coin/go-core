@@ -58,11 +58,11 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xce/energyprice"
-	"github.com/core-coin/go-core/xcedb"
-	"github.com/core-coin/go-core/xcestats"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcc/energyprice"
+	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xccstats"
 	pcsclite "github.com/gballet/go-libpcsclite"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -163,12 +163,12 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,1=Nucleus, 2=Morden (disused), 3=Testnet)",
-		Value: xce.DefaultConfig.NetworkId,
+		Usage: "Network identifier (integer,1=Mainnet, 3=Devin, 4=Koliba)",
+		Value: xcc.DefaultConfig.NetworkId,
 	}
-	TestnetFlag = cli.BoolFlag{
-		Name:  "testnet",
-		Usage: "Testnet network: pre-configured proof-of-work test network",
+	DevinFlag = cli.BoolFlag{
+		Name:  "devin",
+		Usage: "Devin network: pre-configured proof-of-work test network",
 	}
 	KolibaFlag = cli.BoolFlag{
 		Name:  "koliba",
@@ -191,6 +191,10 @@ var (
 		Usage: "Document Root for HTTPClient file scheme",
 		Value: DirectoryString(homeDir()),
 	}
+	SnapshotFlag = cli.BoolFlag{
+		Name:  "snapshot",
+		Usage: `Enables snapshot-database mode -- experimental work in progress feature`,
+	}
 	ExitWhenSyncedFlag = cli.BoolFlag{
 		Name:  "exitwhensynced",
 		Usage: "Exits after block synchronisation completes",
@@ -211,7 +215,7 @@ var (
 		Name:  "nocode",
 		Usage: "Exclude contract code (save db lookups)",
 	}
-	defaultSyncMode = xce.DefaultConfig.SyncMode
+	defaultSyncMode = xcc.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("fast", "full", or "light")`,
@@ -230,46 +234,35 @@ var (
 		Name:  "whitelist",
 		Usage: "Comma separated block number-to-hash mappings to enforce (<number>=<hash>)",
 	}
-	// Light server and client settings
-	LightLegacyServFlag = cli.IntFlag{ // Deprecated in favor of light.serve, remove in 2021
-		Name:  "lightserv",
-		Usage: "Maximum percentage of time allowed for serving LES requests (deprecated, use --light.serve)",
-		Value: xce.DefaultConfig.LightServ,
-	}
 	LightServeFlag = cli.IntFlag{
 		Name:  "light.serve",
 		Usage: "Maximum percentage of time allowed for serving LES requests (multi-threaded processing allows values over 100)",
-		Value: xce.DefaultConfig.LightServ,
+		Value: xcc.DefaultConfig.LightServ,
 	}
 	LightIngressFlag = cli.IntFlag{
 		Name:  "light.ingress",
 		Usage: "Incoming bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xce.DefaultConfig.LightIngress,
+		Value: xcc.DefaultConfig.LightIngress,
 	}
 	LightEgressFlag = cli.IntFlag{
 		Name:  "light.egress",
 		Usage: "Outgoing bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xce.DefaultConfig.LightEgress,
-	}
-	LightLegacyPeersFlag = cli.IntFlag{ // Deprecated in favor of light.maxpeers, remove in 2021
-		Name:  "lightpeers",
-		Usage: "Maximum number of light clients to serve, or light servers to attach to  (deprecated, use --light.maxpeers)",
-		Value: xce.DefaultConfig.LightPeers,
+		Value: xcc.DefaultConfig.LightEgress,
 	}
 	LightMaxPeersFlag = cli.IntFlag{
 		Name:  "light.maxpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to",
-		Value: xce.DefaultConfig.LightPeers,
+		Value: xcc.DefaultConfig.LightPeers,
 	}
 	UltraLightServersFlag = cli.StringFlag{
 		Name:  "ulc.servers",
 		Usage: "List of trusted ultra-light servers",
-		Value: strings.Join(xce.DefaultConfig.UltraLightServers, ","),
+		Value: strings.Join(xcc.DefaultConfig.UltraLightServers, ","),
 	}
 	UltraLightFractionFlag = cli.IntFlag{
 		Name:  "ulc.fraction",
 		Usage: "Minimum % of trusted ultra-light servers required to announce a new head",
-		Value: xce.DefaultConfig.UltraLightFraction,
+		Value: xcc.DefaultConfig.UltraLightFraction,
 	}
 	UltraLightOnlyAnnounceFlag = cli.BoolFlag{
 		Name:  "ulc.onlyannounce",
@@ -297,37 +290,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum energy price limit to enforce for acceptance into the pool",
-		Value: xce.DefaultConfig.TxPool.PriceLimit,
+		Value: xcc.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: xce.DefaultConfig.TxPool.PriceBump,
+		Value: xcc.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: xce.DefaultConfig.TxPool.AccountSlots,
+		Value: xcc.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: xce.DefaultConfig.TxPool.GlobalSlots,
+		Value: xcc.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: xce.DefaultConfig.TxPool.AccountQueue,
+		Value: xcc.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: xce.DefaultConfig.TxPool.GlobalQueue,
+		Value: xcc.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: xce.DefaultConfig.TxPool.Lifetime,
+		Value: xcc.DefaultConfig.TxPool.Lifetime,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -342,13 +335,18 @@ var (
 	}
 	CacheTrieFlag = cli.IntFlag{
 		Name:  "cache.trie",
-		Usage: "Percentage of cache memory allowance to use for trie caching (default = 25% full mode, 50% archive mode)",
-		Value: 25,
+		Usage: "Percentage of cache memory allowance to use for trie caching (default = 15% full mode, 30% archive mode)",
+		Value: 15,
 	}
 	CacheGCFlag = cli.IntFlag{
 		Name:  "cache.gc",
 		Usage: "Percentage of cache memory allowance to use for trie pruning (default = 25% full mode, 0% archive mode)",
 		Value: 25,
+	}
+	CacheSnapshotFlag = cli.IntFlag{
+		Name:  "cache.snapshot",
+		Usage: "Percentage of cache memory allowance to use for snapshot caching (default = 10% full mode, 20% archive mode)",
+		Value: 10,
 	}
 	CacheNoPrefetchFlag = cli.BoolFlag{
 		Name:  "cache.noprefetch",
@@ -364,11 +362,6 @@ var (
 		Usage: "Number of CPU threads to use for mining",
 		Value: 0,
 	}
-	MinerLegacyThreadsFlag = cli.IntFlag{
-		Name:  "minerthreads",
-		Usage: "Number of CPU threads to use for mining (deprecated, use --miner.threads)",
-		Value: 0,
-	}
 	MinerNotifyFlag = cli.StringFlag{
 		Name:  "miner.notify",
 		Usage: "Comma separated HTTP URL list to notify of new work packages",
@@ -376,50 +369,31 @@ var (
 	MinerEnergyTargetFlag = cli.Uint64Flag{
 		Name:  "miner.energytarget",
 		Usage: "Target energy floor for mined blocks",
-		Value: xce.DefaultConfig.Miner.EnergyFloor,
-	}
-	MinerLegacyEnergyTargetFlag = cli.Uint64Flag{
-		Name:  "targetenergylimit",
-		Usage: "Target energy floor for mined blocks (deprecated, use --miner.energytarget)",
-		Value: xce.DefaultConfig.Miner.EnergyFloor,
+		Value: xcc.DefaultConfig.Miner.EnergyFloor,
 	}
 	MinerEnergyLimitFlag = cli.Uint64Flag{
 		Name:  "miner.energylimit",
 		Usage: "Target energy ceiling for mined blocks",
-		Value: xce.DefaultConfig.Miner.EnergyCeil,
+		Value: xcc.DefaultConfig.Miner.EnergyCeil,
 	}
 	MinerEnergyPriceFlag = BigFlag{
 		Name:  "miner.energyprice",
 		Usage: "Minimum energy price for mining a transaction",
-		Value: xce.DefaultConfig.Miner.EnergyPrice,
-	}
-	MinerLegacyEnergyPriceFlag = BigFlag{
-		Name:  "energyprice",
-		Usage: "Minimum energy price for mining a transaction (deprecated, use --miner.energyprice)",
-		Value: xce.DefaultConfig.Miner.EnergyPrice,
+		Value: xcc.DefaultConfig.Miner.EnergyPrice,
 	}
 	MinerCorebaseFlag = cli.StringFlag{
 		Name:  "miner.corebase",
 		Usage: "Public address for block mining rewards (default = first account)",
 		Value: "0",
 	}
-	MinerLegacyCorebaseFlag = cli.StringFlag{
-		Name:  "corebase",
-		Usage: "Public address for block mining rewards (default = first account, deprecated, use --miner.corebase)",
-		Value: "0",
-	}
 	MinerExtraDataFlag = cli.StringFlag{
 		Name:  "miner.extradata",
 		Usage: "Block extra data set by the miner (default = client version)",
 	}
-	MinerLegacyExtraDataFlag = cli.StringFlag{
-		Name:  "extradata",
-		Usage: "Block extra data set by the miner (default = client version, deprecated, use --miner.extradata)",
-	}
 	MinerRecommitIntervalFlag = cli.DurationFlag{
 		Name:  "miner.recommit",
 		Usage: "Time interval to recreate the block being mined",
-		Value: xce.DefaultConfig.Miner.Recommit,
+		Value: xcc.DefaultConfig.Miner.Recommit,
 	}
 	MinerNoVerfiyFlag = cli.BoolFlag{
 		Name:  "miner.noverify",
@@ -451,12 +425,12 @@ var (
 	}
 	RPCGlobalEnergyCap = cli.Uint64Flag{
 		Name:  "rpc.energycap",
-		Usage: "Sets a cap on energy that can be used in xce_call/estimateEnergy",
+		Usage: "Sets a cap on energy that can be used in xcc_call/estimateEnergy",
 	}
 	// Logging and debug settings
-	XceStatsURLFlag = cli.StringFlag{
-		Name:  "xcestats",
-		Usage: "Reporting URL of a xcestats service (nodename:secret@host:port)",
+	XccStatsURLFlag = cli.StringFlag{
+		Name:  "xccstats",
+		Usage: "Reporting URL of a xccstats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -475,32 +449,32 @@ var (
 		Name:  "ipcpath",
 		Usage: "Filename for IPC socket/pipe within the datadir (explicit paths escape it)",
 	}
-	RPCEnabledFlag = cli.BoolFlag{
-		Name:  "rpc",
+	HTTPEnabledFlag = cli.BoolFlag{
+		Name:  "http",
 		Usage: "Enable the HTTP-RPC server",
 	}
-	RPCListenAddrFlag = cli.StringFlag{
-		Name:  "rpcaddr",
+	HTTPListenAddrFlag = cli.StringFlag{
+		Name:  "http.addr",
 		Usage: "HTTP-RPC server listening interface",
 		Value: node.DefaultHTTPHost,
 	}
-	RPCPortFlag = cli.IntFlag{
-		Name:  "rpcport",
+	HTTPPortFlag = cli.IntFlag{
+		Name:  "http.port",
 		Usage: "HTTP-RPC server listening port",
 		Value: node.DefaultHTTPPort,
 	}
-	RPCCORSDomainFlag = cli.StringFlag{
-		Name:  "rpccorsdomain",
+	HTTPCORSDomainFlag = cli.StringFlag{
+		Name:  "http.corsdomain",
 		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
 		Value: "",
 	}
-	RPCVirtualHostsFlag = cli.StringFlag{
-		Name:  "rpcvhosts",
+	HTTPVirtualHostsFlag = cli.StringFlag{
+		Name:  "http.vhosts",
 		Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
 		Value: strings.Join(node.DefaultConfig.HTTPVirtualHosts, ","),
 	}
-	RPCApiFlag = cli.StringFlag{
-		Name:  "rpcapi",
+	HTTPApiFlag = cli.StringFlag{
+		Name:  "http.api",
 		Usage: "API's offered over the HTTP-RPC interface",
 		Value: "",
 	}
@@ -509,22 +483,22 @@ var (
 		Usage: "Enable the WS-RPC server",
 	}
 	WSListenAddrFlag = cli.StringFlag{
-		Name:  "wsaddr",
+		Name:  "ws.addr",
 		Usage: "WS-RPC server listening interface",
 		Value: node.DefaultWSHost,
 	}
 	WSPortFlag = cli.IntFlag{
-		Name:  "wsport",
+		Name:  "ws.port",
 		Usage: "WS-RPC server listening port",
 		Value: node.DefaultWSPort,
 	}
 	WSApiFlag = cli.StringFlag{
-		Name:  "wsapi",
+		Name:  "ws.api",
 		Usage: "API's offered over the WS-RPC interface",
 		Value: "",
 	}
 	WSAllowedOriginsFlag = cli.StringFlag{
-		Name:  "wsorigins",
+		Name:  "ws.origins",
 		Usage: "Origins from which to accept websockets requests",
 		Value: "",
 	}
@@ -636,14 +610,14 @@ var (
 
 	// Energy price oracle settings
 	GpoBlocksFlag = cli.IntFlag{
-		Name:  "gpoblocks",
+		Name:  "gpo.blocks",
 		Usage: "Number of recent blocks to check for energy prices",
-		Value: xce.DefaultConfig.GPO.Blocks,
+		Value: xcc.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
-		Name:  "gpopercentile",
+		Name:  "gpo.percentile",
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
-		Value: xce.DefaultConfig.GPO.Percentile,
+		Value: xcc.DefaultConfig.GPO.Percentile,
 	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
@@ -720,12 +694,12 @@ var (
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating
-// if none (or the empty string) is specified. If the node is starting a testnet,
+// if none (or the empty string) is specified. If the node is starting a devin,
 // the a subdirectory of the specified datadir will be used.
 func MakeDataDir(ctx *cli.Context) string {
 	if path := ctx.GlobalString(DataDirFlag.Name); path != "" {
-		if ctx.GlobalBool(TestnetFlag.Name) {
-			return filepath.Join(path, "testnet")
+		if ctx.GlobalBool(DevinFlag.Name) {
+			return filepath.Join(path, "devin")
 		}
 		if ctx.GlobalBool(KolibaFlag.Name) {
 			return filepath.Join(path, "koliba")
@@ -780,8 +754,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		} else {
 			urls = splitAndTrim(ctx.GlobalString(BootnodesFlag.Name))
 		}
-	case ctx.GlobalBool(TestnetFlag.Name):
-		urls = params.TestnetBootnodes
+	case ctx.GlobalBool(DevinFlag.Name):
+		urls = params.DevinBootnodes
 	case ctx.GlobalBool(KolibaFlag.Name):
 		urls = params.KolibaBootnodes
 	case cfg.BootstrapNodes != nil:
@@ -863,23 +837,51 @@ func splitAndTrim(input string) []string {
 // setHTTP creates the HTTP RPC listener interface string from the set
 // command line flags, returning empty if the HTTP endpoint is disabled.
 func setHTTP(ctx *cli.Context, cfg *node.Config) {
-	if ctx.GlobalBool(RPCEnabledFlag.Name) && cfg.HTTPHost == "" {
+	if ctx.GlobalBool(LegacyRPCEnabledFlag.Name) && cfg.HTTPHost == "" {
+		log.Warn("The flag --rpc is deprecated and will be removed in the future, please use --http")
 		cfg.HTTPHost = "127.0.0.1"
-		if ctx.GlobalIsSet(RPCListenAddrFlag.Name) {
-			cfg.HTTPHost = ctx.GlobalString(RPCListenAddrFlag.Name)
+		if ctx.GlobalIsSet(LegacyRPCListenAddrFlag.Name) {
+			cfg.HTTPHost = ctx.GlobalString(LegacyRPCListenAddrFlag.Name)
+			log.Warn("The flag --rpcaddr is deprecated and will be removed in the future, please use --http.addr")
 		}
 	}
-	if ctx.GlobalIsSet(RPCPortFlag.Name) {
-		cfg.HTTPPort = ctx.GlobalInt(RPCPortFlag.Name)
+	if ctx.GlobalBool(HTTPEnabledFlag.Name) && cfg.HTTPHost == "" {
+		cfg.HTTPHost = "127.0.0.1"
+		if ctx.GlobalIsSet(HTTPListenAddrFlag.Name) {
+			cfg.HTTPHost = ctx.GlobalString(HTTPListenAddrFlag.Name)
+		}
 	}
-	if ctx.GlobalIsSet(RPCCORSDomainFlag.Name) {
-		cfg.HTTPCors = splitAndTrim(ctx.GlobalString(RPCCORSDomainFlag.Name))
+
+	if ctx.GlobalIsSet(LegacyRPCPortFlag.Name) {
+		cfg.HTTPPort = ctx.GlobalInt(LegacyRPCPortFlag.Name)
+		log.Warn("The flag --rpcport is deprecated and will be removed in the future, please use --http.port")
 	}
-	if ctx.GlobalIsSet(RPCApiFlag.Name) {
-		cfg.HTTPModules = splitAndTrim(ctx.GlobalString(RPCApiFlag.Name))
+	if ctx.GlobalIsSet(HTTPPortFlag.Name) {
+		cfg.HTTPPort = ctx.GlobalInt(HTTPPortFlag.Name)
 	}
-	if ctx.GlobalIsSet(RPCVirtualHostsFlag.Name) {
-		cfg.HTTPVirtualHosts = splitAndTrim(ctx.GlobalString(RPCVirtualHostsFlag.Name))
+
+	if ctx.GlobalIsSet(LegacyRPCCORSDomainFlag.Name) {
+		cfg.HTTPCors = splitAndTrim(ctx.GlobalString(LegacyRPCCORSDomainFlag.Name))
+		log.Warn("The flag --rpccorsdomain is deprecated and will be removed in the future, please use --http.corsdomain")
+	}
+	if ctx.GlobalIsSet(HTTPCORSDomainFlag.Name) {
+		cfg.HTTPCors = splitAndTrim(ctx.GlobalString(HTTPCORSDomainFlag.Name))
+	}
+
+	if ctx.GlobalIsSet(LegacyRPCApiFlag.Name) {
+		cfg.HTTPModules = splitAndTrim(ctx.GlobalString(LegacyRPCApiFlag.Name))
+		log.Warn("The flag --rpcapi is deprecated and will be removed in the future, please use --http.api")
+	}
+	if ctx.GlobalIsSet(HTTPApiFlag.Name) {
+		cfg.HTTPModules = splitAndTrim(ctx.GlobalString(HTTPApiFlag.Name))
+	}
+
+	if ctx.GlobalIsSet(LegacyRPCVirtualHostsFlag.Name) {
+		cfg.HTTPVirtualHosts = splitAndTrim(ctx.GlobalString(LegacyRPCVirtualHostsFlag.Name))
+		log.Warn("The flag --rpcvhosts is deprecated and will be removed in the future, please use --http.vhosts")
+	}
+	if ctx.GlobalIsSet(HTTPVirtualHostsFlag.Name) {
+		cfg.HTTPVirtualHosts = splitAndTrim(ctx.GlobalString(HTTPVirtualHostsFlag.Name))
 	}
 }
 
@@ -906,15 +908,33 @@ func setGraphQL(ctx *cli.Context, cfg *node.Config) {
 func setWS(ctx *cli.Context, cfg *node.Config) {
 	if ctx.GlobalBool(WSEnabledFlag.Name) && cfg.WSHost == "" {
 		cfg.WSHost = "127.0.0.1"
+		if ctx.GlobalIsSet(LegacyWSListenAddrFlag.Name) {
+			cfg.WSHost = ctx.GlobalString(LegacyWSListenAddrFlag.Name)
+			log.Warn("The flag --wsaddr is deprecated and will be removed in the future, please use --ws.addr")
+		}
 		if ctx.GlobalIsSet(WSListenAddrFlag.Name) {
 			cfg.WSHost = ctx.GlobalString(WSListenAddrFlag.Name)
 		}
 	}
+	if ctx.GlobalIsSet(LegacyWSPortFlag.Name) {
+		cfg.WSPort = ctx.GlobalInt(LegacyWSPortFlag.Name)
+		log.Warn("The flag --wsport is deprecated and will be removed in the future, please use --ws.port")
+	}
 	if ctx.GlobalIsSet(WSPortFlag.Name) {
 		cfg.WSPort = ctx.GlobalInt(WSPortFlag.Name)
 	}
+
+	if ctx.GlobalIsSet(LegacyWSAllowedOriginsFlag.Name) {
+		cfg.WSOrigins = splitAndTrim(ctx.GlobalString(LegacyWSAllowedOriginsFlag.Name))
+		log.Warn("The flag --wsorigins is deprecated and will be removed in the future, please use --ws.origins")
+	}
 	if ctx.GlobalIsSet(WSAllowedOriginsFlag.Name) {
 		cfg.WSOrigins = splitAndTrim(ctx.GlobalString(WSAllowedOriginsFlag.Name))
+	}
+
+	if ctx.GlobalIsSet(LegacyWSApiFlag.Name) {
+		cfg.WSModules = splitAndTrim(ctx.GlobalString(LegacyWSApiFlag.Name))
+		log.Warn("The flag --wsapi is deprecated and will be removed in the future, please use --ws.api")
 	}
 	if ctx.GlobalIsSet(WSApiFlag.Name) {
 		cfg.WSModules = splitAndTrim(ctx.GlobalString(WSApiFlag.Name))
@@ -934,9 +954,10 @@ func setIPC(ctx *cli.Context, cfg *node.Config) {
 }
 
 // setLes configures the les server and ultra light client settings from the command line flags.
-func setLes(ctx *cli.Context, cfg *xce.Config) {
-	if ctx.GlobalIsSet(LightLegacyServFlag.Name) {
-		cfg.LightServ = ctx.GlobalInt(LightLegacyServFlag.Name)
+func setLes(ctx *cli.Context, cfg *xcc.Config) {
+	if ctx.GlobalIsSet(LegacyLightServFlag.Name) {
+		cfg.LightServ = ctx.GlobalInt(LegacyLightServFlag.Name)
+		log.Warn("The flag --lightserv is deprecated and will be removed in the future, please use --light.serve")
 	}
 	if ctx.GlobalIsSet(LightServeFlag.Name) {
 		cfg.LightServ = ctx.GlobalInt(LightServeFlag.Name)
@@ -947,8 +968,9 @@ func setLes(ctx *cli.Context, cfg *xce.Config) {
 	if ctx.GlobalIsSet(LightEgressFlag.Name) {
 		cfg.LightEgress = ctx.GlobalInt(LightEgressFlag.Name)
 	}
-	if ctx.GlobalIsSet(LightLegacyPeersFlag.Name) {
-		cfg.LightPeers = ctx.GlobalInt(LightLegacyPeersFlag.Name)
+	if ctx.GlobalIsSet(LegacyLightPeersFlag.Name) {
+		cfg.LightPeers = ctx.GlobalInt(LegacyLightPeersFlag.Name)
+		log.Warn("The flag --lightpeers is deprecated and will be removed in the future, please use --light.maxpeers")
 	}
 	if ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
 		cfg.LightPeers = ctx.GlobalInt(LightMaxPeersFlag.Name)
@@ -960,8 +982,8 @@ func setLes(ctx *cli.Context, cfg *xce.Config) {
 		cfg.UltraLightFraction = ctx.GlobalInt(UltraLightFractionFlag.Name)
 	}
 	if cfg.UltraLightFraction <= 0 && cfg.UltraLightFraction > 100 {
-		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xce.DefaultConfig.UltraLightFraction)
-		cfg.UltraLightFraction = xce.DefaultConfig.UltraLightFraction
+		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xcc.DefaultConfig.UltraLightFraction)
+		cfg.UltraLightFraction = xcc.DefaultConfig.UltraLightFraction
 	}
 	if ctx.GlobalIsSet(UltraLightOnlyAnnounceFlag.Name) {
 		cfg.UltraLightOnlyAnnounce = ctx.GlobalBool(UltraLightOnlyAnnounceFlag.Name)
@@ -987,7 +1009,11 @@ func makeDatabaseHandles() int {
 func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error) {
 	// If the specified account is a valid address, return it
 	if common.IsHexAddress(account) {
-		return accounts.Account{Address: common.HexToAddress(account)}, nil
+		acc, err := common.HexToAddress(account)
+		if err != nil {
+			return accounts.Account{}, err
+		}
+		return accounts.Account{Address: acc}, nil
 	}
 	// Otherwise try to interpret the account as a keystore index
 	index, err := strconv.Atoi(account)
@@ -1009,11 +1035,12 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setCorebase retrieves the corebase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xce.Config) {
+func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xcc.Config) {
 	// Extract the current corebase, new flag overriding legacy one
 	var corebase string
-	if ctx.GlobalIsSet(MinerLegacyCorebaseFlag.Name) {
-		corebase = ctx.GlobalString(MinerLegacyCorebaseFlag.Name)
+	if ctx.GlobalIsSet(LegacyMinerCorebaseFlag.Name) {
+		corebase = ctx.GlobalString(LegacyMinerCorebaseFlag.Name)
+		log.Warn("The flag --corebase is deprecated and will be removed in the future, please use --miner.corebase")
 	}
 	if ctx.GlobalIsSet(MinerCorebaseFlag.Name) {
 		corebase = ctx.GlobalString(MinerCorebaseFlag.Name)
@@ -1058,38 +1085,38 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	setBootstrapNodesV5(ctx, cfg)
 
 	lightClient := ctx.GlobalString(SyncModeFlag.Name) == "light"
-	lightServer := (ctx.GlobalInt(LightLegacyServFlag.Name) != 0 || ctx.GlobalInt(LightServeFlag.Name) != 0)
+	lightServer := (ctx.GlobalInt(LegacyLightServFlag.Name) != 0 || ctx.GlobalInt(LightServeFlag.Name) != 0)
 
-	lightPeers := ctx.GlobalInt(LightLegacyPeersFlag.Name)
+	lightPeers := ctx.GlobalInt(LegacyLightPeersFlag.Name)
 	if ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
 		lightPeers = ctx.GlobalInt(LightMaxPeersFlag.Name)
 	}
-	if lightClient && !ctx.GlobalIsSet(LightLegacyPeersFlag.Name) && !ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
+	if lightClient && !ctx.GlobalIsSet(LegacyLightPeersFlag.Name) && !ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
 		// dynamic default - for clients we use 1/10th of the default for servers
 		lightPeers /= 10
 	}
 
 	if ctx.GlobalIsSet(MaxPeersFlag.Name) {
 		cfg.MaxPeers = ctx.GlobalInt(MaxPeersFlag.Name)
-		if lightServer && !ctx.GlobalIsSet(LightLegacyPeersFlag.Name) && !ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
+		if lightServer && !ctx.GlobalIsSet(LegacyLightPeersFlag.Name) && !ctx.GlobalIsSet(LightMaxPeersFlag.Name) {
 			cfg.MaxPeers += lightPeers
 		}
 	} else {
 		if lightServer {
 			cfg.MaxPeers += lightPeers
 		}
-		if lightClient && (ctx.GlobalIsSet(LightLegacyPeersFlag.Name) || ctx.GlobalIsSet(LightMaxPeersFlag.Name)) && cfg.MaxPeers < lightPeers {
+		if lightClient && (ctx.GlobalIsSet(LegacyLightPeersFlag.Name) || ctx.GlobalIsSet(LightMaxPeersFlag.Name)) && cfg.MaxPeers < lightPeers {
 			cfg.MaxPeers = lightPeers
 		}
 	}
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	xcePeers := cfg.MaxPeers - lightPeers
+	xccPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		xcePeers = 0
+		xccPeers = 0
 	}
-	log.Info("Maximum peer count", "XCE", xcePeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "XCC", xccPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -1180,16 +1207,25 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 		cfg.DataDir = ctx.GlobalString(DataDirFlag.Name)
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		cfg.DataDir = "" // unless explicitly requested, use memory databases
-	case ctx.GlobalBool(TestnetFlag.Name) && cfg.DataDir == node.DefaultDataDir():
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
+	case ctx.GlobalBool(DevinFlag.Name) && cfg.DataDir == node.DefaultDataDir():
+		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devin")
 	case ctx.GlobalBool(KolibaFlag.Name) && cfg.DataDir == node.DefaultDataDir():
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "koliba")
 	}
 }
 
 func setGPO(ctx *cli.Context, cfg *energyprice.Config) {
+	if ctx.GlobalIsSet(LegacyGpoBlocksFlag.Name) {
+		cfg.Blocks = ctx.GlobalInt(LegacyGpoBlocksFlag.Name)
+		log.Warn("The flag --gpoblocks is deprecated and will be removed in the future, please use --gpo.blocks")
+	}
 	if ctx.GlobalIsSet(GpoBlocksFlag.Name) {
 		cfg.Blocks = ctx.GlobalInt(GpoBlocksFlag.Name)
+	}
+
+	if ctx.GlobalIsSet(LegacyGpoPercentileFlag.Name) {
+		cfg.Percentile = ctx.GlobalInt(LegacyGpoPercentileFlag.Name)
+		log.Warn("The flag --gpopercentile is deprecated and will be removed in the future, please use --gpo.percentile")
 	}
 	if ctx.GlobalIsSet(GpoPercentileFlag.Name) {
 		cfg.Percentile = ctx.GlobalInt(GpoPercentileFlag.Name)
@@ -1203,7 +1239,11 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 			if trimmed := strings.TrimSpace(account); !common.IsHexAddress(trimmed) {
 				Fatalf("Invalid account in --txpool.locals: %s", trimmed)
 			} else {
-				cfg.Locals = append(cfg.Locals, common.HexToAddress(account))
+				acc, err := common.HexToAddress(account)
+				if err != nil {
+					Fatalf("Invalid account in --txpool.locals: %s", account)
+				}
+				cfg.Locals = append(cfg.Locals, acc)
 			}
 		}
 	}
@@ -1243,14 +1283,16 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	if ctx.GlobalIsSet(MinerNotifyFlag.Name) {
 		cfg.Notify = strings.Split(ctx.GlobalString(MinerNotifyFlag.Name), ",")
 	}
-	if ctx.GlobalIsSet(MinerLegacyExtraDataFlag.Name) {
-		cfg.ExtraData = []byte(ctx.GlobalString(MinerLegacyExtraDataFlag.Name))
+	if ctx.GlobalIsSet(LegacyMinerExtraDataFlag.Name) {
+		cfg.ExtraData = []byte(ctx.GlobalString(LegacyMinerExtraDataFlag.Name))
+		log.Warn("The flag --extradata is deprecated and will be removed in the future, please use --miner.extradata")
 	}
 	if ctx.GlobalIsSet(MinerExtraDataFlag.Name) {
 		cfg.ExtraData = []byte(ctx.GlobalString(MinerExtraDataFlag.Name))
 	}
-	if ctx.GlobalIsSet(MinerLegacyEnergyTargetFlag.Name) {
-		cfg.EnergyFloor = ctx.GlobalUint64(MinerLegacyEnergyTargetFlag.Name)
+	if ctx.GlobalIsSet(LegacyMinerEnergyTargetFlag.Name) {
+		cfg.EnergyFloor = ctx.GlobalUint64(LegacyMinerEnergyTargetFlag.Name)
+		log.Warn("The flag --targetenergylimit is deprecated and will be removed in the future, please use --miner.energytarget")
 	}
 	if ctx.GlobalIsSet(MinerEnergyTargetFlag.Name) {
 		cfg.EnergyFloor = ctx.GlobalUint64(MinerEnergyTargetFlag.Name)
@@ -1258,8 +1300,9 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	if ctx.GlobalIsSet(MinerEnergyLimitFlag.Name) {
 		cfg.EnergyCeil = ctx.GlobalUint64(MinerEnergyLimitFlag.Name)
 	}
-	if ctx.GlobalIsSet(MinerLegacyEnergyPriceFlag.Name) {
-		cfg.EnergyPrice = GlobalBig(ctx, MinerLegacyEnergyPriceFlag.Name)
+	if ctx.GlobalIsSet(LegacyMinerEnergyPriceFlag.Name) {
+		cfg.EnergyPrice = GlobalBig(ctx, LegacyMinerEnergyPriceFlag.Name)
+		log.Warn("The flag --energyprice is deprecated and will be removed in the future, please use --miner.energyprice")
 	}
 	if ctx.GlobalIsSet(MinerEnergyPriceFlag.Name) {
 		cfg.EnergyPrice = GlobalBig(ctx, MinerEnergyPriceFlag.Name)
@@ -1272,7 +1315,7 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	}
 }
 
-func setWhitelist(ctx *cli.Context, cfg *xce.Config) {
+func setWhitelist(ctx *cli.Context, cfg *xcc.Config) {
 	whitelist := ctx.GlobalString(WhitelistFlag.Name)
 	if whitelist == "" {
 		return
@@ -1349,11 +1392,11 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetXceConfig applies xce-related command line flags to the config.
-func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
+// SetXccConfig applies xcc-related command line flags to the config.
+func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, DeveloperFlag, TestnetFlag, KolibaFlag)
-	CheckExclusive(ctx, LightLegacyServFlag, LightServeFlag, SyncModeFlag, "light")
+	CheckExclusive(ctx, DeveloperFlag, DevinFlag, KolibaFlag)
+	CheckExclusive(ctx, LegacyLightServFlag, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 
 	var ks *keystore.KeyStore
@@ -1396,6 +1439,12 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {
 		cfg.TrieDirtyCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheGCFlag.Name) / 100
 	}
+	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheSnapshotFlag.Name) {
+		cfg.SnapshotCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheSnapshotFlag.Name) / 100
+	}
+	if !ctx.GlobalIsSet(SnapshotFlag.Name) {
+		cfg.SnapshotCache = 0 // Disabled
+	}
 	if ctx.GlobalIsSet(DocRootFlag.Name) {
 		cfg.DocRoot = ctx.GlobalString(DocRootFlag.Name)
 	}
@@ -1428,15 +1477,15 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
+	case ctx.GlobalBool(DevinFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 3
 		}
-		cfg.Genesis = core.DefaultTestnetGenesisBlock()
-		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.TestnetGenesisHash])
+		cfg.Genesis = core.DefaultDevinGenesisBlock()
+		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
 	case ctx.GlobalBool(KolibaFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 5
+			cfg.NetworkId = 4
 		}
 		cfg.Genesis = core.DefaultKolibaGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.KolibaGenesisHash])
@@ -1463,7 +1512,7 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 		log.Info("Using developer account", "address", developer.Address)
 
 		cfg.Genesis = core.DeveloperGenesisBlock(uint64(ctx.GlobalInt(DeveloperPeriodFlag.Name)), developer.Address)
-		if !ctx.GlobalIsSet(MinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(MinerLegacyEnergyPriceFlag.Name) {
+		if !ctx.GlobalIsSet(MinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(LegacyMinerEnergyPriceFlag.Name) {
 			cfg.Miner.EnergyPrice = big.NewInt(1)
 		}
 	default:
@@ -1471,19 +1520,21 @@ func SetXceConfig(ctx *cli.Context, stack *node.Node, cfg *xce.Config) {
 			setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.MainnetGenesisHash])
 		}
 	}
+
+	common.DefaultNetworkID = common.NetworkID(cfg.NetworkId)
 }
 
 // setDNSDiscoveryDefaults configures DNS discovery with the given URL if
 // no URLs are set.
-func setDNSDiscoveryDefaults(cfg *xce.Config, url string) {
+func setDNSDiscoveryDefaults(cfg *xcc.Config, url string) {
 	if cfg.DiscoveryURLs != nil {
 		return
 	}
 	cfg.DiscoveryURLs = []string{url}
 }
 
-// RegisterXceService adds an Core client to the stack.
-func RegisterXceService(stack *node.Node, cfg *xce.Config) {
+// RegisterXccService adds an Core client to the stack.
+func RegisterXccService(stack *node.Node, cfg *xcc.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1491,7 +1542,7 @@ func RegisterXceService(stack *node.Node, cfg *xce.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := xce.New(ctx, cfg)
+			fullNode, err := xcc.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1513,19 +1564,19 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterXceStatsService configures the Core Stats daemon and adds it to
+// RegisterXccStatsService configures the Core Stats daemon and adds it to
 // the given node.
-func RegisterXceStatsService(stack *node.Node, url string) {
+func RegisterXccStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both xce and les services
-		var xceServ *xce.Core
-		ctx.Service(&xceServ)
+		// Retrieve both xcc and les services
+		var xccServ *xcc.Core
+		ctx.Service(&xccServ)
 
 		var lesServ *les.LightCore
 		ctx.Service(&lesServ)
 
-		// Let xcestats use whichever is not nil
-		return xcestats.New(url, xceServ, lesServ)
+		// Let xccstats use whichever is not nil
+		return xccstats.New(url, xccServ, lesServ)
 	}); err != nil {
 		Fatalf("Failed to register the Core Stats service: %v", err)
 	}
@@ -1535,9 +1586,9 @@ func RegisterXceStatsService(stack *node.Node, url string) {
 func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Try to construct the GraphQL service backed by a full node
-		var xceServ *xce.Core
-		if err := ctx.Service(&xceServ); err == nil {
-			return graphql.New(xceServ.APIBackend, endpoint, cors, vhosts, timeouts)
+		var xccServ *xcc.Core
+		if err := ctx.Service(&xccServ); err == nil {
+			return graphql.New(xccServ.APIBackend, endpoint, cors, vhosts, timeouts)
 		}
 		// Try to construct the GraphQL service backed by a light node
 		var lesServ *les.LightCore
@@ -1590,7 +1641,7 @@ func SplitTagsFlag(tagsFlag string) map[string]string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcedb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xccdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1609,8 +1660,8 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcedb.Database {
 func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	var genesis *core.Genesis
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
-		genesis = core.DefaultTestnetGenesisBlock()
+	case ctx.GlobalBool(DevinFlag.Name):
+		genesis = core.DefaultDevinGenesisBlock()
 	case ctx.GlobalBool(KolibaFlag.Name):
 		genesis = core.DefaultKolibaGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):
@@ -1620,7 +1671,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xcedb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xccdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
@@ -1640,11 +1691,15 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)
 	}
 	cache := &core.CacheConfig{
-		TrieCleanLimit:      xce.DefaultConfig.TrieCleanCache,
+		TrieCleanLimit:      xcc.DefaultConfig.TrieCleanCache,
 		TrieCleanNoPrefetch: ctx.GlobalBool(CacheNoPrefetchFlag.Name),
-		TrieDirtyLimit:      xce.DefaultConfig.TrieDirtyCache,
+		TrieDirtyLimit:      xcc.DefaultConfig.TrieDirtyCache,
 		TrieDirtyDisabled:   ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieTimeLimit:       xce.DefaultConfig.TrieTimeout,
+		TrieTimeLimit:       xcc.DefaultConfig.TrieTimeout,
+		SnapshotLimit:       xcc.DefaultConfig.SnapshotCache,
+	}
+	if !ctx.GlobalIsSet(SnapshotFlag.Name) {
+		cache.SnapshotLimit = 0 // Disabled
 	}
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheTrieFlag.Name) {
 		cache.TrieCleanLimit = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheTrieFlag.Name) / 100

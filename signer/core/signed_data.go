@@ -126,7 +126,7 @@ var typedDataReferenceTypeRegexp = regexp.MustCompile(`^[A-Z](\w*)(\[\])?$`)
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,
 // where the V value will be 27 or 28 for legacy reasons, if legacyV==true.
-func (api *SignerAPI) sign(addr common.MixedcaseAddress, req *SignDataRequest, legacyV bool) (hexutil.Bytes, error) {
+func (api *SignerAPI) sign(addr common.Address, req *SignDataRequest, legacyV bool) (hexutil.Bytes, error) {
 	// We make the request prior to looking up if we actually have the account, to prevent
 	// account-enumeration via the API
 	res, err := api.UI.ApproveSignData(req)
@@ -137,7 +137,7 @@ func (api *SignerAPI) sign(addr common.MixedcaseAddress, req *SignDataRequest, l
 		return nil, ErrRequestDenied
 	}
 	// Look up the wallet containing the requested signer
-	account := accounts.Account{Address: addr.Address()}
+	account := accounts.Account{Address: addr}
 	wallet, err := api.am.Find(account)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (api *SignerAPI) sign(addr common.MixedcaseAddress, req *SignDataRequest, l
 // depending on the content-type specified.
 //
 // Different types of validation occur.
-func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (hexutil.Bytes, error) {
+func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr common.Address, data interface{}) (hexutil.Bytes, error) {
 	var req, transformV, err = api.determineSignatureFormat(ctx, contentType, addr, data)
 	if err != nil {
 		return nil, err
@@ -182,9 +182,9 @@ func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr com
 // charset, ok := params["charset"]
 // As it is now, we accept any charset and just treat it as 'raw'.
 // This method returns the mimetype for signing along with the request
-func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType string, addr common.MixedcaseAddress, data interface{}) (*SignDataRequest, bool, error) {
+func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType string, addr common.Address, data interface{}) (*SignDataRequest, bool, error) {
 	var (
-		req          *SignDataRequest
+		req      *SignDataRequest
 		useCoreV = true // Default to use V = 27 or 28, the legacy Core format
 	)
 	mediaType, _, err := mime.ParseMediaType(contentType)
@@ -240,7 +240,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		// The incoming clique header is already truncated, sent to us with a extradata already shortened
 		if len(header.Extra) < crypto.SignatureLength {
 			// Need to add it back, to get a suitable length for hashing
-			newExtra := make([]byte, len(header.Extra) + crypto.SignatureLength)
+			newExtra := make([]byte, len(header.Extra)+crypto.SignatureLength)
 			copy(newExtra, header.Extra)
 			header.Extra = newExtra
 		}
@@ -311,7 +311,7 @@ func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) 
 
 // SignTypedData signs CIP-712 conformant typed data
 // hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
-func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.MixedcaseAddress, typedData TypedData) (hexutil.Bytes, error) {
+func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.Address, typedData TypedData) (hexutil.Bytes, error) {
 	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
 		return nil, err
@@ -541,7 +541,11 @@ func (typedData *TypedData) EncodePrimitiveValue(encType string, encValue interf
 			return nil, dataMismatchError(encType, encValue)
 		}
 		retval := make([]byte, 32)
-		copy(retval[12:], common.HexToAddress(stringValue).Bytes())
+		addr, err := common.HexToAddress(stringValue)
+		if err != nil {
+			return nil, err
+		}
+		copy(retval[10:], addr.Bytes())
 		return retval, nil
 	case "bool":
 		boolValue, ok := encValue.(bool)
@@ -602,7 +606,7 @@ func dataMismatchError(encType string, encValue interface{}) error {
 func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hexutil.Bytes) (common.Address, error) {
 	// Returns the address for the Account that was used to create the signature.
 	//
-	// Note, this function is compatible with xce_sign and personal_sign. As such it recovers
+	// Note, this function is compatible with xcc_sign and personal_sign. As such it recovers
 	// the address of:
 	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
@@ -756,7 +760,11 @@ func formatPrimitiveValue(encType string, encValue interface{}) (string, error) 
 		if stringValue, ok := encValue.(string); !ok {
 			return "", fmt.Errorf("could not format value %v as address", encValue)
 		} else {
-			return common.HexToAddress(stringValue).String(), nil
+			addr, err := common.HexToAddress(stringValue)
+			if err != nil {
+				return "", err
+			}
+			return addr.String(), nil
 		}
 	case "bool":
 		if boolValue, ok := encValue.(bool); !ok {

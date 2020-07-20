@@ -90,7 +90,8 @@ type (
 		account *common.Address
 	}
 	resetObjectChange struct {
-		prev *stateObject
+		prev         *stateObject
+		prevdestruct bool
 	}
 	suicideChange struct {
 		account     *common.Address
@@ -142,6 +143,9 @@ func (ch createObjectChange) dirtied() *common.Address {
 
 func (ch resetObjectChange) revert(s *StateDB) {
 	s.setStateObject(ch.prev)
+	if !ch.prevdestruct && s.snap != nil {
+		delete(s.snapDestructs, ch.prev.addrHash)
+	}
 }
 
 func (ch resetObjectChange) dirtied() *common.Address {
@@ -160,7 +164,7 @@ func (ch suicideChange) dirtied() *common.Address {
 	return ch.account
 }
 
-var ripemd = common.HexToAddress("0000000000000000000000000000000000000003")
+var ripemd, _ = common.HexToAddress("cb700000000000000000000000000000000000000003")
 
 func (ch touchChange) revert(s *StateDB) {
 }

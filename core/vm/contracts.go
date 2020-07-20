@@ -37,22 +37,33 @@ import (
 // requires a deterministic energy count based on the input size of the Run method of the
 // contract.
 type PrecompiledContract interface {
-	RequiredEnergy(input []byte) uint64  // RequiredPrice calculates the contract energy use
-	Run(input []byte) ([]byte, error) // Run runs the precompiled contract
+	RequiredEnergy(input []byte) uint64 // RequiredPrice calculates the contract energy use
+	Run(input []byte) ([]byte, error)   // Run runs the precompiled contract
 }
 
 // PrecompiledContracts contains the default set of pre-compiled Core
 // contracts used in the release.
+var (
+	addr1, _ = common.HexToAddress("cb270000000000000000000000000000000000000001")
+	addr2, _ = common.HexToAddress("cb970000000000000000000000000000000000000002")
+	addr3, _ = common.HexToAddress("cb700000000000000000000000000000000000000003")
+	addr4, _ = common.HexToAddress("cb430000000000000000000000000000000000000004")
+	addr5, _ = common.HexToAddress("cb160000000000000000000000000000000000000005")
+	addr6, _ = common.HexToAddress("cb860000000000000000000000000000000000000006")
+	addr7, _ = common.HexToAddress("cb590000000000000000000000000000000000000007")
+	addr8, _ = common.HexToAddress("cb320000000000000000000000000000000000000008")
+	addr9, _ = common.HexToAddress("cb050000000000000000000000000000000000000009")
+)
 var PrecompiledContracts = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256Add{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
-	common.BytesToAddress([]byte{8}): &bn256Pairing{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
+	addr1: &ecrecover{},
+	addr2: &sha256hash{},
+	addr3: &ripemd160hash{},
+	addr4: &dataCopy{},
+	addr5: &bigModExp{},
+	addr6: &bn256Add{},
+	addr7: &bn256ScalarMul{},
+	addr8: &bn256Pairing{},
+	addr9: &blake2F{},
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.

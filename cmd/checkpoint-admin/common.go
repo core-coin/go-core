@@ -25,15 +25,15 @@ import (
 	"github.com/core-coin/go-core/cmd/utils"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/contracts/checkpointoracle"
-	"github.com/core-coin/go-core/xceclient"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xccclient"
 	"gopkg.in/urfave/cli.v1"
 )
 
 // newClient creates a client with specified remote URL.
-func newClient(ctx *cli.Context) *xceclient.Client {
-	client, err := xceclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
+func newClient(ctx *cli.Context) *xccclient.Client {
+	client, err := xccclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
 	if err != nil {
 		utils.Fatalf("Failed to connect to Core node: %v", err)
 	}
@@ -51,7 +51,7 @@ func newRPCClient(url string) *rpc.Client {
 
 // getContractAddr retrieves the register contract address through
 // rpc request.
-func getContractAddr(client *rpc.Client) common.Address {
+func getContractAddr(client *rpc.Client) (common.Address, error) {
 	var addr string
 	if err := client.Call(&addr, "les_getCheckpointContractAddress"); err != nil {
 		utils.Fatalf("Failed to fetch checkpoint oracle address: %v", err)
@@ -97,13 +97,16 @@ func getCheckpoint(ctx *cli.Context, client *rpc.Client) *params.TrustedCheckpoi
 }
 
 // newContract creates a registrar contract instance with specified
-// contract address or the default contracts for mainnet or testnet.
+// contract address or the default contracts for mainnet or devin.
 func newContract(client *rpc.Client) (common.Address, *checkpointoracle.CheckpointOracle) {
-	addr := getContractAddr(client)
+	addr, err := getContractAddr(client)
+	if err != nil {
+		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
+	}
 	if addr == (common.Address{}) {
 		utils.Fatalf("No specified registrar contract address")
 	}
-	contract, err := checkpointoracle.NewCheckpointOracle(addr, xceclient.NewClient(client))
+	contract, err := checkpointoracle.NewCheckpointOracle(addr, xccclient.NewClient(client))
 	if err != nil {
 		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
 	}
@@ -116,5 +119,9 @@ func newClefSigner(ctx *cli.Context) *bind.TransactOpts {
 	if err != nil {
 		utils.Fatalf("Failed to create clef signer %v", err)
 	}
-	return bind.NewClefTransactor(clef, accounts.Account{Address: common.HexToAddress(ctx.String(signerFlag.Name))})
+	addr, err := common.HexToAddress(ctx.String(signerFlag.Name))
+	if err != nil {
+		utils.Fatalf("Failed to create clef signer %v", err)
+	}
+	return bind.NewClefTransactor(clef, accounts.Account{Address: addr})
 }

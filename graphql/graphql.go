@@ -29,10 +29,10 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/xce/filters"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xcc/filters"
 )
 
 var (
@@ -41,7 +41,7 @@ var (
 
 // Account represents an Core account at a particular block.
 type Account struct {
-	backend       xceapi.Backend
+	backend       xccapi.Backend
 	address       common.Address
 	blockNrOrHash rpc.BlockNumberOrHash
 }
@@ -90,7 +90,7 @@ func (a *Account) Storage(ctx context.Context, args struct{ Slot common.Hash }) 
 
 // Log represents an individual log message. All arguments are mandatory.
 type Log struct {
-	backend     xceapi.Backend
+	backend     xccapi.Backend
 	transaction *Transaction
 	log         *types.Log
 }
@@ -122,7 +122,7 @@ func (l *Log) Data(ctx context.Context) hexutil.Bytes {
 // Transaction represents an Core transaction.
 // backend and hash are mandatory; all others will be fetched when required.
 type Transaction struct {
-	backend xceapi.Backend
+	backend xccapi.Backend
 	hash    common.Hash
 	tx      *types.Transaction
 	block   *Block
@@ -213,9 +213,8 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 	if err != nil || tx == nil {
 		return nil, err
 	}
-	var signer types.Signer = types.NucleusSigner{}
+	var signer types.Signer = types.NewNucleusSigner(t.backend.ChainConfig().ChainID)
 	from, _ := types.Sender(signer, tx)
-
 	return &Account{
 		backend:       t.backend,
 		address:       from,
@@ -317,7 +316,7 @@ type BlockType int
 // backend, and numberOrHash are mandatory. All other fields are lazily fetched
 // when required.
 type Block struct {
-	backend      xceapi.Backend
+	backend      xccapi.Backend
 	numberOrHash *rpc.BlockNumberOrHash
 	hash         common.Hash
 	header       *types.Header
@@ -678,7 +677,7 @@ type BlockFilterCriteria struct {
 
 // runFilter accepts a filter and executes it, returning all its results as
 // `Log` objects.
-func runFilter(ctx context.Context, be xceapi.Backend, filter *filters.Filter) ([]*Log, error) {
+func runFilter(ctx context.Context, be xccapi.Backend, filter *filters.Filter) ([]*Log, error) {
 	logs, err := filter.Logs(ctx)
 	if err != nil || logs == nil {
 		return nil, err
@@ -737,19 +736,19 @@ func (b *Block) Account(ctx context.Context, args struct {
 // CallData encapsulates arguments to `call` or `estimateEnergy`.
 // All arguments are optional.
 type CallData struct {
-	From     *common.Address // The Core address the call is from.
-	To       *common.Address // The Core address the call is to.
+	From        *common.Address // The Core address the call is from.
+	To          *common.Address // The Core address the call is to.
 	Energy      *hexutil.Uint64 // The amount of energy provided for the call.
 	EnergyPrice *hexutil.Big    // The price of each unit of energy, in ore.
-	Value    *hexutil.Big    // The value sent along with the call.
-	Data     *hexutil.Bytes  // Any data sent with the call.
+	Value       *hexutil.Big    // The value sent along with the call.
+	Data        *hexutil.Bytes  // Any data sent with the call.
 }
 
 // CallResult encapsulates the result of an invocation of the `call` accessor.
 type CallResult struct {
-	data    hexutil.Bytes  // The return data from the call
+	data       hexutil.Bytes  // The return data from the call
 	energyUsed hexutil.Uint64 // The amount of energy used
-	status  hexutil.Uint64 // The return status of the call - 0 for failure or 1 for success.
+	status     hexutil.Uint64 // The return status of the call - 0 for failure or 1 for success.
 }
 
 func (c *CallResult) Data() hexutil.Bytes {
@@ -765,7 +764,7 @@ func (c *CallResult) Status() hexutil.Uint64 {
 }
 
 func (b *Block) Call(ctx context.Context, args struct {
-	Data xceapi.CallArgs
+	Data xccapi.CallArgs
 }) (*CallResult, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolve(ctx)
@@ -773,20 +772,20 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, energy, failed, err := xceapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
+	result, energy, failed, err := xccapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
 	}
 	return &CallResult{
-		data:    hexutil.Bytes(result),
+		data:       hexutil.Bytes(result),
 		energyUsed: hexutil.Uint64(energy),
-		status:  status,
+		status:     status,
 	}, err
 }
 
 func (b *Block) EstimateEnergy(ctx context.Context, args struct {
-	Data xceapi.CallArgs
+	Data xccapi.CallArgs
 }) (hexutil.Uint64, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolveHeader(ctx)
@@ -794,12 +793,12 @@ func (b *Block) EstimateEnergy(ctx context.Context, args struct {
 			return hexutil.Uint64(0), err
 		}
 	}
-	energy, err := xceapi.DoEstimateEnergy(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCEnergyCap())
+	energy, err := xccapi.DoEstimateEnergy(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCEnergyCap())
 	return energy, err
 }
 
 type Pending struct {
-	backend xceapi.Backend
+	backend xccapi.Backend
 }
 
 func (p *Pending) TransactionCount(ctx context.Context) (int32, error) {
@@ -836,31 +835,31 @@ func (p *Pending) Account(ctx context.Context, args struct {
 }
 
 func (p *Pending) Call(ctx context.Context, args struct {
-	Data xceapi.CallArgs
+	Data xccapi.CallArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, energy, failed, err := xceapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
+	result, energy, failed, err := xccapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
 	status := hexutil.Uint64(1)
 	if failed {
 		status = 0
 	}
 	return &CallResult{
-		data:    hexutil.Bytes(result),
+		data:       hexutil.Bytes(result),
 		energyUsed: hexutil.Uint64(energy),
-		status:  status,
+		status:     status,
 	}, err
 }
 
 func (p *Pending) EstimateEnergy(ctx context.Context, args struct {
-	Data xceapi.CallArgs
+	Data xccapi.CallArgs
 }) (hexutil.Uint64, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return xceapi.DoEstimateEnergy(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCEnergyCap())
+	return xccapi.DoEstimateEnergy(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCEnergyCap())
 }
 
 // Resolver is the top-level object in the GraphQL hierarchy.
 type Resolver struct {
-	backend xceapi.Backend
+	backend xccapi.Backend
 }
 
 func (r *Resolver) Block(ctx context.Context, args struct {
@@ -950,7 +949,7 @@ func (r *Resolver) SendRawTransaction(ctx context.Context, args struct{ Data hex
 	if err := rlp.DecodeBytes(args.Data, tx); err != nil {
 		return common.Hash{}, err
 	}
-	hash, err := xceapi.SubmitTransaction(ctx, r.backend, tx)
+	hash, err := xccapi.SubmitTransaction(ctx, r.backend, tx)
 	return hash, err
 }
 

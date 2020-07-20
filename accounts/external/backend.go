@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/signer/core"
@@ -154,7 +154,7 @@ func (api *ExternalSigner) signHash(account accounts.Account, hash []byte) ([]by
 // SignData signs keccak256(data). The mimetype parameter describes the type of data being signed
 func (api *ExternalSigner) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
 	var res hexutil.Bytes
-	var signAddress = common.NewMixedcaseAddress(account.Address)
+	var signAddress = account.Address
 	if err := api.client.Call(&res, "account_signData",
 		mimeType,
 		&signAddress, // Need to use the pointer here, because of how MarshalJSON is defined
@@ -170,7 +170,7 @@ func (api *ExternalSigner) SignData(account accounts.Account, mimeType string, d
 
 func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]byte, error) {
 	var res hexutil.Bytes
-	var signAddress = common.NewMixedcaseAddress(account.Address)
+	var signAddress = account.Address
 	if err := api.client.Call(&res, "account_signData",
 		accounts.MimetypeTextPlain,
 		&signAddress, // Need to use the pointer here, because of how MarshalJSON is defined
@@ -181,21 +181,21 @@ func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]by
 }
 
 func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	res := xceapi.SignTransactionResult{}
+	res := xccapi.SignTransactionResult{}
 	data := hexutil.Bytes(tx.Data())
-	var to *common.MixedcaseAddress
+	var to *common.Address
 	if tx.To() != nil {
-		t := common.NewMixedcaseAddress(*tx.To())
+		t := *tx.To()
 		to = &t
 	}
 	args := &core.SendTxArgs{
-		Data:     &data,
-		Nonce:    hexutil.Uint64(tx.Nonce()),
-		Value:    hexutil.Big(*tx.Value()),
+		Data:        &data,
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		Value:       hexutil.Big(*tx.Value()),
 		Energy:      hexutil.Uint64(tx.Energy()),
 		EnergyPrice: hexutil.Big(*tx.EnergyPrice()),
-		To:       to,
-		From:     common.NewMixedcaseAddress(account.Address),
+		To:          to,
+		From:        account.Address,
 	}
 	if err := api.client.Call(&res, "account_signTransaction", args); err != nil {
 		return nil, err

@@ -38,9 +38,9 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xce"
-	"github.com/core-coin/go-core/xce/downloader"
-	"github.com/core-coin/go-core/xceclient"
+	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xccclient"
 	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -84,11 +84,11 @@ var (
 		utils.ExitWhenSyncedFlag,
 		utils.GCModeFlag,
 		utils.LightServeFlag,
-		utils.LightLegacyServFlag,
+		utils.LegacyLightServFlag,
 		utils.LightIngressFlag,
 		utils.LightEgressFlag,
 		utils.LightMaxPeersFlag,
-		utils.LightLegacyPeersFlag,
+		utils.LegacyLightPeersFlag,
 		utils.LightKDFFlag,
 		utils.UltraLightServersFlag,
 		utils.UltraLightFractionFlag,
@@ -98,23 +98,24 @@ var (
 		utils.CacheDatabaseFlag,
 		utils.CacheTrieFlag,
 		utils.CacheGCFlag,
+		utils.CacheSnapshotFlag,
 		utils.CacheNoPrefetchFlag,
 		utils.ListenPortFlag,
 		utils.MaxPeersFlag,
 		utils.MaxPendingPeersFlag,
 		utils.MiningEnabledFlag,
 		utils.MinerThreadsFlag,
-		utils.MinerLegacyThreadsFlag,
+		utils.LegacyMinerThreadsFlag,
 		utils.MinerNotifyFlag,
 		utils.MinerEnergyTargetFlag,
-		utils.MinerLegacyEnergyTargetFlag,
+		utils.LegacyMinerEnergyTargetFlag,
 		utils.MinerEnergyLimitFlag,
 		utils.MinerEnergyPriceFlag,
-		utils.MinerLegacyEnergyPriceFlag,
+		utils.LegacyMinerEnergyPriceFlag,
 		utils.MinerCorebaseFlag,
-		utils.MinerLegacyCorebaseFlag,
+		utils.LegacyMinerCorebaseFlag,
 		utils.MinerExtraDataFlag,
-		utils.MinerLegacyExtraDataFlag,
+		utils.LegacyMinerExtraDataFlag,
 		utils.MinerRecommitIntervalFlag,
 		utils.MinerNoVerfiyFlag,
 		utils.NATFlag,
@@ -127,37 +128,50 @@ var (
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.NtpServerFlag,
-		utils.TestnetFlag,
+		utils.DevinFlag,
+		utils.SnapshotFlag,
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.XceStatsURLFlag,
+		utils.XccStatsURLFlag,
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
+		utils.LegacyGpoBlocksFlag,
 		utils.GpoPercentileFlag,
+		utils.LegacyGpoPercentileFlag,
 		utils.EWASMInterpreterFlag,
 		utils.CVMInterpreterFlag,
 		configFileFlag,
 	}
 
 	rpcFlags = []cli.Flag{
-		utils.RPCEnabledFlag,
-		utils.RPCListenAddrFlag,
-		utils.RPCPortFlag,
-		utils.RPCCORSDomainFlag,
-		utils.RPCVirtualHostsFlag,
+		utils.HTTPEnabledFlag,
+		utils.HTTPListenAddrFlag,
+		utils.HTTPPortFlag,
+		utils.HTTPCORSDomainFlag,
+		utils.HTTPVirtualHostsFlag,
+		utils.LegacyRPCEnabledFlag,
+		utils.LegacyRPCListenAddrFlag,
+		utils.LegacyRPCPortFlag,
+		utils.LegacyRPCCORSDomainFlag,
+		utils.LegacyRPCVirtualHostsFlag,
 		utils.GraphQLEnabledFlag,
 		utils.GraphQLListenAddrFlag,
 		utils.GraphQLPortFlag,
 		utils.GraphQLCORSDomainFlag,
 		utils.GraphQLVirtualHostsFlag,
-		utils.RPCApiFlag,
+		utils.HTTPApiFlag,
+		utils.LegacyRPCApiFlag,
 		utils.WSEnabledFlag,
 		utils.WSListenAddrFlag,
+		utils.LegacyWSListenAddrFlag,
 		utils.WSPortFlag,
+		utils.LegacyWSPortFlag,
 		utils.WSApiFlag,
+		utils.LegacyWSApiFlag,
 		utils.WSAllowedOriginsFlag,
+		utils.LegacyWSAllowedOriginsFlag,
 		utils.IPCDisabledFlag,
 		utils.IPCPathFlag,
 		utils.InsecureUnlockAllowedFlag,
@@ -209,8 +223,10 @@ func init() {
 		javascriptCommand,
 		// See config.go
 		dumpConfigCommand,
-		// See retestxce.go
-		retestxceCommand,
+		// See retestxcc.go
+		retestxccCommand,
+		// See cmd/utils/flags_legacy.go
+		utils.ShowDeprecated,
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
 
@@ -218,6 +234,7 @@ func init() {
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, consoleFlags...)
 	app.Flags = append(app.Flags, debug.Flags...)
+	app.Flags = append(app.Flags, debug.DeprecatedFlags...)
 	app.Flags = append(app.Flags, whisperFlags...)
 	app.Flags = append(app.Flags, metricsFlags...)
 
@@ -243,8 +260,8 @@ func main() {
 func prepare(ctx *cli.Context) {
 	// If we're a full node on mainnet without --cache specified, bump default cache allowance
 	if ctx.GlobalString(utils.SyncModeFlag.Name) != "light" && !ctx.GlobalIsSet(utils.CacheFlag.Name) && !ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
-		// Make sure we're not on any supported preconfigured testnet either
-		if !ctx.GlobalIsSet(utils.TestnetFlag.Name) && !ctx.GlobalIsSet(utils.KolibaFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
+		// Make sure we're not on any supported preconfigured devin either
+		if !ctx.GlobalIsSet(utils.DevinFlag.Name) && !ctx.GlobalIsSet(utils.KolibaFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
 			// Nope, we're really on mainnet. Bump that cache up!
 			log.Info("Bumping default cache on mainnet", "provided", ctx.GlobalInt(utils.CacheFlag.Name), "updated", 4096)
 			ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(4096))
@@ -318,16 +335,16 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	if err != nil {
 		utils.Fatalf("Failed to attach to self: %v", err)
 	}
-	xceClient := xceclient.NewClient(rpcClient)
+	xccClient := xccclient.NewClient(rpcClient)
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
-	if ctx.GlobalInt(utils.LightLegacyServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var xceService *xce.Core
-		if err := stack.Service(&xceService); err != nil {
+	if ctx.GlobalInt(utils.LegacyLightServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
+		var xccService *xcc.Core
+		if err := stack.Service(&xccService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
 		}
-		xceService.SetContractBackend(xceClient)
+		xccService.SetContractBackend(xccClient)
 	}
 	// Set contract backend for les service if local node is
 	// running as a light client.
@@ -336,7 +353,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err := stack.Service(&lesService); err != nil {
 			utils.Fatalf("Failed to retrieve light core service: %v", err)
 		}
-		lesService.SetContractBackend(xceClient)
+		lesService.SetContractBackend(xccClient)
 	}
 
 	go func() {
@@ -363,7 +380,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 				}
 				derivationPaths = append(derivationPaths, accounts.DefaultBaseDerivationPath)
 
-				event.Wallet.SelfDerive(derivationPaths, xceClient)
+				event.Wallet.SelfDerive(derivationPaths, xccClient)
 
 			case accounts.WalletDropped:
 				log.Info("Old wallet dropped", "url", event.Wallet.URL())
@@ -402,21 +419,23 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var core *xce.Core
+		var core *xcc.Core
 		if err := stack.Service(&core); err != nil {
 			utils.Fatalf("Core service not running: %v", err)
 		}
 		// Set the energy price to the limits from the CLI and start mining
-		energyprice := utils.GlobalBig(ctx, utils.MinerLegacyEnergyPriceFlag.Name)
-		if ctx.IsSet(utils.MinerEnergyPriceFlag.Name) {
-			energyprice = utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
+		energyprice := utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
+		if ctx.GlobalIsSet(utils.LegacyMinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(utils.MinerEnergyPriceFlag.Name) {
+			energyprice = utils.GlobalBig(ctx, utils.LegacyMinerEnergyPriceFlag.Name)
 		}
 		core.TxPool().SetEnergyPrice(energyprice)
 
-		threads := ctx.GlobalInt(utils.MinerLegacyThreadsFlag.Name)
-		if ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
-			threads = ctx.GlobalInt(utils.MinerThreadsFlag.Name)
+		threads := ctx.GlobalInt(utils.MinerThreadsFlag.Name)
+		if ctx.GlobalIsSet(utils.LegacyMinerThreadsFlag.Name) && !ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
+			threads = ctx.GlobalInt(utils.LegacyMinerThreadsFlag.Name)
+			log.Warn("The flag --minerthreads is deprecated and will be removed in the future, please use --miner.threads")
 		}
+
 		if err := core.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}

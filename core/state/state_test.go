@@ -24,31 +24,33 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 var toAddr = common.BytesToAddress
 
 type stateTest struct {
-	db    xcedb.Database
+	db    xccdb.Database
 	state *StateDB
 }
 
 func newStateTest() *stateTest {
 	db := rawdb.NewMemoryDatabase()
-	sdb, _ := New(common.Hash{}, NewDatabase(db))
+	sdb, _ := New(common.Hash{}, NewDatabase(db), nil)
 	return &stateTest{db: db, state: sdb}
 }
 
 func TestDump(t *testing.T) {
 	s := newStateTest()
-
+	addr1, _ := common.HexToAddress("cb160000000000000000000000000000000000000102")
+	addr2, _ := common.HexToAddress("cb970000000000000000000000000000000000000002")
+	addr3, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
 	// generate a few entries
-	obj1 := s.state.GetOrNewStateObject(toAddr([]byte{0x01}))
+	obj1 := s.state.GetOrNewStateObject(addr1)
 	obj1.AddBalance(big.NewInt(22))
-	obj2 := s.state.GetOrNewStateObject(toAddr([]byte{0x01, 0x02}))
+	obj2 := s.state.GetOrNewStateObject(addr2)
 	obj2.SetCode(crypto.SHA3Hash([]byte{3, 3, 3, 3, 3, 3, 3}), []byte{3, 3, 3, 3, 3, 3, 3})
-	obj3 := s.state.GetOrNewStateObject(toAddr([]byte{0x02}))
+	obj3 := s.state.GetOrNewStateObject(addr3)
 	obj3.SetBalance(big.NewInt(44))
 
 	// write some of them to the trie
@@ -59,21 +61,21 @@ func TestDump(t *testing.T) {
 	// check that dump contains the state objects that are in trie
 	got := string(s.state.Dump(false, false, true))
 	want := `{
-    "root": "fa4329951cc8bcd4c2e29c3b57415e124543bf06773ea5600dfe29d8afe0c13b",
+    "root": "95a9f13431e866f3062ff44fb1556bc9199fda48f146d1f18f1e4a352a5dc94e",
     "accounts": {
-        "0x0000000000000000000000000000000000000001": {
+        "cb160000000000000000000000000000000000000102": {
             "balance": "22",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
         },
-        "0x0000000000000000000000000000000000000002": {
+        "cb270000000000000000000000000000000000000001": {
             "balance": "44",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
         },
-        "0x0000000000000000000000000000000000000102": {
+        "cb970000000000000000000000000000000000000002": {
             "balance": "0",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -89,7 +91,10 @@ func TestDump(t *testing.T) {
 
 func TestNull(t *testing.T) {
 	s := newStateTest()
-	address := common.HexToAddress("0x823140710bf13990e4500136726d8b55")
+	address, err := common.HexToAddress("cb9300000000823140710bf13990e4500136726d8b55")
+	if err != nil {
+		t.Error(err)
+	}
 	s.state.CreateAccount(address)
 	//value := common.FromHex("0x823140710bf13990e4500136726d8b55")
 	var value common.Hash
@@ -146,7 +151,7 @@ func TestSnapshotEmpty(t *testing.T) {
 }
 
 func TestSnapshot2(t *testing.T) {
-	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()))
+	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()), nil)
 
 	stateobjaddr0 := toAddr([]byte("so0"))
 	stateobjaddr1 := toAddr([]byte("so1"))

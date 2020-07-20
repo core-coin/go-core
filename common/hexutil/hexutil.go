@@ -61,10 +61,14 @@ func Decode(input string) ([]byte, error) {
 	if len(input) == 0 {
 		return nil, ErrEmptyString
 	}
+	prefix := 2
 	if !has0xPrefix(input) {
-		return nil, ErrMissingPrefix
+		if len(input) != 44 { // (len != 44) == (!common.Address)
+			return nil, ErrMissingPrefix
+		}
+		prefix = 0
 	}
-	b, err := hex.DecodeString(input[2:])
+	b, err := hex.DecodeString(input[prefix:])
 	if err != nil {
 		err = mapError(err)
 	}
@@ -194,7 +198,9 @@ func checkNumber(input string) (raw string, err error) {
 		return "", ErrEmptyString
 	}
 	if !has0xPrefix(input) {
-		return "", ErrMissingPrefix
+		if len(input) != 44 { // (len != 44) == (!common.Address)
+			return "", ErrMissingPrefix
+		}
 	}
 	input = input[2:]
 	if len(input) == 0 {

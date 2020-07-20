@@ -271,16 +271,23 @@ func TestHeadStorage(t *testing.T) {
 // Tests that receipts associated with a single block can be stored and retrieved.
 func TestBlockReceiptStorage(t *testing.T) {
 	db := NewMemoryDatabase()
-
+	addr1, err := common.HexToAddress("cb270000000000000000000000000000000000000001")
+	if err != nil {
+		t.Error(err)
+	}
+	addr2, err := common.HexToAddress("cb970000000000000000000000000000000000000002")
+	if err != nil {
+		t.Error(err)
+	}
 	// Create a live block since we need metadata to reconstruct the receipt
-	tx1 := types.NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil)
-	tx2 := types.NewTransaction(2, common.HexToAddress("0x2"), big.NewInt(2), 2, big.NewInt(2), nil)
+	tx1 := types.NewTransaction(1, addr1, big.NewInt(1), 1, big.NewInt(1), nil)
+	tx2 := types.NewTransaction(2, addr2, big.NewInt(2), 2, big.NewInt(2), nil)
 
 	body := &types.Body{Transactions: types.Transactions{tx1, tx2}}
 
 	// Create the two receipts to manage afterwards
 	receipt1 := &types.Receipt{
-		Status:            types.ReceiptStatusFailed,
+		Status:               types.ReceiptStatusFailed,
 		CumulativeEnergyUsed: 1,
 		Logs: []*types.Log{
 			{Address: common.BytesToAddress([]byte{0x11})},
@@ -288,12 +295,12 @@ func TestBlockReceiptStorage(t *testing.T) {
 		},
 		TxHash:          tx1.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-		EnergyUsed:         111111,
+		EnergyUsed:      111111,
 	}
 	receipt1.Bloom = types.CreateBloom(types.Receipts{receipt1})
 
 	receipt2 := &types.Receipt{
-		PostState:         common.Hash{2}.Bytes(),
+		PostState:            common.Hash{2}.Bytes(),
 		CumulativeEnergyUsed: 2,
 		Logs: []*types.Log{
 			{Address: common.BytesToAddress([]byte{0x22})},
@@ -301,7 +308,7 @@ func TestBlockReceiptStorage(t *testing.T) {
 		},
 		TxHash:          tx2.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-		EnergyUsed:         222222,
+		EnergyUsed:      222222,
 	}
 	receipt2.Bloom = types.CreateBloom(types.Receipts{receipt2})
 	receipts := []*types.Receipt{receipt1, receipt2}

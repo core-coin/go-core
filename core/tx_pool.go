@@ -48,7 +48,7 @@ const (
 	// non-trivial consequences: larger transactions are significantly harder and
 	// more expensive to propagate; larger transactions also take more resources
 	// to validate whether they fit into the pool or not.
-	txMaxSize = 2 * txSlotSize // 64KB, don't bump without CIP-2464 support
+	txMaxSize = 4 * txSlotSize // 128KB
 )
 
 var (
@@ -228,14 +228,14 @@ type TxPool struct {
 	config      TxPoolConfig
 	chainconfig *params.ChainConfig
 	chain       blockChain
-	energyPrice    *big.Int
+	energyPrice *big.Int
 	txFeed      event.Feed
 	scope       event.SubscriptionScope
 	signer      types.Signer
 	mu          sync.RWMutex
 
-	currentState  *state.StateDB // Current state in the blockchain head
-	pendingNonces *txNoncer      // Pending state tracking virtual nonces
+	currentState     *state.StateDB // Current state in the blockchain head
+	pendingNonces    *txNoncer      // Pending state tracking virtual nonces
 	currentMaxEnergy uint64         // Current energy limit for transaction caps
 
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
@@ -272,7 +272,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		config:          config,
 		chainconfig:     chainconfig,
 		chain:           chain,
-		signer:          types.NewCIP155Signer(chainconfig.ChainID),
+		signer:          types.NewNucleusSigner(chainconfig.ChainID),
 		pending:         make(map[common.Address]*txList),
 		queue:           make(map[common.Address]*txList),
 		beats:           make(map[common.Address]time.Time),
@@ -283,7 +283,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		queueTxEventCh:  make(chan *types.Transaction),
 		reorgDoneCh:     make(chan chan struct{}),
 		reorgShutdownCh: make(chan struct{}),
-		energyPrice:        new(big.Int).SetUint64(config.PriceLimit),
+		energyPrice:     new(big.Int).SetUint64(config.PriceLimit),
 	}
 	pool.locals = newAccountSet(pool.signer)
 	for _, addr := range config.Locals {
@@ -540,7 +540,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
-		return ErrInvalidSender
+		return err
 	}
 	// Drop non-local transactions under our own minimal accepted energy price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
@@ -605,7 +605,10 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 		}
 	}
 	// Try to replace an existing transaction in the pending pool
-	from, _ := types.Sender(pool.signer, tx) // already validated
+	from, errSender := types.Sender(pool.signer, tx) // already validated
+	if errSender != nil {
+		return false, errSender
+	}
 	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
 		// Nonce already pending, check if required price bump is met
 		inserted, old := list.Add(tx, pool.config.PriceBump)
@@ -652,7 +655,10 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 // Note, this method assumes the pool lock is held!
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	from, _ := types.Sender(pool.signer, tx) // already validated
+	from, errSender := types.Sender(pool.signer, tx) // already validated
+	if errSender != nil {
+		return false, errSender
+	}
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -879,8 +885,10 @@ func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
 	if tx == nil {
 		return
 	}
-	addr, _ := types.Sender(pool.signer, tx) // already validated during insertion
-
+	addr, errSender := types.Sender(pool.signer, tx)
+	if errSender != nil {
+		return
+	}
 	// Remove it from the list of known transactions
 	pool.all.Remove(hash)
 	if outofbound {

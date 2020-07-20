@@ -21,13 +21,13 @@ package main
 
 import (
 	"bufio"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -97,6 +97,7 @@ var (
 	argMaxSize   = flag.Uint("maxsize", uint(whisper.DefaultMaxMessageSize), "max size of message")
 	argPoW       = flag.Float64("pow", whisper.DefaultMinimumPoW, "PoW for normal messages in float format (e.g. 2.7)")
 	argServerPoW = flag.Float64("mspow", whisper.DefaultMinimumPoW, "PoW requirement for Mail Server request")
+	argNetworkId = flag.Int64("networkid", common.DefaultNetworkID.Int64(), "network id (by default 1 (Mainnet))")
 
 	argIP      = flag.String("ip", "", "IP address and port of this node (e.g. 127.0.0.1:30300)")
 	argPub     = flag.String("pub", "", "public key for asymmetric encryption")
@@ -154,6 +155,8 @@ func processArgs() {
 	} else if *fileExMode {
 		utils.Fatalf("Parameter 'savedir' is mandatory for file exchange mode")
 	}
+
+	common.DefaultNetworkID = common.NetworkID(*argNetworkId)
 
 	if *echoMode {
 		echo()
@@ -599,6 +602,7 @@ func messageLoop() {
 	}
 
 	ticker := time.NewTicker(time.Millisecond * 50)
+	defer ticker.Stop()
 
 	for {
 		select {

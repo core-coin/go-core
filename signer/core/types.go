@@ -67,12 +67,12 @@ func (v *ValidationMessages) getWarnings() error {
 
 // SendTxArgs represents the arguments to submit a transaction
 type SendTxArgs struct {
-	From     common.MixedcaseAddress  `json:"from"`
-	To       *common.MixedcaseAddress `json:"to"`
-	Energy      hexutil.Uint64           `json:"energy"`
-	EnergyPrice hexutil.Big              `json:"energyPrice"`
-	Value    hexutil.Big              `json:"value"`
-	Nonce    hexutil.Uint64           `json:"nonce"`
+	From        common.Address  `json:"from"`
+	To          *common.Address `json:"to"`
+	Energy      hexutil.Uint64  `json:"energy"`
+	EnergyPrice hexutil.Big     `json:"energyPrice"`
+	Value       hexutil.Big     `json:"value"`
+	Nonce       hexutil.Uint64  `json:"nonce"`
 	// We accept "data" and "input" for backwards-compatibility reasons.
 	Data  *hexutil.Bytes `json:"data"`
 	Input *hexutil.Bytes `json:"input,omitempty"`
@@ -96,5 +96,5 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 	if args.To == nil {
 		return types.NewContractCreation(uint64(args.Nonce), (*big.Int)(&args.Value), uint64(args.Energy), (*big.Int)(&args.EnergyPrice), input)
 	}
-	return types.NewTransaction(uint64(args.Nonce), args.To.Address(), (*big.Int)(&args.Value), (uint64)(args.Energy), (*big.Int)(&args.EnergyPrice), input)
+	return types.NewTransaction(uint64(args.Nonce), *args.To, (*big.Int)(&args.Value), (uint64)(args.Energy), (*big.Int)(&args.EnergyPrice), input)
 }

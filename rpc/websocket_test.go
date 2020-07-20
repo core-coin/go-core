@@ -130,7 +130,7 @@ func TestClientWebsocketPing(t *testing.T) {
 		t.Fatalf("client dial error: %v", err)
 	}
 	resultChan := make(chan int)
-	sub, err := client.XceSubscribe(ctx, resultChan, "foo")
+	sub, err := client.XccSubscribe(ctx, resultChan, "foo")
 	if err != nil {
 		t.Fatalf("client subscribe error: %v", err)
 	}
@@ -142,6 +142,7 @@ func TestClientWebsocketPing(t *testing.T) {
 
 	// Wait for the subscription result.
 	timeout := time.NewTimer(5 * time.Second)
+	defer timeout.Stop()
 	for {
 		select {
 		case err := <-sub.Err():
@@ -192,10 +193,10 @@ func wsPingTestServer(t *testing.T, sendPing <-chan struct{}) *http.Server {
 }
 
 func wsPingTestHandler(t *testing.T, conn *websocket.Conn, shutdown, sendPing <-chan struct{}) {
-	// Canned responses for the xce_subscribe call in TestClientWebsocketPing.
+	// Canned responses for the xcc_subscribe call in TestClientWebsocketPing.
 	const (
 		subResp   = `{"jsonrpc":"2.0","id":1,"result":"0x00"}`
-		subNotify = `{"jsonrpc":"2.0","method":"xce_subscription","params":{"subscription":"0x00","result":1}}`
+		subNotify = `{"jsonrpc":"2.0","method":"xcc_subscription","params":{"subscription":"0x00","result":1}}`
 	)
 
 	// Handle subscribe request.
@@ -227,9 +228,11 @@ func wsPingTestHandler(t *testing.T, conn *websocket.Conn, shutdown, sendPing <-
 
 	// Write messages.
 	var (
-		sendResponse <-chan time.Time
-		wantPong     string
+		wantPong string
+		timer    = time.NewTimer(0)
 	)
+	defer timer.Stop()
+	<-timer.C
 	for {
 		select {
 		case _, open := <-sendPing:
@@ -246,11 +249,10 @@ func wsPingTestHandler(t *testing.T, conn *websocket.Conn, shutdown, sendPing <-
 				t.Errorf("got pong with wrong data %q", data)
 			}
 			wantPong = ""
-			sendResponse = time.NewTimer(200 * time.Millisecond).C
-		case <-sendResponse:
+			timer.Reset(200 * time.Millisecond)
+		case <-timer.C:
 			t.Logf("server sending response")
 			conn.WriteMessage(websocket.TextMessage, []byte(subNotify))
-			sendResponse = nil
 		case <-shutdown:
 			conn.Close()
 			return

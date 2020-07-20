@@ -35,13 +35,15 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcedb"
+	"github.com/core-coin/go-core/xccdb"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
 //go:generate gencodec -type GenesisAccount -field-override genesisAccountMarshaling -out gen_genesis_account.go
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
+
+var defaultCoinbase, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
@@ -151,7 +153,7 @@ func (e *GenesisMismatchError) Error() string {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func SetupGenesisBlock(db xcedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+func SetupGenesisBlock(db xccdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllCryptoreProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -174,7 +176,7 @@ func SetupGenesisBlock(db xcedb.Database, genesis *Genesis) (*params.ChainConfig
 	// We have the genesis block in database(perhaps in ancient database)
 	// but the corresponding state is missing.
 	header := rawdb.ReadHeader(db, stored, 0)
-	if _, err := state.New(header.Root, state.NewDatabaseWithCache(db, 0)); err != nil {
+	if _, err := state.New(header.Root, state.NewDatabaseWithCache(db, 0), nil); err != nil {
 		if genesis == nil {
 			genesis = DefaultGenesisBlock()
 		}
@@ -236,8 +238,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
 		return params.MainnetChainConfig
-	case ghash == params.TestnetGenesisHash:
-		return params.TestnetChainConfig
+	case ghash == params.DevinGenesisHash:
+		return params.DevinChainConfig
 	default:
 		return params.AllCryptoreProtocolChanges
 	}
@@ -245,11 +247,11 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 
 // ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
-func (g *Genesis) ToBlock(db xcedb.Database) *types.Block {
+func (g *Genesis) ToBlock(db xccdb.Database) *types.Block {
 	if db == nil {
 		db = rawdb.NewMemoryDatabase()
 	}
-	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db))
+	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db), nil)
 	for addr, account := range g.Alloc {
 		statedb.AddBalance(addr, account.Balance)
 		statedb.SetCode(addr, account.Code)
@@ -286,7 +288,7 @@ func (g *Genesis) ToBlock(db xcedb.Database) *types.Block {
 
 // Commit writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
-func (g *Genesis) Commit(db xcedb.Database) (*types.Block, error) {
+func (g *Genesis) Commit(db xccdb.Database) (*types.Block, error) {
 	block := g.ToBlock(db)
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
@@ -311,7 +313,7 @@ func (g *Genesis) Commit(db xcedb.Database) (*types.Block, error) {
 
 // MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
-func (g *Genesis) MustCommit(db xcedb.Database) *types.Block {
+func (g *Genesis) MustCommit(db xccdb.Database) *types.Block {
 	block, err := g.Commit(db)
 	if err != nil {
 		panic(err)
@@ -320,14 +322,17 @@ func (g *Genesis) MustCommit(db xcedb.Database) *types.Block {
 }
 
 // GenesisBlockForTesting creates and writes a block in which addr has the given ore balance.
-func GenesisBlockForTesting(db xcedb.Database, addr common.Address, balance *big.Int) *types.Block {
-	g := Genesis{Alloc: GenesisAlloc{addr: {Balance: balance}}}
+func GenesisBlockForTesting(db xccdb.Database, addr common.Address, balance *big.Int) *types.Block {
+	g := Genesis{
+		Coinbase: defaultCoinbase,
+		Alloc:    GenesisAlloc{addr: {Balance: balance}}}
 	return g.MustCommit(db)
 }
 
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      params.MainnetChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
@@ -337,21 +342,23 @@ func DefaultGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultTestnetGenesisBlock returns the Testnet network genesis block.
-func DefaultTestnetGenesisBlock() *Genesis {
+// DefaultDevinGenesisBlock returns the Devin network genesis block.
+func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:      params.TestnetChainConfig,
+		Coinbase:    defaultCoinbase,
+		Config:      params.DevinChainConfig,
 		Nonce:       66,
 		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
 		EnergyLimit: 16777216,
 		Difficulty:  big.NewInt(1048576),
-		Alloc:       decodePrealloc(testnetAllocData),
+		Alloc:       decodePrealloc(devinAllocData),
 	}
 }
 
 // DefaultKolibaGenesisBlock returns the Koliba network genesis block.
 func DefaultKolibaGenesisBlock() *Genesis {
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      params.KolibaChainConfig,
 		Timestamp:   1548854791,
 		ExtraData:   hexutil.MustDecode("0x22466c6578692069732061207468696e6722202d204166726900000000000000e0a2bd4258d2768837baa26a28fe71dc079f84c70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
@@ -369,6 +376,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{
+		Coinbase:    defaultCoinbase,
 		Config:      &config,
 		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
 		EnergyLimit: 6283185,

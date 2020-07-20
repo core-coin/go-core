@@ -26,6 +26,14 @@ import (
 )
 
 func TestInterfaceGetSet(t *testing.T) {
+	deadbeef, err := common.HexToAddress("cb4812345678123456781234567812345678deadbeef")
+	if err != nil {
+		t.Error(err)
+	}
+	cafebabe, err := common.HexToAddress("cb9512345678123456781234567812345678cafebabe")
+	if err != nil {
+		t.Error(err)
+	}
 	var tests = []struct {
 		method string
 		input  interface{}
@@ -38,8 +46,8 @@ func TestInterfaceGetSet(t *testing.T) {
 		{"Strings", &Strings{strs: []string{"hello", "world"}}, &Strings{strs: []string{"hello", "world"}}},
 		{"Binary", []byte{0x01, 0x02}, []byte{0x01, 0x02}},
 		{"Binaries", &Binaries{[][]byte{{0x01, 0x02}, {0x03, 0x04}}}, &Binaries{[][]byte{{0x01, 0x02}, {0x03, 0x04}}}},
-		{"Address", &Address{common.HexToAddress("deadbeef")}, &Address{common.HexToAddress("deadbeef")}},
-		{"Addresses", &Addresses{[]common.Address{common.HexToAddress("deadbeef"), common.HexToAddress("cafebabe")}}, &Addresses{[]common.Address{common.HexToAddress("deadbeef"), common.HexToAddress("cafebabe")}}},
+		{"Address", &Address{deadbeef}, &Address{deadbeef}},
+		{"Addresses", &Addresses{[]common.Address{deadbeef, cafebabe}}, &Addresses{[]common.Address{deadbeef, cafebabe}}},
 		{"Hash", &Hash{common.HexToHash("deadbeef")}, &Hash{common.HexToHash("deadbeef")}},
 		{"Hashes", &Hashes{[]common.Hash{common.HexToHash("deadbeef"), common.HexToHash("cafebabe")}}, &Hashes{[]common.Hash{common.HexToHash("deadbeef"), common.HexToHash("cafebabe")}}},
 		{"Int8", int8(1), int8(1)},

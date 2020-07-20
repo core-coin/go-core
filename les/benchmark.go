@@ -17,11 +17,11 @@
 package les
 
 import (
+	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"math/big"
 	"math/rand"
-	crand "crypto/rand"
 	"sync"
 	"time"
 
@@ -175,7 +175,7 @@ type benchmarkTxSend struct {
 func (b *benchmarkTxSend) init(h *serverHandler, count int) error {
 	key, _ := crypto.GenerateKey(crand.Reader)
 	addr := crypto.PubkeyToAddress(key.PublicKey)
-	signer := types.NewCIP155Signer(big.NewInt(18))
+	signer := types.NewNucleusSigner(big.NewInt(18))
 	b.txs = make(types.Transactions, count)
 
 	for i := range b.txs {

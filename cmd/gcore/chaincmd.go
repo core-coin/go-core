@@ -33,10 +33,11 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xce/downloader"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcc/downloader"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -48,6 +49,7 @@ var (
 		ArgsUsage: "<genesisPath>",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -64,6 +66,7 @@ It expects the genesis file as argument.`,
 		ArgsUsage: "",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -79,8 +82,18 @@ The dumpgenesis command dumps the genesis block configuration in JSON format to 
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 			utils.GCModeFlag,
+			utils.SnapshotFlag,
 			utils.CacheDatabaseFlag,
 			utils.CacheGCFlag,
+			utils.MetricsEnabledFlag,
+			utils.MetricsEnabledExpensiveFlag,
+			utils.MetricsEnableInfluxDBFlag,
+			utils.MetricsInfluxDBEndpointFlag,
+			utils.MetricsInfluxDBDatabaseFlag,
+			utils.MetricsInfluxDBUsernameFlag,
+			utils.MetricsInfluxDBPasswordFlag,
+			utils.MetricsInfluxDBTagsFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -99,6 +112,7 @@ processing will proceed even if an individual RLP-file import failure occurs.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -117,6 +131,7 @@ be gzipped.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -131,6 +146,7 @@ be gzipped.`,
 			utils.DataDirFlag,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -146,7 +162,8 @@ The export-preimages command export hash preimages to an RLP encoded stream`,
 			utils.CacheFlag,
 			utils.SyncModeFlag,
 			utils.FakePoWFlag,
-			utils.TestnetFlag,
+			utils.DevinFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -159,6 +176,7 @@ The first argument must be the directory containing the blockchain to download f
 		ArgsUsage: " ",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -177,6 +195,7 @@ Remove blockchain and state databases`,
 			utils.ExcludeCodeFlag,
 			utils.ExcludeStorageFlag,
 			utils.IncludeIncompletesFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
@@ -192,9 +211,10 @@ Use "core dump 0" to dump the genesis block.`,
 			utils.DataDirFlag,
 			utils.AncientFlag,
 			utils.CacheFlag,
-			utils.TestnetFlag,
+			utils.DevinFlag,
 			utils.KolibaFlag,
 			utils.SyncModeFlag,
+			utils.NetworkIdFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 	}
@@ -252,6 +272,10 @@ func importChain(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {
 		utils.Fatalf("This command requires an argument.")
 	}
+	// Start metrics export if enabled
+	utils.SetupMetrics(ctx)
+	// Start system runtime metrics collection
+	go metrics.CollectProcessMetrics(3 * time.Second)
 	stack := makeFullNode(ctx)
 	defer stack.Close()
 
@@ -475,7 +499,7 @@ func removeDB(ctx *cli.Context) error {
 		log.Info("Full node state database missing", "path", path)
 	}
 	// Remove the full node ancient database
-	path = config.Xce.DatabaseFreezer
+	path = config.Xcc.DatabaseFreezer
 	switch {
 	case path == "":
 		path = filepath.Join(stack.ResolvePath("chaindata"), "ancient")
@@ -542,7 +566,7 @@ func dump(ctx *cli.Context) error {
 			fmt.Println("{}")
 			utils.Fatalf("block not found")
 		} else {
-			state, err := state.New(block.Root(), state.NewDatabase(chainDb))
+			state, err := state.New(block.Root(), state.NewDatabase(chainDb), nil)
 			if err != nil {
 				utils.Fatalf("could not create new state: %v", err)
 			}

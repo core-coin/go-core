@@ -19,9 +19,9 @@ package main
 
 import (
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"flag"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"net"
 	"os"
 
@@ -88,7 +88,6 @@ func main() {
 	if *genKey != "" || *writeAddr {
 		fmt.Printf("%x\n", crypto.FromEDDSA(nodeKey))
 		fmt.Printf("%x\n", crypto.FromEDDSAPub(&nodeKey.PublicKey))
-		fmt.Printf("%x\n", crypto.PubkeyToAddress(nodeKey.PublicKey))
 		return
 	}
 

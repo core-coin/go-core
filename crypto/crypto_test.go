@@ -18,8 +18,8 @@ package crypto
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -27,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common"
 )
 
-var testAddrHex = "a71d3dacb1a805776cb9c17785f040babcbb9fc1"
+var testAddrHex = "cb26b2a6f9a2c6925d2407314b99518f8109156d0b09"
 var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
 
 // These tests are sanity checks.
@@ -76,8 +76,10 @@ func TestUnmarshalPubkey(t *testing.T) {
 
 func TestSign(t *testing.T) {
 	key, _ := HexToEDDSA(testPrivHex)
-	addr := common.HexToAddress(testAddrHex)
-
+	addr, err := common.HexToAddress(testAddrHex)
+	if err != nil {
+		t.Error(err)
+	}
 	msg := SHA3([]byte("foo"))
 	sig, err := Sign(msg, key)
 	if err != nil {
@@ -115,25 +117,41 @@ func TestInvalidSign(t *testing.T) {
 
 func TestNewContractAddress(t *testing.T) {
 	key, _ := HexToEDDSA(testPrivHex)
-	addr := common.HexToAddress(testAddrHex)
+	addr, err := common.HexToAddress(testAddrHex)
+	if err != nil {
+		t.Error(err)
+	}
 	genAddr := PubkeyToAddress(key.PublicKey)
 	// sanity check before using addr to create contract address
 	checkAddr(t, genAddr, addr)
-
 	caddr0 := CreateAddress(addr, 0)
 	caddr1 := CreateAddress(addr, 1)
 	caddr2 := CreateAddress(addr, 2)
-	checkAddr(t, common.HexToAddress("559b8fac1f1d461b2d5290f7b9842b6d4639c64d"), caddr0)
-	checkAddr(t, common.HexToAddress("57cdb68eff4c94d32c1c05e86c51523275c21b14"), caddr1)
-	checkAddr(t, common.HexToAddress("3e2167f5410179d06724f50253c90a2c3e154be1"), caddr2)
+
+	addr0, err := common.HexToAddress("cb045175867858103f849c7ab4b8a5f9284295ed33fb")
+	if err != nil {
+		t.Error(err)
+	}
+	addr1, err := common.HexToAddress("cb83ef5c322194131ae16cdcb7dae75f0f51bded4f55")
+	if err != nil {
+		t.Error(err)
+	}
+	addr2, err := common.HexToAddress("cb85ed1b013357fc96403540a4eddc322c0df29f3d63")
+	if err != nil {
+		t.Error(err)
+	}
+	checkAddr(t, addr0, caddr0)
+	checkAddr(t, addr1, caddr1)
+	checkAddr(t, addr2, caddr2)
 }
 
 func TestLoadEDDSAFile(t *testing.T) {
 	keyBytes := common.FromHex(testPrivHex)
 	fileName0 := "test_key0"
 	fileName1 := "test_key1"
+	addr, _ := common.HexToAddress(testAddrHex)
 	checkKey := func(k *eddsa.PrivateKey) {
-		checkAddr(t, PubkeyToAddress(k.PublicKey), common.HexToAddress(testAddrHex))
+		checkAddr(t, PubkeyToAddress(k.PublicKey), addr)
 		loadedKeyBytes := FromEDDSA(k)
 		if !bytes.Equal(loadedKeyBytes, keyBytes) {
 			t.Fatalf("private key mismatch: want: %x have: %x", keyBytes, loadedKeyBytes)

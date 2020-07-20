@@ -42,14 +42,12 @@ func TestIsHexAddress(t *testing.T) {
 		str string
 		exp bool
 	}{
-		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
-		{"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
-		{"0X5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
-		{"0XAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
-		{"0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
+		{"cc115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
+		{"ca115aaeb6053f3e94c9b9a09f33669435e7ef1beaed", true},
+		{"cf11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
+		{"cd11AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", true},
 		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed1", false},
 		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beae", false},
-		{"5aaeb6053f3e94c9b9a09f33669435e7ef1beaed11", false},
 		{"0xxaaeb6053f3e94c9b9a09f33669435e7ef1beaed", false},
 	}
 
@@ -91,6 +89,8 @@ func TestHashJsonValidation(t *testing.T) {
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
+	firstValue, _ := new(big.Int).SetString("76119257383693214163347625799180543036016898731827897", 10)
+	secondValue, _ := new(big.Int).SetString("76029076697074162734871399364090302227946215290884425", 10)
 	var tests = []struct {
 		Input     string
 		ShouldErr bool
@@ -101,8 +101,11 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"0x"`, true, nil},
 		{`"0x00"`, true, nil},
 		{`"0xG000000000000000000000000000000000000000"`, true, nil},
-		{`"0x0000000000000000000000000000000000000000"`, false, big.NewInt(0)},
-		{`"0x0000000000000000000000000000000000000010"`, false, big.NewInt(16)},
+		{`"cd41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil}, // wrong prefix (network id = 1)
+		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},   // without prefix
+		{`"e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},     // without prefix and checksum
+		{`"cb35348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
+		{`"cb72e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
 	}
 	for i, test := range tests {
 		var v Address
@@ -121,78 +124,14 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestAddressHexChecksum(t *testing.T) {
-	var tests = []struct {
-		Input  string
-		Output string
-	}{
-		// Test cases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-55.md#specification
-		{"0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed", "0x5aaeb6053f3E94C9b9A09f33669435E7EF1Beaed"},
-		{"0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359", "0xFB6916095Ca1df60BB79ce92Ce3eA74c37c5d359"},
-		{"0xdbf03b407c01e7cd3cbea99509d93f8dddc8c6fb", "0xDBf03B407c01e7cd3CbEa99509D93F8dddc8C6fB"},
-		{"0xd1220a0cf47c7b9be7a2e6ba89f429762e7b9adb", "0xD1220a0Cf47c7B9bE7a2E6BA89f429762E7B9AdB"},
-		// Ensure that non-standard length input values are handled correctly
-		{"0xa", "0x000000000000000000000000000000000000000a"},
-		{"0x0a", "0x000000000000000000000000000000000000000a"},
-		{"0x00a", "0x000000000000000000000000000000000000000a"},
-		{"0x000000000000000000000000000000000000000a", "0x000000000000000000000000000000000000000a"},
-	}
-	for i, test := range tests {
-		output := HexToAddress(test.Input).Hex()
-		if output != test.Output {
-			t.Errorf("test #%d: failed to match when it should (%s != %s)", i, output, test.Output)
-		}
-	}
-}
-
 func BenchmarkAddressHex(b *testing.B) {
-	testAddr := HexToAddress("0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
+	testAddr, err := HexToAddress("cb335aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
+	if err != nil {
+		b.Error(err)
+	}
 	for n := 0; n < b.N; n++ {
 		testAddr.Hex()
 	}
-}
-
-func TestMixedcaseAccount_Address(t *testing.T) {
-
-	// https://github.com/core-coin/CIPs/blob/master/CIPS/cip-55.md
-	// Note: 0X{checksum_addr} is not valid according to spec above
-
-	var res []struct {
-		A     MixedcaseAddress
-		Valid bool
-	}
-	if err := json.Unmarshal([]byte(`[
-		{"A" : "0xae967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
-		{"A" : "0xae967917C465DB8578Ca9024c205720B1a3651a9", "Valid": true},
-		{"A" : "0XAe967917c465db8578ca9024c205720b1a3651A9", "Valid": false},
-		{"A" : "0x1111111111111111111112222222222223333323", "Valid": true}
-		]`), &res); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, r := range res {
-		if got := r.A.ValidChecksum(); got != r.Valid {
-			t.Errorf("Expected checksum %v, got checksum %v, input %v", r.Valid, got, r.A.String())
-		}
-	}
-
-	//These should throw exceptions:
-	var r2 []MixedcaseAddress
-	for _, r := range []string{
-		`["0x11111111111111111111122222222222233333"]`,     // Too short
-		`["0x111111111111111111111222222222222333332"]`,    // Too short
-		`["0x11111111111111111111122222222222233333234"]`,  // Too long
-		`["0x111111111111111111111222222222222333332344"]`, // Too long
-		`["1111111111111111111112222222222223333323"]`,     // Missing 0x
-		`["x1111111111111111111112222222222223333323"]`,    // Missing 0
-		`["0xG111111111111111111112222222222223333323"]`,   //Non-hex
-	} {
-		if err := json.Unmarshal([]byte(r), &r2); err == nil {
-			t.Errorf("Expected failure, input %v", r)
-		}
-
-	}
-
 }
 
 func TestHash_Scan(t *testing.T) {
@@ -298,6 +237,7 @@ func TestAddress_Scan(t *testing.T) {
 		{
 			name: "working scan",
 			args: args{src: []byte{
+				0xcc, 0x01,
 				0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
 				0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
 			}},
@@ -311,7 +251,7 @@ func TestAddress_Scan(t *testing.T) {
 		{
 			name: "invalid length scan",
 			args: args{src: []byte{
-				0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
+				0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6,
 				0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a,
 			}},
 			wantErr: true,
@@ -340,6 +280,7 @@ func TestAddress_Scan(t *testing.T) {
 
 func TestAddress_Value(t *testing.T) {
 	b := []byte{
+		0xcc, 0x01,
 		0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
 		0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
 	}

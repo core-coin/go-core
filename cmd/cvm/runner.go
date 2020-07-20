@@ -70,14 +70,13 @@ func readGenesis(genesisPath string) *core.Genesis {
 	return genesis
 }
 
-func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uint64, time.Duration, error) {
-	var (
-		output   []byte
-		energyLeft  uint64
-		execTime time.Duration
-		err      error
-	)
+type execStats struct {
+	time           time.Duration // The execution time.
+	allocs         int64         // The number of heap allocations during execution.
+	bytesAllocated int64         // The cumulative number of bytes allocated during execution.
+}
 
+func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) (output []byte, energyLeft uint64, stats execStats, err error) {
 	if bench {
 		result := testing.Benchmark(func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -87,14 +86,21 @@ func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) ([]byte, uin
 
 		// Get the average execution time from the benchmarking result.
 		// There are other useful stats here that could be reported.
-		execTime = time.Duration(result.NsPerOp())
+		stats.time = time.Duration(result.NsPerOp())
+		stats.allocs = result.AllocsPerOp()
+		stats.bytesAllocated = result.AllocedBytesPerOp()
 	} else {
+		var memStatsBefore, memStatsAfter goruntime.MemStats
+		goruntime.ReadMemStats(&memStatsBefore)
 		startTime := time.Now()
 		output, energyLeft, err = execFunc()
-		execTime = time.Since(startTime)
+		stats.time = time.Since(startTime)
+		goruntime.ReadMemStats(&memStatsAfter)
+		stats.allocs = int64(memStatsAfter.Mallocs - memStatsBefore.Mallocs)
+		stats.bytesAllocated = int64(memStatsAfter.TotalAlloc - memStatsBefore.TotalAlloc)
 	}
 
-	return output, energyLeft, execTime, err
+	return output, energyLeft, stats, err
 }
 
 func runCmd(ctx *cli.Context) error {
@@ -129,19 +135,31 @@ func runCmd(ctx *cli.Context) error {
 		genesisConfig = gen
 		db := rawdb.NewMemoryDatabase()
 		genesis := gen.ToBlock(db)
-		statedb, _ = state.New(genesis.Root(), state.NewDatabase(db))
+		statedb, _ = state.New(genesis.Root(), state.NewDatabase(db), nil)
 		chainConfig = gen.Config
 	} else {
-		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()))
+		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
 		genesisConfig = new(core.Genesis)
+		chainConfig = params.AllCryptoreProtocolChanges
 	}
+
+	common.DefaultNetworkID = common.NetworkID(chainConfig.ChainID.Int64())
+
 	if ctx.GlobalString(SenderFlag.Name) != "" {
-		sender = common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		if err != nil {
+			return err
+		}
+		sender = addr
 	}
 	statedb.CreateAccount(sender)
 
 	if ctx.GlobalString(ReceiverFlag.Name) != "" {
-		receiver = common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		addr, err := common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		if err != nil {
+			return err
+		}
+		receiver = addr
 	}
 
 	var code []byte
@@ -195,13 +213,14 @@ func runCmd(ctx *cli.Context) error {
 	runtimeConfig := runtime.Config{
 		Origin:      sender,
 		State:       statedb,
-		EnergyLimit:    initialEnergy,
-		EnergyPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
+		EnergyLimit: initialEnergy,
+		EnergyPrice: utils.GlobalBig(ctx, PriceFlag.Name),
 		Value:       utils.GlobalBig(ctx, ValueFlag.Name),
 		Difficulty:  genesisConfig.Difficulty,
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),
 		Coinbase:    genesisConfig.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(genesisConfig.Number),
+		ChainConfig: chainConfig,
 		CVMConfig: vm.Config{
 			Tracer:         tracer,
 			Debug:          ctx.GlobalBool(DebugFlag.Name) || ctx.GlobalBool(MachineFlag.Name),
@@ -220,12 +239,6 @@ func runCmd(ctx *cli.Context) error {
 			os.Exit(1)
 		}
 		defer pprof.StopCPUProfile()
-	}
-
-	if chainConfig != nil {
-		runtimeConfig.ChainConfig = chainConfig
-	} else {
-		runtimeConfig.ChainConfig = params.AllCryptoreProtocolChanges
 	}
 
 	var hexInput []byte
@@ -256,7 +269,8 @@ func runCmd(ctx *cli.Context) error {
 		}
 	}
 
-	output, leftOverEnergy, execTime, err := timedExec(ctx.GlobalBool(BenchFlag.Name), execFunc)
+	bench := ctx.GlobalBool(BenchFlag.Name)
+	output, leftOverEnergy, stats, err := timedExec(bench, execFunc)
 
 	if ctx.GlobalBool(DumpFlag.Name) {
 		statedb.Commit(true)
@@ -286,17 +300,12 @@ func runCmd(ctx *cli.Context) error {
 		vm.WriteLogs(os.Stderr, statedb.Logs())
 	}
 
-	if ctx.GlobalBool(StatDumpFlag.Name) {
-		var mem goruntime.MemStats
-		goruntime.ReadMemStats(&mem)
-		fmt.Fprintf(os.Stderr, `cvm execution time: %v
-heap objects:       %d
+	if bench || ctx.GlobalBool(StatDumpFlag.Name) {
+		fmt.Fprintf(os.Stderr, `CVM energy used:    %d
+execution time:     %v
 allocations:        %d
-total allocations:  %d
-GC calls:           %d
-Energy used:           %d
-
-`, execTime, mem.HeapObjects, mem.Alloc, mem.TotalAlloc, mem.NumGC, initialEnergy-leftOverEnergy)
+allocated bytes:    %d
+`, initialEnergy-leftOverEnergy, stats.time, stats.allocs, stats.bytesAllocated)
 	}
 	if tracer == nil {
 		fmt.Printf("0x%x\n", output)

@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/log"
 )
 
-// makeWizard creates and returns a new puppxce wizard.
+// makeWizard creates and returns a new puppxcc wizard.
 func makeWizard(network string) *wizard {
 	return &wizard{
 		network: network,
@@ -49,7 +49,7 @@ func (w *wizard) run() {
 	fmt.Println("| Welcome to puppeth, your Core private network manager |")
 	fmt.Println("|                                                           |")
 	fmt.Println("| This tool lets you create a new Core network down to  |")
-	fmt.Println("| the genesis block, bootnodes, miners and xcestats servers |")
+	fmt.Println("| the genesis block, bootnodes, miners and xccstats servers |")
 	fmt.Println("| without the hassle that it would normally entail.         |")
 	fmt.Println("|                                                           |")
 	fmt.Println("| Puppeth uses SSH to dial in to remote servers, and builds |")
@@ -143,7 +143,7 @@ func (w *wizard) run() {
 				case choice == "2":
 					w.importGenesis()
 				default:
-					log.Error("That's not somxceing I can do")
+					log.Error("That's not something I can do")
 				}
 			} else {
 				w.manageGenesis()

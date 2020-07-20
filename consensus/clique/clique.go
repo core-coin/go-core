@@ -33,11 +33,11 @@ import (
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcedb"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/xccdb"
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/crypto/sha3"
 )
@@ -158,17 +158,20 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 		return common.Address{}, err
 	}
 	var signer common.Address
-	copy(signer[:], crypto.SHA3(pubkey)[12:])
+	address := crypto.SHA3(pubkey)[12:]
+	prefix := common.DefaultNetworkID.Bytes()
+	checksum := common.Hex2Bytes(common.CalculateChecksum(address, prefix))
+	copy(signer[:], append(append(prefix, checksum...), address...))
 
 	sigcache.Add(hash, signer)
 	return signer, nil
 }
 
 // Clique is the proof-of-authority consensus engine proposed to support the
-// Core testnet following the Testnet attacks.
+// Core devin following the Devin attacks.
 type Clique struct {
 	config *params.CliqueConfig // Consensus engine configuration parameters
-	db     xcedb.Database       // Database to store and retrieve snapshot checkpoints
+	db     xccdb.Database       // Database to store and retrieve snapshot checkpoints
 
 	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
 	signatures *lru.ARCCache // Signatures of recent blocks to speed up mining
@@ -185,7 +188,7 @@ type Clique struct {
 
 // New creates a Clique proof-of-authority consensus engine with the initial
 // signers set to the ones provided by the user.
-func New(config *params.CliqueConfig, db xcedb.Database) *Clique {
+func New(config *params.CliqueConfig, db xccdb.Database) *Clique {
 	// Set any missing consensus parameters to their defaults
 	conf := *config
 	if conf.Epoch == 0 {

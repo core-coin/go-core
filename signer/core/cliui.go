@@ -25,7 +25,7 @@ import (
 	"sync"
 
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -98,10 +98,7 @@ func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, erro
 	oreval := request.Transaction.Value.ToInt()
 	fmt.Printf("--------- Transaction request-------------\n")
 	if to := request.Transaction.To; to != nil {
-		fmt.Printf("to:    %v\n", to.Original())
-		if !to.ValidChecksum() {
-			fmt.Printf("\nWARNING: Invalid checksum on to-address!\n\n")
-		}
+		fmt.Printf("to:    %v\n", to.Hex())
 	} else {
 		fmt.Printf("to:    <contact creation>\n")
 	}
@@ -204,7 +201,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("## Info \n%s\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	if jsn, err := json.MarshalIndent(tx.Tx, "  ", "  "); err != nil {
 		fmt.Printf("WARN: marshalling error %v\n", err)

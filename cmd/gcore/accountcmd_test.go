@@ -53,15 +53,15 @@ func TestAccountList(t *testing.T) {
 	defer gcore.ExpectExit()
 	if runtime.GOOS == "windows" {
 		gcore.Expect(`
-Account #0: {c91938bff440fac4e6d4ff24234f52c5671fb0d4} keystore://{{.Datadir}}\keystore\UTC--2020-05-20T08-11-06.057753867Z--c91938bff440fac4e6d4ff24234f52c5671fb0d4
-Account #1: {7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db} keystore://{{.Datadir}}\keystore\aaa
-Account #2: {1033edd15730a1b56c4812879c01bf4754a6dda6} keystore://{{.Datadir}}\keystore\zzz
+Account #0: {cb23feefe02c246be13166ddebab5e102eca211e496f} keystore://{{.Datadir}}\keystore\UTC--2020-07-07T10-47-53.209137411Z--cb23feefe02c246be13166ddebab5e102eca211e496f
+Account #1: {cb32df9af33454ea4b84373adbdb3102bedb7838a228} keystore://{{.Datadir}}\keystore\aaa
+Account #2: {cb03af52d4eae20e8199abbe74a94392c01ed5cdcfab} keystore://{{.Datadir}}\keystore\zzz
 `)
 	} else {
 		gcore.Expect(`
-Account #0: {c91938bff440fac4e6d4ff24234f52c5671fb0d4} keystore://{{.Datadir}}/keystore/UTC--2020-05-20T08-11-06.057753867Z--c91938bff440fac4e6d4ff24234f52c5671fb0d4
-Account #1: {7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db} keystore://{{.Datadir}}/keystore/aaa
-Account #2: {1033edd15730a1b56c4812879c01bf4754a6dda6} keystore://{{.Datadir}}/keystore/zzz
+Account #0: {cb23feefe02c246be13166ddebab5e102eca211e496f} keystore://{{.Datadir}}/keystore/UTC--2020-07-07T10-47-53.209137411Z--cb23feefe02c246be13166ddebab5e102eca211e496f
+Account #1: {cb32df9af33454ea4b84373adbdb3102bedb7838a228} keystore://{{.Datadir}}/keystore/aaa
+Account #2: {cb03af52d4eae20e8199abbe74a94392c01ed5cdcfab} keystore://{{.Datadir}}/keystore/zzz
 `)
 	}
 }
@@ -78,8 +78,8 @@ Repeat password: {{.InputLine "foobar"}}
 Your new key was generated
 `)
 	gcore.ExpectRegexp(`
-Public address of the key:   0x[0-9a-fA-F]{40}
-Path of the secret key file: .*UTC--.+--[0-9a-f]{40}
+Public address of the key:   [0-9a-fA-F]{44}
+Path of the secret key file: .*UTC--.+--[0-9a-f]{44}
 
 - You can share your public address with anyone. Others need it to interact with you.
 - You must NEVER share the secret key with anyone! The key controls access to your funds!
@@ -104,15 +104,15 @@ func TestAccountUpdate(t *testing.T) {
 	datadir := tmpDatadirWithKeystore(t)
 	gcore := runGcore(t, "account", "update",
 		"--datadir", datadir, "--lightkdf",
-		"7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db")
+		"cb32df9af33454ea4b84373adbdb3102bedb7838a228")
 	defer gcore.ExpectExit()
 	gcore.Expect(`
-Unlocking account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db | Attempt 1/3
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foobar"}}
+Password: {{.InputLine "321"}}
 Please give a new password. Do not forget this password.
-Password: {{.InputLine "foobar2"}}
-Repeat password: {{.InputLine "foobar2"}}
+Password: {{.InputLine "321"}}
+Repeat password: {{.InputLine "321"}}
 `)
 }
 
@@ -146,18 +146,18 @@ func TestUnlockFlag(t *testing.T) {
 	datadir := tmpDatadirWithKeystore(t)
 	gcore := runGcore(t,
 		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db",
+		"--unlock", "cb32df9af33454ea4b84373adbdb3102bedb7838a228",
 		"js", "testdata/empty.js")
 	gcore.Expect(`
-Unlocking account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db | Attempt 1/3
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foobar"}}
+Password: {{.InputLine "321"}}
 `)
 	gcore.ExpectExit()
 
 	wantMessages := []string{
 		"Unlocked account",
-		"=0x7c1C6Dd70d43d9ceE327FE1F2162fE3CA91CE8Db",
+		"=cb32df9af33454ea4b84373adbdb3102bedb7838a228",
 	}
 	for _, m := range wantMessages {
 		if !strings.Contains(gcore.StderrText(), m) {
@@ -170,17 +170,17 @@ func TestUnlockFlagWrongPassword(t *testing.T) {
 	datadir := tmpDatadirWithKeystore(t)
 	gcore := runGcore(t,
 		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db")
+		"--unlock", "cb32df9af33454ea4b84373adbdb3102bedb7838a228")
 	defer gcore.ExpectExit()
 	gcore.Expect(`
-Unlocking account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db | Attempt 1/3
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "wrong1"}}
-Unlocking account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db | Attempt 2/3
-Password: {{.InputLine "wrong2"}}
-Unlocking account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db | Attempt 3/3
-Password: {{.InputLine "wrong3"}}
-Fatal: Failed to unlock account 7c1c6dd70d43d9cee327fe1f2162fe3ca91ce8db (could not decrypt key with given password)
+Password: {{.InputLine "123"}}
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 2/3
+Password: {{.InputLine "123"}}
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 3/3
+Password: {{.InputLine "123"}}
+Fatal: Failed to unlock account cb32df9af33454ea4b84373adbdb3102bedb7838a228 (could not decrypt key with given password)
 `)
 }
 
@@ -194,16 +194,16 @@ func TestUnlockFlagMultiIndex(t *testing.T) {
 	gcore.Expect(`
 Unlocking account 0 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foobar"}}
+Password: {{.InputLine "333"}}
 Unlocking account 2 | Attempt 1/3
-Password: {{.InputLine "foobar"}}
+Password: {{.InputLine "123"}}
 `)
 	gcore.ExpectExit()
 
 	wantMessages := []string{
 		"Unlocked account",
-		"=0xc91938bFF440FaC4E6d4Ff24234f52C5671fB0D4",
-		"=0x1033edD15730a1b56c4812879C01bf4754A6Dda6",
+		"=cb23feefe02c246be13166ddebab5e102eca211e496f",
+		"=cb03af52d4eae20e8199abbe74a94392c01ed5cdcfab",
 	}
 	for _, m := range wantMessages {
 		if !strings.Contains(gcore.StderrText(), m) {
@@ -222,8 +222,8 @@ func TestUnlockFlagPasswordFile(t *testing.T) {
 
 	wantMessages := []string{
 		"Unlocked account",
-		"=0xc91938bFF440FaC4E6d4Ff24234f52C5671fB0D4",
-		"=0x1033edD15730a1b56c4812879C01bf4754A6Dda6",
+		"=cb23feefe02c246be13166ddebab5e102eca211e496f",
+		"=cb03af52d4eae20e8199abbe74a94392c01ed5cdcfab",
 	}
 	for _, m := range wantMessages {
 		if !strings.Contains(gcore.StderrText(), m) {
@@ -247,7 +247,7 @@ func TestUnlockFlagAmbiguous(t *testing.T) {
 	store := filepath.Join("..", "..", "accounts", "keystore", "testdata", "dupes")
 	gcore := runGcore(t,
 		"--keystore", store, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "c91938bff440fac4e6d4ff24234f52c5671fb0d4",
+		"--unlock", "cb32df9af33454ea4b84373adbdb3102bedb7838a228",
 		"js", "testdata/empty.js")
 	defer gcore.ExpectExit()
 
@@ -257,10 +257,10 @@ func TestUnlockFlagAmbiguous(t *testing.T) {
 		return abs
 	})
 	gcore.Expect(`
-Unlocking account c91938bff440fac4e6d4ff24234f52c5671fb0d4 | Attempt 1/3
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foobar"}}
-Multiple key files exist for address c91938bff440fac4e6d4ff24234f52c5671fb0d4:
+Password: {{.InputLine "321"}}
+Multiple key files exist for address cb32df9af33454ea4b84373adbdb3102bedb7838a228:
    keystore://{{keypath "1"}}
    keystore://{{keypath "2"}}
 Testing your password against all of them...
@@ -272,7 +272,7 @@ In order to avoid this warning, you need to remove the following duplicate key f
 
 	wantMessages := []string{
 		"Unlocked account",
-		"=0xc91938bFF440FaC4E6d4Ff24234f52C5671fB0D4",
+		"=cb32df9af33454ea4b84373adbdb3102bedb7838a228",
 	}
 	for _, m := range wantMessages {
 		if !strings.Contains(gcore.StderrText(), m) {
@@ -285,7 +285,7 @@ func TestUnlockFlagAmbiguousWrongPassword(t *testing.T) {
 	store := filepath.Join("..", "..", "accounts", "keystore", "testdata", "dupes")
 	gcore := runGcore(t,
 		"--keystore", store, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "c91938bff440fac4e6d4ff24234f52c5671fb0d4")
+		"--unlock", "cb32df9af33454ea4b84373adbdb3102bedb7838a228")
 	defer gcore.ExpectExit()
 
 	// Helper for the expect template, returns absolute keystore path.
@@ -294,10 +294,10 @@ func TestUnlockFlagAmbiguousWrongPassword(t *testing.T) {
 		return abs
 	})
 	gcore.Expect(`
-Unlocking account c91938bff440fac4e6d4ff24234f52c5671fb0d4 | Attempt 1/3
+Unlocking account cb32df9af33454ea4b84373adbdb3102bedb7838a228 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
 Password: {{.InputLine "wrong"}}
-Multiple key files exist for address c91938bff440fac4e6d4ff24234f52c5671fb0d4:
+Multiple key files exist for address cb32df9af33454ea4b84373adbdb3102bedb7838a228:
    keystore://{{keypath "1"}}
    keystore://{{keypath "2"}}
 Testing your password against all of them...

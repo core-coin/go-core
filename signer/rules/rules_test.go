@@ -18,6 +18,7 @@ package rules
 
 import (
 	"fmt"
+	"github.com/hpcloud/tail/util"
 	"math/big"
 	"strings"
 	"testing"
@@ -26,7 +27,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xceapi"
+	"github.com/core-coin/go-core/internal/xccapi"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/storage"
 )
@@ -68,8 +69,9 @@ function test(thing){
 
 `
 
-func mixAddr(a string) (*common.MixedcaseAddress, error) {
-	return common.NewMixedcaseAddressFromString(a)
+func mixAddr(a string) (*common.Address, error) {
+	addr, err := common.HexToAddress(a)
+	return &addr, err
 }
 
 type alwaysDenyUI struct{}
@@ -107,7 +109,7 @@ func (alwaysDenyUI) ShowInfo(message string) {
 	panic("implement me")
 }
 
-func (alwaysDenyUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (alwaysDenyUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	panic("implement me")
 }
 
@@ -158,8 +160,8 @@ func TestSignTxRequest(t *testing.T) {
 		console.log("transaction.to", r.transaction.to);
 		console.log("transaction.value", r.transaction.value);
 		console.log("transaction.nonce", r.transaction.nonce);
-		if(r.transaction.from.toLowerCase()=="0x0000000000000000000000000000000000001337"){ return "Approve"}
-		if(r.transaction.from.toLowerCase()=="0x000000000000000000000000000000000000dead"){ return "Reject"}
+		if(r.transaction.from.toLowerCase()=="cb390000000000000000000000000000000000001337"){ return "Approve"}
+		if(r.transaction.from.toLowerCase()=="cb79000000000000000000000000000000000000dead"){ return "Reject"}
 	}`
 
 	r, err := initRuleEngine(js)
@@ -167,18 +169,18 @@ func TestSignTxRequest(t *testing.T) {
 		t.Errorf("Couldn't create evaluator %v", err)
 		return
 	}
-	to, err := mixAddr("000000000000000000000000000000000000dead")
+	to, err := mixAddr("cb79000000000000000000000000000000000000dead")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	from, err := mixAddr("0000000000000000000000000000000000001337")
+	from, err := mixAddr("cb390000000000000000000000000000000000001337")
 
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Logf("to %v", to.Address().String())
+	t.Logf("to %v", to.String())
 	resp, err := r.ApproveTx(&core.SignTxRequest{
 		Transaction: core.SendTxArgs{
 			From: *from,
@@ -235,7 +237,7 @@ func (d *dummyUI) ShowInfo(message string) {
 	d.calls = append(d.calls, "ShowInfo")
 }
 
-func (d *dummyUI) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (d *dummyUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	d.calls = append(d.calls, "OnApprovedTx")
 }
 
@@ -263,7 +265,7 @@ func TestForwarding(t *testing.T) {
 	r.ShowInfo("test")
 
 	//This one is not forwarded
-	r.OnApprovedTx(xceapi.SignTransactionResult{})
+	r.OnApprovedTx(xccapi.SignTransactionResult{})
 
 	expCalls := 6
 	if len(ui.calls) != expCalls {
@@ -425,18 +427,18 @@ const ExampleTxWindow = `
 `
 
 func dummyTx(value hexutil.Big) *core.SignTxRequest {
-	to, _ := mixAddr("000000000000000000000000000000000000dead")
-	from, _ := mixAddr("000000000000000000000000000000000000dead")
+	to, _ := mixAddr("cb000000000000000000000000000000000000dead")
+	from, _ := mixAddr("cb000000000000000000000000000000000000dead")
 	n := hexutil.Uint64(3)
 	energy := hexutil.Uint64(21000)
 	energyPrice := hexutil.Big(*big.NewInt(2000000))
 
 	return &core.SignTxRequest{
 		Transaction: core.SendTxArgs{
-			From:     *from,
-			To:       to,
-			Value:    value,
-			Nonce:    n,
+			From:        *from,
+			To:          to,
+			Value:       value,
+			Nonce:       n,
 			EnergyPrice: energyPrice,
 			Energy:      energy,
 		},
@@ -454,7 +456,10 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 }
 
 func dummySigned(value *big.Int) *types.Transaction {
-	to := common.HexToAddress("000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("cb79000000000000000000000000000000000000dead")
+	if err != nil {
+		util.Fatal(err.Error())
+	}
 	energy := uint64(21000)
 	energyPrice := big.NewInt(2000000)
 	data := make([]byte, 0)
@@ -482,7 +487,7 @@ func TestLimitWindow(t *testing.T) {
 		}
 		// Create a dummy signed transaction
 
-		response := xceapi.SignTransactionResult{
+		response := xccapi.SignTransactionResult{
 			Tx:  dummySigned(v),
 			Raw: common.Hex2Bytes("deadbeef"),
 		}
@@ -539,7 +544,7 @@ func (d *dontCallMe) ShowInfo(message string) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
-func (d *dontCallMe) OnApprovedTx(tx xceapi.SignTransactionResult) {
+func (d *dontCallMe) OnApprovedTx(tx xccapi.SignTransactionResult) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
@@ -584,7 +589,7 @@ func TestSignData(t *testing.T) {
     return "Approve"
 }
 function ApproveSignData(r){
-    if( r.address.toLowerCase() == "0x694267f14675d7e1b9494fd8d72fefe1755710fa")
+    if( r.address.toLowerCase() == "cb29694267f14675d7e1b9494fd8d72fefe1755710fa")
     {
         if(r.messages[0].value.indexOf("bazonk") >= 0){
             return "Approve"
@@ -600,9 +605,9 @@ function ApproveSignData(r){
 	}
 	message := "baz bazonk foo"
 	hash, rawdata := accounts.TextAndHash([]byte(message))
-	addr, _ := mixAddr("0x694267f14675d7e1b9494fd8d72fefe1755710fa")
+	addr, _ := mixAddr("cb29694267f14675d7e1b9494fd8d72fefe1755710fa")
 
-	t.Logf("address %v %v\n", addr.String(), addr.Original())
+	t.Logf("address %v %v\n", addr.String(), addr.String())
 
 	nvt := []*core.NameValueType{
 		{

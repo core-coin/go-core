@@ -20,9 +20,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
-	"github.com/core-coin/eddsa"
 	"math/big"
 	"testing"
+
+	"github.com/core-coin/eddsa"
+	"github.com/core-coin/go-core/params"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
@@ -32,32 +34,38 @@ import (
 // The values in those tests are from the Transaction Tests
 // at github.com/core-coin/tests.
 var (
+	address, errAddr = common.HexToAddress("cb08095e7baea6a6c7c4c2dfeb977efac326af552d87")
+	key, _           = crypto.HexToEDDSA("2da94fd47e8369ffe88850654de266727ff284c3f78d61b04153cb9a908ed3b61248ac5172d3caabbc3493807c0297645ae328e10eb9543bdbcc413b5871d83426cd5b3a0083e6f589f60c1177b287b8f4f764acfcba7dfceadc51ef37b40d6182e3fe6bce148c8a48e07379754ebbf83236643837663566326266393833356639613437656566616535373162633039")
+
 	emptyTx = NewTransaction(
 		0,
-		common.HexToAddress("095e7baea6a6c7c4c2dfeb977efac326af552d87"),
+		address,
 		big.NewInt(0), 0, big.NewInt(0),
 		nil,
 	)
 
 	rightvrsTx, _ = NewTransaction(
-		3,
-		common.HexToAddress("0x1A1f598a1b3f1614C7c5F3AD27D0ef4875A874Ec"),
+		0,
+		crypto.PubkeyToAddress(key.PublicKey),
 		big.NewInt(10),
-		2000,
-		big.NewInt(1),
+		50000,
+		big.NewInt(10),
 		common.FromHex("1123"),
 	).WithSignature(
-		NucleusSigner{},
-		common.Hex2Bytes("25320acb9758febce98604e7946f0029f4125f6d7b54860f657296518e5103e73935097931ee83af5dcc4939cac81b5d8197ceae601b32defad02001e439872648e9e78c49196ea9b93a7197373e07d6fa3c74123b8d903862efdefa4d2c15cf528f4ea42fe8c486c8aa3cb5da24f51bf2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47"),
+		NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID),
+		common.Hex2Bytes("b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0"),
 	)
 )
 
 func TestTransactionSigHash(t *testing.T) {
-	var nucleus NucleusSigner
-	if nucleus.Hash(emptyTx) != common.HexToHash("0xdec558d8709e0f7e77def55bd3359da6cd12a0d96fed811af73e8d25f8bf3f30") {
+	if errAddr != nil {
+		t.Error(errAddr)
+	}
+	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	if nucleus.Hash(emptyTx) != common.HexToHash("0x667a680a928baad12ae32d5d46a5800a668ad7054ba852bcce0723b26e28d927") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x8a39016339a01b6c65fc4f8a9f194e1a74d68cb6dd862e61ac4813e5e60b9cbc") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0xdc291d2b25c348bf6c33aa4bf761389d26468bbf0efed36e342792517abd846f") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -67,7 +75,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f303018207d0941a1f598a1b3f1614c7c5f3ad27d0ef4875a874ec0a821123942516841536f2fc110c9ac01fd60c95c523fdabcf")
+	should := common.FromHex("f8cb800a82c3500196cb95f8989a12c39d55e40ca9466fbc3963d9914a44880a821123b8a8b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -80,41 +88,39 @@ func decodeTx(data []byte) (*Transaction, error) {
 	return t, err
 }
 
-func defaultTestKey() (*eddsa.PrivateKey, common.Address) {
-	key, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
-	addr := crypto.PubkeyToAddress(key.PublicKey)
-	return key, addr
-}
-
 func TestRecipientEmpty(t *testing.T) {
-	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("db808080808001942516841536f2fc110c9ac01fd60c95c523fdabcf"))
+	tx, err := decodeTx(common.Hex2Bytes("f8bb078504a817c80783029040808082015780b8a82131c93431f0f0bdd8b4a32f927ec73f06ad1204f2cbff1203875a4cb6bf5e3d0133c2706e45c17b54651c028674f9cd7cfd7cfa5ff054ea96214d5093f0e3bf4314264cf221b3d86958dceb19ea181c39a36ce44bc5a82c2a6dfff0478b948a4dccbf494a1e9316fe4db7fee7b2802058fd718628e64c5f0e138656aecadfc57a1d6b735127b0bccdd8e5ff775cc72565b49b9613566acdecc2946bbf7cbcf52e697cdbdef3484e"))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	from, err := Sender(NucleusSigner{}, tx)
+	from, err := Sender(NewNucleusSigner(params.TestChainConfig.ChainID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if addr != from {
+	expected, err := common.HexToAddress("cb69089200aa2a542254e53814647e9fa2f8e03ad44c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expected != from {
 		t.Fatal("derived address doesn't match")
 	}
 }
 
 func TestRecipientNormal(t *testing.T) {
-	_, addr := defaultTestKey()
-
-	tx, err := decodeTx(common.Hex2Bytes("ef8080809400000000000000000000000000000000000000008001942516841536f2fc110c9ac01fd60c95c523fdabcf"))
+	tx, err := decodeTx(common.Hex2Bytes("f8b180808001808080b8a8f5d02300a89fe01f4c1cdd9d03f8fb05adc69929002778d30e0fb1a136f088c8bd4b9d63699a6d478e6950f9fd891b92cba6813dc932b88926342d6ce19967ff68386fae213111535fcd3cffc68ba5a2c4963ebc532d228991455e2aa98683db4fb610e445390318f3c25a3cc412ce0eb76e57686d84f196670684396866eba8d013d26db4b209c02e35ac6b2a98cf54c17835d95da8e7c8a3e15f258d27c780671606acb4297145"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NucleusSigner{}, tx)
+	from, err := Sender(NewNucleusSigner(params.MainnetChainConfig.ChainID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if addr != from {
+	expected, err := common.HexToAddress("cb51339322dba86a24a090176312f97465875cc1dfba")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expected != from {
 		t.Fatal("derived address doesn't match")
 	}
 }
@@ -129,7 +135,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 
-	signer := NucleusSigner{}
+	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
@@ -175,12 +181,12 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 
 // TestTransactionJSON tests serializing/de-serializing to/from JSON.
 func TestTransactionJSON(t *testing.T) {
-  t.Skip();
+	t.Skip()
 	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
 	}
-	signer := NewCIP155Signer(common.Big1)
+	signer := NewNucleusSigner(common.Big1)
 
 	transactions := make([]*Transaction, 0, 50)
 	for i := uint64(0); i < 25; i++ {
