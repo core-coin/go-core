@@ -626,7 +626,7 @@ func TestCommitAfterHash(t *testing.T) {
 	trie.Hash()
 	trie.Commit(nil)
 	root := trie.Hash()
-	exp := common.HexToHash("8d191ad4bde16b899c83dab8d9692b6dfa7bce66324a700b1b269afc1bca9730")
+	exp := common.HexToHash("ee130c5765adddb6721122b0cbde1074261ef754e0b85457ef4889c27353f45f")
 	if exp != root {
 		t.Errorf("got %x, exp %x", root, exp)
 	}

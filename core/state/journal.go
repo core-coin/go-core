@@ -164,7 +164,7 @@ func (ch suicideChange) dirtied() *common.Address {
 	return ch.account
 }
 
-var ripemd, _ = common.HexToAddress("cb350000000000000000000000000000000000000003")
+var ripemd, _ = common.HexToAddress("cb700000000000000000000000000000000000000003")
 
 func (ch touchChange) revert(s *StateDB) {
 }

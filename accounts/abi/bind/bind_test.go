@@ -649,9 +649,9 @@ var bindTests = []struct {
 			} else if res != (common.Address{}) {
 				t.Errorf("Invalid address returned, want: %x, got: %x", (common.Address{}), res)
 			}
-			addr1, _ := common.HexToAddress("cb240000000000000000000000000000000000000000")
-			addr2, _ := common.HexToAddress("cb600000000000000000000000000000000000000001")
-			addr3, _ := common.HexToAddress("cb960000000000000000000000000000000000000002")
+			addr1, _ := common.HexToAddress("cb540000000000000000000000000000000000000000")
+			addr2, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+			addr3, _ := common.HexToAddress("cb970000000000000000000000000000000000000002")
 			for _, addr := range []common.Address{addr1,addr2,addr3} {
 				if res, err := callfrom.CallFrom(&bind.CallOpts{From: addr}); err != nil {
 					t.Fatalf("Failed to call constant function: %v", err)
@@ -818,10 +818,10 @@ var bindTests = []struct {
 			sim.Commit()
 
 			// Inject a few events into the contract, gradually more in each block
-			addr0, _ := common.HexToAddress("cb240000000000000000000000000000000000000000")
-			addr1, _ := common.HexToAddress("cb600000000000000000000000000000000000000001")
-			addr2, _ := common.HexToAddress("cb960000000000000000000000000000000000000002")
-			addr3, _ := common.HexToAddress("cb350000000000000000000000000000000000000003")
+			addr0, _ := common.HexToAddress("cb540000000000000000000000000000000000000000")
+			addr1, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+			addr2, _ := common.HexToAddress("cb970000000000000000000000000000000000000002")
+			addr3, _ := common.HexToAddress("cb700000000000000000000000000000000000000003")
 			addrs := []common.Address{addr0,addr1,addr2,addr3}
 			for i := 1; i <= 3; i++ {
 				for j := 1; j <= i; j++ {

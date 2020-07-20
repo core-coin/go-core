@@ -575,46 +575,46 @@ func TestCreate2Addreses(t *testing.T) {
 
 	for i, tt := range []testcase{
 		{
-			origin:   "cb240000000000000000000000000000000000000000",
+			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb09cb34d37c7813cd4471c5f8d1a66a9a72f83359b3",
+			expected: "cb327840851e3810e2d2f457485f9a1da6c12a0719fc",
 		},
 		{
 			origin:   "cb77deadbeef00000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb9474a53e4a8ea5b153f757d4bf1ab724dc4335640a",
+			expected: "cb8774a53e4a8ea5b153f757d4bf1ab724dc4335640a",
 		},
 		{
 			origin:   "cb77deadbeef00000000000000000000000000000000",
 			salt:     "0xfeed000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb853a8a85b2b83110a7039b9c45d3e8951b02f770c4",
+			expected: "cb113a8a85b2b83110a7039b9c45d3e8951b02f770c4",
 		},
 		{
-			origin:   "cb240000000000000000000000000000000000000000",
+			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0xdeadbeef",
-			expected: "cb4702560cefa3293084c275015ff625fbd4c7c39df8",
+			expected: "cb213fbc6a1f90cf2c0d11694321ce3434c7f66e0cc6",
 		},
 		{
 			origin:   "cb3300000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeef",
-			expected: "cb486e92b4f94fa483b0127e8d3a39e9d529d9f36441",
+			expected: "cb976e92b4f94fa483b0127e8d3a39e9d529d9f36441",
 		},
 		{
 			origin:   "cb3300000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-			expected: "cb46fbc57398e786b2e0de2a11f61dd0ff4fa568784e",
+			expected: "cb88fbc57398e786b2e0de2a11f61dd0ff4fa568784e",
 		},
 		{
-			origin:   "cb240000000000000000000000000000000000000000",
+			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x",
-			expected: "cb1396f69280ef667f76f8095e508381eeb81febf908",
+			expected: "cb57bd1cd1fe08bcaf558bb0b32a987eba7e37089dfa",
 		},
 	} {
 

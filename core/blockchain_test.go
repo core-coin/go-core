@@ -2286,8 +2286,8 @@ func TestSideImportPrunedBlocks(t *testing.T) {
 // first, but the journal wiped the entire state object on create-revert.
 func TestDeleteCreateRevert(t *testing.T) {
 	var (
-		aa, err1 = common.HexToAddress("cb09000000000000000000000000000000000000aaaa")
-		bb, err2 = common.HexToAddress("cb56000000000000000000000000000000000000bbbb")
+		aa, err1 = common.HexToAddress("cb21000000000000000000000000000000000000aaaa")
+		bb, err2 = common.HexToAddress("cb08000000000000000000000000000000000000bbbb")
 		// Generate a canonical chain to act as the main dataset
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()

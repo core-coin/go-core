@@ -38,7 +38,7 @@ const (
 // Tests that a node embedded within a console can be started up properly and
 // then terminated by closing the input stream.
 func TestConsoleWelcome(t *testing.T) {
-	coinbase := "cb758605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 
 	// Start a gcore console, make sure it's cleaned up and terminate the console
 	gcore := runGcore(t,
@@ -74,7 +74,7 @@ at block: 0 ({{niltime}})
 // Tests that a console can be attached to a running node via various means.
 func TestIPCAttachWelcome(t *testing.T) {
 	// Configure the instance for IPC attachement
-	coinbase := "cb758605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	var ipc string
 	if runtime.GOOS == "windows" {
 		ipc = `\\.\pipe\gcore` + strconv.Itoa(trulyRandInt(100000, 999999))
@@ -100,7 +100,7 @@ func TestIPCAttachWelcome(t *testing.T) {
 }
 
 func TestHTTPAttachWelcome(t *testing.T) {
-	coinbase := "cb758605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 	gcore := runGcore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
@@ -116,7 +116,7 @@ func TestHTTPAttachWelcome(t *testing.T) {
 }
 
 func TestWSAttachWelcome(t *testing.T) {
-	coinbase := "cb758605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 
 	gcore := runGcore(t,

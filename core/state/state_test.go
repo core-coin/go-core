@@ -42,9 +42,9 @@ func newStateTest() *stateTest {
 
 func TestDump(t *testing.T) {
 	s := newStateTest()
-	addr1, _ := common.HexToAddress("cb970000000000000000000000000000000000000102")
-	addr2, _ := common.HexToAddress("cb960000000000000000000000000000000000000002")
-	addr3, _ := common.HexToAddress("cb600000000000000000000000000000000000000001")
+	addr1, _ := common.HexToAddress("cb160000000000000000000000000000000000000102")
+	addr2, _ := common.HexToAddress("cb970000000000000000000000000000000000000002")
+	addr3, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
 	// generate a few entries
 	obj1 := s.state.GetOrNewStateObject(addr1)
 	obj1.AddBalance(big.NewInt(22))
@@ -61,26 +61,26 @@ func TestDump(t *testing.T) {
 	// check that dump contains the state objects that are in trie
 	got := string(s.state.Dump(false, false, true))
 	want := `{
-    "root": "f46cefa4251d67402792e01c5af281755be00ffc23425c7a70ffd9449d8ee300",
+    "root": "95a9f13431e866f3062ff44fb1556bc9199fda48f146d1f18f1e4a352a5dc94e",
     "accounts": {
-        "cb600000000000000000000000000000000000000001": {
+        "cb160000000000000000000000000000000000000102": {
+            "balance": "22",
+            "nonce": 0,
+            "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+            "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        "cb270000000000000000000000000000000000000001": {
             "balance": "44",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
         },
-        "cb960000000000000000000000000000000000000002": {
+        "cb970000000000000000000000000000000000000002": {
             "balance": "0",
             "nonce": 0,
             "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
             "codeHash": "87874902497a5bb968da31a2998d8f22e949d1ef6214bcdedd8bae24cca4b9e3",
             "code": "03030303030303"
-        },
-        "cb970000000000000000000000000000000000000102": {
-            "balance": "22",
-            "nonce": 0,
-            "root": "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-            "codeHash": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
         }
     }
 }`
@@ -91,7 +91,7 @@ func TestDump(t *testing.T) {
 
 func TestNull(t *testing.T) {
 	s := newStateTest()
-	address, err := common.HexToAddress("cb4600000000823140710bf13990e4500136726d8b55")
+	address, err := common.HexToAddress("cb9300000000823140710bf13990e4500136726d8b55")
 	if err != nil {
 		t.Error(err)
 	}

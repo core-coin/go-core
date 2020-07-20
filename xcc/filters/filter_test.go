@@ -150,7 +150,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, err := common.HexToAddress("cb730000000000000000000000000000000000000998")
+			addr, err := common.HexToAddress("cb740000000000000000000000000000000000000998")
 			if err != nil {
 				t.Error(err)
 			}
@@ -164,7 +164,7 @@ func TestFilters(t *testing.T) {
 				},
 			}
 			gen.AddUncheckedReceipt(receipt)
-			addr, err := common.HexToAddress("cb120000000000000000000000000000000000000999")
+			addr, err := common.HexToAddress("cb470000000000000000000000000000000000000999")
 			if err != nil {
 				t.Error(err)
 			}

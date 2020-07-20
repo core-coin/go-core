@@ -26,6 +26,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/core-coin/go-core/common/hexutil"
 )
@@ -188,15 +189,14 @@ func BytesToAddress(b []byte) Address {
 }
 
 func CalculateChecksum(address, prefix []byte) string {
-	addrString := Bytes2Hex(append(address, prefix...)) + "00"
+	addrString := strings.ToUpper(Bytes2Hex(append(address, prefix...)) + "00")
 	// Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., F = 15
 	mods := ""
 	for _, c := range addrString {
 		// Get character code point value
 		i := int(c)
-
-		// Check if c is characters A-F (codepoint 65 - 70)
-		if i > 64 && i < 70 {
+		// Check if c is characters A-F (codepoint 65 - 90)
+		if i > 64 && i < 91 {
 			// A=10, B=11 etc...
 			i -= 55
 			// Add int as string to mod string
@@ -207,17 +207,19 @@ func CalculateChecksum(address, prefix []byte) string {
 	}
 
 	// Create bignum from mod string and perform module
-	bigVal, success := new(big.Int).SetString(mods, 16)
+	bigVal, success := new(big.Int).SetString(mods, 10)
 	if !success {
 		return ""
 	}
 
-	val := new(big.Int).SetInt64(97)
-	resVal := new(big.Int).Mod(bigVal, val)
+	val97 := new(big.Int).SetInt64(97)
+	val98 := new(big.Int).SetInt64(98)
 
-	resVal = new(big.Int).Sub(val, resVal)
+	remainder := new(big.Int).Mod(bigVal, val97)
 
-	resInt := resVal.Int64()
+	checksum := new(big.Int).Sub(val98, remainder)
+
+	resInt := checksum.Int64()
 	if resInt < 10 {
 		return "0" + strconv.Itoa(int(resInt))
 	}
@@ -228,7 +230,6 @@ func verifyAddress(addr Address) (bool, error) {
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
 		return false, invalidPrefix
 	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:], addr[:1]) {
-		fmt.Println(CalculateChecksum(addr[2:], addr[:1]), addr.Hex())
 		return false, invalidChecksum
 	}
 	return true, nil
