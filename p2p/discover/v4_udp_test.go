@@ -18,11 +18,11 @@ package discover
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"github.com/core-coin/eddsa"
 	"io"
 	"math/rand"
 	"net"
@@ -31,7 +31,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/internal/testlog"
@@ -39,11 +38,8 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/davecgh/go-spew/spew"
 )
-
-func init() {
-	spew.Config.DisableMethods = true
-}
 
 // shared test variables
 var (
@@ -117,9 +113,12 @@ func (test *udpTest) packetInFrom(wantError error, key *eddsa.PrivateKey, addr *
 func (test *udpTest) waitPacketOut(validate interface{}) (closed bool) {
 	test.t.Helper()
 
-	dgram, ok := test.pipe.receive()
-	if !ok {
+	dgram, err := test.pipe.receive()
+	if err == errClosed {
 		return true
+	} else if err != nil {
+		test.t.Error("packet receive error:", err)
+		return false
 	}
 	p, _, hash, err := decodeV4(dgram.data)
 	if err != nil {
@@ -671,17 +670,30 @@ func (c *dgramPipe) LocalAddr() net.Addr {
 	return &net.UDPAddr{IP: testLocal.IP, Port: int(testLocal.UDP)}
 }
 
-func (c *dgramPipe) receive() (dgram, bool) {
+func (c *dgramPipe) receive() (dgram, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	for len(c.queue) == 0 && !c.closed {
+
+	var timedOut bool
+	timer := time.AfterFunc(3*time.Second, func() {
+		c.mu.Lock()
+		timedOut = true
+		c.mu.Unlock()
+		c.cond.Broadcast()
+	})
+	defer timer.Stop()
+
+	for len(c.queue) == 0 && !c.closed && !timedOut {
 		c.cond.Wait()
 	}
 	if c.closed {
-		return dgram{}, false
+		return dgram{}, errClosed
+	}
+	if timedOut {
+		return dgram{}, errTimeout
 	}
 	p := c.queue[0]
 	copy(c.queue, c.queue[1:])
 	c.queue = c.queue[:len(c.queue)-1]
-	return p, true
+	return p, nil
 }
