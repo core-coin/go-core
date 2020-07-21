@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -58,7 +58,7 @@ const (
 type HeaderChain struct {
 	config *params.ChainConfig
 
-	chainDb       xccdb.Database
+	chainDb       xcbdb.Database
 	genesisHeader *types.Header
 
 	currentHeader     atomic.Value // Current head of the header chain (may be above the block chain!)
@@ -76,7 +76,7 @@ type HeaderChain struct {
 
 // NewHeaderChain creates a new HeaderChain structure. ProcInterrupt points
 // to the parent's interrupt semaphore.
-func NewHeaderChain(chainDb xccdb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
+func NewHeaderChain(chainDb xcbdb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
 	headerCache, _ := lru.New(headerCacheLimit)
 	tdCache, _ := lru.New(tdCacheLimit)
 	numberCache, _ := lru.New(numberCacheLimit)
@@ -489,11 +489,11 @@ func (hc *HeaderChain) SetCurrentHeader(head *types.Header) {
 type (
 	// UpdateHeadBlocksCallback is a callback function that is called by SetHead
 	// before head header is updated.
-	UpdateHeadBlocksCallback func(xccdb.KeyValueWriter, *types.Header)
+	UpdateHeadBlocksCallback func(xcbdb.KeyValueWriter, *types.Header)
 
 	// DeleteBlockContentCallback is a callback function that is called by SetHead
 	// before each header is deleted.
-	DeleteBlockContentCallback func(xccdb.KeyValueWriter, common.Hash, uint64)
+	DeleteBlockContentCallback func(xcbdb.KeyValueWriter, common.Hash, uint64)
 )
 
 // SetHead rewinds the local chain to a new head. Everything above the new head

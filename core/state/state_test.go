@@ -24,13 +24,13 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 var toAddr = common.BytesToAddress
 
 type stateTest struct {
-	db    xccdb.Database
+	db    xcbdb.Database
 	state *StateDB
 }
 

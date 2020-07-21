@@ -926,7 +926,7 @@ var SolidityParam = require('./param');
  * @returns {SolidityParam}
  */
 var formatInputInt = function (value) {
-    BigNumber.config(c.XCC_BIGNUMBER_ROUNDING_MODE);
+    BigNumber.config(c.XCB_BIGNUMBER_ROUNDING_MODE);
     var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
     return new SolidityParam(result);
 };
@@ -1758,10 +1758,10 @@ if (typeof XMLHttpRequest === 'undefined') {
  */
 
 
-/// required to define XCC_BIGNUMBER_ROUNDING_MODE
+/// required to define XCB_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var XCC_UNITS = [
+var XCB_UNITS = [
     'ore',
     'kore',
     'More',
@@ -1792,11 +1792,11 @@ var XCC_UNITS = [
 ];
 
 module.exports = {
-    XCC_PADDING: 32,
-    XCC_SIGNATURE_LENGTH: 4,
-    XCC_UNITS: XCC_UNITS,
-    XCC_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    XCC_POLLING_TIMEOUT: 1000/2,
+    XCB_PADDING: 32,
+    XCB_SIGNATURE_LENGTH: 4,
+    XCB_UNITS: XCB_UNITS,
+    XCB_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    XCB_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -2508,7 +2508,7 @@ module.exports={
 
 var RequestManager = require('./web3/requestmanager');
 var Iban = require('./web3/iban');
-var Xcc = require('./web3/methods/xcc');
+var Xcb = require('./web3/methods/xcb');
 var DB = require('./web3/methods/db');
 var Shh = require('./web3/methods/shh');
 var Net = require('./web3/methods/net');
@@ -2530,7 +2530,7 @@ var BigNumber = require('bignumber.js');
 function Web3 (provider) {
     this._requestManager = new RequestManager(provider);
     this.currentProvider = provider;
-    this.xcc = new Xcc(this);
+    this.xcb = new Xcb(this);
     this.db = new DB(this);
     this.shh = new Shh(this);
     this.net = new Net(this);
@@ -2610,7 +2610,7 @@ var properties = function () {
         }),
         new Property({
             name: 'version.core',
-            getter: 'xcc_protocolVersion',
+            getter: 'xcb_protocolVersion',
             inputFormatter: utils.toDecimal
         }),
         new Property({
@@ -2632,7 +2632,7 @@ Web3.prototype.createBatch = function () {
 module.exports = Web3;
 
 
-},{"./utils/sha3":19,"./utils/utils":20,"./version.json":21,"./web3/batch":24,"./web3/extend":28,"./web3/httpprovider":32,"./web3/iban":33,"./web3/ipcprovider":34,"./web3/methods/db":37,"./web3/methods/xcc":38,"./web3/methods/net":39,"./web3/methods/personal":40,"./web3/methods/shh":41,"./web3/methods/swarm":42,"./web3/property":45,"./web3/requestmanager":46,"./web3/settings":47,"bignumber.js":"bignumber.js"}],23:[function(require,module,exports){
+},{"./utils/sha3":19,"./utils/utils":20,"./version.json":21,"./web3/batch":24,"./web3/extend":28,"./web3/httpprovider":32,"./web3/iban":33,"./web3/ipcprovider":34,"./web3/methods/db":37,"./web3/methods/xcb":38,"./web3/methods/net":39,"./web3/methods/personal":40,"./web3/methods/shh":41,"./web3/methods/swarm":42,"./web3/property":45,"./web3/requestmanager":46,"./web3/settings":47,"bignumber.js":"bignumber.js"}],23:[function(require,module,exports){
 /*
     This file is part of web3.js.
 
@@ -2711,7 +2711,7 @@ AllSolidityEvents.prototype.execute = function (options, callback) {
 
     var o = this.encode(options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'xcc', this._requestManager, watches.xcc(), formatter, callback);
+    return new Filter(o, 'xcb', this._requestManager, watches.xcb(), formatter, callback);
 };
 
 AllSolidityEvents.prototype.attachToContract = function (contract) {
@@ -2849,7 +2849,7 @@ var addFunctionsToContract = function (contract) {
     contract.abi.filter(function (json) {
         return json.type === 'function';
     }).map(function (json) {
-        return new SolidityFunction(contract._xcc, json, contract.address);
+        return new SolidityFunction(contract._xcb, json, contract.address);
     }).forEach(function (f) {
         f.attachToContract(contract);
     });
@@ -2867,11 +2867,11 @@ var addEventsToContract = function (contract) {
         return json.type === 'event';
     });
 
-    var All = new AllEvents(contract._xcc._requestManager, events, contract.address);
+    var All = new AllEvents(contract._xcb._requestManager, events, contract.address);
     All.attachToContract(contract);
 
     events.map(function (json) {
-        return new SolidityEvent(contract._xcc._requestManager, json, contract.address);
+        return new SolidityEvent(contract._xcb._requestManager, json, contract.address);
     }).forEach(function (e) {
         e.attachToContract(contract);
     });
@@ -2891,7 +2891,7 @@ var checkForContractAddress = function(contract, callback){
         callbackFired = false;
 
     // wait for receipt
-    var filter = contract._xcc.filter('latest', function(e){
+    var filter = contract._xcb.filter('latest', function(e){
         if (!e && !callbackFired) {
             count++;
 
@@ -2909,10 +2909,10 @@ var checkForContractAddress = function(contract, callback){
 
             } else {
 
-                contract._xcc.getTransactionReceipt(contract.transactionHash, function(e, receipt){
+                contract._xcb.getTransactionReceipt(contract.transactionHash, function(e, receipt){
                     if(receipt && !callbackFired) {
 
-                        contract._xcc.getCode(receipt.contractAddress, function(e, code){
+                        contract._xcb.getCode(receipt.contractAddress, function(e, code){
                             /*jshint maxcomplexity: 6 */
 
                             if(callbackFired || !code)
@@ -2955,8 +2955,8 @@ var checkForContractAddress = function(contract, callback){
  * @method ContractFactory
  * @param {Array} abi
  */
-var ContractFactory = function (xcc, abi) {
-    this.xcc = xcc;
+var ContractFactory = function (xcb, abi) {
+    this.xcb = xcb;
     this.abi = abi;
 
     /**
@@ -2972,7 +2972,7 @@ var ContractFactory = function (xcc, abi) {
     this.new = function () {
         /*jshint maxcomplexity: 7 */
         
-        var contract = new Contract(this.xcc, this.abi);
+        var contract = new Contract(this.xcb, this.abi);
 
         // parse arguments
         var options = {}; // required!
@@ -3004,7 +3004,7 @@ var ContractFactory = function (xcc, abi) {
         if (callback) {
 
             // wait for the contract address and check if the code was deployed
-            this.xcc.sendTransaction(options, function (err, hash) {
+            this.xcb.sendTransaction(options, function (err, hash) {
                 if (err) {
                     callback(err);
                 } else {
@@ -3018,7 +3018,7 @@ var ContractFactory = function (xcc, abi) {
                 }
             });
         } else {
-            var hash = this.xcc.sendTransaction(options);
+            var hash = this.xcb.sendTransaction(options);
             // add the transaction hash
             contract.transactionHash = hash;
             checkForContractAddress(contract);
@@ -3053,7 +3053,7 @@ var ContractFactory = function (xcc, abi) {
  * otherwise calls callback function (err, contract)
  */
 ContractFactory.prototype.at = function (address, callback) {
-    var contract = new Contract(this.xcc, this.abi, address);
+    var contract = new Contract(this.xcb, this.abi, address);
 
     // this functions are not part of prototype,
     // because we dont want to spoil the interface
@@ -3093,8 +3093,8 @@ ContractFactory.prototype.getData = function () {
  * @param {Array} abi
  * @param {Address} contract address
  */
-var Contract = function (xcc, abi, address) {
-    this._xcc = xcc;
+var Contract = function (xcb, abi, address) {
+    this._xcb = xcb;
     this.transactionHash = null;
     this.address = address;
     this.abi = abi;
@@ -3336,7 +3336,7 @@ SolidityEvent.prototype.execute = function (indexed, options, callback) {
 
     var o = this.encode(indexed, options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'xcc', this._requestManager, watches.xcc(), formatter, callback);
+    return new Filter(o, 'xcb', this._requestManager, watches.xcb(), formatter, callback);
 };
 
 /**
@@ -3470,7 +3470,7 @@ var getOptions = function (options, type) {
 
 
     switch(type) {
-        case 'xcc':
+        case 'xcb':
 
             // make sure topics, get converted to hex
             options.topics = options.topics || [];
@@ -3996,8 +3996,8 @@ var sha3 = require('../utils/sha3');
 /**
  * This prototype should be used to call/sendTransaction to solidity functions
  */
-var SolidityFunction = function (xcc, json, address) {
-    this._xcc = xcc;
+var SolidityFunction = function (xcb, json, address) {
+    this._xcb = xcb;
     this._inputTypes = json.inputs.map(function (i) {
         return i.type;
     });
@@ -4099,12 +4099,12 @@ SolidityFunction.prototype.call = function () {
 
 
     if (!callback) {
-        var output = this._xcc.call(payload, defaultBlock);
+        var output = this._xcb.call(payload, defaultBlock);
         return this.unpackOutput(output);
     }
 
     var self = this;
-    this._xcc.call(payload, defaultBlock, function (error, output) {
+    this._xcb.call(payload, defaultBlock, function (error, output) {
         if (error) return callback(error, null);
 
         var unpacked = null;
@@ -4134,10 +4134,10 @@ SolidityFunction.prototype.sendTransaction = function () {
     }
 
     if (!callback) {
-        return this._xcc.sendTransaction(payload);
+        return this._xcb.sendTransaction(payload);
     }
 
-    this._xcc.sendTransaction(payload, callback);
+    this._xcb.sendTransaction(payload, callback);
 };
 
 /**
@@ -4151,10 +4151,10 @@ SolidityFunction.prototype.estimateEnergy = function () {
     var payload = this.toPayload(args);
 
     if (!callback) {
-        return this._xcc.estimateEnergy(payload);
+        return this._xcb.estimateEnergy(payload);
     }
 
-    this._xcc.estimateEnergy(payload, callback);
+    this._xcb.estimateEnergy(payload, callback);
 };
 
 /**
@@ -4203,7 +4203,7 @@ SolidityFunction.prototype.request = function () {
     var format = this.unpackOutput.bind(this);
 
     return {
-        method: this._constant ? 'xcc_call' : 'xcc_sendTransaction',
+        method: this._constant ? 'xcb_call' : 'xcb_sendTransaction',
         callback: callback,
         params: [payload],
         format: format
@@ -4535,7 +4535,7 @@ Iban.fromBban = function (bban) {
  * @return {Iban} the IBAN object
  */
 Iban.createIndirect = function (options) {
-    return Iban.fromBban('XCC' + options.institution + options.identifier);
+    return Iban.fromBban('XCB' + options.institution + options.identifier);
 };
 
 /**
@@ -4557,7 +4557,7 @@ Iban.isValid = function (iban) {
  * @returns {Boolean} true if it is, otherwise false
  */
 Iban.prototype.isValid = function () {
-    return /^XE[0-9]{2}(XCC[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
+    return /^XE[0-9]{2}(XCB[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
         mod9710(iso13616Prepare(this._iban)) === 1;
 };
 
@@ -5185,7 +5185,7 @@ module.exports = DB;
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
 /**
- * @file xcc.js
+ * @file xcb.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @author Fabian Vogelsteller <fabian@ethdev.com>
  * @date 2015
@@ -5207,26 +5207,26 @@ var Iban = require('../iban');
 var transfer = require('../transfer');
 
 var blockCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "xcc_getBlockByHash" : "xcc_getBlockByNumber";
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "xcb_getBlockByHash" : "xcb_getBlockByNumber";
 };
 
 var transactionFromBlockCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getTransactionByBlockHashAndIndex' : 'xcc_getTransactionByBlockNumberAndIndex';
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getTransactionByBlockHashAndIndex' : 'xcb_getTransactionByBlockNumberAndIndex';
 };
 
 var uncleCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getUncleByBlockHashAndIndex' : 'xcc_getUncleByBlockNumberAndIndex';
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getUncleByBlockHashAndIndex' : 'xcb_getUncleByBlockNumberAndIndex';
 };
 
 var getBlockTransactionCountCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getBlockTransactionCountByHash' : 'xcc_getBlockTransactionCountByNumber';
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getBlockTransactionCountByHash' : 'xcb_getBlockTransactionCountByNumber';
 };
 
 var uncleCountCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getUncleCountByBlockHash' : 'xcc_getUncleCountByBlockNumber';
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getUncleCountByBlockHash' : 'xcb_getUncleCountByBlockNumber';
 };
 
-function Xcc(web3) {
+function Xcb(web3) {
     this._requestManager = web3._requestManager;
 
     var self = this;
@@ -5246,7 +5246,7 @@ function Xcc(web3) {
     this.sendIBANTransaction = transfer.bind(null, this);
 }
 
-Object.defineProperty(Xcc.prototype, 'defaultBlock', {
+Object.defineProperty(Xcb.prototype, 'defaultBlock', {
     get: function () {
         return c.defaultBlock;
     },
@@ -5256,7 +5256,7 @@ Object.defineProperty(Xcc.prototype, 'defaultBlock', {
     }
 });
 
-Object.defineProperty(Xcc.prototype, 'defaultAccount', {
+Object.defineProperty(Xcb.prototype, 'defaultAccount', {
     get: function () {
         return c.defaultAccount;
     },
@@ -5269,7 +5269,7 @@ Object.defineProperty(Xcc.prototype, 'defaultAccount', {
 var methods = function () {
     var getBalance = new Method({
         name: 'getBalance',
-        call: 'xcc_getBalance',
+        call: 'xcb_getBalance',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter],
         outputFormatter: formatters.outputBigNumberFormatter
@@ -5277,14 +5277,14 @@ var methods = function () {
 
     var getStorageAt = new Method({
         name: 'getStorageAt',
-        call: 'xcc_getStorageAt',
+        call: 'xcb_getStorageAt',
         params: 3,
         inputFormatter: [null, utils.toHex, formatters.inputDefaultBlockNumberFormatter]
     });
 
     var getCode = new Method({
         name: 'getCode',
-        call: 'xcc_getCode',
+        call: 'xcb_getCode',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
@@ -5308,7 +5308,7 @@ var methods = function () {
 
     var getCompilers = new Method({
         name: 'getCompilers',
-        call: 'xcc_getCompilers',
+        call: 'xcb_getCompilers',
         params: 0
     });
 
@@ -5330,7 +5330,7 @@ var methods = function () {
 
     var getTransaction = new Method({
         name: 'getTransaction',
-        call: 'xcc_getTransactionByHash',
+        call: 'xcb_getTransactionByHash',
         params: 1,
         outputFormatter: formatters.outputTransactionFormatter
     });
@@ -5345,14 +5345,14 @@ var methods = function () {
 
     var getTransactionReceipt = new Method({
         name: 'getTransactionReceipt',
-        call: 'xcc_getTransactionReceipt',
+        call: 'xcb_getTransactionReceipt',
         params: 1,
         outputFormatter: formatters.outputTransactionReceiptFormatter
     });
 
     var getTransactionCount = new Method({
         name: 'getTransactionCount',
-        call: 'xcc_getTransactionCount',
+        call: 'xcb_getTransactionCount',
         params: 2,
         inputFormatter: [null, formatters.inputDefaultBlockNumberFormatter],
         outputFormatter: utils.toDecimal
@@ -5360,42 +5360,42 @@ var methods = function () {
 
     var sendRawTransaction = new Method({
         name: 'sendRawTransaction',
-        call: 'xcc_sendRawTransaction',
+        call: 'xcb_sendRawTransaction',
         params: 1,
         inputFormatter: [null]
     });
 
     var sendTransaction = new Method({
         name: 'sendTransaction',
-        call: 'xcc_sendTransaction',
+        call: 'xcb_sendTransaction',
         params: 1,
         inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var signTransaction = new Method({
         name: 'signTransaction',
-        call: 'xcc_signTransaction',
+        call: 'xcb_signTransaction',
         params: 1,
         inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var sign = new Method({
         name: 'sign',
-        call: 'xcc_sign',
+        call: 'xcb_sign',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, null]
     });
 
     var call = new Method({
         name: 'call',
-        call: 'xcc_call',
+        call: 'xcb_call',
         params: 2,
         inputFormatter: [formatters.inputCallFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
 
     var estimateEnergy = new Method({
         name: 'estimateEnergy',
-        call: 'xcc_estimateEnergy',
+        call: 'xcb_estimateEnergy',
         params: 1,
         inputFormatter: [formatters.inputCallFormatter],
         outputFormatter: utils.toDecimal
@@ -5403,31 +5403,31 @@ var methods = function () {
 
     var compileSolidity = new Method({
         name: 'compile.solidity',
-        call: 'xcc_compileSolidity',
+        call: 'xcb_compileSolidity',
         params: 1
     });
 
     var compileLLL = new Method({
         name: 'compile.lll',
-        call: 'xcc_compileLLL',
+        call: 'xcb_compileLLL',
         params: 1
     });
 
     var compileSerpent = new Method({
         name: 'compile.serpent',
-        call: 'xcc_compileSerpent',
+        call: 'xcb_compileSerpent',
         params: 1
     });
 
     var submitWork = new Method({
         name: 'submitWork',
-        call: 'xcc_submitWork',
+        call: 'xcb_submitWork',
         params: 3
     });
 
     var getWork = new Method({
         name: 'getWork',
-        call: 'xcc_getWork',
+        call: 'xcb_getWork',
         params: 0
     });
 
@@ -5463,65 +5463,65 @@ var properties = function () {
     return [
         new Property({
             name: 'coinbase',
-            getter: 'xcc_coinbase'
+            getter: 'xcb_coinbase'
         }),
         new Property({
             name: 'mining',
-            getter: 'xcc_mining'
+            getter: 'xcb_mining'
         }),
         new Property({
             name: 'hashrate',
-            getter: 'xcc_hashrate',
+            getter: 'xcb_hashrate',
             outputFormatter: utils.toDecimal
         }),
         new Property({
             name: 'syncing',
-            getter: 'xcc_syncing',
+            getter: 'xcb_syncing',
             outputFormatter: formatters.outputSyncingFormatter
         }),
         new Property({
             name: 'energyPrice',
-            getter: 'xcc_energyPrice',
+            getter: 'xcb_energyPrice',
             outputFormatter: formatters.outputBigNumberFormatter
         }),
         new Property({
             name: 'accounts',
-            getter: 'xcc_accounts'
+            getter: 'xcb_accounts'
         }),
         new Property({
             name: 'blockNumber',
-            getter: 'xcc_blockNumber',
+            getter: 'xcb_blockNumber',
             outputFormatter: utils.toDecimal
         }),
         new Property({
             name: 'protocolVersion',
-            getter: 'xcc_protocolVersion'
+            getter: 'xcb_protocolVersion'
         })
     ];
 };
 
-Xcc.prototype.contract = function (abi) {
+Xcb.prototype.contract = function (abi) {
     var factory = new Contract(this, abi);
     return factory;
 };
 
-Xcc.prototype.filter = function (options, callback, filterCreationErrorCallback) {
-    return new Filter(options, 'xcc', this._requestManager, watches.xcc(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
+Xcb.prototype.filter = function (options, callback, filterCreationErrorCallback) {
+    return new Filter(options, 'xcb', this._requestManager, watches.xcb(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
 };
 
-Xcc.prototype.namereg = function () {
+Xcb.prototype.namereg = function () {
     return this.contract(namereg.global.abi).at(namereg.global.address);
 };
 
-Xcc.prototype.icapNamereg = function () {
+Xcb.prototype.icapNamereg = function () {
     return this.contract(namereg.icap.abi).at(namereg.icap.address);
 };
 
-Xcc.prototype.isSyncing = function (callback) {
+Xcb.prototype.isSyncing = function (callback) {
     return new IsSyncing(this._requestManager, callback);
 };
 
-module.exports = Xcc;
+module.exports = Xcb;
 
 },{"../../utils/config":18,"../../utils/utils":20,"../contract":25,"../filter":29,"../formatters":30,"../iban":33,"../method":36,"../namereg":44,"../property":45,"../syncing":48,"../transfer":49,"./watches":43}],39:[function(require,module,exports){
 /*
@@ -5540,7 +5540,7 @@ module.exports = Xcc;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file xcc.js
+/** @file xcb.js
  * @authors:
  *   Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -5560,7 +5560,7 @@ var Net = function (web3) {
     });
 };
 
-/// @returns an array of objects describing web3.xcc api properties
+/// @returns an array of objects describing web3.xcb api properties
 var properties = function () {
     return [
         new Property({
@@ -5595,7 +5595,7 @@ module.exports = Net;
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
 /**
- * @file xcc.js
+ * @file xcb.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @author Fabian Vogelsteller <fabian@ethdev.com>
  * @date 2015
@@ -6012,8 +6012,8 @@ module.exports = Swarm;
 
 var Method = require('../method');
 
-/// @returns an array of objects describing web3.xcc.filter api methods
-var xcc = function () {
+/// @returns an array of objects describing web3.xcb.filter api methods
+var xcb = function () {
     var newFilterCall = function (args) {
         var type = args[0];
 
@@ -6021,13 +6021,13 @@ var xcc = function () {
             case 'latest':
                 args.shift();
                 this.params = 0;
-                return 'xcc_newBlockFilter';
+                return 'xcb_newBlockFilter';
             case 'pending':
                 args.shift();
                 this.params = 0;
-                return 'xcc_newPendingTransactionFilter';
+                return 'xcb_newPendingTransactionFilter';
             default:
-                return 'xcc_newFilter';
+                return 'xcb_newFilter';
         }
     };
 
@@ -6039,19 +6039,19 @@ var xcc = function () {
 
     var uninstallFilter = new Method({
         name: 'uninstallFilter',
-        call: 'xcc_uninstallFilter',
+        call: 'xcb_uninstallFilter',
         params: 1
     });
 
     var getLogs = new Method({
         name: 'getLogs',
-        call: 'xcc_getFilterLogs',
+        call: 'xcb_getFilterLogs',
         params: 1
     });
 
     var poll = new Method({
         name: 'poll',
-        call: 'xcc_getFilterChanges',
+        call: 'xcb_getFilterChanges',
         params: 1
     });
 
@@ -6091,7 +6091,7 @@ var shh = function () {
 };
 
 module.exports = {
-    xcc: xcc,
+    xcb: xcb,
     shh: shh
 };
 
@@ -6481,7 +6481,7 @@ RequestManager.prototype.reset = function (keepIsSyncing) {
  */
 RequestManager.prototype.poll = function () {
     /*jshint maxcomplexity: 6 */
-    this.timeout = setTimeout(this.poll.bind(this), c.XCC_POLLING_TIMEOUT);
+    this.timeout = setTimeout(this.poll.bind(this), c.XCB_POLLING_TIMEOUT);
 
     if (Object.keys(this.polls).length === 0) {
         return;
@@ -6625,7 +6625,7 @@ var pollSyncing = function(self) {
     };
 
     self.requestManager.startPolling({
-        method: 'xcc_syncing',
+        method: 'xcb_syncing',
         params: [],
     }, self.pollId, onMessage, self.stopWatching.bind(self));
 
@@ -6691,23 +6691,23 @@ var exchangeAbi = require('../contracts/SmartExchange.json');
  * @param {Value} value to be tranfered
  * @param {Function} callback, callback
  */
-var transfer = function (xcc, from, to, value, callback) {
+var transfer = function (xcb, from, to, value, callback) {
     var iban = new Iban(to); 
     if (!iban.isValid()) {
         throw new Error('invalid iban address');
     }
 
     if (iban.isDirect()) {
-        return transferToAddress(xcc, from, iban.address(), value, callback);
+        return transferToAddress(xcb, from, iban.address(), value, callback);
     }
     
     if (!callback) {
-        var address = xcc.icapNamereg().addr(iban.institution());
-        return deposit(xcc, from, address, value, iban.client());
+        var address = xcb.icapNamereg().addr(iban.institution());
+        return deposit(xcb, from, address, value, iban.client());
     }
 
-    xcc.icapNamereg().addr(iban.institution(), function (err, address) {
-        return deposit(xcc, from, address, value, iban.client(), callback);
+    xcb.icapNamereg().addr(iban.institution(), function (err, address) {
+        return deposit(xcb, from, address, value, iban.client(), callback);
     });
     
 };
@@ -6721,8 +6721,8 @@ var transfer = function (xcc, from, to, value, callback) {
  * @param {Value} value to be tranfered
  * @param {Function} callback, callback
  */
-var transferToAddress = function (xcc, from, to, value, callback) {
-    return xcc.sendTransaction({
+var transferToAddress = function (xcb, from, to, value, callback) {
+    return xcb.sendTransaction({
         address: to,
         from: from,
         value: value
@@ -6739,9 +6739,9 @@ var transferToAddress = function (xcc, from, to, value, callback) {
  * @param {String} client unique identifier
  * @param {Function} callback, callback
  */
-var deposit = function (xcc, from, to, value, client, callback) {
+var deposit = function (xcb, from, to, value, client, callback) {
     var abi = exchangeAbi;
-    return xcc.contract(abi).at(to).deposit(client, {
+    return xcb.contract(abi).at(to).deposit(client, {
         from: from,
         value: value
     }, callback);

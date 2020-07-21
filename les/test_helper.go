@@ -45,8 +45,8 @@ import (
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 var (
@@ -158,17 +158,17 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 }
 
 // testIndexers creates a set of indexers with specified params for testing purpose.
-func testIndexers(db xccdb.Database, odr light.OdrBackend, config *light.IndexerConfig) []*core.ChainIndexer {
+func testIndexers(db xcbdb.Database, odr light.OdrBackend, config *light.IndexerConfig) []*core.ChainIndexer {
 	var indexers [3]*core.ChainIndexer
 	indexers[0] = light.NewChtIndexer(db, odr, config.ChtSize, config.ChtConfirms)
-	indexers[1] = xcc.NewBloomIndexer(db, config.BloomSize, config.BloomConfirms)
+	indexers[1] = xcb.NewBloomIndexer(db, config.BloomSize, config.BloomConfirms)
 	indexers[2] = light.NewBloomTrieIndexer(db, odr, config.BloomSize, config.BloomTrieSize)
 	// make bloomTrieIndexer as a child indexer of bloom indexer.
 	indexers[1].AddChildIndexer(indexers[2])
 	return indexers[:]
 }
 
-func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, indexers []*core.ChainIndexer, db xccdb.Database, peers *serverPeerSet, ulcServers []string, ulcFraction int) *clientHandler {
+func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, indexers []*core.ChainIndexer, db xcbdb.Database, peers *serverPeerSet, ulcServers []string, ulcFraction int) *clientHandler {
 	var (
 		evmux  = new(event.TypeMux)
 		engine = cryptore.NewFaker()
@@ -202,7 +202,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 	client := &LightCore{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
-			config:      &xcc.Config{LightPeers: 100, NetworkId: NetworkId},
+			config:      &xcb.Config{LightPeers: 100, NetworkId: NetworkId},
 			chainConfig: params.AllCryptoreProtocolChanges,
 			iConfig:     light.TestClientIndexerConfig,
 			chainDb:     db,
@@ -226,7 +226,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 	return client.handler
 }
 
-func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xccdb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
+func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
 	var (
 		gspec = core.Genesis{
 			Config:      params.AllCryptoreProtocolChanges,
@@ -265,7 +265,7 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xccdb.Da
 	server := &LesServer{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
-			config:      &xcc.Config{LightPeers: 100, NetworkId: NetworkId},
+			config:      &xcb.Config{LightPeers: 100, NetworkId: NetworkId},
 			chainConfig: params.AllCryptoreProtocolChanges,
 			iConfig:     light.TestServerIndexerConfig,
 			chainDb:     db,
@@ -432,7 +432,7 @@ type indexerCallback func(*core.ChainIndexer, *core.ChainIndexer, *core.ChainInd
 // testClient represents a client for testing with necessary auxiliary fields.
 type testClient struct {
 	clock   mclock.Clock
-	db      xccdb.Database
+	db      xcbdb.Database
 	peer    *testPeer
 	handler *clientHandler
 
@@ -445,7 +445,7 @@ type testClient struct {
 type testServer struct {
 	clock   mclock.Clock
 	backend *backends.SimulatedBackend
-	db      xccdb.Database
+	db      xcbdb.Database
 	peer    *testPeer
 	handler *serverHandler
 

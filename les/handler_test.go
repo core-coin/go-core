@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 func expectResponse(r p2p.MsgReader, msgcode, reqID, bv uint64, data interface{}) error {

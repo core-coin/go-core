@@ -69,7 +69,7 @@ The security model of Clef is as follows:
 The general flow for signing a transaction using e.g. Gcore is as follows:
 ![image](sign_flow.png)
 
-In this case, `gcore` would be started with `--signer http://localhost:8550` and would relay requests to `xcc.sendTransaction`.
+In this case, `gcore` would be started with `--signer http://localhost:8550` and would relay requests to `xcb.sendTransaction`.
 
 ## TODOs
 

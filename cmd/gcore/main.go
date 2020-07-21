@@ -38,9 +38,9 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
-	"github.com/core-coin/go-core/xccclient"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/xcbclient"
 	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -133,7 +133,7 @@ var (
 		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.XccStatsURLFlag,
+		utils.XcbStatsURLFlag,
 		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
@@ -223,8 +223,8 @@ func init() {
 		javascriptCommand,
 		// See config.go
 		dumpConfigCommand,
-		// See retestxcc.go
-		retestxccCommand,
+		// See retestxcb.go
+		retestxcbCommand,
 		// See cmd/utils/flags_legacy.go
 		utils.ShowDeprecated,
 	}
@@ -335,16 +335,16 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	if err != nil {
 		utils.Fatalf("Failed to attach to self: %v", err)
 	}
-	xccClient := xccclient.NewClient(rpcClient)
+	xcbClient := xcbclient.NewClient(rpcClient)
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
 	if ctx.GlobalInt(utils.LegacyLightServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var xccService *xcc.Core
-		if err := stack.Service(&xccService); err != nil {
+		var xcbService *xcb.Core
+		if err := stack.Service(&xcbService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
 		}
-		xccService.SetContractBackend(xccClient)
+		xcbService.SetContractBackend(xcbClient)
 	}
 	// Set contract backend for les service if local node is
 	// running as a light client.
@@ -353,7 +353,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err := stack.Service(&lesService); err != nil {
 			utils.Fatalf("Failed to retrieve light core service: %v", err)
 		}
-		lesService.SetContractBackend(xccClient)
+		lesService.SetContractBackend(xcbClient)
 	}
 
 	go func() {
@@ -380,7 +380,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 				}
 				derivationPaths = append(derivationPaths, accounts.DefaultBaseDerivationPath)
 
-				event.Wallet.SelfDerive(derivationPaths, xccClient)
+				event.Wallet.SelfDerive(derivationPaths, xcbClient)
 
 			case accounts.WalletDropped:
 				log.Info("Old wallet dropped", "url", event.Wallet.URL())
@@ -419,7 +419,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var core *xcc.Core
+		var core *xcb.Core
 		if err := stack.Service(&core); err != nil {
 			utils.Fatalf("Core service not running: %v", err)
 		}

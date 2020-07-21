@@ -58,11 +58,11 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
-	"github.com/core-coin/go-core/xcc/energyprice"
-	"github.com/core-coin/go-core/xccdb"
-	"github.com/core-coin/go-core/xccstats"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/xcb/energyprice"
+	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/xcbstats"
 	pcsclite "github.com/gballet/go-libpcsclite"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -164,7 +164,7 @@ var (
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
 		Usage: "Network identifier (integer,1=Mainnet, 3=Devin, 4=Koliba)",
-		Value: xcc.DefaultConfig.NetworkId,
+		Value: xcb.DefaultConfig.NetworkId,
 	}
 	DevinFlag = cli.BoolFlag{
 		Name:  "devin",
@@ -215,7 +215,7 @@ var (
 		Name:  "nocode",
 		Usage: "Exclude contract code (save db lookups)",
 	}
-	defaultSyncMode = xcc.DefaultConfig.SyncMode
+	defaultSyncMode = xcb.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("fast", "full", or "light")`,
@@ -237,32 +237,32 @@ var (
 	LightServeFlag = cli.IntFlag{
 		Name:  "light.serve",
 		Usage: "Maximum percentage of time allowed for serving LES requests (multi-threaded processing allows values over 100)",
-		Value: xcc.DefaultConfig.LightServ,
+		Value: xcb.DefaultConfig.LightServ,
 	}
 	LightIngressFlag = cli.IntFlag{
 		Name:  "light.ingress",
 		Usage: "Incoming bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xcc.DefaultConfig.LightIngress,
+		Value: xcb.DefaultConfig.LightIngress,
 	}
 	LightEgressFlag = cli.IntFlag{
 		Name:  "light.egress",
 		Usage: "Outgoing bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: xcc.DefaultConfig.LightEgress,
+		Value: xcb.DefaultConfig.LightEgress,
 	}
 	LightMaxPeersFlag = cli.IntFlag{
 		Name:  "light.maxpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to",
-		Value: xcc.DefaultConfig.LightPeers,
+		Value: xcb.DefaultConfig.LightPeers,
 	}
 	UltraLightServersFlag = cli.StringFlag{
 		Name:  "ulc.servers",
 		Usage: "List of trusted ultra-light servers",
-		Value: strings.Join(xcc.DefaultConfig.UltraLightServers, ","),
+		Value: strings.Join(xcb.DefaultConfig.UltraLightServers, ","),
 	}
 	UltraLightFractionFlag = cli.IntFlag{
 		Name:  "ulc.fraction",
 		Usage: "Minimum % of trusted ultra-light servers required to announce a new head",
-		Value: xcc.DefaultConfig.UltraLightFraction,
+		Value: xcb.DefaultConfig.UltraLightFraction,
 	}
 	UltraLightOnlyAnnounceFlag = cli.BoolFlag{
 		Name:  "ulc.onlyannounce",
@@ -290,37 +290,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum energy price limit to enforce for acceptance into the pool",
-		Value: xcc.DefaultConfig.TxPool.PriceLimit,
+		Value: xcb.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: xcc.DefaultConfig.TxPool.PriceBump,
+		Value: xcb.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: xcc.DefaultConfig.TxPool.AccountSlots,
+		Value: xcb.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: xcc.DefaultConfig.TxPool.GlobalSlots,
+		Value: xcb.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: xcc.DefaultConfig.TxPool.AccountQueue,
+		Value: xcb.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: xcc.DefaultConfig.TxPool.GlobalQueue,
+		Value: xcb.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: xcc.DefaultConfig.TxPool.Lifetime,
+		Value: xcb.DefaultConfig.TxPool.Lifetime,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -369,17 +369,17 @@ var (
 	MinerEnergyTargetFlag = cli.Uint64Flag{
 		Name:  "miner.energytarget",
 		Usage: "Target energy floor for mined blocks",
-		Value: xcc.DefaultConfig.Miner.EnergyFloor,
+		Value: xcb.DefaultConfig.Miner.EnergyFloor,
 	}
 	MinerEnergyLimitFlag = cli.Uint64Flag{
 		Name:  "miner.energylimit",
 		Usage: "Target energy ceiling for mined blocks",
-		Value: xcc.DefaultConfig.Miner.EnergyCeil,
+		Value: xcb.DefaultConfig.Miner.EnergyCeil,
 	}
 	MinerEnergyPriceFlag = BigFlag{
 		Name:  "miner.energyprice",
 		Usage: "Minimum energy price for mining a transaction",
-		Value: xcc.DefaultConfig.Miner.EnergyPrice,
+		Value: xcb.DefaultConfig.Miner.EnergyPrice,
 	}
 	MinerCorebaseFlag = cli.StringFlag{
 		Name:  "miner.corebase",
@@ -393,7 +393,7 @@ var (
 	MinerRecommitIntervalFlag = cli.DurationFlag{
 		Name:  "miner.recommit",
 		Usage: "Time interval to recreate the block being mined",
-		Value: xcc.DefaultConfig.Miner.Recommit,
+		Value: xcb.DefaultConfig.Miner.Recommit,
 	}
 	MinerNoVerfiyFlag = cli.BoolFlag{
 		Name:  "miner.noverify",
@@ -425,12 +425,12 @@ var (
 	}
 	RPCGlobalEnergyCap = cli.Uint64Flag{
 		Name:  "rpc.energycap",
-		Usage: "Sets a cap on energy that can be used in xcc_call/estimateEnergy",
+		Usage: "Sets a cap on energy that can be used in xcb_call/estimateEnergy",
 	}
 	// Logging and debug settings
-	XccStatsURLFlag = cli.StringFlag{
-		Name:  "xccstats",
-		Usage: "Reporting URL of a xccstats service (nodename:secret@host:port)",
+	XcbStatsURLFlag = cli.StringFlag{
+		Name:  "xcbstats",
+		Usage: "Reporting URL of a xcbstats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -612,12 +612,12 @@ var (
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpo.blocks",
 		Usage: "Number of recent blocks to check for energy prices",
-		Value: xcc.DefaultConfig.GPO.Blocks,
+		Value: xcb.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpo.percentile",
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
-		Value: xcc.DefaultConfig.GPO.Percentile,
+		Value: xcb.DefaultConfig.GPO.Percentile,
 	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
@@ -954,7 +954,7 @@ func setIPC(ctx *cli.Context, cfg *node.Config) {
 }
 
 // setLes configures the les server and ultra light client settings from the command line flags.
-func setLes(ctx *cli.Context, cfg *xcc.Config) {
+func setLes(ctx *cli.Context, cfg *xcb.Config) {
 	if ctx.GlobalIsSet(LegacyLightServFlag.Name) {
 		cfg.LightServ = ctx.GlobalInt(LegacyLightServFlag.Name)
 		log.Warn("The flag --lightserv is deprecated and will be removed in the future, please use --light.serve")
@@ -982,8 +982,8 @@ func setLes(ctx *cli.Context, cfg *xcc.Config) {
 		cfg.UltraLightFraction = ctx.GlobalInt(UltraLightFractionFlag.Name)
 	}
 	if cfg.UltraLightFraction <= 0 && cfg.UltraLightFraction > 100 {
-		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xcc.DefaultConfig.UltraLightFraction)
-		cfg.UltraLightFraction = xcc.DefaultConfig.UltraLightFraction
+		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", xcb.DefaultConfig.UltraLightFraction)
+		cfg.UltraLightFraction = xcb.DefaultConfig.UltraLightFraction
 	}
 	if ctx.GlobalIsSet(UltraLightOnlyAnnounceFlag.Name) {
 		cfg.UltraLightOnlyAnnounce = ctx.GlobalBool(UltraLightOnlyAnnounceFlag.Name)
@@ -1035,7 +1035,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setCorebase retrieves the corebase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xcc.Config) {
+func setCorebase(ctx *cli.Context, ks *keystore.KeyStore, cfg *xcb.Config) {
 	// Extract the current corebase, new flag overriding legacy one
 	var corebase string
 	if ctx.GlobalIsSet(LegacyMinerCorebaseFlag.Name) {
@@ -1112,11 +1112,11 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	xccPeers := cfg.MaxPeers - lightPeers
+	xcbPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		xccPeers = 0
+		xcbPeers = 0
 	}
-	log.Info("Maximum peer count", "XCC", xccPeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "XCB", xcbPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -1315,7 +1315,7 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	}
 }
 
-func setWhitelist(ctx *cli.Context, cfg *xcc.Config) {
+func setWhitelist(ctx *cli.Context, cfg *xcb.Config) {
 	whitelist := ctx.GlobalString(WhitelistFlag.Name)
 	if whitelist == "" {
 		return
@@ -1392,8 +1392,8 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetXccConfig applies xcc-related command line flags to the config.
-func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
+// SetXcbConfig applies xcb-related command line flags to the config.
+func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, DeveloperFlag, DevinFlag, KolibaFlag)
 	CheckExclusive(ctx, LegacyLightServFlag, LightServeFlag, SyncModeFlag, "light")
@@ -1526,15 +1526,15 @@ func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 
 // setDNSDiscoveryDefaults configures DNS discovery with the given URL if
 // no URLs are set.
-func setDNSDiscoveryDefaults(cfg *xcc.Config, url string) {
+func setDNSDiscoveryDefaults(cfg *xcb.Config, url string) {
 	if cfg.DiscoveryURLs != nil {
 		return
 	}
 	cfg.DiscoveryURLs = []string{url}
 }
 
-// RegisterXccService adds an Core client to the stack.
-func RegisterXccService(stack *node.Node, cfg *xcc.Config) {
+// RegisterXcbService adds an Core client to the stack.
+func RegisterXcbService(stack *node.Node, cfg *xcb.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1542,7 +1542,7 @@ func RegisterXccService(stack *node.Node, cfg *xcc.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := xcc.New(ctx, cfg)
+			fullNode, err := xcb.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1564,19 +1564,19 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterXccStatsService configures the Core Stats daemon and adds it to
+// RegisterXcbStatsService configures the Core Stats daemon and adds it to
 // the given node.
-func RegisterXccStatsService(stack *node.Node, url string) {
+func RegisterXcbStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both xcc and les services
-		var xccServ *xcc.Core
-		ctx.Service(&xccServ)
+		// Retrieve both xcb and les services
+		var xcbServ *xcb.Core
+		ctx.Service(&xcbServ)
 
 		var lesServ *les.LightCore
 		ctx.Service(&lesServ)
 
-		// Let xccstats use whichever is not nil
-		return xccstats.New(url, xccServ, lesServ)
+		// Let xcbstats use whichever is not nil
+		return xcbstats.New(url, xcbServ, lesServ)
 	}); err != nil {
 		Fatalf("Failed to register the Core Stats service: %v", err)
 	}
@@ -1586,9 +1586,9 @@ func RegisterXccStatsService(stack *node.Node, url string) {
 func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Try to construct the GraphQL service backed by a full node
-		var xccServ *xcc.Core
-		if err := ctx.Service(&xccServ); err == nil {
-			return graphql.New(xccServ.APIBackend, endpoint, cors, vhosts, timeouts)
+		var xcbServ *xcb.Core
+		if err := ctx.Service(&xcbServ); err == nil {
+			return graphql.New(xcbServ.APIBackend, endpoint, cors, vhosts, timeouts)
 		}
 		// Try to construct the GraphQL service backed by a light node
 		var lesServ *les.LightCore
@@ -1641,7 +1641,7 @@ func SplitTagsFlag(tagsFlag string) map[string]string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xccdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcbdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1671,7 +1671,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xccdb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb xcbdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
@@ -1691,12 +1691,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)
 	}
 	cache := &core.CacheConfig{
-		TrieCleanLimit:      xcc.DefaultConfig.TrieCleanCache,
+		TrieCleanLimit:      xcb.DefaultConfig.TrieCleanCache,
 		TrieCleanNoPrefetch: ctx.GlobalBool(CacheNoPrefetchFlag.Name),
-		TrieDirtyLimit:      xcc.DefaultConfig.TrieDirtyCache,
+		TrieDirtyLimit:      xcb.DefaultConfig.TrieDirtyCache,
 		TrieDirtyDisabled:   ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieTimeLimit:       xcc.DefaultConfig.TrieTimeout,
-		SnapshotLimit:       xcc.DefaultConfig.SnapshotCache,
+		TrieTimeLimit:       xcb.DefaultConfig.TrieTimeout,
+		SnapshotLimit:       xcb.DefaultConfig.SnapshotCache,
 	}
 	if !ctx.GlobalIsSet(SnapshotFlag.Name) {
 		cache.SnapshotLimit = 0 // Disabled

@@ -38,8 +38,8 @@ import (
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcc/filters"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcb/filters"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -58,7 +58,7 @@ var (
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   xccdb.Database   // In memory database to store our testing data
+	database   xcbdb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Core blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -72,7 +72,7 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database xccdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
+func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil)
@@ -620,11 +620,11 @@ func (m callmsg) Data() []byte          { return m.CallMsg.Data }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db xccdb.Database
+	db xcbdb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() xccdb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() xcbdb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

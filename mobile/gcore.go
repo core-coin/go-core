@@ -32,10 +32,10 @@ import (
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/params"
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
-	"github.com/core-coin/go-core/xccclient"
-	"github.com/core-coin/go-core/xccstats"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/xcbclient"
+	"github.com/core-coin/go-core/xcbstats"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Gcore
@@ -156,13 +156,13 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 	// Register the Core protocol if requested
 	if config.CoreEnabled {
-		xccConf := xcc.DefaultConfig
-		xccConf.Genesis = genesis
-		xccConf.SyncMode = downloader.LightSync
-		xccConf.NetworkId = uint64(config.CoreNetworkID)
-		xccConf.DatabaseCache = config.CoreDatabaseCache
+		xcbConf := xcb.DefaultConfig
+		xcbConf.Genesis = genesis
+		xcbConf.SyncMode = downloader.LightSync
+		xcbConf.NetworkId = uint64(config.CoreNetworkID)
+		xcbConf.DatabaseCache = config.CoreDatabaseCache
 		if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, &xccConf)
+			return les.New(ctx, &xcbConf)
 		}); err != nil {
 			return nil, fmt.Errorf("core init: %v", err)
 		}
@@ -172,7 +172,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 				var lesServ *les.LightCore
 				ctx.Service(&lesServ)
 
-				return xccstats.New(config.CoreNetStats, nil, lesServ)
+				return xcbstats.New(config.CoreNetStats, nil, lesServ)
 			}); err != nil {
 				return nil, fmt.Errorf("netstats init: %v", err)
 			}
@@ -212,7 +212,7 @@ func (n *Node) GetCoreClient() (client *CoreClient, _ error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CoreClient{xccclient.NewClient(rpc)}, nil
+	return &CoreClient{xcbclient.NewClient(rpc)}, nil
 }
 
 // GetNodeInfo gathers and returns a collection of metadata known about the host.

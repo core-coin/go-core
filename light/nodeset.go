@@ -23,7 +23,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // NodeSet stores a set of trie nodes. It implements trie.Database and can also
@@ -115,7 +115,7 @@ func (db *NodeSet) NodeList() NodeList {
 }
 
 // Store writes the contents of the set to the given database
-func (db *NodeSet) Store(target xccdb.KeyValueWriter) {
+func (db *NodeSet) Store(target xcbdb.KeyValueWriter) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 
@@ -124,11 +124,11 @@ func (db *NodeSet) Store(target xccdb.KeyValueWriter) {
 	}
 }
 
-// NodeList stores an ordered list of trie nodes. It implements xccdb.KeyValueWriter.
+// NodeList stores an ordered list of trie nodes. It implements xcbdb.KeyValueWriter.
 type NodeList []rlp.RawValue
 
 // Store writes the contents of the list to the given database
-func (n NodeList) Store(db xccdb.KeyValueWriter) {
+func (n NodeList) Store(db xcbdb.KeyValueWriter) {
 	for _, node := range n {
 		db.Put(crypto.SHA3(node), node)
 	}

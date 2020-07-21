@@ -47,7 +47,7 @@ const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUD
 // These DNS names provide bootstrap connectivity for public testnets and the mainnet.
 // See https://github.com/core-coin/discv4-dns-lists for more information.
 var KnownDNSNetworks = map[common.Hash]string{
-	MainnetGenesisHash: dnsPrefix + "all.mainnet.xccdisco.net",
-	DevinGenesisHash:   dnsPrefix + "all.devin.xccdisco.net",
-	KolibaGenesisHash:  dnsPrefix + "all.koliba.xccdisco.net",
+	MainnetGenesisHash: dnsPrefix + "all.mainnet.xcbdisco.net",
+	DevinGenesisHash:   dnsPrefix + "all.devin.xcbdisco.net",
+	KolibaGenesisHash:  dnsPrefix + "all.koliba.xcbdisco.net",
 }

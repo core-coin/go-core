@@ -36,7 +36,7 @@ function reload(){
 
 function init(){
     if (typeof accts == 'undefined' || accts.length == 0){
-        accts = xcc.accounts
+        accts = xcb.accounts
         console.log("Got accounts ", accts);
     }
 }
@@ -44,7 +44,7 @@ init()
 function testTx(){
     if( accts && accts.length > 0) {
         var a = accts[0]
-        var txdata = xcc.signTransaction({from: a, to: a, value: 1, nonce: 1, energy: 1, energyPrice: 1})
+        var txdata = xcb.signTransaction({from: a, to: a, value: 1, nonce: 1, energy: 1, energyPrice: 1})
         var v = parseInt(txdata.tx.v)
         console.log("V value: ", v)
         if (v == 37 || v == 38){
@@ -58,7 +58,7 @@ function testTx(){
 function testSignText(){
     if( accts && accts.length > 0){
         var a = accts[0]
-        var r = xcc.sign(a, "0x68656c6c6f20776f726c64"); //hello world
+        var r = xcb.sign(a, "0x68656c6c6f20776f726c64"); //hello world
         console.log("signing response",  r)
     }
 }

@@ -42,7 +42,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
 	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xccstats \'{{.Xccstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcbstats \'{{.Xcbstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
 
 ENTRYPOINT ["/bin/sh", "gcore.sh"]
 `
@@ -66,7 +66,7 @@ services:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
       - LIGHT_PEERS={{.LightPeers}}
-      - STATS_NAME={{.Xccstats}}
+      - STATS_NAME={{.Xcbstats}}
       - MINER_NAME={{.Corebase}}
       - ENERGY_TARGET={{.EnergyTarget}}
       - ENERGY_LIMIT={{.EnergyLimit}}
@@ -104,7 +104,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"Peers":        config.peersTotal,
 		"LightFlag":    lightFlag,
 		"Bootnodes":    strings.Join(bootnodes, ","),
-		"Xccstats":     config.xccstats,
+		"Xcbstats":     config.xcbstats,
 		"Corebase":     config.corebase,
 		"EnergyTarget": uint64(1000000 * config.energyTarget),
 		"EnergyLimit":  uint64(1000000 * config.energyLimit),
@@ -123,7 +123,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"TotalPeers":   config.peersTotal,
 		"Light":        config.peersLight > 0,
 		"LightPeers":   config.peersLight,
-		"Xccstats":     config.xccstats[:strings.Index(config.xccstats, ":")],
+		"Xcbstats":     config.xcbstats[:strings.Index(config.xcbstats, ":")],
 		"Corebase":     config.corebase,
 		"EnergyTarget": config.energyTarget,
 		"EnergyLimit":  config.energyLimit,
@@ -156,7 +156,7 @@ type nodeInfos struct {
 	network      int64
 	datadir      string
 	cryptoredir  string
-	xccstats     string
+	xcbstats     string
 	port         int
 	enode        string
 	peersTotal   int
@@ -177,7 +177,7 @@ func (info *nodeInfos) Report() map[string]string {
 		"Listener port":            strconv.Itoa(info.port),
 		"Peer count (all total)":   strconv.Itoa(info.peersTotal),
 		"Peer count (light nodes)": strconv.Itoa(info.peersLight),
-		"Xccstats username":        info.xccstats,
+		"Xcbstats username":        info.xcbstats,
 	}
 	if info.energyTarget > 0 {
 		// Miner or signer node
@@ -264,7 +264,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 		port:         port,
 		peersTotal:   totalPeers,
 		peersLight:   lightPeers,
-		xccstats:     infos.envvars["STATS_NAME"],
+		xcbstats:     infos.envvars["STATS_NAME"],
 		corebase:     infos.envvars["MINER_NAME"],
 		keyJSON:      keyJSON,
 		keyPass:      keyPass,

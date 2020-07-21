@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 // Backend wraps all methods required for mining.
@@ -58,7 +58,7 @@ type Miner struct {
 	mux      *event.TypeMux
 	worker   *worker
 	coinbase common.Address
-	xcc      Backend
+	xcb      Backend
 	engine   consensus.Engine
 	exitCh   chan struct{}
 
@@ -66,13 +66,13 @@ type Miner struct {
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(xcc Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
+func New(xcb Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
 	miner := &Miner{
-		xcc:      xcc,
+		xcb:      xcb,
 		mux:      mux,
 		engine:   engine,
 		exitCh:   make(chan struct{}),
-		worker:   newWorker(config, chainConfig, engine, xcc, mux, isLocalBlock, true),
+		worker:   newWorker(config, chainConfig, engine, xcb, mux, isLocalBlock, true),
 		canStart: 1,
 	}
 	go miner.update()
