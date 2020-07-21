@@ -149,8 +149,8 @@ var (
 	}
 
 	debGoBootPaths = map[string]string{
-		"golang-1.11": "/usr/lib/go-1.11",
-		"golang-go":   "/usr/lib/go",
+		"golang-1.11": "/usr/local/go",
+		"golang-go":   "/usr/local/go",
 	}
 )
 
@@ -523,7 +523,7 @@ func doDebianSource(cmdline []string) {
 				log.Fatalf("Failed to copy Go module dependencies: %v", err)
 			}
 			// Run the packaging and upload to the PPA
-			debuild := exec.Command("debuild", "-S", "-sa", "-us", "-uc", "-d", "-Zxz", "-nc")
+			debuild := exec.Command("debuild", "-F", "-sa", "-us", "-uc", "-d", "-Zxz", "-nc", "-tc", "-d")
 			debuild.Dir = pkgdir
 			build.MustRun(debuild)
 

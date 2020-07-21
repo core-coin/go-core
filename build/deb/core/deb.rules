@@ -16,12 +16,12 @@ override_dh_auto_build:
 	# We can't download a fresh Go within Launchpad, so we're shipping and building
 	# one on the fly. However, we can't build it inside the go-core folder as
 	# bootstrapping clashes with go modules, so build in a sibling folder.
-	(mv .go ../ && cd ../.go/src && ./make.bash)
+	(rm -rf ../.go && mv .go ../ && cd ../.go/src && ./make.bash)
 
 	# We can't download external go modules within Launchpad, so we're shipping the
 	# entire dependency source cache with go-core.
 	mkdir -p $(GOPATH)/pkg
-	mv .mod $(GOPATH)/pkg/mod
+	rm -rf $(GOPATH)/pkg/mod && mv .mod $(GOPATH)/pkg/mod
 
 	# A fresh Go was built, all dependency downloads faked, hope build works now
 	../.go/bin/go run build/ci.go install -git-commit={{.Env.Commit}} -git-branch={{.Env.Branch}} -git-tag={{.Env.Tag}} -buildnum={{.Env.Buildnum}} -pull-request={{.Env.IsPullRequest}}
