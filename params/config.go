@@ -27,8 +27,8 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0x0fd2fd2988c27b96b2c75c0ba5352bd03ef7542c8e15c803ecace50cb782936e")
-	DevinGenesisHash   = common.HexToHash("0xe9489866bb033ab58297fb48f6b4fc1955d792072794b9149b1a7800c03fcf41")
+	MainnetGenesisHash = common.HexToHash("0x54f23cc93fd14e3920c54cbd9bf9ff8ae04b064790c058cdf8213aedf83e01bc")
+	DevinGenesisHash   = common.HexToHash("0xb2da344c413f2cffadc3a2d9a08ecaa380e65e39f4a3cf0b48b4f6158912507f")
 	KolibaGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
 

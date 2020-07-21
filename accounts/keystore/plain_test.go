@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 )
 
 func tmpKeyStoreIface(t *testing.T, encrypted bool) (dir string, ks keyStore) {
@@ -173,16 +172,4 @@ func loadKeyStoreTestV3(file string, t *testing.T) map[string]KeyStoreTestV3 {
 		t.Fatal(err)
 	}
 	return tests
-}
-
-func TestV3_31_Byte_Key(t *testing.T) {
-	t.Parallel()
-	tests := loadKeyStoreTestV3("testdata/v3_test_vector.json", t)
-	testDecryptV3(tests["31_byte_key"], t)
-}
-
-func TestV3_30_Byte_Key(t *testing.T) {
-	t.Parallel()
-	tests := loadKeyStoreTestV3("testdata/v3_test_vector.json", t)
-	testDecryptV3(tests["30_byte_key"], t)
 }

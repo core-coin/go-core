@@ -197,8 +197,8 @@ func TestPrestateTracerCreate2(t *testing.T) {
 	if err := json.Unmarshal(res, &ret); err != nil {
 		t.Fatalf("failed to unmarshal trace result: %v", err)
 	}
-	if _, has := ret["0xcb68062b9fd46e10656b56e25a23b1904cb722c0"]; !has {
-		t.Fatalf("Expected 0xcb338b9c258a36178d201d6520f45a897f2c68fd in result")
+	if _, has := ret["0xcb7986b6dce104487ba73ec5f46cdc18a8028cfc"]; !has {
+		t.Fatalf("Expected 0xcb7986b6dce104487ba73ec5f46cdc18a8028cfc in result")
 	}
 }
 

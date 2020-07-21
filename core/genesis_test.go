@@ -17,7 +17,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -33,12 +32,10 @@ import (
 
 func TestDefaultGenesisBlock(t *testing.T) {
 	block := DefaultGenesisBlock().ToBlock(nil)
-	fmt.Println(block.Hash().Hex())
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", block.Hash(), params.MainnetGenesisHash)
 	}
 	block = DefaultDevinGenesisBlock().ToBlock(nil)
-	fmt.Println(block.Hash().Hex())
 
 	if block.Hash() != params.DevinGenesisHash {
 		t.Errorf("wrong devin genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
@@ -47,7 +44,7 @@ func TestDefaultGenesisBlock(t *testing.T) {
 
 func TestSetupGenesis(t *testing.T) {
 	var (
-		customghash = common.HexToHash("0x839b580daa999a08c224087c79a7e77b44cee2c1fbd7084f3a3ebd4bf600afc4")
+		customghash = common.HexToHash("0x06e09622363925df71aaeee886d306426dabafa7da6715097453940b9df9aa2c")
 		customg     = Genesis{
 			Config: &params.ChainConfig{EWASMBlock: big.NewInt(3)},
 			Alloc: GenesisAlloc{

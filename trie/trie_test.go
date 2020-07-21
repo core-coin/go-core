@@ -593,15 +593,15 @@ func TestTinyTrie(t *testing.T) {
 	_, accounts := makeAccounts(10000)
 	trie := newEmpty()
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001337"), accounts[3])
-	if exp, root := common.HexToHash("bf3193ebe852b9910f5c8177e6b9a31350bd1e8e15e4b22c6a482c48bc4cc83f"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("214d809544d116d38432c2032af930a87f9c9e91f28323c787381bb7b4676929"), trie.Hash(); exp != root {
 		t.Fatalf("1: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001338"), accounts[4])
-	if exp, root := common.HexToHash("3009f0d1b42c5a68ed3d2260eb1d618b7a8b4179523a4fff728b01a878f9afd0"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("6be817faf35760b709a79b52e666e79ee775cf0fb150e959c2089a8269bdf5e3"), trie.Hash(); exp != root {
 		t.Fatalf("2: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001339"), accounts[4])
-	if exp, root := common.HexToHash("b5ad6aa66a4a39da6bf9c39f4fa423c406d191ba7e6e4e4da48261959955d26c"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("1db70fe42174b4418fe9057add364aa9496258d4813c0bdb4292b0565f6927b5"), trie.Hash(); exp != root {
 		t.Fatalf("3: got %x, exp %x", root, exp)
 	}
 
@@ -626,7 +626,7 @@ func TestCommitAfterHash(t *testing.T) {
 	trie.Hash()
 	trie.Commit(nil)
 	root := trie.Hash()
-	exp := common.HexToHash("ee130c5765adddb6721122b0cbde1074261ef754e0b85457ef4889c27353f45f")
+	exp := common.HexToHash("c152d8d3c93865a2df0441ef7cf80b0afdbf4c77d38ffcb5657303785109fbdb")
 	if exp != root {
 		t.Errorf("got %x, exp %x", root, exp)
 	}
