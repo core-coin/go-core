@@ -19,3 +19,8 @@ jobs:
       run: go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
+    - name: Get the version
+      id: vars
+      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+    - name: Build the tagged Docker image
+      run: docker build . --file Dockerfile --tag core-coin/go-core:${{steps.vars.outputs.tag}}
