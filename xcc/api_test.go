@@ -56,7 +56,7 @@ func (h resultHash) Len() int           { return len(h) }
 func (h resultHash) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 func (h resultHash) Less(i, j int) bool { return bytes.Compare(h[i].Bytes(), h[j].Bytes()) < 0 }
 
-func TestAccountRange(t *testing.T) { // TODO: TEST
+func TestAccountRange(t *testing.T) {
 	var (
 		statedb  = state.NewDatabase(rawdb.NewMemoryDatabase())
 		state, _ = state.New(common.Hash{}, statedb, nil)

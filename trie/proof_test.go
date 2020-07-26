@@ -97,7 +97,7 @@ func TestOneElementProof(t *testing.T) {
 	}
 }
 
-func TestBadProof(t *testing.T) { //TODO: TEST
+func TestBadProof(t *testing.T) {
 	trie, vals := randomTrie(800)
 	root := trie.Hash()
 	for i, prover := range makeProvers(trie) {

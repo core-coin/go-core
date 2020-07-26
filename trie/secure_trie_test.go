@@ -89,7 +89,7 @@ func TestSecureDelete(t *testing.T) {
 	}
 }
 
-func TestSecureGetKey(t *testing.T) { //TODO: TEST
+func TestSecureGetKey(t *testing.T) {
 	trie := newEmptySecure()
 	trie.Update([]byte("foo"), []byte("bar"))
 

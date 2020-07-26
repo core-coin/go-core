@@ -48,7 +48,7 @@ func TestToEDDSAErrors(t *testing.T) {
 	}
 }
 
-func BenchmarkSha3(b *testing.B) { //TODO: TEST
+func BenchmarkSha3(b *testing.B) {
 	a := []byte("hello world")
 	for i := 0; i < b.N; i++ {
 		SHA3(a)

@@ -298,7 +298,7 @@ func TestIterativeRandomDelayedStateSync(t *testing.T) {
 
 // Tests that at any point in time during a sync, only complete sub-tries are in
 // the database.
-func TestIncompleteStateSync(t *testing.T) { // TODO: TEST
+func TestIncompleteStateSync(t *testing.T) {
 	// Create a random state to copy
 	srcDb, srcRoot, srcAccounts := makeTestState()
 

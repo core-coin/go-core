@@ -1085,7 +1085,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+	var signer types.Signer = types.NewNucleusSigner(nil)
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
