@@ -73,5 +73,5 @@ func (e Event) Sig() string {
 // ID returns the canonical representation of the event's signature used by the
 // abi definition to identify event names and types.
 func (e Event) ID() common.Hash {
-	return common.BytesToHash(crypto.Keccak256([]byte(e.Sig())))
+	return common.BytesToHash(crypto.SHA3([]byte(e.Sig())))
 }

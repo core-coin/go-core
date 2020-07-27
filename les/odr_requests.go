@@ -281,7 +281,7 @@ func (r *CodeRequest) Validate(db xccdb.Database, msg *Msg) error {
 	data := reply[0]
 
 	// Verify the data and store if checks out
-	if hash := crypto.Keccak256Hash(data); r.Hash != hash {
+	if hash := crypto.SHA3Hash(data); r.Hash != hash {
 		return errDataHashMismatch
 	}
 	r.Data = data

@@ -20,10 +20,10 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -333,8 +333,8 @@ func attestFile(ctx *cli.Context) error {
 		utils.Fatalf(err.Error())
 	}
 	configDir := ctx.GlobalString(configdirFlag.Name)
-	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.Keccak256([]byte("vault"), stretchedKey)[:10]))
-	confKey := crypto.Keccak256([]byte("config"), stretchedKey)
+	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.SHA3([]byte("vault"), stretchedKey)[:10]))
+	confKey := crypto.SHA3([]byte("config"), stretchedKey)
 
 	// Initialize the encrypted storages
 	configStorage := storage.NewAESEncryptedStorage(filepath.Join(vaultLocation, "config.json"), confKey)
@@ -367,8 +367,8 @@ func setCredential(ctx *cli.Context) error {
 		utils.Fatalf(err.Error())
 	}
 	configDir := ctx.GlobalString(configdirFlag.Name)
-	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.Keccak256([]byte("vault"), stretchedKey)[:10]))
-	pwkey := crypto.Keccak256([]byte("credentials"), stretchedKey)
+	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.SHA3([]byte("vault"), stretchedKey)[:10]))
+	pwkey := crypto.SHA3([]byte("credentials"), stretchedKey)
 
 	pwStorage := storage.NewAESEncryptedStorage(filepath.Join(vaultLocation, "credentials.json"), pwkey)
 	pwStorage.Put(address.Hex(), password)
@@ -397,8 +397,8 @@ func removeCredential(ctx *cli.Context) error {
 		utils.Fatalf(err.Error())
 	}
 	configDir := ctx.GlobalString(configdirFlag.Name)
-	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.Keccak256([]byte("vault"), stretchedKey)[:10]))
-	pwkey := crypto.Keccak256([]byte("credentials"), stretchedKey)
+	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.SHA3([]byte("vault"), stretchedKey)[:10]))
+	pwkey := crypto.SHA3([]byte("credentials"), stretchedKey)
 
 	pwStorage := storage.NewAESEncryptedStorage(filepath.Join(vaultLocation, "credentials.json"), pwkey)
 	pwStorage.Del(address.Hex())
@@ -518,12 +518,12 @@ func signer(c *cli.Context) error {
 	if stretchedKey, err := readMasterKey(c, ui); err != nil {
 		log.Warn("Failed to open master, rules disabled", "err", err)
 	} else {
-		vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.Keccak256([]byte("vault"), stretchedKey)[:10]))
+		vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.SHA3([]byte("vault"), stretchedKey)[:10]))
 
 		// Generate domain specific keys
-		pwkey := crypto.Keccak256([]byte("credentials"), stretchedKey)
-		jskey := crypto.Keccak256([]byte("jsstorage"), stretchedKey)
-		confkey := crypto.Keccak256([]byte("config"), stretchedKey)
+		pwkey := crypto.SHA3([]byte("credentials"), stretchedKey)
+		jskey := crypto.SHA3([]byte("jsstorage"), stretchedKey)
+		confkey := crypto.SHA3([]byte("config"), stretchedKey)
 
 		// Initialize the encrypted storages
 		pwStorage = storage.NewAESEncryptedStorage(filepath.Join(vaultLocation, "credentials.json"), pwkey)
@@ -536,7 +536,7 @@ func signer(c *cli.Context) error {
 			if err != nil {
 				log.Warn("Could not load rules, disabling", "file", ruleFile, "err", err)
 			} else {
-				shasum := sha256.Sum256(ruleJS)
+				shasum := sha3.Sum256(ruleJS)
 				foundShaSum := hex.EncodeToString(shasum[:])
 				storedShasum, _ := configStorage.Get("ruleset_sha256")
 				if storedShasum != foundShaSum {
@@ -725,7 +725,7 @@ func readMasterKey(ctx *cli.Context, ui core.UIClientAPI) ([]byte, error) {
 		return nil, fmt.Errorf("master seed of insufficient length, expected >255 bytes, got %d", len(masterSeed))
 	}
 	// Create vault location
-	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.Keccak256([]byte("vault"), masterSeed)[:10]))
+	vaultLocation := filepath.Join(configDir, common.Bytes2Hex(crypto.SHA3([]byte("vault"), masterSeed)[:10]))
 	err = os.Mkdir(vaultLocation, 0700)
 	if err != nil && !os.IsExist(err) {
 		return nil, err

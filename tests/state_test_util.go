@@ -290,7 +290,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
+	hw := sha3.New256()
 	rlp.Encode(hw, x)
 	hw.Sum(h[:0])
 	return h

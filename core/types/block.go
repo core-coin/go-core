@@ -96,7 +96,7 @@ type headerMarshaling struct {
 	Hash        common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
 }
 
-// Hash returns the block hash of the header, which is simply the keccak256 hash of its
+// Hash returns the block hash of the header, which is simply the SHA3 hash of its
 // RLP encoding.
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
@@ -130,7 +130,7 @@ func (h *Header) SanityCheck() error {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
+	hw := sha3.New256()
 	rlp.Encode(hw, x)
 	hw.Sum(h[:0])
 	return h
@@ -381,7 +381,7 @@ func (b *Block) WithBody(transactions []*Transaction, uncles []*Header) *Block {
 	return block
 }
 
-// Hash returns the keccak256 hash of b's header.
+// Hash returns the SHA3 hash of b's header.
 // The hash is computed on the first call and cached thereafter.
 func (b *Block) Hash() common.Hash {
 	if hash := b.hash.Load(); hash != nil {

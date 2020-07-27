@@ -117,7 +117,7 @@ func testMissingNode(t *testing.T, memonly bool) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	hash := common.HexToHash("0xe1d943cc8f061a0c0b98162830b970395ac9315654824bf21b73b891365262f9")
+	hash := common.HexToHash("0x441104088924b2e5c7cad1f84c1489cef750baefc107201334de5aa75f05541a")
 	if memonly {
 		delete(triedb.dirties, hash)
 	} else {
@@ -158,7 +158,7 @@ func TestInsert(t *testing.T) {
 	updateString(trie, "dog", "puppy")
 	updateString(trie, "dogglesworth", "cat")
 
-	exp := common.HexToHash("8aad789dff2f538bca5d8ea56e8abe10f4c7ba3a5dea95fea4cd6e7c3a1168d3")
+	exp := common.HexToHash("c33dc4124235214a96518fc8bfdef30a6c1462a08e423c29f7b08513829c551f")
 	root := trie.Hash()
 	if root != exp {
 		t.Errorf("case 1: exp %x got %x", exp, root)
@@ -167,7 +167,7 @@ func TestInsert(t *testing.T) {
 	trie = newEmpty()
 	updateString(trie, "A", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
-	exp = common.HexToHash("d23786fb4a010da3ce639d66d5e904a11dbc02746d1ce25029e53290cabf28ab")
+	exp = common.HexToHash("84ec0052caf94dc2df953a1a77ed86c20b401cff8e9b85c1c68511bc3d9259a6")
 	root, err := trie.Commit(nil)
 	if err != nil {
 		t.Fatalf("commit error: %v", err)
@@ -222,7 +222,7 @@ func TestDelete(t *testing.T) {
 	}
 
 	hash := trie.Hash()
-	exp := common.HexToHash("5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84")
+	exp := common.HexToHash("422a17a872ce2e062b0998b85bee742dfa98f429c49bb22b81495d23fd3ce841")
 	if hash != exp {
 		t.Errorf("expected %x got %x", exp, hash)
 	}
@@ -246,7 +246,7 @@ func TestEmptyValues(t *testing.T) {
 	}
 
 	hash := trie.Hash()
-	exp := common.HexToHash("5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84")
+	exp := common.HexToHash("422a17a872ce2e062b0998b85bee742dfa98f429c49bb22b81495d23fd3ce841")
 	if hash != exp {
 		t.Errorf("expected %x got %x", exp, hash)
 	}
@@ -537,11 +537,11 @@ func BenchmarkHash(b *testing.B) {
 	trie := newEmpty()
 	i := 0
 	for ; i < len(addresses)/2; i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	trie.Hash()
 	for ; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -579,7 +579,7 @@ func benchmarkCommitAfterHash(b *testing.B, onleaf LeafCallback) {
 	addresses, accounts := makeAccounts(b.N)
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -593,15 +593,15 @@ func TestTinyTrie(t *testing.T) {
 	_, accounts := makeAccounts(10000)
 	trie := newEmpty()
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001337"), accounts[3])
-	if exp, root := common.HexToHash("bf3193ebe852b9910f5c8177e6b9a31350bd1e8e15e4b22c6a482c48bc4cc83f"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("214d809544d116d38432c2032af930a87f9c9e91f28323c787381bb7b4676929"), trie.Hash(); exp != root {
 		t.Fatalf("1: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001338"), accounts[4])
-	if exp, root := common.HexToHash("3009f0d1b42c5a68ed3d2260eb1d618b7a8b4179523a4fff728b01a878f9afd0"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("6be817faf35760b709a79b52e666e79ee775cf0fb150e959c2089a8269bdf5e3"), trie.Hash(); exp != root {
 		t.Fatalf("2: got %x, exp %x", root, exp)
 	}
 	trie.Update(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000001339"), accounts[4])
-	if exp, root := common.HexToHash("b5ad6aa66a4a39da6bf9c39f4fa423c406d191ba7e6e4e4da48261959955d26c"), trie.Hash(); exp != root {
+	if exp, root := common.HexToHash("1db70fe42174b4418fe9057add364aa9496258d4813c0bdb4292b0565f6927b5"), trie.Hash(); exp != root {
 		t.Fatalf("3: got %x, exp %x", root, exp)
 	}
 
@@ -620,13 +620,13 @@ func TestCommitAfterHash(t *testing.T) {
 	addresses, accounts := makeAccounts(1000)
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
 	trie.Commit(nil)
 	root := trie.Hash()
-	exp := common.HexToHash("ee130c5765adddb6721122b0cbde1074261ef754e0b85457ef4889c27353f45f")
+	exp := common.HexToHash("c152d8d3c93865a2df0441ef7cf80b0afdbf4c77d38ffcb5657303785109fbdb")
 	if exp != root {
 		t.Errorf("got %x, exp %x", root, exp)
 	}
@@ -655,7 +655,7 @@ func makeAccounts(size int) (addresses [][22]byte, accounts [][]byte) {
 			nonce   = uint64(random.Int63())
 			balance = new(big.Int).Rand(random, new(big.Int).Exp(common.Big2, common.Big256, nil))
 			root    = emptyRoot
-			code    = crypto.Keccak256(nil)
+			code    = crypto.SHA3(nil)
 		)
 		accounts[i], _ = rlp.EncodeToBytes(&account{nonce, balance, root, code})
 	}
@@ -709,7 +709,7 @@ func benchmarkHashFixedSize(b *testing.B, addresses [][22]byte, accounts [][]byt
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	b.StartTimer()
@@ -760,7 +760,7 @@ func benchmarkCommitAfterHashFixedSize(b *testing.B, addresses [][22]byte, accou
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -812,7 +812,7 @@ func benchmarkDerefRootFixedSize(b *testing.B, addresses [][22]byte, accounts []
 	b.ReportAllocs()
 	trie := newEmpty()
 	for i := 0; i < len(addresses); i++ {
-		trie.Update(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.Update(crypto.SHA3(addresses[i][:]), accounts[i])
 	}
 	h := trie.Hash()
 	trie.Commit(nil)

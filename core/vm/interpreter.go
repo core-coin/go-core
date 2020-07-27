@@ -77,8 +77,8 @@ type CVMInterpreter struct {
 
 	intPool *intPool
 
-	hasher    keccakState // Keccak256 hasher instance shared across opcodes
-	hasherBuf common.Hash // Keccak256 hasher result array shared aross opcodes
+	hasher    keccakState // SHA3 hasher instance shared across opcodes
+	hasherBuf common.Hash // SHA3 hasher result array shared aross opcodes
 
 	readOnly   bool   // Whether to throw on stateful modifications
 	returnData []byte // Last CALL's return data for subsequent reuse
@@ -149,10 +149,10 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		pc   = uint64(0) // program counter
 		cost uint64
 		// copies used by tracer
-		pcCopy  uint64 // needed for the deferred Tracer
+		pcCopy     uint64 // needed for the deferred Tracer
 		energyCopy uint64 // for Tracer to log energy remaining before execution
-		logged  bool   // deferred Tracer should ignore already logged steps
-		res     []byte // result of the opcode execution function
+		logged     bool   // deferred Tracer should ignore already logged steps
+		res        []byte // result of the opcode execution function
 	)
 	contract.Input = input
 

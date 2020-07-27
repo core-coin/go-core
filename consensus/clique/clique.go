@@ -158,7 +158,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 		return common.Address{}, err
 	}
 	var signer common.Address
-	address := crypto.Keccak256(pubkey)[12:]
+	address := crypto.SHA3(pubkey)[12:]
 	prefix := common.DefaultNetworkID.Bytes()
 	checksum := common.Hex2Bytes(common.CalculateChecksum(address, prefix))
 	copy(signer[:], append(append(prefix, checksum...), address...))
@@ -696,7 +696,7 @@ func (c *Clique) APIs(chain consensus.ChainReader) []rpc.API {
 
 // SealHash returns the hash of a block prior to it being sealed.
 func SealHash(header *types.Header) (hash common.Hash) {
-	hasher := sha3.NewLegacyKeccak256()
+	hasher := sha3.New256()
 	encodeSigHeader(hasher, header)
 	hasher.Sum(hash[:0])
 	return hash

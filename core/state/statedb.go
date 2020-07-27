@@ -44,7 +44,7 @@ var (
 	emptyRoot = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
 	// emptyCode is the known hash of the empty CVM bytecode.
-	emptyCode = crypto.Keccak256Hash(nil)
+	emptyCode = crypto.SHA3Hash(nil)
 )
 
 type proofList [][]byte
@@ -321,7 +321,7 @@ func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
 // GetProof returns the MerkleProof for a given Account
 func (s *StateDB) GetProof(a common.Address) ([][]byte, error) {
 	var proof proofList
-	err := s.trie.Prove(crypto.Keccak256(a.Bytes()), 0, &proof)
+	err := s.trie.Prove(crypto.SHA3(a.Bytes()), 0, &proof)
 	return [][]byte(proof), err
 }
 
@@ -332,7 +332,7 @@ func (s *StateDB) GetStorageProof(a common.Address, key common.Hash) ([][]byte, 
 	if trie == nil {
 		return proof, errors.New("storage trie for requested address does not exist")
 	}
-	err := trie.Prove(crypto.Keccak256(key.Bytes()), 0, &proof)
+	err := trie.Prove(crypto.SHA3(key.Bytes()), 0, &proof)
 	return [][]byte(proof), err
 }
 
@@ -407,7 +407,7 @@ func (s *StateDB) SetNonce(addr common.Address, nonce uint64) {
 func (s *StateDB) SetCode(addr common.Address, code []byte) {
 	stateObject := s.GetOrNewStateObject(addr)
 	if stateObject != nil {
-		stateObject.SetCode(crypto.Keccak256Hash(code), code)
+		stateObject.SetCode(crypto.SHA3Hash(code), code)
 	}
 }
 
@@ -516,7 +516,7 @@ func (s *StateDB) getDeletedStateObject(addr common.Address) *stateObject {
 			defer func(start time.Time) { s.SnapshotAccountReads += time.Since(start) }(time.Now())
 		}
 		var acc *snapshot.Account
-		if acc, err = s.snap.Account(crypto.Keccak256Hash(addr[:])); err == nil {
+		if acc, err = s.snap.Account(crypto.SHA3Hash(addr[:])); err == nil {
 			if acc == nil {
 				return nil
 			}

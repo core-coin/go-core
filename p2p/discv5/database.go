@@ -202,7 +202,7 @@ func (db *nodeDB) node(id NodeID) *Node {
 	if err := db.fetchRLP(makeKey(id, nodeDBDiscoverRoot), &node); err != nil {
 		return nil
 	}
-	node.sha = crypto.Keccak256Hash(node.ID[:])
+	node.sha = crypto.SHA3Hash(node.ID[:])
 	return &node
 }
 

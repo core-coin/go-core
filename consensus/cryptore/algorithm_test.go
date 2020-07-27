@@ -30,8 +30,8 @@ func TestCryptonight(t *testing.T) {
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
-	wantDigest := hexutil.MustDecode("0x22973e1ef66971d6dc0cd683b4b6d36122973e1ef66971d6dc0cd683b4b6d361")
-	wantResult := hexutil.MustDecode("0x145e7db15442b333ac9321a22ca0191e32ae364d534f7990c3e71b4b39e0014e")
+	wantDigest := hexutil.MustDecode("0x7496850e31f0c8b44aae2d57704312657496850e31f0c8b44aae2d5770431265")
+	wantResult := hexutil.MustDecode("0x7f756e07438b62fcafb1e5027ca3c9bf263270cd12e285ee60b44a6e8a20d850")
 
 	digest, result := hashcryptonight(hash, nonce)
 	if !bytes.Equal(digest, wantDigest) {

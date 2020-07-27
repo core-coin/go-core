@@ -19,16 +19,15 @@ package keystore
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/crypto/sha3"
 )
 
 // creates a Key and stores that in the given KeyStore by decrypting a presale key JSON
@@ -77,12 +76,12 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 		16 byte key length within PBKDF2 and resulting key is used as AES key
 	*/
 	passBytes := []byte(password)
-	derivedKey := pbkdf2.Key(passBytes, passBytes, 2000, 16, sha256.New)
+	derivedKey := pbkdf2.Key(passBytes, passBytes, 2000, 16, sha3.New256)
 	plainText, err := aesCBCDecrypt(derivedKey, cipherText, iv)
 	if err != nil {
 		return nil, err
 	}
-	xccPriv := crypto.Keccak256(plainText)
+	xccPriv := crypto.SHA3(plainText)
 	ecKey := crypto.ToEDDSAUnsafe(xccPriv)
 
 	key = &Key{

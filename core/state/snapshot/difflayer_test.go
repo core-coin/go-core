@@ -262,7 +262,7 @@ func BenchmarkSearch(b *testing.B) {
 	for i := 0; i < 128; i++ {
 		layer = fill(layer)
 	}
-	key := crypto.Keccak256Hash([]byte{0x13, 0x38})
+	key := crypto.SHA3Hash([]byte{0x13, 0x38})
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		layer.AccountRLP(key)
@@ -279,8 +279,8 @@ func BenchmarkSearch(b *testing.B) {
 // BenchmarkSearchSlot-6   	 3467835	       351 ns/op
 func BenchmarkSearchSlot(b *testing.B) {
 	// First, we set up 128 diff layers, with 1K items each
-	accountKey := crypto.Keccak256Hash([]byte{0x13, 0x37})
-	storageKey := crypto.Keccak256Hash([]byte{0x13, 0x37})
+	accountKey := crypto.SHA3Hash([]byte{0x13, 0x37})
+	storageKey := crypto.SHA3Hash([]byte{0x13, 0x37})
 	accountRLP := randomAccount()
 	fill := func(parent snapshot) *diffLayer {
 		var (

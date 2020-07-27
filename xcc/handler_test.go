@@ -339,7 +339,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	}
 	// Verify that all hashes correspond to the requested data, and reconstruct a state tree
 	for i, want := range hashes {
-		if hash := crypto.Keccak256Hash(data[i]); hash != want {
+		if hash := crypto.SHA3Hash(data[i]); hash != want {
 			t.Errorf("data hash mismatch: have %x, want %x", hash, want)
 		}
 	}

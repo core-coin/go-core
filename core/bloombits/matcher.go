@@ -36,7 +36,7 @@ type bloomIndexes [3]uint
 
 // calcBloomIndexes returns the bloom filter bit indexes belonging to the given key.
 func calcBloomIndexes(b []byte) bloomIndexes {
-	b = crypto.Keccak256(b)
+	b = crypto.SHA3(b)
 
 	var idxs bloomIndexes
 	for i := 0; i < len(idxs); i++ {

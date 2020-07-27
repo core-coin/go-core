@@ -551,7 +551,7 @@ func (s *PublicBlockChainAPI) GetProof(ctx context.Context, address common.Addre
 		storageHash = storageTrie.Hash()
 	} else {
 		// no storageTrie means the account does not exist, so the codeHash is the hash of an empty bytearray.
-		codeHash = crypto.Keccak256Hash(nil)
+		codeHash = crypto.SHA3Hash(nil)
 	}
 
 	// create the proof for the storageKeys
@@ -1085,7 +1085,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+	var signer types.Signer = types.NewNucleusSigner(nil)
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
@@ -1665,7 +1665,7 @@ func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address comm
 		return common.Address{}, err
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey)[12:])
+	copy(signer[:], crypto.SHA3(pubkey)[12:])
 
 	return signer, nil
 }

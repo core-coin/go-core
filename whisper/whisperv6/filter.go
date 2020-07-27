@@ -17,13 +17,13 @@
 package whisperv6
 
 import (
-	"github.com/core-coin/eddsa"
 	"fmt"
 	"sync"
 	"bytes"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/log"
 )
 
@@ -86,7 +86,7 @@ func (fs *Filters) Install(watcher *Filter) (string, error) {
 	}
 
 	if watcher.expectsSymmetricEncryption() {
-		watcher.SymKeyHash = crypto.Keccak256Hash(watcher.KeySym)
+		watcher.SymKeyHash = crypto.SHA3Hash(watcher.KeySym)
 	}
 
 	watcher.id = id

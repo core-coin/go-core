@@ -91,8 +91,8 @@ func TestEventId(t *testing.T) {
 			{ "type" : "event", "name" : "Check", "inputs": [{ "name" : "t", "type": "address" }, { "name": "b", "type": "uint256" }] }
 			]`,
 			expectations: map[string]common.Hash{
-				"Balance": crypto.Keccak256Hash([]byte("Balance(uint256)")),
-				"Check":   crypto.Keccak256Hash([]byte("Check(address,uint256)")),
+				"Balance": crypto.SHA3Hash([]byte("Balance(uint256)")),
+				"Check":   crypto.SHA3Hash([]byte("Check(address,uint256)")),
 			},
 		},
 	}

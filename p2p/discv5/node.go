@@ -56,7 +56,7 @@ func NewNode(id NodeID, ip net.IP, udpPort, tcpPort uint16) *Node {
 		UDP:         udpPort,
 		TCP:         tcpPort,
 		ID:          id,
-		nodeNetGuts: nodeNetGuts{sha: crypto.Keccak256Hash(id[:])},
+		nodeNetGuts: nodeNetGuts{sha: crypto.SHA3Hash(id[:])},
 	}
 }
 

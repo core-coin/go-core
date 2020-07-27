@@ -20,13 +20,12 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha512"
-	"github.com/core-coin/eddsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -50,7 +49,7 @@ const (
 	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
 	sigLen = crypto.SignatureLength
 	pubLen = 56
-	shaLen = sha512.Size
+	shaLen = 64
 
 	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1
 	authRespLen = pubLen + shaLen + 1
@@ -244,19 +243,19 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 	}
 
 	// derive base secrets from ephemeral key agreement
-	sharedSecret := crypto.Keccak256(ecdheSecret, crypto.Keccak256(h.respNonce, h.initNonce))
-	aesSecret := crypto.Keccak256(ecdheSecret, sharedSecret)
+	sharedSecret := crypto.SHA3(ecdheSecret, crypto.SHA3(h.respNonce, h.initNonce))
+	aesSecret := crypto.SHA3(ecdheSecret, sharedSecret)
 	s := secrets{
 		Remote: h.remote,
 		AES:    aesSecret,
-		MAC:    crypto.Keccak256(ecdheSecret, aesSecret),
+		MAC:    crypto.SHA3(ecdheSecret, aesSecret),
 	}
 
 	// setup sha3 instances for the MACs
-	mac1 := sha3.NewLegacyKeccak256()
+	mac1 := sha3.New256()
 	mac1.Write(xor(s.MAC, h.respNonce))
 	mac1.Write(auth)
-	mac2 := sha3.NewLegacyKeccak256()
+	mac2 := sha3.New256()
 	mac2.Write(xor(s.MAC, h.initNonce))
 	mac2.Write(authResp)
 	if h.initiator {

@@ -247,7 +247,7 @@ func sighash(index uint64, oracle common.Address, hash common.Hash) []byte {
 	binary.BigEndian.PutUint64(buf, index)
 
 	data := append([]byte{0x19, 0x00}, append(oracle[:], append(buf, hash[:]...)...)...)
-	return crypto.Keccak256(data)
+	return crypto.SHA3(data) //todo: check oracle compatibility (eduardo)
 }
 
 // ecrecover calculates the sender address from a sighash and signature combo.

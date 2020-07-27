@@ -63,7 +63,7 @@ func seedHash(block uint64) []byte {
 	if block < epochLength {
 		return seed
 	}
-	keccak256 := makeHasher(sha3.NewLegacyKeccak256())
+	keccak256 := makeHasher(sha3.New256())
 	for i := 0; i < int(block/epochLength); i++ {
 		keccak256(seed, seed)
 	}
@@ -84,7 +84,7 @@ func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
 	copy(seed, hash)
 	binary.LittleEndian.PutUint64(seed[32:], nonce)
 
-	seed = crypto.Keccak512(seed)
+	seed = crypto.SHA3_512(seed)
 
 	// Start the mix with replicated seed
 	mix := make([]uint32, mixBytes/4)

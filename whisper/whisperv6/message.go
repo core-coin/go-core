@@ -157,7 +157,7 @@ func (msg *sentMessage) sign(key *eddsa.PrivateKey) error {
 	}
 
 	msg.Raw[0] |= signatureFlag // it is important to set this flag before signing
-	hash := crypto.Keccak256(msg.Raw)
+	hash := crypto.SHA3(msg.Raw)
 	signature, err := crypto.Sign(hash, key)
 	if err != nil {
 		msg.Raw[0] &= (0xFF ^ signatureFlag) // clear the flag
@@ -349,7 +349,7 @@ func (msg *ReceivedMessage) SigToPubKey() *eddsa.PublicKey {
 func (msg *ReceivedMessage) hash() []byte {
 	if isMessageSigned(msg.Raw[0]) {
 		sz := len(msg.Raw) - signatureLength
-		return crypto.Keccak256(msg.Raw[:sz])
+		return crypto.SHA3(msg.Raw[:sz])
 	}
-	return crypto.Keccak256(msg.Raw)
+	return crypto.SHA3(msg.Raw)
 }

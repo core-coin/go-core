@@ -62,10 +62,10 @@ func TestTransactionSigHash(t *testing.T) {
 		t.Error(errAddr)
 	}
 	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
-	if nucleus.Hash(emptyTx) != common.HexToHash("0x667a680a928baad12ae32d5d46a5800a668ad7054ba852bcce0723b26e28d927") {
+	if nucleus.Hash(emptyTx) != common.HexToHash("0x0064d7a2aa08686b4f36a2188352ba162ff2b5bdce72335f4a0e25a6c5f47af7") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
-	if nucleus.Hash(rightvrsTx) != common.HexToHash("0xdc291d2b25c348bf6c33aa4bf761389d26468bbf0efed36e342792517abd846f") {
+	if nucleus.Hash(rightvrsTx) != common.HexToHash("0x600b4f389ba51f30ed9baae7b8880a283d5f460c88b32aafd9fbe98f42a23ff3") {
 		t.Errorf("RightVRS transaction hash mismatch, got %x", rightvrsTx.Hash())
 	}
 }
@@ -75,7 +75,7 @@ func TestTransactionEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f8cb800a82c3500196cb95f8989a12c39d55e40ca9466fbc3963d9914a44880a821123b8a8b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0")
+	should := common.FromHex("f8cb800a82c3500196cb723ce833507cdfb66b76332523f034b38d8b077f560a821123b8a8b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0")
 	if !bytes.Equal(txb, should) {
 		t.Errorf("encoded RLP mismatch, got %x", txb)
 	}
@@ -97,7 +97,7 @@ func TestRecipientEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, err := common.HexToAddress("cb69089200aa2a542254e53814647e9fa2f8e03ad44c")
+	expected, err := common.HexToAddress("cb11973f51daa415dd5b1ce5cb84f8d20ad85f0e4c09")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,16 +107,16 @@ func TestRecipientEmpty(t *testing.T) {
 }
 
 func TestRecipientNormal(t *testing.T) {
-	tx, err := decodeTx(common.Hex2Bytes("f8b180808001808080b8a8f5d02300a89fe01f4c1cdd9d03f8fb05adc69929002778d30e0fb1a136f088c8bd4b9d63699a6d478e6950f9fd891b92cba6813dc932b88926342d6ce19967ff68386fae213111535fcd3cffc68ba5a2c4963ebc532d228991455e2aa98683db4fb610e445390318f3c25a3cc412ce0eb76e57686d84f196670684396866eba8d013d26db4b209c02e35ac6b2a98cf54c17835d95da8e7c8a3e15f258d27c780671606acb4297145"))
+	tx, err := decodeTx(common.Hex2Bytes("f8bb078504a817c80783029040808082015780b8a82131c93431f0f0bdd8b4a32f927ec73f06ad1204f2cbff1203875a4cb6bf5e3d0133c2706e45c17b54651c028674f9cd7cfd7cfa5ff054ea96214d5093f0e3bf4314264cf221b3d86958dceb19ea181c39a36ce44bc5a82c2a6dfff0478b948a4dccbf494a1e9316fe4db7fee7b2802058fd718628e64c5f0e138656aecadfc57a1d6b735127b0bccdd8e5ff775cc72565b49b9613566acdecc2946bbf7cbcf52e697cdbdef3484e"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NewNucleusSigner(params.MainnetChainConfig.ChainID), tx)
+	from, err := Sender(NewNucleusSigner(params.TestChainConfig.ChainID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, err := common.HexToAddress("cb51339322dba86a24a090176312f97465875cc1dfba")
+	expected, err := common.HexToAddress("cb11973f51daa415dd5b1ce5cb84f8d20ad85f0e4c09")
 	if err != nil {
 		t.Fatal(err)
 	}

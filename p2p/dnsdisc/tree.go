@@ -230,7 +230,7 @@ const (
 )
 
 func subdomain(e entry) string {
-	h := sha3.NewLegacyKeccak256()
+	h := sha3.New256()
 	io.WriteString(h, e.String())
 	return b32format.EncodeToString(h.Sum(nil)[:16])
 }
@@ -240,7 +240,7 @@ func (e *rootEntry) String() string {
 }
 
 func (e *rootEntry) sigHash() []byte {
-	h := sha3.NewLegacyKeccak256()
+	h := sha3.New256()
 	fmt.Fprintf(h, rootPrefix+" e=%s l=%s seq=%d", e.eroot, e.lroot, e.seq)
 	return h.Sum(nil)
 }

@@ -130,7 +130,7 @@ type NodeList []rlp.RawValue
 // Store writes the contents of the list to the given database
 func (n NodeList) Store(db xccdb.KeyValueWriter) {
 	for _, node := range n {
-		db.Put(crypto.Keccak256(node), node)
+		db.Put(crypto.SHA3(node), node)
 	}
 }
 

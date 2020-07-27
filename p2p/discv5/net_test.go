@@ -67,7 +67,7 @@ func TestNetwork_Lookup(t *testing.T) {
 // The nodes were obtained by running devin.mine with a random NodeID as target.
 var lookupDevin = &preminedDevin{
 	target:    MustHexID("166aea4f556532c6d34e8b740e5d314af7e9ac0ca79833bd751d6b665f12dfd38ec563c363b32f02aef4a80b44fd3def94612d497b99cb5f"),
-	targetSha: common.Hash{125, 14, 190, 124, 118, 12, 219, 131, 254, 39, 168, 122, 180, 7, 173, 141, 226, 184, 23, 149, 0, 104, 125, 155, 154, 89, 31, 247, 82, 235, 128, 51},
+	targetSha: crypto.SHA3Hash(common.Hex2Bytes("166aea4f556532c6d34e8b740e5d314af7e9ac0ca79833bd751d6b665f12dfd38ec563c363b32f02aef4a80b44fd3def94612d497b99cb5f")),
 	dists: [257][]NodeID{
 		240: {
 			MustHexID("2001ad5e3e80c71b952161bc0186731cf5ffe942d24a79230a0555802296238e57ea7a32f5b6f18564eadc1c65389448481f8c9338df0a3d"),

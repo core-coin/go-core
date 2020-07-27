@@ -56,7 +56,7 @@ func makeTestState() (Database, common.Hash, []*testAccount) {
 		acc.nonce = uint64(42 * i)
 
 		if i%3 == 0 {
-			obj.SetCode(crypto.Keccak256Hash([]byte{i, i, i, i, i}), []byte{i, i, i, i, i})
+			obj.SetCode(crypto.SHA3Hash([]byte{i, i, i, i, i}), []byte{i, i, i, i, i})
 			acc.code = []byte{i, i, i, i, i}
 		}
 		state.updateStateObject(obj)
@@ -336,7 +336,7 @@ func TestIncompleteStateSync(t *testing.T) {
 	checkSubtries:
 		for _, hash := range added {
 			for _, acc := range srcAccounts {
-				if hash == crypto.Keccak256Hash(acc.code) {
+				if hash == crypto.SHA3Hash(acc.code) {
 					continue checkSubtries // skip trie check of code nodes.
 				}
 			}

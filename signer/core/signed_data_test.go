@@ -269,7 +269,7 @@ func TestHashStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	mainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if mainHash != "0x7a81adac0be9a6c726d5e0542e098b3b402cb7c1cb501158681fbab51ab37a89" {
+	if mainHash != "0x5c513419f6053d7a63a33a96f9ec9d128e65493aa12b66e14b35d6dd944ab181" {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
@@ -278,7 +278,7 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0x83505766fa73b282a02928f375f7a169f3a8b1e66cc6bd1bf3458f1f8ff1ef6a" {
+	if domainHash != "0xc3978b7239f01da72c00454df62b8c7583e13456b5e077e60badbd46ab5febca" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
@@ -297,7 +297,7 @@ func TestEncodeType(t *testing.T) {
 
 func TestTypeHash(t *testing.T) {
 	mailTypeHash := fmt.Sprintf("0x%s", common.Bytes2Hex(typedData.TypeHash(typedData.PrimaryType)))
-	if mailTypeHash != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2" {
+	if mailTypeHash != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622b" {
 		t.Errorf("Expected different typeHash result (got %s)", mailTypeHash)
 	}
 }
@@ -308,7 +308,7 @@ func TestEncodeData(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataEncoding := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if dataEncoding != "0xa0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2f890123d392b7502839e7d79cf6cd7528da90d0f74a7baa404a13855dca722dbfb434c03161407c9229293d4693c452b32404f394ec30f005d4dad98d011dcd6b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8" {
+	if dataEncoding != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622ba56a5419af7340cf23543fb910856638ec205e247b0f32b3da40a09cea1b8b9b590926d67b65dc4fc8f86dc47a946434defc177afc9a5b2e0ee36e7108b857ceb58543c145f315ad2c9210b45c29c13e6c9fc5396a140d3b07f766925fda360e" {
 		t.Errorf("Expected different encodeData result (got %s)", dataEncoding)
 	}
 }
@@ -338,7 +338,7 @@ func sign(typedData core.TypedData) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
-	sighash := crypto.Keccak256(rawData)
+	sighash := crypto.SHA3(rawData)
 	return typedDataHash, sighash, nil
 }
 
