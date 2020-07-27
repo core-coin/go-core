@@ -9,7 +9,7 @@ Core development team has up to 90 days to implement a fix based on the severity
 
 ## Rewards
 
-We are rewarding researchers that find bugs with a bounty of our digital currency, Cores (XCC). The amount of the award depends on the degree of severity of the vulnerability reported.
+We are rewarding researchers that find bugs with a bounty of our digital currency, Cores (XCB). The amount of the award depends on the degree of severity of the vulnerability reported.
 
 We calculate rewards regards to according to the [OWASP](https://www.owasp.org/index.php/OWASP_Risk_Rating_Methodology) risk rating model based on Impact and Likelihood.
 
@@ -21,7 +21,7 @@ We calculate rewards regards to according to the [OWASP](https://www.owasp.org/i
 |              | **Low**        | **Medium**     | **High**       |
 |              | **Likelihood** | **Likelihood** | **Likelihood** |
 
-1 point currently corresponds to 1 EUR (payable in Cores (XCC)), something which may change without prior notice.
+1 point currently corresponds to 1 EUR (payable in Cryptocurrency), something which may change without prior notice.
 
 ## Eligibility
 
