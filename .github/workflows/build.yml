@@ -21,7 +21,10 @@ jobs:
     - name: Get the version
       id: vars
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-    - name: Build docker image
-      run: docker build . --file Dockerfile --tag core-coin/go-core:${{steps.vars.outputs.tag}}
-    - name: Push docker image
-      run: docker push docker.pkg.github.com/core-coin/go-core:${{steps.vars.outputs.tag}}
+    - name: Push to GitHub Packages
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: docker.pkg.github.com
+        repository: core-coin/go-core/${{steps.vars.outputs.tag}}
