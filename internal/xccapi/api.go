@@ -1078,6 +1078,8 @@ type RPCTransaction struct {
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
 	To               *common.Address `json:"to"`
+	ChainID          hexutil.Uint64  `json:"chain_id"`
+	Signature        hexutil.Bytes   `json:"signature"`
 	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
 	Value            *hexutil.Big    `json:"value"`
 }
@@ -1096,6 +1098,8 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		Input:       hexutil.Bytes(tx.Data()),
 		Nonce:       hexutil.Uint64(tx.Nonce()),
 		To:          tx.To(),
+		ChainID:     hexutil.Uint64(tx.ChainID()),
+		Signature:   hexutil.Bytes(tx.Signature()),
 		Value:       (*hexutil.Big)(tx.Value()),
 	}
 	if blockHash != (common.Hash{}) {
