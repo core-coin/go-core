@@ -21,7 +21,7 @@ We calculate rewards regards to according to the [OWASP](https://www.owasp.org/i
 |              | **Low**        | **Medium**     | **High**       |
 |              | **Likelihood** | **Likelihood** | **Likelihood** |
 
-1 point currently corresponds to 1 EUR (payable in Cores (XCB)), something which may change without prior notice.
+1 point currently corresponds to 1 EUR (payable in Cryptocurrency), something which may change without prior notice.
 
 ## Eligibility
 

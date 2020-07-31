@@ -29,12 +29,12 @@
 
   <developers>
     <developer>
-      <id>karalabe</id>
-      <name>Péter Szilágyi</name>
-      <email>peterke@gmail.com</email>
-      <url>https://github.com/karalabe</url>
+      <id>core-coin</id>
+      <name>CORE FOUNDATION</name>
+      <email>dev@coreblockchain.cc</email>
+      <url>https://github.com/core-coin</url>
       <properties>
-        <picUrl>https://www.gravatar.com/avatar/2ecbf0f5b4b79eebf8c193e5d324357f?s=256</picUrl>
+        <picUrl>https://avatars1.githubusercontent.com/u/35351757?s=256</picUrl>
       </properties>
     </developer>
   </developers>

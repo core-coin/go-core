@@ -125,6 +125,7 @@ var (
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
 		utils.DNSDiscoveryFlag,
+		utils.UseDNSDiscoveryFlag,
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.NtpServerFlag,

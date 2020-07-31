@@ -60,6 +60,8 @@ type txdataMarshaling struct {
 	AccountNonce hexutil.Uint64
 	Price        *hexutil.Big
 	EnergyLimit  hexutil.Uint64
+	ChainID      hexutil.Uint64
+	Signature    hexutil.Bytes
 	Amount       *hexutil.Big
 	Payload      hexutil.Bytes
 }
@@ -137,6 +139,7 @@ func (tx *Transaction) Value() *big.Int         { return new(big.Int).Set(tx.dat
 func (tx *Transaction) Nonce() uint64           { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool        { return true }
 func (tx *Transaction) ChainID() uint           { return tx.data.ChainID }
+func (tx *Transaction) Signature() []byte       { return tx.data.Signature }
 func (tx *Transaction) SetChainID(chainID uint) { tx.data.ChainID = chainID }
 
 // To returns the recipient address of the transaction.

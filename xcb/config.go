@@ -78,7 +78,8 @@ type Config struct {
 
 	// This can be set to list of enrtree:// URLs which will be queried for
 	// for nodes to connect to.
-	DiscoveryURLs []string
+	DiscoveryURLs   []string
+	UseDNSDiscovery bool
 
 	// NTP server for time synchronisation
 	NtpServer string

@@ -1078,6 +1078,8 @@ type RPCTransaction struct {
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
 	To               *common.Address `json:"to"`
+	ChainID          hexutil.Uint64  `json:"chain_id"`
+	Signature        hexutil.Bytes   `json:"signature"`
 	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
 	Value            *hexutil.Big    `json:"value"`
 }
@@ -1085,7 +1087,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil) //TODO remove (MISHA)
+	var signer types.Signer = types.NewNucleusSigner(nil)
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
@@ -1096,6 +1098,8 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		Input:       hexutil.Bytes(tx.Data()),
 		Nonce:       hexutil.Uint64(tx.Nonce()),
 		To:          tx.To(),
+		ChainID:     hexutil.Uint64(tx.ChainID()),
+		Signature:   hexutil.Bytes(tx.Signature()),
 		Value:       (*hexutil.Big)(tx.Value()),
 	}
 	if blockHash != (common.Hash{}) {
