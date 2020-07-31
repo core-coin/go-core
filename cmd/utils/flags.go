@@ -595,6 +595,10 @@ var (
 		Name:  "discovery.dns",
 		Usage: "Sets DNS discovery entry points (use \"\" to disable DNS)",
 	}
+	UseDNSDiscoveryFlag = cli.BoolFlag{
+		Name:  "discovery.dns.use",
+		Usage: "Turns on DNS discovery",
+	}
 	NtpServerFlag = cli.StringFlag{
 		Name:  "ntp",
 		Usage: "NTP server and port for time synchronisation",
@@ -1471,6 +1475,9 @@ func SetXccConfig(ctx *cli.Context, stack *node.Node, cfg *xcc.Config) {
 			cfg.DiscoveryURLs = splitAndTrim(urls)
 		}
 	}
+	if ctx.GlobalIsSet(UseDNSDiscoveryFlag.Name) {
+		cfg.UseDNSDiscovery = ctx.GlobalBool(UseDNSDiscoveryFlag.Name)
+	}
 	if ctx.GlobalIsSet(NtpServerFlag.Name) {
 		cfg.NtpServer = ctx.GlobalString(NtpServerFlag.Name)
 	}
@@ -1530,7 +1537,9 @@ func setDNSDiscoveryDefaults(cfg *xcc.Config, url string) {
 	if cfg.DiscoveryURLs != nil {
 		return
 	}
-	cfg.DiscoveryURLs = []string{url}
+	if cfg.UseDNSDiscovery {
+		cfg.DiscoveryURLs = []string{url}
+	}
 }
 
 // RegisterXccService adds an Core client to the stack.
