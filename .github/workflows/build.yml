@@ -23,7 +23,7 @@ jobs:
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: docker login
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-    - name: Build docker image
-      run: docker build . --file Dockerfile --tag core-coin/go-core:${{steps.vars.outputs.tag}}
-    - name: Push docker image
+    - name: docker build      
+      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core:${{steps.vars.outputs.tag}}
+    - name: docker push
       run: docker push docker.pkg.github.com/core-coin/go-core:${{steps.vars.outputs.tag}}
