@@ -32,7 +32,7 @@ import (
 
 // nodeDockerfile is the Dockerfile required to run an Core node.
 var nodeDockerfile = `
-FROM corehub/go-core:latest
+FROM docker.pkg.github.com/core-coin/go-core/gcore:latest
 
 ADD genesis.json /genesis.json
 {{if .Unlock}}

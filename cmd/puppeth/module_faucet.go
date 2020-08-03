@@ -33,7 +33,7 @@ import (
 // faucetDockerfile is the Dockerfile required to build a faucet container to
 // grant crypto tokens based on GitHub authentications.
 var faucetDockerfile = `
-FROM corehub/go-core:alltools-latest
+docker.pkg.github.com/core-coin/go-core/gcore:alltools-latest
 
 ADD genesis.json /genesis.json
 ADD account.json /account.json
