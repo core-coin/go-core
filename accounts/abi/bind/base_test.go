@@ -153,7 +153,7 @@ func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) { // TODO: TEST
 	sliceBytes, err := rlp.EncodeToBytes([]string{"name1", "name2", "name3", "name4"})
 	if err != nil {
 		t.Fatal(err)
@@ -350,7 +350,7 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) { //TODO: TEST
 	byts := []byte{1, 2, 3, 4, 5}
 	hash := crypto.SHA3Hash(byts)
 	addr, err := common.HexToAddress("cb540000000000000000000000000000000000000000")

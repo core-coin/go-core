@@ -37,7 +37,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb/downloader"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -499,7 +499,7 @@ func removeDB(ctx *cli.Context) error {
 		log.Info("Full node state database missing", "path", path)
 	}
 	// Remove the full node ancient database
-	path = config.Xcc.DatabaseFreezer
+	path = config.Xcb.DatabaseFreezer
 	switch {
 	case path == "":
 		path = filepath.Join(stack.ResolvePath("chaindata"), "ancient")

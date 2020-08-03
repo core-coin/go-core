@@ -16,7 +16,7 @@
 
 // This file contains the implementation for interacting with the Ledger hardware
 // wallets. The wire protocol spec can be found in the Ledger Blue GitHub repo:
-// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcc/master/doc/xccapp.asc
+// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcb/master/doc/xcbapp.asc
 
 package usbwallet
 

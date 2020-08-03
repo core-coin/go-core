@@ -31,8 +31,8 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xccdb/leveldb"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/leveldb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 	"github.com/davecgh/go-spew/spew"
 )
 

@@ -6,7 +6,7 @@ cmd/puppeth                     @eduardosanchezg @error2215 @raisty @SashaZezuli
 consensus                       @eduardosanchezg @error2215 @raisty @SashaZezulinsky
 core/                           @eduardosanchezg @error2215 @raisty @SashaZezulinsky
 dashboard/                      @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-xcc/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
+xcb/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
 graphql/                        @eduardosanchezg @error2215 @raisty @SashaZezulinsky
 les/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
 light/                          @eduardosanchezg @error2215 @raisty @SashaZezulinsky

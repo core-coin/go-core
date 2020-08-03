@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcb"
 )
 
 type LesServer struct {
@@ -57,7 +57,7 @@ type LesServer struct {
 	threadsBusy                            int // Request serving threads count when system is busy(block insertion).
 }
 
-func NewLesServer(e *xcc.Core, config *xcc.Config) (*LesServer, error) {
+func NewLesServer(e *xcb.Core, config *xcb.Config) (*LesServer, error) {
 	// Collect les protocol version information supported by local node.
 	lesTopics := make([]discv5.Topic, len(AdvertiseProtocolVersions))
 	for i, pv := range AdvertiseProtocolVersions {

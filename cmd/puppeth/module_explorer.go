@@ -35,8 +35,8 @@ FROM corehub/explorer:latest
 ADD genesis.json /genesis.json
 RUN \
   echo 'gcore --cache 512 init /genesis.json' > explorer.sh && \
-  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XccPort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xccstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
-  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XccPort}} --bootnodes {{.Bootnodes}} --xccstats \'{{.Xccstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcc,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
+  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
+  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
   echo '/usr/local/bin/docker-entrypoint.sh postgres &' >> explorer.sh && \
   echo 'sleep 5' >> explorer.sh && \
   echo 'mix do ecto.drop --force, ecto.create, ecto.migrate' >> explorer.sh && \
@@ -55,12 +55,12 @@ services:
         image: {{.Network}}/explorer
         container_name: {{.Network}}_explorer_1
         ports:
-            - "{{.XccPort}}:{{.XccPort}}"
-            - "{{.XccPort}}:{{.XccPort}}/udp"{{if not .VHost}}
+            - "{{.XcbPort}}:{{.XcbPort}}"
+            - "{{.XcbPort}}:{{.XcbPort}}/udp"{{if not .VHost}}
             - "{{.WebPort}}:4000"{{end}}
         environment:
-            - XCC_PORT={{.XccPort}}
-            - XCC_NAME={{.XccName}}
+            - XCB_PORT={{.XcbPort}}
+            - XCB_NAME={{.XcbName}}
             - BLOCK_TRANSFORMER={{.Transformer}}{{if .VHost}}
             - VIRTUAL_HOST={{.VHost}}
             - VIRTUAL_PORT=4000{{end}}
@@ -87,8 +87,8 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerDockerfile)).Execute(dockerfile, map[string]interface{}{
 		"NetworkID": config.node.network,
 		"Bootnodes": strings.Join(bootnodes, ","),
-		"Xccstats":  config.node.xccstats,
-		"XccPort":   config.node.port,
+		"Xcbstats":  config.node.xcbstats,
+		"XcbPort":   config.node.port,
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
 
@@ -100,11 +100,11 @@ func deployExplorer(client *sshClient, network string, bootnodes []string, confi
 	template.Must(template.New("").Parse(explorerComposefile)).Execute(composefile, map[string]interface{}{
 		"Network":     network,
 		"VHost":       config.host,
-		"Xccstats":    config.node.xccstats,
+		"Xcbstats":    config.node.xcbstats,
 		"Datadir":     config.node.datadir,
 		"DBDir":       config.dbdir,
-		"XccPort":     config.node.port,
-		"XccName":     config.node.xccstats[:strings.Index(config.node.xccstats, ":")],
+		"XcbPort":     config.node.port,
+		"XcbName":     config.node.xcbstats[:strings.Index(config.node.xcbstats, ":")],
 		"WebPort":     config.port,
 		"Transformer": transformer,
 	})
@@ -140,7 +140,7 @@ func (info *explorerInfos) Report() map[string]string {
 		"Website address ":       info.host,
 		"Website listener port ": strconv.Itoa(info.port),
 		"Core listener port ":    strconv.Itoa(info.node.port),
-		"Xccstats username":      info.node.xccstats,
+		"Xcbstats username":      info.node.xcbstats,
 	}
 	return report
 }
@@ -172,7 +172,7 @@ func checkExplorer(client *sshClient, network string) (*explorerInfos, error) {
 		host = client.server
 	}
 	// Run a sanity check to see if the devp2p is reachable
-	p2pPort := infos.portmap[infos.envvars["XCC_PORT"]+"/tcp"]
+	p2pPort := infos.portmap[infos.envvars["XCB_PORT"]+"/tcp"]
 	if err = checkPort(host, p2pPort); err != nil {
 		log.Warn("Explorer node seems unreachable", "server", host, "port", p2pPort, "err", err)
 	}
@@ -183,8 +183,8 @@ func checkExplorer(client *sshClient, network string) (*explorerInfos, error) {
 	stats := &explorerInfos{
 		node: &nodeInfos{
 			datadir:  infos.volumes["/opt/app/core"],
-			port:     infos.portmap[infos.envvars["XCC_PORT"]+"/tcp"],
-			xccstats: infos.envvars["XCC_NAME"],
+			port:     infos.portmap[infos.envvars["XCB_PORT"]+"/tcp"],
+			xcbstats: infos.envvars["XCB_NAME"],
 		},
 		dbdir: infos.volumes["/var/lib/postgresql/data"],
 		host:  host,

@@ -33,7 +33,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xccapi"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/fourbyte"
@@ -53,7 +53,7 @@ func (ui *headlessUi) OnInputRequired(info core.UserInputRequest) (core.UserInpu
 
 func (ui *headlessUi) OnSignerStartup(info core.StartupInfo)        {}
 func (ui *headlessUi) RegisterUIServer(api *core.UIServerAPI)       {}
-func (ui *headlessUi) OnApprovedTx(tx xccapi.SignTransactionResult) {}
+func (ui *headlessUi) OnApprovedTx(tx xcbapi.SignTransactionResult) {}
 
 func (ui *headlessUi) ApproveTx(request *core.SignTxRequest) (core.SignTxResponse, error) {
 
@@ -109,7 +109,7 @@ func (ui *headlessUi) ShowInfo(message string) {
 }
 
 func tmpDirName(t *testing.T) string {
-	d, err := ioutil.TempDir("", "xcc-keystore-test")
+	d, err := ioutil.TempDir("", "xcb-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -249,7 +249,7 @@ func mkTestTx(from common.Address) core.SendTxArgs {
 func TestSignTx(t *testing.T) {
 	var (
 		list      []common.Address
-		res, res2 *xccapi.SignTransactionResult
+		res, res2 *xcbapi.SignTransactionResult
 		err       error
 	)
 

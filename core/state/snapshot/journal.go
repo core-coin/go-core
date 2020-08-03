@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // journalGenerator is a disk layer entry containing the generator progress marker.
@@ -62,7 +62,7 @@ type journalStorage struct {
 }
 
 // loadSnapshot loads a pre-existing state snapshot backed by a key-value store.
-func loadSnapshot(diskdb xccdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash) (snapshot, error) {
+func loadSnapshot(diskdb xcbdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash) (snapshot, error) {
 	// Retrieve the block number and hash of the snapshot, failing if no snapshot
 	// is present in the database (or crashed mid-update).
 	baseRoot := rawdb.ReadSnapshotRoot(diskdb)

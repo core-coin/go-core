@@ -22,7 +22,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 // Tests that given a database with random data content, all parts of a snapshot

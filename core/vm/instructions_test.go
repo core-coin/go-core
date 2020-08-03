@@ -565,7 +565,7 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
-func TestCreate2Addreses(t *testing.T) {
+func TestCreate2Addreses(t *testing.T) { //TODO: TEST
 	type testcase struct {
 		origin   string
 		salt     string

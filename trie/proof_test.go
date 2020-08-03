@@ -25,7 +25,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 func init() {
@@ -97,7 +97,7 @@ func TestOneElementProof(t *testing.T) {
 	}
 }
 
-func TestBadProof(t *testing.T) {
+func TestBadProof(t *testing.T) { //TODO: TEST
 	trie, vals := randomTrie(800)
 	root := trie.Hash()
 	for i, prover := range makeProvers(trie) {

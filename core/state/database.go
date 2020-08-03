@@ -21,7 +21,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -93,20 +93,20 @@ type Trie interface {
 	// If the trie does not contain a value for key, the returned proof contains all
 	// nodes of the longest existing prefix of the key (at least the root), ending
 	// with the node that proves the absence of the key.
-	Prove(key []byte, fromLevel uint, proofDb xccdb.KeyValueWriter) error
+	Prove(key []byte, fromLevel uint, proofDb xcbdb.KeyValueWriter) error
 }
 
 // NewDatabase creates a backing store for state. The returned database is safe for
 // concurrent use, but does not retain any recent trie nodes in memory. To keep some
 // historical state in memory, use the NewDatabaseWithCache constructor.
-func NewDatabase(db xccdb.Database) Database {
+func NewDatabase(db xcbdb.Database) Database {
 	return NewDatabaseWithCache(db, 0)
 }
 
 // NewDatabaseWithCache creates a backing store for state. The returned database
 // is safe for concurrent use and retains a lot of collapsed RLP trie nodes in a
 // large memory cache.
-func NewDatabaseWithCache(db xccdb.Database, cache int) Database {
+func NewDatabaseWithCache(db xcbdb.Database, cache int) Database {
 	csc, _ := lru.New(codeSizeCacheSize)
 	return &cachingDB{
 		db:            trie.NewDatabaseWithCache(db, cache),

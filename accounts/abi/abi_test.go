@@ -234,7 +234,7 @@ func TestOverloadedMethodSignature(t *testing.T) {
 	check("bar0", "bar(uint256,uint256)", false)
 }
 
-func TestMultiPack(t *testing.T) {
+func TestMultiPack(t *testing.T) { //TODO: TEST
 	abi, err := JSON(strings.NewReader(jsondata2))
 	if err != nil {
 		t.Fatal(err)
@@ -954,7 +954,7 @@ func TestABI_MethodById(t *testing.T) {
 	}
 }
 
-func TestABI_EventById(t *testing.T) {
+func TestABI_EventById(t *testing.T) { //todo: TEST
 	tests := []struct {
 		name  string
 		json  string

@@ -28,10 +28,10 @@ import (
 // In this example, our client wishes to track the latest 'block number'
 // known to the server. The server supports two methods:
 //
-// xcc_getBlockByNumber("latest", {})
+// xcb_getBlockByNumber("latest", {})
 //    returns the latest block object.
 //
-// xcc_subscribe("newBlocks")
+// xcb_subscribe("newBlocks")
 //    creates a subscription which fires block objects when new blocks arrive.
 
 type Block struct {
@@ -66,7 +66,7 @@ func subscribeBlocks(client *rpc.Client, subch chan Block) {
 	defer cancel()
 
 	// Subscribe to new blocks.
-	sub, err := client.XccSubscribe(ctx, subch, "newHeads")
+	sub, err := client.XcbSubscribe(ctx, subch, "newHeads")
 	if err != nil {
 		fmt.Println("subscribe error:", err)
 		return
@@ -75,7 +75,7 @@ func subscribeBlocks(client *rpc.Client, subch chan Block) {
 	// The connection is established now.
 	// Update the channel with the current block.
 	var lastBlock Block
-	if err := client.CallContext(ctx, &lastBlock, "xcc_getBlockByNumber", "latest"); err != nil {
+	if err := client.CallContext(ctx, &lastBlock, "xcb_getBlockByNumber", "latest"); err != nil {
 		fmt.Println("can't get latest block:", err)
 		return
 	}

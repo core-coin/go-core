@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/core-coin/go-core/internal/xccapi"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/rules/deps"
@@ -230,7 +230,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx xcbapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

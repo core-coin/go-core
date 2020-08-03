@@ -24,7 +24,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 // conversionAccount is used for converting between full and slim format. When

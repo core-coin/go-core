@@ -133,7 +133,7 @@
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
               <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Xccstats}} --xccstats='{{.Xccstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Xcbstats}} --xcbstats='{{.Xcbstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Full node</h2>
@@ -148,7 +148,7 @@
                 To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
               </p>
               <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --xccstats='{{.Xccstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --xcbstats='{{.Xcbstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Light node</h2>
@@ -196,7 +196,7 @@
               <p>
                 With your local chain initialized, you can start the Core Wallet:
               </p>
-              <pre><code>corewallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Xccstats}} --node-xccstats='{{.Xccstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>corewallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Xcbstats}} --node-xcbstats='{{.Xcbstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
           </div>
         </div>

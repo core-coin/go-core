@@ -210,7 +210,7 @@ func (w *wizard) manageGenesis() {
 		}
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
 
-		// Export the native genesis spec used by puppxcc and Gcore
+		// Export the native genesis spec used by puppxcb and Gcore
 		gcoreJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
 		if err := ioutil.WriteFile((gcoreJson), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)

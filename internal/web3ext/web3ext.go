@@ -24,7 +24,7 @@ var Modules = map[string]string{
 	"clique":     CliqueJs,
 	"cryptore":   CryptoreJs,
 	"debug":      DebugJs,
-	"xcc":        XccJs,
+	"xcb":        XcbJs,
 	"miner":      MinerJs,
 	"net":        NetJs,
 	"personal":   PersonalJs,
@@ -465,81 +465,81 @@ web3._extend({
 });
 `
 
-const XccJs = `
+const XcbJs = `
 web3._extend({
-	property: 'xcc',
+	property: 'xcb',
 	methods: [
 		new web3._extend.Method({
 			name: 'chainId',
-			call: 'xcc_chainId',
+			call: 'xcb_chainId',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'sign',
-			call: 'xcc_sign',
+			call: 'xcb_sign',
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter, null]
 		}),
 		new web3._extend.Method({
 			name: 'resend',
-			call: 'xcc_resend',
+			call: 'xcb_resend',
 			params: 3,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter, web3._extend.utils.fromDecimal, web3._extend.utils.fromDecimal]
 		}),
 		new web3._extend.Method({
 			name: 'signTransaction',
-			call: 'xcc_signTransaction',
+			call: 'xcb_signTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'submitTransaction',
-			call: 'xcc_submitTransaction',
+			call: 'xcb_submitTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'fillTransaction',
-			call: 'xcc_fillTransaction',
+			call: 'xcb_fillTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getHeaderByNumber',
-			call: 'xcc_getHeaderByNumber',
+			call: 'xcb_getHeaderByNumber',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getHeaderByHash',
-			call: 'xcc_getHeaderByHash',
+			call: 'xcb_getHeaderByHash',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getBlockByNumber',
-			call: 'xcc_getBlockByNumber',
+			call: 'xcb_getBlockByNumber',
 			params: 2
 		}),
 		new web3._extend.Method({
 			name: 'getBlockByHash',
-			call: 'xcc_getBlockByHash',
+			call: 'xcb_getBlockByHash',
 			params: 2
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransaction',
-			call: 'xcc_getRawTransactionByHash',
+			call: 'xcb_getRawTransactionByHash',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransactionFromBlock',
 			call: function(args) {
-				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcc_getRawTransactionByBlockHashAndIndex' : 'xcc_getRawTransactionByBlockNumberAndIndex';
+				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getRawTransactionByBlockHashAndIndex' : 'xcb_getRawTransactionByBlockNumberAndIndex';
 			},
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter, web3._extend.utils.toHex]
 		}),
 		new web3._extend.Method({
 			name: 'getProof',
-			call: 'xcc_getProof',
+			call: 'xcb_getProof',
 			params: 3,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter, null, web3._extend.formatters.inputBlockNumberFormatter]
 		}),
@@ -547,7 +547,7 @@ web3._extend({
 	properties: [
 		new web3._extend.Property({
 			name: 'pendingTransactions',
-			getter: 'xcc_pendingTransactions',
+			getter: 'xcb_pendingTransactions',
 			outputFormatter: function(txs) {
 				var formatted = [];
 				for (var i = 0; i < txs.length; i++) {

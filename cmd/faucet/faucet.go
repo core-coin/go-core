@@ -54,20 +54,20 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
-	"github.com/core-coin/go-core/xccclient"
-	"github.com/core-coin/go-core/xccstats"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/xcbclient"
+	"github.com/core-coin/go-core/xcbstats"
 	"github.com/gorilla/websocket"
 )
 
 var (
 	genesisFlag = flag.String("genesis", "", "Genesis json file to seed the chain with")
 	apiPortFlag = flag.Int("apiport", 8080, "Listener port for the HTTP API connection")
-	xccPortFlag = flag.Int("xccport", 30300, "Listener port for the devp2p connection")
+	xcbPortFlag = flag.Int("xcbport", 30300, "Listener port for the devp2p connection")
 	bootFlag    = flag.String("bootnodes", "", "Comma separated bootnode enode URLs to seed with")
 	netFlag     = flag.Uint64("network", 0, "Network ID to use for the Core protocol")
-	statsFlag   = flag.String("xccstats", "", "Xccstats network monitoring auth string")
+	statsFlag   = flag.String("xcbstats", "", "Xcbstats network monitoring auth string")
 
 	netnameFlag = flag.String("faucet.name", "", "Network name to assign to the faucet")
 	payoutFlag  = flag.Int("faucet.amount", 1, "Number of Cores to pay out per user request")
@@ -176,7 +176,7 @@ func main() {
 	ks.Unlock(acc, pass)
 
 	// Assemble and start the faucet light service
-	faucet, err := newFaucet(genesis, *xccPortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
+	faucet, err := newFaucet(genesis, *xcbPortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
 	if err != nil {
 		log.Crit("Failed to start faucet", "err", err)
 	}
@@ -199,7 +199,7 @@ type request struct {
 type faucet struct {
 	config *params.ChainConfig // Chain configurations for signing
 	stack  *node.Node          // Core protocol stack
-	client *xccclient.Client   // Client connection to the Core chain
+	client *xcbclient.Client   // Client connection to the Core chain
 	index  []byte              // Index page to serve up on the web
 
 	keystore *keystore.KeyStore // Keystore containing the single signer
@@ -237,7 +237,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}
 	// Assemble the Core light client protocol
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		cfg := xcc.DefaultConfig
+		cfg := xcb.DefaultConfig
 		cfg.SyncMode = downloader.LightSync
 		cfg.NetworkId = network
 		cfg.Genesis = genesis
@@ -248,12 +248,12 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 
 	common.DefaultNetworkID = common.NetworkID(network)
 
-	// Assemble the xccstats monitoring and reporting service'
+	// Assemble the xcbstats monitoring and reporting service'
 	if stats != "" {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			var serv *les.LightCore
 			ctx.Service(&serv)
-			return xccstats.New(stats, nil, serv)
+			return xcbstats.New(stats, nil, serv)
 		}); err != nil {
 			return nil, err
 		}
@@ -274,7 +274,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 		stack.Stop()
 		return nil, err
 	}
-	client := xccclient.NewClient(api)
+	client := xcbclient.NewClient(api)
 
 	return &faucet{
 		config:   genesis.Config,

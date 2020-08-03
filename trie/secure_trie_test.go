@@ -24,7 +24,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 func newEmptySecure() *SecureTrie {
@@ -89,7 +89,7 @@ func TestSecureDelete(t *testing.T) {
 	}
 }
 
-func TestSecureGetKey(t *testing.T) {
+func TestSecureGetKey(t *testing.T) { //TODO: TEST
 	trie := newEmptySecure()
 	trie.Update([]byte("foo"), []byte("bar"))
 

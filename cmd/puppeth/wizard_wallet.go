@@ -31,8 +31,8 @@ func (w *wizard) deployWallet() {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.xccstats == "" {
-		log.Error("No xccstats server configured")
+	if w.conf.xcbstats == "" {
+		log.Error("No xcbstats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -59,7 +59,7 @@ func (w *wizard) deployWallet() {
 	fmt.Printf("Which port should the wallet listen on? (default = %d)\n", infos.webPort)
 	infos.webPort = w.readDefaultInt(infos.webPort)
 
-	// Figure which virtual-host to deploy xccstats on
+	// Figure which virtual-host to deploy xcbstats on
 	if infos.webHost, err = w.ensureVirtualHost(client, infos.webPort, infos.webHost); err != nil {
 		log.Error("Failed to decide on wallet host", "err", err)
 		return
@@ -84,12 +84,12 @@ func (w *wizard) deployWallet() {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.xccstats == "" {
+	if infos.xcbstats == "" {
 		fmt.Printf("What should the wallet be called on the stats page?\n")
-		infos.xccstats = w.readString() + ":" + w.conf.xccstats
+		infos.xcbstats = w.readString() + ":" + w.conf.xcbstats
 	} else {
-		fmt.Printf("What should the wallet be called on the stats page? (default = %s)\n", infos.xccstats)
-		infos.xccstats = w.readDefaultString(infos.xccstats) + ":" + w.conf.xccstats
+		fmt.Printf("What should the wallet be called on the stats page? (default = %s)\n", infos.xcbstats)
+		infos.xcbstats = w.readDefaultString(infos.xcbstats) + ":" + w.conf.xcbstats
 	}
 	// Try to deploy the wallet on the host
 	nocache := false

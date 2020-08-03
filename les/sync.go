@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 var errInvalidCheckpoint = errors.New("invalid advertised checkpoint")

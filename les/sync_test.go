@@ -43,7 +43,7 @@ func TestCheckpointSyncingLes3(t *testing.T) {
 	testCheckpointSyncing(t, 3, 2)
 }
 
-func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) {
+func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: TEST
 	config := light.TestServerIndexerConfig
 
 	waitIndexers := func(cIndexer, bIndexer, btIndexer *core.ChainIndexer) {

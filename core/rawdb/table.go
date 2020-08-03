@@ -17,18 +17,18 @@
 package rawdb
 
 import (
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // table is a wrapper around a database that prefixes each key access with a pre-
 // configured string.
 type table struct {
-	db     xccdb.Database
+	db     xcbdb.Database
 	prefix string
 }
 
 // NewTable returns a database object that prefixes all keys with a given string.
-func NewTable(db xccdb.Database, prefix string) xccdb.Database {
+func NewTable(db xcbdb.Database, prefix string) xcbdb.Database {
 	return &table{
 		db:     db,
 		prefix: prefix,
@@ -105,14 +105,14 @@ func (t *table) Delete(key []byte) error {
 
 // NewIterator creates a binary-alphabetical iterator over the entire keyspace
 // contained within the database.
-func (t *table) NewIterator() xccdb.Iterator {
+func (t *table) NewIterator() xcbdb.Iterator {
 	return t.NewIteratorWithPrefix(nil)
 }
 
 // NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
 // database content starting at a particular initial key (or after, if it does
 // not exist).
-func (t *table) NewIteratorWithStart(start []byte) xccdb.Iterator {
+func (t *table) NewIteratorWithStart(start []byte) xcbdb.Iterator {
 	iter := t.db.NewIteratorWithStart(append([]byte(t.prefix), start...))
 	return &tableIterator{
 		iter:   iter,
@@ -122,7 +122,7 @@ func (t *table) NewIteratorWithStart(start []byte) xccdb.Iterator {
 
 // NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
 // of database content with a particular key prefix.
-func (t *table) NewIteratorWithPrefix(prefix []byte) xccdb.Iterator {
+func (t *table) NewIteratorWithPrefix(prefix []byte) xcbdb.Iterator {
 	iter := t.db.NewIteratorWithPrefix(append([]byte(t.prefix), prefix...))
 	return &tableIterator{
 		iter:   iter,
@@ -170,14 +170,14 @@ func (t *table) Compact(start []byte, limit []byte) error {
 // NewBatch creates a write-only database that buffers changes to its host db
 // until a final write is called, each operation prefixing all keys with the
 // pre-configured string.
-func (t *table) NewBatch() xccdb.Batch {
+func (t *table) NewBatch() xcbdb.Batch {
 	return &tableBatch{t.db.NewBatch(), t.prefix}
 }
 
 // tableBatch is a wrapper around a database batch that prefixes each key access
 // with a pre-configured string.
 type tableBatch struct {
-	batch  xccdb.Batch
+	batch  xcbdb.Batch
 	prefix string
 }
 
@@ -209,7 +209,7 @@ func (b *tableBatch) Reset() {
 // tableReplayer is a wrapper around a batch replayer which truncates
 // the added prefix.
 type tableReplayer struct {
-	w      xccdb.KeyValueWriter
+	w      xcbdb.KeyValueWriter
 	prefix string
 }
 
@@ -226,14 +226,14 @@ func (r *tableReplayer) Delete(key []byte) error {
 }
 
 // Replay replays the batch contents.
-func (b *tableBatch) Replay(w xccdb.KeyValueWriter) error {
+func (b *tableBatch) Replay(w xcbdb.KeyValueWriter) error {
 	return b.batch.Replay(&tableReplayer{w: w, prefix: b.prefix})
 }
 
 // tableIterator is a wrapper around a database iterator that prefixes each key access
 // with a pre-configured string.
 type tableIterator struct {
-	iter   xccdb.Iterator
+	iter   xcbdb.Iterator
 	prefix string
 }
 

@@ -25,12 +25,12 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // diskLayer is a low level persistent snapshot built on top of a key-value store.
 type diskLayer struct {
-	diskdb xccdb.KeyValueStore // Key-value store containing the base snapshot
+	diskdb xcbdb.KeyValueStore // Key-value store containing the base snapshot
 	triedb *trie.Database      // Trie node cache for reconstuction purposes
 	cache  *fastcache.Cache    // Cache to avoid hitting the disk for direct access
 

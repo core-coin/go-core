@@ -521,7 +521,7 @@ func TestOffset(t *testing.T) {
 		f.Append(1, getChunk(20, 0xEE))
 
 		f.Append(2, getChunk(20, 0xdd))
-		f.Append(3, getChunk(20, 0xcc))
+		f.Append(3, getChunk(20, 0xcb))
 
 		f.Append(4, getChunk(20, 0xbb))
 		f.Append(5, getChunk(20, 0xaa))
