@@ -17,8 +17,8 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: go run build/ci.go install
-    - name: Test
-      run: go run build/ci.go test
+#    - name: Test
+#      run: go run build/ci.go test
   deploy:
     name: Deploy
     if: startsWith(github.ref, 'refs/tags/v')
