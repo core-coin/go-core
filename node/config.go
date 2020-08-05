@@ -53,7 +53,7 @@ const (
 // all registered services.
 type Config struct {
 	// Name sets the instance name of the node. It must not contain the / character and is
-	// used in the devp2p node identifier. The instance name of gcore is "gcore". If no
+	// used in the devp2p node identifier. The instance name of gocore is "gocore". If no
 	// value is specified, the basename of the current executable is used.
 	Name string `toml:"-"`
 
@@ -189,9 +189,9 @@ type Config struct {
 	// Logger is a custom logger to use with the p2p.Server.
 	Logger log.Logger `toml:",omitempty"`
 
-	staticNodesWarning      bool
-	trustedNodesWarning     bool
-	oldGcoreResourceWarning bool
+	staticNodesWarning       bool
+	trustedNodesWarning      bool
+	oldGocoreResourceWarning bool
 }
 
 // IPCEndpoint resolves an IPC endpoint based on a configured value, taking into
@@ -287,9 +287,9 @@ func (c *Config) ExtRPCEnabled() bool {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Gcore", keep that.
-	if name == "gcore" || name == "gcore-devin" {
-		name = "Gcore"
+	// Backwards compatibility: previous versions used title-cased "Gocore", keep that.
+	if name == "gocore" || name == "gocore-devin" {
+		name = "Gocore"
 	}
 	if c.UserIdent != "" {
 		name += "/" + c.UserIdent
@@ -313,8 +313,8 @@ func (c *Config) name() string {
 	return c.Name
 }
 
-// These resources are resolved differently for "gcore" instances.
-var isOldGcoreResource = map[string]bool{
+// These resources are resolved differently for "gocore" instances.
+var isOldGocoreResource = map[string]bool{
 	"chaindata":          true,
 	"nodes":              true,
 	"nodekey":            true,
@@ -331,15 +331,15 @@ func (c *Config) ResolvePath(path string) string {
 		return ""
 	}
 	// Backwards-compatibility: ensure that data directory files created
-	// by gcore 1.4 are used if they exist.
-	if warn, isOld := isOldGcoreResource[path]; isOld {
+	// by gocore 1.4 are used if they exist.
+	if warn, isOld := isOldGocoreResource[path]; isOld {
 		oldpath := ""
-		if c.name() == "gcore" {
+		if c.name() == "gocore" {
 			oldpath = filepath.Join(c.DataDir, path)
 		}
 		if oldpath != "" && common.FileExist(oldpath) {
 			if warn {
-				c.warnOnce(&c.oldGcoreResourceWarning, "Using deprecated resource file %s, please move this file to the 'gcore' subdirectory of datadir.", oldpath)
+				c.warnOnce(&c.oldGocoreResourceWarning, "Using deprecated resource file %s, please move this file to the 'gocore' subdirectory of datadir.", oldpath)
 			}
 			return oldpath
 		}

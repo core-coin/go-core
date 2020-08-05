@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the go-core root package.
 
-package gcore
+package gocore
 
 import (
 	"errors"
@@ -47,11 +47,11 @@ func NewCallMsg() *CallMsg {
 	return new(CallMsg)
 }
 
-func (msg *CallMsg) GetFrom() *Address    { return &Address{msg.msg.From} }
+func (msg *CallMsg) GetFrom() *Address       { return &Address{msg.msg.From} }
 func (msg *CallMsg) GetEnergy() int64        { return int64(msg.msg.Energy) }
 func (msg *CallMsg) GetEnergyPrice() *BigInt { return &BigInt{msg.msg.EnergyPrice} }
-func (msg *CallMsg) GetValue() *BigInt    { return &BigInt{msg.msg.Value} }
-func (msg *CallMsg) GetData() []byte      { return msg.msg.Data }
+func (msg *CallMsg) GetValue() *BigInt       { return &BigInt{msg.msg.Value} }
+func (msg *CallMsg) GetData() []byte         { return msg.msg.Data }
 func (msg *CallMsg) GetTo() *Address {
 	if to := msg.msg.To; to != nil {
 		return &Address{*msg.msg.To}
@@ -59,11 +59,11 @@ func (msg *CallMsg) GetTo() *Address {
 	return nil
 }
 
-func (msg *CallMsg) SetFrom(address *Address)  { msg.msg.From = address.address }
-func (msg *CallMsg) SetEnergy(energy int64)          { msg.msg.Energy = uint64(energy) }
+func (msg *CallMsg) SetFrom(address *Address)     { msg.msg.From = address.address }
+func (msg *CallMsg) SetEnergy(energy int64)       { msg.msg.Energy = uint64(energy) }
 func (msg *CallMsg) SetEnergyPrice(price *BigInt) { msg.msg.EnergyPrice = price.bigint }
-func (msg *CallMsg) SetValue(value *BigInt)    { msg.msg.Value = value.bigint }
-func (msg *CallMsg) SetData(data []byte)       { msg.msg.Data = common.CopyBytes(data) }
+func (msg *CallMsg) SetValue(value *BigInt)       { msg.msg.Value = value.bigint }
+func (msg *CallMsg) SetData(data []byte)          { msg.msg.Data = common.CopyBytes(data) }
 func (msg *CallMsg) SetTo(address *Address) {
 	if address == nil {
 		msg.msg.To = nil

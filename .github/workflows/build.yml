@@ -33,6 +33,6 @@ jobs:
     - name: docker login
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
     - name: docker build      
-      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gcore:${{steps.vars.outputs.tag}}
+      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}}
     - name: docker push
-      run: docker push docker.pkg.github.com/core-coin/go-core/gcore:${{steps.vars.outputs.tag}}
+      run: docker push docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}}

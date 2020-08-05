@@ -1779,7 +1779,7 @@ var XCB_UNITS = [
     'core',
     'grand',
     'Mcore',
-    'Gcoreer',
+    'Core',
     'Tcore',
     'Pcore',
     'Ecore',
@@ -1909,7 +1909,7 @@ var unitMap = {
     'kcore':       '1000000000000000000000',
     'grand':        '1000000000000000000000',
     'mcore':       '1000000000000000000000000',
-    'gcore':       '1000000000000000000000000000',
+    'gocore':       '1000000000000000000000000000',
     'tcore':       '1000000000000000000000000000000'
 };
 
@@ -2150,7 +2150,7 @@ var getValueOfUnit = function (unit) {
  * - core      --             --
  * - kcore                    --           grand
  * - mcore
- * - gcore
+ * - gocore
  * - tcore
  *
  * @method fromOre
@@ -2178,7 +2178,7 @@ var fromOre = function(number, unit) {
  * - core      --             --
  * - kcore                    --           grand
  * - mcore
- * - gcore
+ * - gocore
  * - tcore
  *
  * @method toOre
@@ -3239,7 +3239,7 @@ SolidityEvent.prototype.signature = function () {
  * @method encode
  * @param {Object} indexed
  * @param {Object} options
- * @return {Object} everything combined togcore and encoded
+ * @return {Object} everything combined togocore and encoded
  */
 SolidityEvent.prototype.encode = function (indexed, options) {
     indexed = indexed || {};

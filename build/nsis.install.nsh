@@ -1,4 +1,4 @@
-Name "gcore ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
+Name "gocore ${MAJORVERSION}.${MINORVERSION}.${BUILDVERSION}" # VERSION variables set through command line arguments
 InstallDir "$InstDir"
 OutFile "${OUTPUTFILE}" # set through command line arguments
 
@@ -12,30 +12,30 @@ PageEx license
   LicenseData {{.License}}
 PageExEnd
 
-# Install gcore binary
-Section "Gcore" Gcore_IDX
+# Install gocore binary
+Section "Gocore" Gocore_IDX
   SetOutPath $INSTDIR
-  file {{.Gcore}}
+  file {{.Gocore}}
 
   # Create start menu launcher
   createDirectory "$SMPROGRAMS\${APPNAME}"
-  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\gcore.exe"
-  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\gcore.exe" "attach"
+  createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\gocore.exe"
+  createShortCut "$SMPROGRAMS\${APPNAME}\Attach.lnk" "$INSTDIR\gocore.exe" "attach"
   createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 
   # Firewall - remove rules (if exists)
-  SimpleFC::AdvRemoveRule "Gcore incoming peers (TCP:30300)"
-  SimpleFC::AdvRemoveRule "Gcore outgoing peers (TCP:30300)"
-  SimpleFC::AdvRemoveRule "Gcore UDP discovery (UDP:30300)"
+  SimpleFC::AdvRemoveRule "Gocore incoming peers (TCP:30300)"
+  SimpleFC::AdvRemoveRule "Gocore outgoing peers (TCP:30300)"
+  SimpleFC::AdvRemoveRule "Gocore UDP discovery (UDP:30300)"
 
   # Firewall - add rules
-  SimpleFC::AdvAddRule "Gcore incoming peers (TCP:30300)" ""  6 1 1 2147483647 1 "$INSTDIR\gcore.exe" "" "" "Core" 30300 "" "" ""
-  SimpleFC::AdvAddRule "Gcore outgoing peers (TCP:30300)" ""  6 2 1 2147483647 1 "$INSTDIR\gcore.exe" "" "" "Core" "" 30300 "" ""
-  SimpleFC::AdvAddRule "Gcore UDP discovery (UDP:30300)" "" 17 2 1 2147483647 1 "$INSTDIR\gcore.exe" "" "" "Core" "" 30300 "" ""
+  SimpleFC::AdvAddRule "Gocore incoming peers (TCP:30300)" ""  6 1 1 2147483647 1 "$INSTDIR\gocore.exe" "" "" "Core" 30300 "" "" ""
+  SimpleFC::AdvAddRule "Gocore outgoing peers (TCP:30300)" ""  6 2 1 2147483647 1 "$INSTDIR\gocore.exe" "" "" "Core" "" 30300 "" ""
+  SimpleFC::AdvAddRule "Gocore UDP discovery (UDP:30300)" "" 17 2 1 2147483647 1 "$INSTDIR\gocore.exe" "" "" "Core" "" 30300 "" ""
 
   # Set default IPC endpoint (https://github.com/core/CIPs/issues/147)
-  ${EnvVarUpdate} $0 "CORE_SOCKET" "R" "HKLM" "\\.\pipe\gcore.ipc"
-  ${EnvVarUpdate} $0 "CORE_SOCKET" "A" "HKLM" "\\.\pipe\gcore.ipc"
+  ${EnvVarUpdate} $0 "CORE_SOCKET" "R" "HKLM" "\\.\pipe\gocore.ipc"
+  ${EnvVarUpdate} $0 "CORE_SOCKET" "A" "HKLM" "\\.\pipe\gocore.ipc"
 
   # Add instdir to PATH
   Push "$INSTDIR"
@@ -54,8 +54,8 @@ Var GetInstalledSize.total
 Function GetInstalledSize
   StrCpy $GetInstalledSize.total 0
 
-  ${if} ${SectionIsSelected} ${GCORE_IDX}
-    SectionGetSize ${GCORE_IDX} $0
+  ${if} ${SectionIsSelected} ${GOCORE_IDX}
+    SectionGetSize ${GOCORE_IDX} $0
     IntOp $GetInstalledSize.total $GetInstalledSize.total + $0
   ${endif}
 
