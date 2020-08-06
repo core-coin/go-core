@@ -40,7 +40,8 @@ func camel(str string) string {
 func init() {
 	for _, file := range tracers.AssetNames() {
 		name := camel(strings.TrimSuffix(file, ".js"))
-		all[name] = string(tracers.MustAsset(file))
+		asset, _ := tracers.Asset(file)
+		all[name] = string(asset)
 	}
 }
 

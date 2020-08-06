@@ -160,8 +160,10 @@ func (c *Console) initConsoleObject() {
 }
 
 func (c *Console) initWeb3(bridge *bridge) error {
-	bnJS := string(deps.MustAsset("bignumber.js"))
-	web3JS := string(deps.MustAsset("web3.js"))
+	bignumber, _ := deps.Asset("bignumber.js")
+	bnJS := string(bignumber)
+	web3, _ := deps.Asset("web3.js")
+	web3JS := string(web3)
 	if err := c.jsre.Compile("bignumber.js", bnJS); err != nil {
 		return fmt.Errorf("bignumber.js: %v", err)
 	}
