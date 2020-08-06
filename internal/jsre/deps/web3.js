@@ -1763,32 +1763,20 @@ var BigNumber = require('bignumber.js');
 
 var XCB_UNITS = [
     'ore',
-    'kore',
-    'More',
-    'Nucle',
-    'szabo',
-    'finney',
-    'femtocore',
-    'picocore',
-    'nanocore',
-    'microcore',
-    'millicore',
-    'nano',
-    'micro',
-    'milli',
+    'fecore',
+    'picore',
+    'nacore',
+    'μcore',
+    'micore',
     'core',
-    'grand',
-    'Mcore',
-    'Core',
-    'Tcore',
-    'Pcore',
-    'Ecore',
-    'Zcore',
-    'Ycore',
-    'Ncore',
-    'Dcore',
-    'Vcore',
-    'Ucore'
+    'kicore',
+    'Mecore',
+    'Gicore',
+    'Tecore',
+    'Pecore',
+    'Excore',
+    'Zecore',
+    'Yocore',
 ];
 
 module.exports = {
@@ -1883,34 +1871,96 @@ var BigNumber = require('bignumber.js');
 var sha3 = require('./sha3.js');
 var utf8 = require('utf8');
 
+
+    var XCB_UNITS = [
+      'ore',
+      'fecore',
+      'picore',
+      'nacore',
+      'μcore',
+      'micore',
+      'core',
+      'kicore',
+      'Mecore',
+      'Gicore',
+      'Tecore',
+      'Pecore',
+      'Excore',
+      'Zecore',
+      'Yocore',
+    ];
+
 var unitMap = {
-    'nocore':      '0',
-    'ore':          '1',
-    'kore':         '1000',
-    'Kore':         '1000',
-    'babbage':      '1000',
-    'femtocore':   '1000',
-    'more':         '1000000',
-    'More':         '1000000',
-    'lovelace':     '1000000',
-    'picocore':    '1000000',
-    'nucle':         '1000000000',
-    'Nucle':         '1000000000',
-    'shannon':      '1000000000',
-    'nanocore':    '1000000000',
-    'nano':         '1000000000',
-    'szabo':        '1000000000000',
-    'microcore':   '1000000000000',
-    'micro':        '1000000000000',
-    'finney':       '1000000000000000',
-    'millicore':    '1000000000000000',
-    'milli':         '1000000000000000',
-    'core':        '1000000000000000000',
-    'kcore':       '1000000000000000000000',
-    'grand':        '1000000000000000000000',
-    'mcore':       '1000000000000000000000000',
-    'gocore':       '1000000000000000000000000000',
-    'tcore':       '1000000000000000000000000000000'
+    'nocore':     '0',
+    'ore':        '1',
+
+    'fecore':     '1000',
+    'Fecore':     '1000',
+    'Wav':        '1000',
+    'wav':        '1000',
+
+    'picore':     '1000000',
+    'Picore':     '1000000',
+    'Grav':       '1000000',
+    'grav':       '1000000',
+
+    'nacore':     '1000000000',
+    'Nacore':     '1000000000',
+    'Nucle':      '1000000000',
+    'nucle':      '1000000000',
+
+    'μcore':      '1000000000000',
+    'Μcore':      '1000000000000',
+    'Atom':       '1000000000000',
+    'atom':       '1000000000000',
+
+    'micore':     '1000000000000000',
+    'Micore':     '1000000000000000',
+    'Moli':       '1000000000000000',
+    'moli':       '1000000000000000',
+
+    'core':       '1000000000000000000',
+    'Core':       '1000000000000000000',
+
+    'kicore':     '1000000000000000000000',
+    'Kicore':     '1000000000000000000000',
+    'Aer':        '1000000000000000000000',
+    'aer':        '1000000000000000000000',
+
+    'mecore':     '1000000000000000000000000',
+    'Mecore':     '1000000000000000000000000',
+    'Orb':        '1000000000000000000000000',
+    'orb':        '1000000000000000000000000',
+
+    'gicore':     '1000000000000000000000000000',
+    'Gicore':     '1000000000000000000000000000',
+    'Plano':      '1000000000000000000000000000',
+    'plano':      '1000000000000000000000000000',
+
+    'tecore':     '1000000000000000000000000000000',
+    'Tecore':     '1000000000000000000000000000000',
+    'Tera':       '1000000000000000000000000000000',
+    'tera':       '1000000000000000000000000000000',
+
+    'pecore':     '1000000000000000000000000000000000',
+    'Pecore':     '1000000000000000000000000000000000',
+    'Sola':       '1000000000000000000000000000000000',
+    'sola':       '1000000000000000000000000000000000',
+
+    'excore':     '1000000000000000000000000000000000000',
+    'Excore':     '1000000000000000000000000000000000000',
+    'Galx':       '1000000000000000000000000000000000000',
+    'galx':       '1000000000000000000000000000000000000',
+
+    'zecore':     '1000000000000000000000000000000000000000',
+    'Zecore':     '1000000000000000000000000000000000000000',
+    'Cluster':    '1000000000000000000000000000000000000000',
+    'cluster':    '1000000000000000000000000000000000000000',
+
+    'yocore':     '1000000000000000000000000000000000000000000',
+    'Yocore':     '1000000000000000000000000000000000000000000',
+    'Supermatter':'1000000000000000000000000000000000000000000',
+    'supermatter':'1000000000000000000000000000000000000000000',
 };
 
 /**
@@ -2141,17 +2191,21 @@ var getValueOfUnit = function (unit) {
  * Takes a number of ore and converts it to any other core unit.
  *
  * Possible units are:
- *   SI Short   SI Full        Effigy       Other
- * - kore       femtocore     babbage
- * - more       picocore      lovelace
- * - nucle       nanocore      shannon      nano
- * - --         microcore     szabo        micro
- * - --         millicore     finney       milli
- * - core      --             --
- * - kcore                    --           grand
- * - mcore
- * - gocore
- * - tcore
+ *   SI Short        SI Full        Other
+ * - wav             fecore         femto
+ * - grav            picore         pico
+ * - nucle           nacore         nano
+ * - atom            μcore          micro
+ * - moli            millicore      mili
+ * - core            Core
+ * - aer             kicore         kilo
+ * - orb             Mecore         mega
+ * - Plano           Gicore         giga
+ * - Tera            Tecore         tera
+ * - Sola            Pecore         peta
+ * - Galx            Excore         exa
+ * - Cluster         Zecore         zetta
+ * - Supermatter     Yocore         yotta
  *
  * @method fromOre
  * @param {Number|String} number can be a number, number string or a HEX of a decimal
@@ -2168,18 +2222,21 @@ var fromOre = function(number, unit) {
  * Takes a number of a unit and converts it to ore.
  *
  * Possible units are:
- *   SI Short   SI Full        Effigy       Other
- * - kore       femtocore     babbage
- * - more       picocore      lovelace
- * - nucle       nanocore      shannon      nano
- * - --         microcore     szabo        micro
- * - --         microcore     szabo        micro
- * - --         millicore     finney       milli
- * - core      --             --
- * - kcore                    --           grand
- * - mcore
- * - gocore
- * - tcore
+ *   SI Short        SI Full        Other
+ * - wav             fecore         femto
+ * - grav            picore         pico
+ * - nucle           nacore         nano
+ * - atom            μcore          micro
+ * - moli            millicore      mili
+ * - core            Core
+ * - aer             kicore         kilo
+ * - orb             Mecore         mega
+ * - Plano           Gicore         giga
+ * - Tera            Tecore         tera
+ * - Sola            Pecore         peta
+ * - Galx            Excore         exa
+ * - Cluster         Zecore         zetta
+ * - Supermatter     Yocore         yotta
  *
  * @method toOre
  * @param {Number|String|BigNumber} number can be a number, number string or a HEX of a decimal
