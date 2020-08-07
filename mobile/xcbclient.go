@@ -16,7 +16,7 @@
 
 // Contains a wrapper for the Core client.
 
-package gcore
+package gocore
 
 import (
 	"math/big"

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>cc.coreblockchain</groupId>
-  <artifactId>gcore</artifactId>
+  <artifactId>gocore</artifactId>
   <version>{{.Version}}</version>
   <packaging>aar</packaging>
 

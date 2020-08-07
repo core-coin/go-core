@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	gcore "github.com/core-coin/go-core"
+	gocore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
@@ -39,17 +39,17 @@ import (
 
 // Verify that Client implements the core interfaces.
 var (
-	_ = gcore.ChainReader(&Client{})
-	_ = gcore.TransactionReader(&Client{})
-	_ = gcore.ChainStateReader(&Client{})
-	_ = gcore.ChainSyncReader(&Client{})
-	_ = gcore.ContractCaller(&Client{})
-	_ = gcore.EnergyEstimator(&Client{})
-	_ = gcore.EnergyPricer(&Client{})
-	_ = gcore.LogFilterer(&Client{})
-	_ = gcore.PendingStateReader(&Client{})
-	// _ = gcore.PendingStateEventer(&Client{})
-	_ = gcore.PendingContractCaller(&Client{})
+	_ = gocore.ChainReader(&Client{})
+	_ = gocore.TransactionReader(&Client{})
+	_ = gocore.ChainStateReader(&Client{})
+	_ = gocore.ChainSyncReader(&Client{})
+	_ = gocore.ContractCaller(&Client{})
+	_ = gocore.EnergyEstimator(&Client{})
+	_ = gocore.EnergyPricer(&Client{})
+	_ = gocore.LogFilterer(&Client{})
+	_ = gocore.PendingStateReader(&Client{})
+	// _ = gocore.PendingStateEventer(&Client{})
+	_ = gocore.PendingContractCaller(&Client{})
 )
 
 func TestToFilterArg(t *testing.T) {
@@ -67,13 +67,13 @@ func TestToFilterArg(t *testing.T) {
 
 	for _, testCase := range []struct {
 		name   string
-		input  gcore.FilterQuery
+		input  gocore.FilterQuery
 		output interface{}
 		err    error
 	}{
 		{
 			"without BlockHash",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				FromBlock: big.NewInt(1),
 				ToBlock:   big.NewInt(2),
@@ -89,7 +89,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with nil fromBlock and nil toBlock",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				Topics:    [][]common.Hash{},
 			},
@@ -103,7 +103,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				Topics:    [][]common.Hash{},
@@ -117,7 +117,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and from block",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),
@@ -128,7 +128,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and to block",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				ToBlock:   big.NewInt(1),
@@ -139,7 +139,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and both from / to block",
-			gcore.FilterQuery{
+			gocore.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),

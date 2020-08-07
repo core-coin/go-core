@@ -223,7 +223,7 @@ In this example:
     - Auto-rejected if the message does not contain `bazonk`,
 - Any other requests will be passed along for manual confirmation.
 
-*Note, to make this example work, please use you own accounts. You can create a new account either via Clef or the traditional account CLI tools. If the latter was chosen, make sure both Clef and Gcore use the same keystore by specifying `--keystore path/to/your/keystore` when running Clef.*
+*Note, to make this example work, please use you own accounts. You can create a new account either via Clef or the traditional account CLI tools. If the latter was chosen, make sure both Clef and Gocore use the same keystore by specifying `--keystore path/to/your/keystore` when running Clef.*
 
 Attest the new rule file so that Clef will accept loading it:
 
@@ -284,22 +284,22 @@ t=2019-07-01T15:52:23+0300 lvl=info msg=SignData   api=signer type=response data
 
 For more details on writing automatic rules, please see the [rules spec](https://github.com/core-coin/go-core/blob/master/cmd/clef/rules.md).
 
-## Gcore integration
+## Gocore integration
 
 Of course, as awesome as Clef is, it's not feasible to interact with it via JSON RPC by hand. Long term, we're hoping to convince the general Core community to support Clef as a general signer (it's only 3-5 methods), thus allowing your favorite DApp, Metamask, MyCrypto, etc to request signatures directly.
 
-Until then however, we're trying to pave the way via Gcore. Gcore v1.9.0 has built in support via `--signer <API endpoint>` for using a local or remote Clef instance as an account backend!
+Until then however, we're trying to pave the way via Gocore. Gocore v1.9.0 has built in support via `--signer <API endpoint>` for using a local or remote Clef instance as an account backend!
 
-We can try this by running Clef with our previous rules on Koliba (for now it's a good idea to allow auto-listing accounts, since Gcore likes to retrieve them once in a while).
+We can try this by running Clef with our previous rules on Koliba (for now it's a good idea to allow auto-listing accounts, since Gocore likes to retrieve them once in a while).
 
 ```text
 $ clef --keystore ~/.core/koliba/keystore --chainid 4 --rules rules.js
 ```
 
-In a different window we can start Gcore, list our accounts, even list our wallets to see where the accounts originate from:
+In a different window we can start Gocore, list our accounts, even list our wallets to see where the accounts originate from:
 
 ```text
-$ gcore --koliba --signer=~/.clef/clef.ipc console
+$ gocore --koliba --signer=~/.clef/clef.ipc console
 
 > xcb.accounts
 ["0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3", "0x086278a6c067775f71d6b2bb1856db6e28c30418"]
@@ -344,4 +344,4 @@ Approve? [y/N]:
 
 :boom:
 
-*Note, if you enable the external signer backend in Gcore, all other account management is disabled. This is because long term we want to remove account management from Gcore.*
+*Note, if you enable the external signer backend in Gocore, all other account management is disabled. This is because long term we want to remove account management from Gocore.*

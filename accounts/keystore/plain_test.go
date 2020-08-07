@@ -31,7 +31,7 @@ import (
 )
 
 func tmpKeyStoreIface(t *testing.T, encrypted bool) (dir string, ks keyStore) {
-	d, err := ioutil.TempDir("", "gcore-keystore-test")
+	d, err := ioutil.TempDir("", "gocore-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}

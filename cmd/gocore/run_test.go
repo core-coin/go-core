@@ -24,30 +24,30 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/reexec"
 	"github.com/core-coin/go-core/internal/cmdtest"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/docker/docker/pkg/reexec"
 )
 
 func tmpdir(t *testing.T) string {
-	dir, err := ioutil.TempDir("", "gcore-test")
+	dir, err := ioutil.TempDir("", "gocore-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return dir
 }
 
-type testgcore struct {
+type testgocore struct {
 	*cmdtest.TestCmd
 
 	// template variables for expect
-	Datadir   string
+	Datadir  string
 	Corebase string
 }
 
 func init() {
-	// Run the app if we've been exec'd as "gcore-test" in runGcore.
-	reexec.Register("gcore-test", func() {
+	// Run the app if we've been exec'd as "gocore-test" in runGocore.
+	reexec.Register("gocore-test", func() {
 		if err := app.Run(os.Args); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -64,10 +64,10 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// spawns gcore with the given command line args. If the args don't set --datadir, the
+// spawns gocore with the given command line args. If the args don't set --datadir, the
 // child g gets a temporary data directory.
-func runGcore(t *testing.T, args ...string) *testgcore {
-	tt := &testgcore{}
+func runGocore(t *testing.T, args ...string) *testgocore {
+	tt := &testgocore{}
 	tt.TestCmd = cmdtest.NewTestCmd(t, tt)
 	for i, arg := range args {
 		switch {
@@ -93,9 +93,9 @@ func runGcore(t *testing.T, args ...string) *testgcore {
 		}()
 	}
 
-	// Boot "gcore". This actually runs the test binary but the TestMain
+	// Boot "gocore". This actually runs the test binary but the TestMain
 	// function will prevent any tests from running.
-	tt.Run("gcore-test", args...)
+	tt.Run("gocore-test", args...)
 
 	return tt
 }

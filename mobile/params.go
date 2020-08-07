@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the params package.
 
-package gcore
+package gocore
 
 import (
 	"encoding/json"

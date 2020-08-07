@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	BigNumber_JS = deps.MustAsset("bignumber.js")
+	BigNumber_JS, _ = deps.Asset("bignumber.js")
 )
 
 // consoleOutput is an override for the console.log and console.error methods to

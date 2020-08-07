@@ -160,8 +160,10 @@ func (c *Console) initConsoleObject() {
 }
 
 func (c *Console) initWeb3(bridge *bridge) error {
-	bnJS := string(deps.MustAsset("bignumber.js"))
-	web3JS := string(deps.MustAsset("web3.js"))
+	bignumber, _ := deps.Asset("bignumber.js")
+	bnJS := string(bignumber)
+	web3, _ := deps.Asset("web3.js")
+	web3JS := string(web3)
 	if err := c.jsre.Compile("bignumber.js", bnJS); err != nil {
 		return fmt.Errorf("bignumber.js: %v", err)
 	}
@@ -294,12 +296,12 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 	return line[:start], c.jsre.CompleteKeywords(line[start:pos]), line[pos:]
 }
 
-// Welcome show summary of current Gcore instance and some metadata about the
+// Welcome show summary of current Gocore instance and some metadata about the
 // console's available modules.
 func (c *Console) Welcome() {
-	message := "Welcome to the Gcore JavaScript console!\n\n"
+	message := "Welcome to the Gocore JavaScript console!\n\n"
 
-	// Print some generic Gcore metadata
+	// Print some generic Gocore metadata
 	if res, err := c.jsre.Run(`
 		var message = "instance: " + web3.version.node + "\n";
 		try {

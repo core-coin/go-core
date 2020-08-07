@@ -11,8 +11,8 @@ Vcs-Browser: https://github.com/core-coin/go-core
 Package: {{.Name}}
 Architecture: any
 Depends: ${misc:Depends}, {{.ExeList}}
-Description: Meta-package to install gcore and other tools
- Meta-package to install gcore and other tools
+Description: Meta-package to install gocore and other tools
+ Meta-package to install gocore and other tools
 
 {{range .Executables}}
 Package: {{$.ExeName .}}
