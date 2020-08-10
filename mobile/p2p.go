@@ -16,7 +16,7 @@
 
 // Contains wrappers for the p2p package.
 
-package gcore
+package gocore
 
 import (
 	"errors"

@@ -40,27 +40,27 @@ const (
 func TestConsoleWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 
-	// Start a gcore console, make sure it's cleaned up and terminate the console
-	gcore := runGcore(t,
+	// Start a gocore console, make sure it's cleaned up and terminate the console
+	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--shh",
 		"console")
 
 	// Gather all the infos the welcome message needs to contain
-	gcore.SetTemplateFunc("goos", func() string { return runtime.GOOS })
-	gcore.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
-	gcore.SetTemplateFunc("gover", runtime.Version)
-	gcore.SetTemplateFunc("gcorever", func() string { return params.VersionWithCommit("", "") })
-	gcore.SetTemplateFunc("niltime", func() string {
+	gocore.SetTemplateFunc("goos", func() string { return runtime.GOOS })
+	gocore.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
+	gocore.SetTemplateFunc("gover", runtime.Version)
+	gocore.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
+	gocore.SetTemplateFunc("niltime", func() string {
 		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
-	gcore.SetTemplateFunc("apis", func() string { return ipcAPIs })
+	gocore.SetTemplateFunc("apis", func() string { return ipcAPIs })
 
 	// Verify the actual welcome message to the required template
-	gcore.Expect(`
-Welcome to the Gcore JavaScript console!
+	gocore.Expect(`
+Welcome to the Gocore JavaScript console!
 
-instance: Gcore/v{{gcorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{.Corebase}}
 at block: 0 ({{niltime}})
  datadir: {{.Datadir}}
@@ -68,7 +68,7 @@ at block: 0 ({{niltime}})
 
 > {{.InputLine "exit"}}
 `)
-	gcore.ExpectExit()
+	gocore.ExpectExit()
 }
 
 // Tests that a console can be attached to a running node via various means.
@@ -77,64 +77,64 @@ func TestIPCAttachWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	var ipc string
 	if runtime.GOOS == "windows" {
-		ipc = `\\.\pipe\gcore` + strconv.Itoa(trulyRandInt(100000, 999999))
+		ipc = `\\.\pipe\gocore` + strconv.Itoa(trulyRandInt(100000, 999999))
 	} else {
 		ws := tmpdir(t)
 		defer os.RemoveAll(ws)
-		ipc = filepath.Join(ws, "gcore.ipc")
+		ipc = filepath.Join(ws, "gocore.ipc")
 	}
 	// Note: we need --shh because testAttachWelcome checks for default
 	// list of ipc modules and shh is included there.
-	gcore := runGcore(t,
+	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--shh", "--ipcpath", ipc)
 
 	defer func() {
-		gcore.Interrupt()
-		gcore.ExpectExit()
+		gocore.Interrupt()
+		gocore.ExpectExit()
 	}()
 
 	waitForEndpoint(t, ipc, 3*time.Second)
-	testAttachWelcome(t, gcore, "ipc:"+ipc, ipcAPIs)
+	testAttachWelcome(t, gocore, "ipc:"+ipc, ipcAPIs)
 
 }
 
 func TestHTTPAttachWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
-	gcore := runGcore(t,
+	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--rpc", "--rpcport", port)
 	defer func() {
-		gcore.Interrupt()
-		gcore.ExpectExit()
+		gocore.Interrupt()
+		gocore.ExpectExit()
 	}()
 
 	endpoint := "http://127.0.0.1:" + port
 	waitForEndpoint(t, endpoint, 3*time.Second)
-	testAttachWelcome(t, gcore, endpoint, httpAPIs)
+	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 
 func TestWSAttachWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 
-	gcore := runGcore(t,
+	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--ws", "--wsport", port)
 	defer func() {
-		gcore.Interrupt()
-		gcore.ExpectExit()
+		gocore.Interrupt()
+		gocore.ExpectExit()
 	}()
 
 	endpoint := "ws://127.0.0.1:" + port
 	waitForEndpoint(t, endpoint, 3*time.Second)
-	testAttachWelcome(t, gcore, endpoint, httpAPIs)
+	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 
-func testAttachWelcome(t *testing.T, gcore *testgcore, endpoint, apis string) {
-	// Attach to a running gcore note and terminate immediately
-	attach := runGcore(t, "attach", endpoint)
+func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) {
+	// Attach to a running gocore note and terminate immediately
+	attach := runGocore(t, "attach", endpoint)
 	defer attach.ExpectExit()
 	attach.CloseStdin()
 
@@ -142,20 +142,20 @@ func testAttachWelcome(t *testing.T, gcore *testgcore, endpoint, apis string) {
 	attach.SetTemplateFunc("goos", func() string { return runtime.GOOS })
 	attach.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	attach.SetTemplateFunc("gover", runtime.Version)
-	attach.SetTemplateFunc("gcorever", func() string { return params.VersionWithCommit("", "") })
-	attach.SetTemplateFunc("corebase", func() string { return gcore.Corebase })
+	attach.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
+	attach.SetTemplateFunc("corebase", func() string { return gocore.Corebase })
 	attach.SetTemplateFunc("niltime", func() string {
 		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
 	attach.SetTemplateFunc("ipc", func() bool { return strings.HasPrefix(endpoint, "ipc") })
-	attach.SetTemplateFunc("datadir", func() string { return gcore.Datadir })
+	attach.SetTemplateFunc("datadir", func() string { return gocore.Datadir })
 	attach.SetTemplateFunc("apis", func() string { return apis })
 
 	// Verify the actual welcome message to the required template
 	attach.Expect(`
-Welcome to the Gcore JavaScript console!
+Welcome to the Gocore JavaScript console!
 
-instance: Gcore/v{{gcorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{corebase}}
 at block: 0 ({{niltime}}){{if ipc}}
  datadir: {{datadir}}{{end}}

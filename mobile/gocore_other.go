@@ -16,7 +16,7 @@
 
 // +build !android,!ios
 
-package gcore
+package gocore
 
 // clientIdentifier is a hard coded identifier to report into the network.
-var clientIdentifier = "GcoreMobile"
+var clientIdentifier = "GocoreMobile"

@@ -32,7 +32,7 @@ import (
 
 // nodeDockerfile is the Dockerfile required to run an Core node.
 var nodeDockerfile = `
-FROM docker.pkg.github.com/core-coin/go-core/gcore:latest
+FROM docker.pkg.github.com/core-coin/go-core/gocore:latest
 
 ADD genesis.json /genesis.json
 {{if .Unlock}}
@@ -40,11 +40,11 @@ ADD genesis.json /genesis.json
 	ADD signer.pass /signer.pass
 {{end}}
 RUN \
-  echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
-	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcbstats \'{{.Xcbstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+  echo 'gocore --cache 512 init /genesis.json' > gocore.sh && \{{if .Unlock}}
+	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gocore.sh && \{{end}}
+	echo $'exec gocore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcbstats \'{{.Xcbstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gocore.sh
 
-ENTRYPOINT ["/bin/sh", "gcore.sh"]
+ENTRYPOINT ["/bin/sh", "gocore.sh"]
 `
 
 // nodeComposefile is the docker-compose.yml file required to deploy and maintain
@@ -234,7 +234,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 
 	// Container available, retrieve its node ID and its genesis json
 	var out []byte
-	if out, err = client.Run(fmt.Sprintf("docker exec %s_%s_1 gcore --exec admin.nodeInfo.enode --cache=16 attach", network, kind)); err != nil {
+	if out, err = client.Run(fmt.Sprintf("docker exec %s_%s_1 gocore --exec admin.nodeInfo.enode --cache=16 attach", network, kind)); err != nil {
 		return nil, ErrServiceUnreachable
 	}
 	enode := bytes.Trim(bytes.TrimSpace(out), "\"")

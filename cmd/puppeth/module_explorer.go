@@ -34,9 +34,9 @@ FROM corehub/explorer:latest
 
 ADD genesis.json /genesis.json
 RUN \
-  echo 'gcore --cache 512 init /genesis.json' > explorer.sh && \
-  echo $'gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
-  echo $'exec gcore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
+  echo 'gocore --cache 512 init /genesis.json' > explorer.sh && \
+  echo $'gocore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" --exitwhensynced' >> explorer.sh && \
+  echo $'exec gocore --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.XcbPort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcapi "net,web3,xcb,shh,debug" --rpccorsdomain "*" --rpcvhosts "*" --ws --wsorigins "*" &' >> explorer.sh && \
   echo '/usr/local/bin/docker-entrypoint.sh postgres &' >> explorer.sh && \
   echo 'sleep 5' >> explorer.sh && \
   echo 'mix do ecto.drop --force, ecto.create, ecto.migrate' >> explorer.sh && \

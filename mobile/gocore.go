@@ -17,7 +17,7 @@
 // Contains all the wrappers from the node package to support client side node
 // management on mobile platforms.
 
-package gcore
+package gocore
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ import (
 	"github.com/core-coin/go-core/xcbstats"
 )
 
-// NodeConfig represents the collection of configuration values to fine tune the Gcore
+// NodeConfig represents the collection of configuration values to fine tune the Gocore
 // node embedded into a mobile process. The available values are a subset of the
 // entire API provided by go-core to reduce the maintenance surface and dev
 // complexity.
@@ -94,12 +94,12 @@ func NewNodeConfig() *NodeConfig {
 	return &config
 }
 
-// Node represents a Gcore Core node instance.
+// Node represents a Gocore Core node instance.
 type Node struct {
 	node *node.Node
 }
 
-// NewNode creates and configures a new Gcore node.
+// NewNode creates and configures a new Gocore node.
 func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	// If no or partial configurations were specified, use defaults
 	if config == nil {

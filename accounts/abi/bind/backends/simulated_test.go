@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	gcore "github.com/core-coin/go-core"
+	gocore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts/abi"
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
@@ -52,7 +52,7 @@ func TestSimulatedBackend(t *testing.T) {
 	if isPending {
 		t.Fatal("transaction should not be pending")
 	}
-	if err != gcore.NotFound {
+	if err != gocore.NotFound {
 		t.Fatalf("err should be `core.NotFound` but received %v", err)
 	}
 
@@ -367,7 +367,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	bgCtx := context.Background()
 	testAddr := crypto.PubkeyToAddress(testKey.PublicKey)
 
-	energy, err := sim.EstimateEnergy(bgCtx, gcore.CallMsg{
+	energy, err := sim.EstimateEnergy(bgCtx, gocore.CallMsg{
 		From:  testAddr,
 		To:    &testAddr,
 		Value: big.NewInt(1000),
@@ -808,7 +808,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	}
 
 	// make sure you can call the contract in pending state
-	res, err := sim.PendingCallContract(bgCtx, gcore.CallMsg{
+	res, err := sim.PendingCallContract(bgCtx, gocore.CallMsg{
 		From: testAddr,
 		To:   &addr,
 		Data: input,
@@ -828,7 +828,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	sim.Commit()
 
 	// make sure you can call the contract
-	res, err = sim.CallContract(bgCtx, gcore.CallMsg{
+	res, err = sim.CallContract(bgCtx, gocore.CallMsg{
 		From: testAddr,
 		To:   &addr,
 		Data: input,

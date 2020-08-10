@@ -37,12 +37,12 @@ func TestTransaction(t *testing.T) {
 	// calculating the final cozt
 	txt.skipLoad(".*TransactionWithEnergyPriceOverflow.*")
 
-	// The nonce is too large for uint64. Not a concern, it means gcore won't
+	// The nonce is too large for uint64. Not a concern, it means gocore won't
 	// accept transactions at a certain point in the distant future
 	txt.skipLoad("^ttNonce/TransactionWithHighNonce256.json")
 
 	// The value is larger than uint64, which according to the test is invalid.
-	// Gcore accepts it, which is not a consensus issue since we use big.Int's
+	// Gocore accepts it, which is not a consensus issue since we use big.Int's
 	// internally to calculate the cost
 	txt.skipLoad("^ttValue/TransactionWithHighValueOverflow.json")
 	txt.walk(t, transactionTestDir, func(t *testing.T, name string, test *TransactionTest) {

@@ -73,14 +73,14 @@ type xcbstatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
-type gcoreConfig struct {
+type gocoreConfig struct {
 	Xcb      xcb.Config
 	Shh      whisper.Config
 	Node     node.Config
 	Xcbstats xcbstatsConfig
 }
 
-func loadConfig(file string, cfg *gcoreConfig) error {
+func loadConfig(file string, cfg *gocoreConfig) error {
 	f, err := os.Open(file)
 	if err != nil {
 		return err
@@ -101,13 +101,13 @@ func defaultNodeConfig() node.Config {
 	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
 	cfg.HTTPModules = append(cfg.HTTPModules, "xcb")
 	cfg.WSModules = append(cfg.WSModules, "xcb")
-	cfg.IPCPath = "gcore.ipc"
+	cfg.IPCPath = "gocore.ipc"
 	return cfg
 }
 
-func makeConfigNode(ctx *cli.Context) (*node.Node, gcoreConfig) {
+func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	// Load defaults.
-	cfg := gcoreConfig{
+	cfg := gocoreConfig{
 		Xcb:  xcb.DefaultConfig,
 		Shh:  whisper.DefaultConfig,
 		Node: defaultNodeConfig(),

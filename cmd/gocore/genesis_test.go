@@ -80,7 +80,7 @@ var customGenesisTests = []struct {
 	},
 }
 
-// Tests that initializing Gcore with a custom genesis block and chain definitions
+// Tests that initializing Gocore with a custom genesis block and chain definitions
 // work properly.
 func TestCustomGenesis(t *testing.T) {
 	for i, tt := range customGenesisTests {
@@ -93,15 +93,15 @@ func TestCustomGenesis(t *testing.T) {
 		if err := ioutil.WriteFile(json, []byte(tt.genesis), 0600); err != nil {
 			t.Fatalf("test %d: failed to write genesis file: %v", i, err)
 		}
-		runGcore(t, "--nousb", "--datadir", datadir, "init", json).WaitExit()
+		runGocore(t, "--nousb", "--datadir", datadir, "init", json).WaitExit()
 
 		// Query the custom genesis block
-		gcore := runGcore(t,
+		gocore := runGocore(t,
 			"--nousb",
 			"--datadir", datadir, "--maxpeers", "0", "--port", "0",
 			"--nodiscover", "--nat", "none", "--ipcdisable",
 			"--exec", tt.query, "console")
-		gcore.ExpectRegexp(tt.result)
-		gcore.ExpectExit()
+		gocore.ExpectRegexp(tt.result)
+		gocore.ExpectExit()
 	}
 }

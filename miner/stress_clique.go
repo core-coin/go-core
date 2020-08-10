@@ -34,14 +34,14 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 func main() {
@@ -176,7 +176,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 	datadir, _ := ioutil.TempDir("", "")
 
 	config := &node.Config{
-		Name:    "gcore",
+		Name:    "gocore",
 		Version: params.Version,
 		DataDir: datadir,
 		P2P: p2p.Config{
@@ -204,7 +204,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
 				EnergyPrice: big.NewInt(1),
-				Recommit: time.Second,
+				Recommit:    time.Second,
 			},
 		})
 	}); err != nil {

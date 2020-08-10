@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the core/types package.
 
-package gcore
+package gocore
 
 import (
 	"encoding/json"

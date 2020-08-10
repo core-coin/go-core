@@ -57,11 +57,11 @@ var (
 	retestxcbCommand = cli.Command{
 		Action:      utils.MigrateFlags(retestxcb),
 		Name:        "retestxcb",
-		Usage:       "Launches gcore in retestxcb mode",
+		Usage:       "Launches gocore in retestxcb mode",
 		ArgsUsage:   "",
 		Flags:       []cli.Flag{rpcPortFlag},
 		Category:    "MISCELLANEOUS COMMANDS",
-		Description: `Launches gcore in retestxcb mode (no database, no network, only retestxcb RPC interface)`,
+		Description: `Launches gocore in retestxcb mode (no database, no network, only retestxcb RPC interface)`,
 	}
 )
 
@@ -752,7 +752,7 @@ func (api *RetestxcbAPI) StorageRangeAt(ctx context.Context,
 }
 
 func (api *RetestxcbAPI) ClientVersion(ctx context.Context) (string, error) {
-	return "Gcore-" + params.VersionWithCommit(gitCommit, gitDate), nil
+	return "Gocore-" + params.VersionWithCommit(gitCommit, gitDate), nil
 }
 
 // splitAndTrim splits input separated by a comma

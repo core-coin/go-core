@@ -17,7 +17,7 @@
 // faucet is a Core faucet backed by a light client.
 package main
 
-//go:generate go-bindata -nometadata -o website.go faucet.html
+//go:generate go-bindata -o website.go faucet.html
 //go:generate gofmt -w -s website.go
 
 import (
@@ -220,7 +220,7 @@ type faucet struct {
 func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network uint64, stats string, ks *keystore.KeyStore, index []byte) (*faucet, error) {
 	// Assemble the raw devp2p protocol stack
 	stack, err := node.New(&node.Config{
-		Name:    "gcore",
+		Name:    "gocore",
 		Version: params.VersionWithCommit(gitCommit, gitDate),
 		DataDir: filepath.Join(os.Getenv("HOME"), ".faucet"),
 		P2P: p2p.Config{

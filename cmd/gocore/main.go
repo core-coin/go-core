@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-core. If not, see <http://www.gnu.org/licenses/>.
 
-// gcore is the official command-line client for Core.
+// gocore is the official command-line client for Core.
 package main
 
 import (
@@ -46,7 +46,7 @@ import (
 )
 
 const (
-	clientIdentifier = "gcore" // Client identifier to advertise over the network
+	clientIdentifier = "gocore" // Client identifier to advertise over the network
 )
 
 var (
@@ -199,8 +199,8 @@ var (
 )
 
 func init() {
-	// Initialize the CLI app and start Gcore
-	app.Action = gcore
+	// Initialize the CLI app and start Gocore
+	app.Action = gocore
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2013-2020 The go-core Authors"
 	app.Commands = []cli.Command{
@@ -300,10 +300,10 @@ func prepare(ctx *cli.Context) {
 	go metrics.CollectProcessMetrics(3 * time.Second)
 }
 
-// gcore is the main entry point into the system if no special subcommand is ran.
+// gocore is the main entry point into the system if no special subcommand is ran.
 // It creates a default node based on the command line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
-func gcore(ctx *cli.Context) error {
+func gocore(ctx *cli.Context) error {
 	if args := ctx.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
@@ -331,7 +331,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	events := make(chan accounts.WalletEvent, 16)
 	stack.AccountManager().Subscribe(events)
 
-	// Create a client to interact with local gcore node.
+	// Create a client to interact with local gocore node.
 	rpcClient, err := stack.Attach()
 	if err != nil {
 		utils.Fatalf("Failed to attach to self: %v", err)

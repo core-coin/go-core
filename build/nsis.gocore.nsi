@@ -6,11 +6,11 @@
 # - BUILDVERSION, build id version
 #
 # The created installer executes the following steps:
-# 1. install gcore for all users
+# 1. install gocore for all users
 # 2. install optional development tools such as abigen
 # 3. create an uninstaller
-# 4. configures the Windows firewall for gcore
-# 5. create gcore, attach and uninstall start menu entries
+# 4. configures the Windows firewall for gocore
+# 5. create gocore, attach and uninstall start menu entries
 # 6. configures the registry that allows Windows to manage the package through its platform tools
 # 7. adds the environment system wide variable CORE_SOCKET
 # 8. adds the install directory to %PATH%
@@ -30,7 +30,7 @@
 CRCCheck on
 
 !define GROUPNAME "Core"
-!define APPNAME "Gcore"
+!define APPNAME "Gocore"
 !define DESCRIPTION "Official Go implementation of the Core protocol"
 !addplugindir .\
 
@@ -55,7 +55,7 @@ ${EndIf}
 !macroend
 
 function .onInit
-  # make vars are global for all users since gcore is installed global
+  # make vars are global for all users since gocore is installed global
   setShellVarContext all
   !insertmacro VerifyUserIsAdmin
 

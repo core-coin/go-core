@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-  spec.name         = 'Gcore'
+  spec.name         = 'Gocore'
   spec.version      = '{{.Version}}'
   spec.license      = { :type => 'GNU Lesser General Public License, Version 3.0' }
   spec.homepage     = 'https://github.com/core-coin/go-core'
@@ -11,12 +11,12 @@ Pod::Spec.new do |spec|
 
 	spec.platform = :ios
   spec.ios.deployment_target  = '9.0'
-	spec.ios.vendored_frameworks = 'Frameworks/Gcore.framework'
+	spec.ios.vendored_frameworks = 'Frameworks/Gocore.framework'
 
 	spec.prepare_command = <<-CMD
-    curl https://gcorestore.blob.core.windows.net/builds/{{.Archive}}.tar.gz | tar -xvz
+    curl https://gocorestore.blob.core.windows.net/builds/{{.Archive}}.tar.gz | tar -xvz
     mkdir Frameworks
-    mv {{.Archive}}/Gcore.framework Frameworks
+    mv {{.Archive}}/Gocore.framework Frameworks
     rm -rf {{.Archive}}
   CMD
 end

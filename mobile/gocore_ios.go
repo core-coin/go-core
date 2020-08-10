@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build android
+// +build ios
 
-package gcore
+package gocore
 
 // clientIdentifier is a hard coded identifier to report into the network.
-var clientIdentifier = "GcoreDroid"
+var clientIdentifier = "iGocore"

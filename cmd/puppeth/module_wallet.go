@@ -36,8 +36,8 @@ ADD genesis.json /genesis.json
 
 RUN \
   echo 'node server.js &'                     > wallet.sh && \
-	echo 'gcore --cache 512 init /genesis.json' >> wallet.sh && \
-	echo $'exec gcore --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*" --rpcvhosts "*"' >> wallet.sh
+	echo 'gocore --cache 512 init /genesis.json' >> wallet.sh && \
+	echo $'exec gocore --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --xcbstats \'{{.Xcbstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*" --rpcvhosts "*"' >> wallet.sh
 
 RUN \
 	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/corewallet-master.js && \

@@ -2,20 +2,20 @@
 # with Go source code. If you know what GOPATH is then you probably
 # don't need to bother with make.
 
-.PHONY: gcore android ios gcore-cross cvm all test clean
-.PHONY: gcore-linux gcore-linux-386 gcore-linux-amd64 gcore-linux-mips64 gcore-linux-mips64le
-.PHONY: gcore-linux-arm gcore-linux-arm-5 gcore-linux-arm-6 gcore-linux-arm-7 gcore-linux-arm64
-.PHONY: gcore-darwin gcore-darwin-386 gcore-darwin-amd64
-.PHONY: gcore-windows gcore-windows-386 gcore-windows-amd64
+.PHONY: gocore android ios gocore-cross cvm all test clean
+.PHONY: gocore-linux gocore-linux-386 gocore-linux-amd64 gocore-linux-mips64 gocore-linux-mips64le
+.PHONY: gocore-linux-arm gocore-linux-arm-5 gocore-linux-arm-6 gocore-linux-arm-7 gocore-linux-arm64
+.PHONY: gocore-darwin gocore-darwin-386 gocore-darwin-amd64
+.PHONY: gocore-windows gocore-windows-386 gocore-windows-amd64
 
 GOBIN = ./build/bin
 GO ?= latest
 GORUN = env GO111MODULE=on go run
 
-gcore:
-	$(GORUN) build/ci.go install ./cmd/gcore
+gocore:
+	$(GORUN) build/ci.go install ./cmd/gocore
 	@echo "Done building."
-	@echo "Run \"$(GOBIN)/gcore\" to launch gcore."
+	@echo "Run \"$(GOBIN)/gocore\" to launch gocore."
 
 all:
 	$(GORUN) build/ci.go install
@@ -23,12 +23,12 @@ all:
 android:
 	$(GORUN) build/ci.go aar --local
 	@echo "Done building."
-	@echo "Import \"$(GOBIN)/gcore.aar\" to use the library."
+	@echo "Import \"$(GOBIN)/gocore.aar\" to use the library."
 
 ios:
 	$(GORUN) build/ci.go xcode --local
 	@echo "Done building."
-	@echo "Import \"$(GOBIN)/Gcore.framework\" to use the library."
+	@echo "Import \"$(GOBIN)/Gocore.framework\" to use the library."
 
 test: all
 	$(GORUN) build/ci.go test
@@ -55,92 +55,92 @@ devtools:
 
 # Cross Compilation Targets (xgo)
 
-gcore-cross: gcore-linux gcore-darwin gcore-windows gcore-android gcore-ios
+gocore-cross: gocore-linux gocore-darwin gocore-windows gocore-android gocore-ios
 	@echo "Full cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-*
+	@ls -ld $(GOBIN)/gocore-*
 
-gcore-linux: gcore-linux-386 gcore-linux-amd64 gcore-linux-arm gcore-linux-mips64 gcore-linux-mips64le
+gocore-linux: gocore-linux-386 gocore-linux-amd64 gocore-linux-arm gocore-linux-mips64 gocore-linux-mips64le
 	@echo "Linux cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-*
+	@ls -ld $(GOBIN)/gocore-linux-*
 
-gcore-linux-386:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/gcore
+gocore-linux-386:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/gocore
 	@echo "Linux 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep 386
+	@ls -ld $(GOBIN)/gocore-linux-* | grep 386
 
-gcore-linux-amd64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/gcore
+gocore-linux-amd64:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/gocore
 	@echo "Linux amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep amd64
+	@ls -ld $(GOBIN)/gocore-linux-* | grep amd64
 
-gcore-linux-arm: gcore-linux-arm-5 gcore-linux-arm-6 gcore-linux-arm-7 gcore-linux-arm64
+gocore-linux-arm: gocore-linux-arm-5 gocore-linux-arm-6 gocore-linux-arm-7 gocore-linux-arm64
 	@echo "Linux ARM cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep arm
+	@ls -ld $(GOBIN)/gocore-linux-* | grep arm
 
-gcore-linux-arm-5:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/gcore
+gocore-linux-arm-5:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/gocore
 	@echo "Linux ARMv5 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep arm-5
+	@ls -ld $(GOBIN)/gocore-linux-* | grep arm-5
 
-gcore-linux-arm-6:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/gcore
+gocore-linux-arm-6:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/gocore
 	@echo "Linux ARMv6 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep arm-6
+	@ls -ld $(GOBIN)/gocore-linux-* | grep arm-6
 
-gcore-linux-arm-7:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/gcore
+gocore-linux-arm-7:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/gocore
 	@echo "Linux ARMv7 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep arm-7
+	@ls -ld $(GOBIN)/gocore-linux-* | grep arm-7
 
-gcore-linux-arm64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/gcore
+gocore-linux-arm64:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/gocore
 	@echo "Linux ARM64 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep arm64
+	@ls -ld $(GOBIN)/gocore-linux-* | grep arm64
 
-gcore-linux-mips:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/gcore
+gocore-linux-mips:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/gocore
 	@echo "Linux MIPS cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep mips
+	@ls -ld $(GOBIN)/gocore-linux-* | grep mips
 
-gcore-linux-mipsle:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/gcore
+gocore-linux-mipsle:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/gocore
 	@echo "Linux MIPSle cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep mipsle
+	@ls -ld $(GOBIN)/gocore-linux-* | grep mipsle
 
-gcore-linux-mips64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/gcore
+gocore-linux-mips64:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/gocore
 	@echo "Linux MIPS64 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep mips64
+	@ls -ld $(GOBIN)/gocore-linux-* | grep mips64
 
-gcore-linux-mips64le:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/gcore
+gocore-linux-mips64le:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/gocore
 	@echo "Linux MIPS64le cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-linux-* | grep mips64le
+	@ls -ld $(GOBIN)/gocore-linux-* | grep mips64le
 
-gcore-darwin: gcore-darwin-386 gcore-darwin-amd64
+gocore-darwin: gocore-darwin-386 gocore-darwin-amd64
 	@echo "Darwin cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-darwin-*
+	@ls -ld $(GOBIN)/gocore-darwin-*
 
-gcore-darwin-386:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/gcore
+gocore-darwin-386:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/gocore
 	@echo "Darwin 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-darwin-* | grep 386
+	@ls -ld $(GOBIN)/gocore-darwin-* | grep 386
 
-gcore-darwin-amd64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/gcore
+gocore-darwin-amd64:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/gocore
 	@echo "Darwin amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-darwin-* | grep amd64
+	@ls -ld $(GOBIN)/gocore-darwin-* | grep amd64
 
-gcore-windows: gcore-windows-386 gcore-windows-amd64
+gocore-windows: gocore-windows-386 gocore-windows-amd64
 	@echo "Windows cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-windows-*
+	@ls -ld $(GOBIN)/gocore-windows-*
 
-gcore-windows-386:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/gcore
+gocore-windows-386:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/gocore
 	@echo "Windows 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-windows-* | grep 386
+	@ls -ld $(GOBIN)/gocore-windows-* | grep 386
 
-gcore-windows-amd64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/gcore
+gocore-windows-amd64:
+	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/gocore
 	@echo "Windows amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gcore-windows-* | grep amd64
+	@ls -ld $(GOBIN)/gocore-windows-* | grep amd64
