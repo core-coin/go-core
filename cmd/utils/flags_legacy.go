@@ -35,8 +35,6 @@ var ShowDeprecated = cli.Command{
 }
 
 var DeprecatedFlags = []cli.Flag{
-	LegacyTestnetFlag,
-	LegacyLightServFlag,
 	LegacyLightPeersFlag,
 	LegacyMinerThreadsFlag,
 	LegacyMinerEnergyTargetFlag,
@@ -72,23 +70,12 @@ var (
 		Usage: "Block extra data set by the miner (default = client version, deprecated, use --miner.extradata)",
 	}
 
-	// (Deprecated June 2019)
-	LegacyLightServFlag = cli.IntFlag{
-		Name:  "lightserv",
-		Usage: "Maximum percentage of time allowed for serving LES requests (deprecated, use --light.serve)",
-		Value: xcb.DefaultConfig.LightServ,
-	}
 	LegacyLightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to  (deprecated, use --light.maxpeers)",
 		Value: xcb.DefaultConfig.LightPeers,
 	}
 
-	// (Deprecated April 2020)
-	LegacyTestnetFlag = cli.BoolFlag{ // TODO(q9f): Remove after Ropsten is discontinued.
-		Name:  "testnet",
-		Usage: "Pre-configured test network (Deprecated: Please choose one of --koliba, or --testnet.)",
-	}
 	LegacyRPCEnabledFlag = cli.BoolFlag{
 		Name:  "rpc",
 		Usage: "Enable the HTTP-RPC server (deprecated, use --http)",

@@ -84,7 +84,6 @@ var (
 		utils.ExitWhenSyncedFlag,
 		utils.GCModeFlag,
 		utils.LightServeFlag,
-		utils.LegacyLightServFlag,
 		utils.LightIngressFlag,
 		utils.LightEgressFlag,
 		utils.LightMaxPeersFlag,
@@ -340,7 +339,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 	// Set contract backend for core service if local node
 	// is serving LES requests.
-	if ctx.GlobalInt(utils.LegacyLightServFlag.Name) > 0 || ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
+	if ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
 		var xcbService *xcb.Core
 		if err := stack.Service(&xcbService); err != nil {
 			utils.Fatalf("Failed to retrieve core service: %v", err)
