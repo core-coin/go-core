@@ -90,7 +90,7 @@ type ContractFilterer interface {
 	// FilterLogs executes a log filter operation, blocking during execution and
 	// returning all the results in one batch.
 	//
-	// TODO(karalabe): Deprecate when the subscription one can return past data too.
+	// TODO(raisty): Deprecate when the subscription one can return past data too.
 	FilterLogs(ctx context.Context, query core.FilterQuery) ([]types.Log, error)
 
 	// SubscribeFilterLogs creates a background log filtering operation, returning

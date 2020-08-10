@@ -239,7 +239,7 @@ func GetBloomBits(ctx context.Context, odr OdrBackend, bitIdx uint, sectionIdxLi
 		if err == nil {
 			result[i] = bloomBits
 		} else {
-			// TODO(rjl493456442) Convert sectionIndex to BloomTrie relative index
+			// TODO(raisty) Convert sectionIndex to BloomTrie relative index
 			if sectionIdx >= bloomTrieCount {
 				return nil, errNoTrustedBloomTrie
 			}

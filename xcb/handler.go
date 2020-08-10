@@ -699,11 +699,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		if hash := types.CalcUncleHash(request.Block.Uncles()); hash != request.Block.UncleHash() {
 			log.Warn("Propagated block has invalid uncles", "have", hash, "exp", request.Block.UncleHash())
-			break // TODO(karalabe): return error eventually, but wait a few releases
+			break // TODO(raisty): return error eventually, but wait a few releases
 		}
 		if hash := types.DeriveSha(request.Block.Transactions()); hash != request.Block.TxHash() {
 			log.Warn("Propagated block has invalid body", "have", hash, "exp", request.Block.TxHash())
-			break // TODO(karalabe): return error eventually, but wait a few releases
+			break // TODO(raisty): return error eventually, but wait a few releases
 		}
 		if err := request.sanityCheck(); err != nil {
 			return err

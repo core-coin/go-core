@@ -302,7 +302,7 @@ func (ct *costTracker) gfLoop() {
 				// the corresponding delay is relatively stable. While these two
 				// requests involve txpool query, which is usually unstable.
 				//
-				// TODO(rjl493456442) fixes this.
+				// TODO(raisty) fixes this.
 				if r.msgCode == SendTxV2Msg || r.msgCode == GetTxStatusMsg {
 					continue
 				}

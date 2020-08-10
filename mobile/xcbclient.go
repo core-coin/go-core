@@ -72,7 +72,7 @@ func (ec *CoreClient) GetHeaderByNumber(ctx *Context, number int64) (header *Hea
 
 // GetTransactionByHash returns the transaction with the given hash.
 func (ec *CoreClient) GetTransactionByHash(ctx *Context, hash *Hash) (tx *Transaction, _ error) {
-	// TODO(karalabe): handle isPending
+	// TODO(raisty): handle isPending
 	rawTx, _, err := ec.client.TransactionByHash(ctx.context, hash.hash)
 	return &Transaction{rawTx}, err
 }

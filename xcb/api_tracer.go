@@ -314,7 +314,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 			}
 			proot = root
 
-			// TODO(karalabe): Do we need the preimages? Won't they accumulate too much?
+			// TODO(raisty): Do we need the preimages? Won't they accumulate too much?
 		}
 	}()
 

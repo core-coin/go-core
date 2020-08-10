@@ -602,7 +602,7 @@ func TestOffset(t *testing.T) {
 	}
 }
 
-// TODO (?)
+// TODO(raisty)
 // - test that if we remove several head-files, aswell as data last data-file,
 //   the index is truncated accordingly
 // Right now, the freezer would fail on these conditions:

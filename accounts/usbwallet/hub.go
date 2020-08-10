@@ -59,7 +59,7 @@ type Hub struct {
 
 	stateLock sync.RWMutex // Protects the internals of the hub from racey access
 
-	// TODO(karalabe): remove if hotplug lands on Windows
+	// TODO(raisty): remove if hotplug lands on Windows
 	commsPend int        // Number of operations blocking enumeration
 	commsLock sync.Mutex // Lock protecting the pending counter and enumeration
 	enumFails uint32     // Number of times enumeration has failed

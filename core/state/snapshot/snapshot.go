@@ -437,7 +437,7 @@ func diffToDisk(bottom *diffLayer) *diskLayer {
 
 		it := rawdb.IterateStorageSnapshots(base.diskdb, hash)
 		for it.Next() {
-			if key := it.Key(); len(key) == 65 { // TODO(karalabe): Yuck, we should move this into the iterator
+			if key := it.Key(); len(key) == 65 { // TODO(raisty): Yuck, we should move this into the iterator
 				batch.Delete(key)
 				base.cache.Del(key[1:])
 
