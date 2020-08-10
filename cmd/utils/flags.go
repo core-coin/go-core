@@ -20,6 +20,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/p2p/discover"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -1475,7 +1476,7 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 		cfg.UseDNSDiscovery = ctx.GlobalBool(UseDNSDiscoveryFlag.Name)
 	}
 	if ctx.GlobalIsSet(NtpServerFlag.Name) {
-		cfg.NtpServer = ctx.GlobalString(NtpServerFlag.Name)
+		discover.NtpPool = ctx.GlobalString(NtpServerFlag.Name)
 	}
 
 	// Override any default configs for hard coded networks.

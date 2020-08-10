@@ -23,7 +23,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		SyncMode                downloader.SyncMode
 		DiscoveryURLs           []string
 		UseDNSDiscovery         bool
-		NtpServer               string
 		NoPruning               bool
 		NoPrefetch              bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
@@ -60,7 +59,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.SyncMode = c.SyncMode
 	enc.DiscoveryURLs = c.DiscoveryURLs
 	enc.UseDNSDiscovery = c.UseDNSDiscovery
-	enc.NtpServer = c.NtpServer
 	enc.NoPruning = c.NoPruning
 	enc.NoPrefetch = c.NoPrefetch
 	enc.Whitelist = c.Whitelist
@@ -101,7 +99,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		SyncMode                *downloader.SyncMode
 		DiscoveryURLs           []string
 		UseDNSDiscovery         *bool
-		NtpServer               *string
 		NoPruning               *bool
 		NoPrefetch              *bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
@@ -150,9 +147,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.UseDNSDiscovery != nil {
 		c.UseDNSDiscovery = *dec.UseDNSDiscovery
-	}
-	if dec.NtpServer != nil {
-		c.NtpServer = *dec.NtpServer
 	}
 	if dec.NoPruning != nil {
 		c.NoPruning = *dec.NoPruning
