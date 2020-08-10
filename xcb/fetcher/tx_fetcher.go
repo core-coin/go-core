@@ -516,7 +516,7 @@ func (f *TxFetcher) loop() {
 			f.scheduleFetches(timeoutTimer, timeoutTrigger, nil)
 
 			// No idea if we sheduled something or not, trigger the timer if needed
-			// TODO(karalabe): this is kind of lame, can't we dump it into scheduleFetches somehow?
+			// TODO(raisty): this is kind of lame, can't we dump it into scheduleFetches somehow?
 			f.rescheduleTimeout(timeoutTimer, timeoutTrigger)
 
 		case delivery := <-f.cleanup:

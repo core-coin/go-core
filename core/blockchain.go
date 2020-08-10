@@ -122,7 +122,7 @@ type CacheConfig struct {
 	TrieTimeLimit       time.Duration // Time limit after which to flush the current in-memory trie to disk
 	SnapshotLimit       int           // Memory allowance (MB) to use for caching snapshot entries in memory
 
-	SnapshotWait bool // Wait for snapshot construction on startup. TODO(karalabe): This is a dirty hack for testing, nuke it
+	SnapshotWait bool // Wait for snapshot construction on startup. TODO(raisty): This is a dirty hack for testing, nuke it
 }
 
 // BlockChain represents the canonical chain given a database with a genesis

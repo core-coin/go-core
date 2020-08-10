@@ -58,14 +58,14 @@ func NewCallOpts() *CallOpts {
 }
 
 func (opts *CallOpts) IsPending() bool       { return opts.opts.Pending }
-func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(karalabe) */ }
+func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(raisty) */ }
 
 // GetContext cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // Even then it's awkward to unpack the subtleties of a Go context out to Java.
 // func (opts *CallOpts) GetContext() *Context { return &Context{opts.opts.Context} }
 
 func (opts *CallOpts) SetPending(pending bool)     { opts.opts.Pending = pending }
-func (opts *CallOpts) SetEnergyLimit(limit int64)  { /* TODO(karalabe) */ }
+func (opts *CallOpts) SetEnergyLimit(limit int64)  { /* TODO(raisty) */ }
 func (opts *CallOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 func (opts *CallOpts) SetFrom(addr *Address)       { opts.opts.From = addr.address }
 

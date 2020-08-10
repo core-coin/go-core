@@ -50,7 +50,7 @@ func (pm *ProtocolManager) syncTransactions(p *peer) {
 	// the transactions if the sorting is not cached yet. However, with a random
 	// order, insertions could overflow the non-executable queues and get dropped.
 	//
-	// TODO(karalabe): Figure out if we could get away with random order somehow
+	// TODO(raisty): Figure out if we could get away with random order somehow
 	var txs types.Transactions
 	pending, _ := pm.txpool.Pending()
 	for _, batch := range pending {
