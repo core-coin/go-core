@@ -14,6 +14,6 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-core/build/bin/gocore /usr/local/bin/
 COPY --from=builder /go-core/core-genesis/genesis.json /
 
-EXPOSE 8545 8546 8547 30300 30300/udp
+EXPOSE 30300 30300/udp
 RUN gocore --datadir=/testdata init genesis.json
 ENTRYPOINT ["gocore", "--datadir=/testdata", "--networkid", "3"]
