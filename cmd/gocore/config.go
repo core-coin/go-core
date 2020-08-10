@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/common"
 	"os"
 	"reflect"
 	"unicode"
@@ -121,6 +122,11 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 
 	// Apply flags.
 	utils.SetNodeConfig(ctx, &cfg.Node)
+
+	if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
+		common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+	}
+
 	stack, err := node.New(&cfg.Node)
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
