@@ -517,16 +517,18 @@ func (srv *Server) setupLocalNode() error {
 	}
 	switch srv.NAT.(type) {
 	case nil:
-		ip, err := requestExtIP()
-		if err != nil {
-			return err
-		}
-		srv.localnode.SetStaticIP(ip)
+		// No NAT interface, do nothing.
 	case nat.ExtIP:
 		// ExtIP doesn't block, set the IP right away.
 		ip, _ := srv.NAT.ExternalIP()
 		srv.localnode.SetStaticIP(ip)
 	default:
+		// Set default external ip
+		ip, err := requestExtIP()
+		if err != nil {
+			return err
+		}
+		srv.localnode.SetStaticIP(ip)
 		// Ask the router about the IP. This takes a while and blocks startup,
 		// do it in the background.
 		srv.loopWG.Add(1)
