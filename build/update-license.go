@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2020 The CORE FOUNDATION, nadacia
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,12 +23,6 @@ whenever you feel like it.
 
 	go run update-license.go
 
-All authors (people who have contributed code) are listed in the
-AUTHORS file. The author names are mapped and deduplicated using the
-.mailmap file. You can use .mailmap to set the canonical name and
-address for each author. See git-shortlog(1) for an explanation of the
-.mailmap format.
-
 Please review the resulting diff to check whether the correct
 copyright assignments are performed.
 */
@@ -46,7 +40,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -67,7 +60,6 @@ var (
 		"cmd/internal/browser",
 		"common/bitutil/bitutil",
 		"common/prque/",
-		"consensus/cryptore/xor.go",
 		"crypto/bn256/",
 		"crypto/ecies/",
 		"graphql/graphiql.go",
@@ -83,15 +75,12 @@ var (
 	// this regexp must match the entire license comment at the
 	// beginning of each file.
 	licenseCommentRE = regexp.MustCompile(`^//\s*(Copyright|This file is part of).*?\n(?://.*?\n)*\n*`)
-
-	// this text appears at the start of AUTHORS
-	authorsFileHeader = "# This is the official list of go-core authors for copyright purposes.\n\n"
 )
 
 // this template generates the license comment.
 // its input is an info structure.
 var licenseT = template.Must(template.New("").Parse(`
-// Copyright {{.Year}} The go-core Authors
+// Copyright {{.Year}} The CORE FOUNDATION, nadacia
 // This file is part of {{.Whole false}}.
 //
 // {{.Whole true}} is free software: you can redistribute it and/or modify
@@ -147,13 +136,6 @@ func (i info) gpl() bool {
 	return false
 }
 
-// authors implements the sort.Interface for strings in case-insensitive mode.
-type authors []string
-
-func (as authors) Len() int           { return len(as) }
-func (as authors) Less(i, j int) bool { return strings.ToLower(as[i]) < strings.ToLower(as[j]) }
-func (as authors) Swap(i, j int)      { as[i], as[j] = as[j], as[i] }
-
 func main() {
 	var (
 		files = getFiles()
@@ -161,8 +143,6 @@ func main() {
 		infoc = make(chan *info, 20)
 		wg    sync.WaitGroup
 	)
-
-	writeAuthors(files)
 
 	go func() {
 		for _, f := range files {
@@ -216,95 +196,6 @@ func getFiles() []string {
 		log.Fatal("error getting files:", err)
 	}
 	return files
-}
-
-var authorRegexp = regexp.MustCompile(`\s*[0-9]+\s*(.*)`)
-
-func gitAuthors(files []string) []string {
-	cmds := []string{"shortlog", "-s", "-n", "-e", "HEAD", "--"}
-	cmds = append(cmds, files...)
-	cmd := exec.Command("git", cmds...)
-	var authors []string
-	err := doLines(cmd, func(line string) {
-		m := authorRegexp.FindStringSubmatch(line)
-		if len(m) > 1 {
-			authors = append(authors, m[1])
-		}
-	})
-	if err != nil {
-		log.Fatalln("error getting authors:", err)
-	}
-	return authors
-}
-
-func readAuthors() []string {
-	content, err := ioutil.ReadFile("AUTHORS")
-	if err != nil && !os.IsNotExist(err) {
-		log.Fatalln("error reading AUTHORS:", err)
-	}
-	var authors []string
-	for _, a := range bytes.Split(content, []byte("\n")) {
-		if len(a) > 0 && a[0] != '#' {
-			authors = append(authors, string(a))
-		}
-	}
-	// Retranslate existing authors through .mailmap.
-	// This should catch email address changes.
-	authors = mailmapLookup(authors)
-	return authors
-}
-
-func mailmapLookup(authors []string) []string {
-	if len(authors) == 0 {
-		return nil
-	}
-	cmds := []string{"check-mailmap", "--"}
-	cmds = append(cmds, authors...)
-	cmd := exec.Command("git", cmds...)
-	var translated []string
-	err := doLines(cmd, func(line string) {
-		translated = append(translated, line)
-	})
-	if err != nil {
-		log.Fatalln("error translating authors:", err)
-	}
-	return translated
-}
-
-func writeAuthors(files []string) {
-	var (
-		dedup = make(map[string]bool)
-		list  []string
-	)
-	// Add authors that Git reports as contributors.
-	// This is the primary source of author information.
-	for _, a := range gitAuthors(files) {
-		if la := strings.ToLower(a); !dedup[la] {
-			list = append(list, a)
-			dedup[la] = true
-		}
-	}
-	// Add existing authors from the file. This should ensure that we
-	// never lose authors, even if Git stops listing them. We can also
-	// add authors manually this way.
-	for _, a := range readAuthors() {
-		if la := strings.ToLower(a); !dedup[la] {
-			list = append(list, a)
-			dedup[la] = true
-		}
-	}
-	// Write sorted list of authors back to the file.
-	sort.Sort(authors(list))
-	content := new(bytes.Buffer)
-	content.WriteString(authorsFileHeader)
-	for _, a := range list {
-		content.WriteString(a)
-		content.WriteString("\n")
-	}
-	fmt.Println("writing AUTHORS")
-	if err := ioutil.WriteFile("AUTHORS", content.Bytes(), 0644); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func getInfo(files <-chan string, out chan<- *info, wg *sync.WaitGroup) {

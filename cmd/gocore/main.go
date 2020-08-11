@@ -201,7 +201,7 @@ func init() {
 	// Initialize the CLI app and start Gocore
 	app.Action = gocore
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2013-2020 The go-core Authors"
+	app.Copyright = "Copyright 2020 The CORE FOUNDATION, nadacia"
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
