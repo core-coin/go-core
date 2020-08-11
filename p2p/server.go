@@ -22,9 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
-	"net/http"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -523,12 +521,6 @@ func (srv *Server) setupLocalNode() error {
 		ip, _ := srv.NAT.ExternalIP()
 		srv.localnode.SetStaticIP(ip)
 	default:
-		// Set default external ip
-		ip, err := requestExtIP()
-		if err != nil {
-			return err
-		}
-		srv.localnode.SetStaticIP(ip)
 		// Ask the router about the IP. This takes a while and blocks startup,
 		// do it in the background.
 		srv.loopWG.Add(1)
@@ -1127,18 +1119,4 @@ func (srv *Server) PeersInfo() []*PeerInfo {
 		}
 	}
 	return infos
-}
-
-func requestExtIP() (net.IP, error) {
-	resp, err := http.Get("http://ifconfig.me")
-	if err != nil {
-		return []byte{}, err
-	}
-
-	ip, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	return net.ParseIP(string(ip)), nil
 }
