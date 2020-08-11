@@ -58,6 +58,7 @@ type Interface interface {
 //     "" or "none"         return nil
 //     "extip:77.12.33.4"   will assume the local machine is reachable on the given IP
 //     "any"                uses the first auto-detected mechanism
+//     "auto"               use external ip of machine
 //     "upnp"               uses the Universal Plug and Play protocol
 //     "pmp"                uses NAT-PMP with an auto-detected gateway address
 //     "pmp:192.168.0.1"    uses NAT-PMP with the given gateway address
