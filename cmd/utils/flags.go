@@ -577,7 +577,7 @@ var (
 	}
 	NATFlag = cli.StringFlag{
 		Name:  "nat",
-		Usage: "NAT port mapping mechanism (any|none|upnp|pmp|extip:<IP>)",
+		Usage: "NAT port mapping mechanism (any|auto|none|upnp|pmp|extip:<IP>)",
 		Value: "any",
 	}
 	NoDiscoverFlag = cli.BoolFlag{
