@@ -80,7 +80,7 @@ var (
 // this template generates the license comment.
 // its input is an info structure.
 var licenseT = template.Must(template.New("").Parse(`
-// Copyright {{.Year}} The CORE FOUNDATION, nadacia
+// Copyright 2020 The CORE FOUNDATION, nadacia
 // This file is part of {{.Whole false}}.
 //
 // {{.Whole true}} is free software: you can redistribute it and/or modify
