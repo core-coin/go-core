@@ -62,10 +62,10 @@ var (
 		Name:  "sol",
 		Usage: "Path to the Core contract Solidity source to build and bind",
 	}
-	solcFlag = cli.StringFlag{
-		Name:  "solc",
+	ylemFlag = cli.StringFlag{
+		Name:  "ylem",
 		Usage: "Solidity compiler to use if source builds are requested",
-		Value: "solc",
+		Value: "ylem",
 	}
 	vyFlag = cli.StringFlag{
 		Name:  "vy",
@@ -107,7 +107,7 @@ func init() {
 		typeFlag,
 		jsonFlag,
 		solFlag,
-		solcFlag,
+		ylemFlag,
 		vyFlag,
 		vyperFlag,
 		excFlag,
@@ -190,7 +190,7 @@ func abigen(c *cli.Context) error {
 
 		switch {
 		case c.GlobalIsSet(solFlag.Name):
-			contracts, err = compiler.CompileSolidity(c.GlobalString(solcFlag.Name), c.GlobalString(solFlag.Name))
+			contracts, err = compiler.CompileSolidity(c.GlobalString(ylemFlag.Name), c.GlobalString(solFlag.Name))
 			if err != nil {
 				utils.Fatalf("Failed to build Solidity contract: %v", err)
 			}
