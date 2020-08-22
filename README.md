@@ -6,7 +6,7 @@ Automated builds are available for stable releases and the unstable master branc
 
 ## Building the source
 
-Building `gocore` requires both a Go (version 1.13 or later) and a C compiler. You can install them using your favourite package manager. Once the dependencies are installed, run
+Building `gocore` requires both a Go (version 1.13 or later) and a C compiler. You can install them using your favorite package manager. Once the dependencies are installed, run
 
 ```shell
 make gocore
@@ -18,6 +18,16 @@ or, to build the full suite of utilities:
 make all
 ```
 
+## ICAN network prefixes
+
+CORE Client implements ICAN-based addresses with following formats:
+
+Name | Prefix | Length | Format
+--- | --- | --- | ---
+Mainnet | CB | 44 | H40
+Testnets | AB | 44 | H40
+Privatenets | CE | 44 | H40
+
 ## Executables
 
 The go-core project comes with several wrappers/executables found in the `cmd`
@@ -25,9 +35,9 @@ directory.
 
 Command | Description
 --- | ---
-gocore | Main Core CLI client. It is the entry point into the CORE network (main-, "testnets" or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the CORE network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. Type `gocore --help` for command line options.
+gocore | Main Core CLI client. It is the entry point into the CORE network (main-, "testnets" or private net), capable of running as a full node (default), archive node (retaining all historical state), or a light node (retrieving data live). It can be used by other processes as a gateway into the CORE network via JSON RPC endpoints exposed on top of HTTP, WebSocket, and/or IPC transports. Type `gocore --help` for command-line options.
 abigen | Source code generator to convert CORE contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain CORE contract ABIs with expanded functionality if the contract bytecode is also available. However, it also accepts Ylem source files, making development much more streamlined.
-bootnode | Stripped down version of our CORE client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.
+bootnode | Stripped down version of our CORE client implementation that only takes part in the network node discovery protocol, but does not run any of the higher-level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.
 cvm | Developer utility version of the CVM (CORE Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of CVM opcodes.
 gocorerpctest | Developer utility tool to support our core/rpc-test test suite which validates baseline conformity to the CORE JSON RPC specs.
 rlpdump | Developer utility tool to convert binary RLP (Recursive Length Prefix) dumps (data encoding used by the CORE protocol both network as well as consensus wise) to user-friendlier hierarchical representation.
@@ -42,12 +52,11 @@ $ gocore console
 
 This command will:
  * Start `gocore` in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to download more data in exchange for avoiding processing the entire history of the CORE network, which is very CPU intensive.
- * Start up `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach to an already running `gocore` instance with `gocore attach`.
+ * Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach to an already running `gocore` instance with `gocore attach`.
 
-### A Full node on the CORE test network
+### A Full node on the Devin network (PoW)
 
-Transitioning towards developers, if you'd like to play around with creating CORE contracts, you almost certainly would like to do that without any real money involved until you get the hang of the entire system. In other words, instead of attaching to the main network, you want to join one of the tests networks (Devin, Koliba) with your node, which is fully equivalent to
-the main network, but with play-Core only.
+Transitioning towards developers, if you'd like to play around with creating CORE contracts, you almost certainly would like to do that without any real money involved until you get the hang of the entire system. In other words, instead of attaching to the main network, you want to join one of the tests networks (Devin, Koliba) with your node, which is fully equivalent to the main network, but with play-Core only.
 
 ```shell
 $ gocore --devin console
@@ -58,11 +67,11 @@ The `console` subcommand has the exact same meaning as above and they are equall
 Specifying the `--devin` flag, however, will reconfigure your `gocore` instance a bit:
 
  * Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
- * Instead of connecting the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs and genesis states.
+ * Instead of connecting the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
 
-### Full node on the Koliba test network
+### Full node on the Koliba test network (PoA)
 
-Gocore also supports connecting to a proof-of-authority based test network called Koliba (operated by members of the community). This network is lighter, more secure.
+Gocore also supports connecting to a proof-of-authority (PoA) based test network called Koliba (operated by members of the community). This network is lighter, more secure.
 
 ```shell
 $ gocore --koliba console
@@ -76,7 +85,7 @@ As an alternative to passing the numerous flags to the `gocore` binary, you can 
 $ gocore --config /path/to/your_config.toml
 ```
 
-To get an idea how the file should look like you can use the `dumpconfig` subcommand to export your existing configuration:
+To get an idea of how the file should look like you can use the `dumpconfig` subcommand to export your existing configuration:
 
 ```shell
 $ gocore --your-favourite-flags dumpconfig
@@ -95,11 +104,11 @@ docker run -d --name core-node -v /Users/robocop/core-coin:/root \
 
 This will start `gocore` in fast-sync mode with a DB memory allowance of 1GB just as the above command does. It will also create a persistent volume in your home directory for saving your blockchain as well as map the default ports.
 
-Do not forget `--rpcaddr 0.0.0.0`, if you want to access RPC from other containers and/or hosts. By default, `gocore` binds to the local interface and RPC endpoints is not accessible from the outside.
+Do not forget `--rpcaddr 0.0.0.0`, if you want to access RPC from other containers and/or hosts. By default, `gocore` binds to the local interface, and RPC endpoints are not accessible from the outside.
 
 ### Programmatically interfacing gocore nodes
 
-As a developer, sooner rather than later you'll want to start interacting with `gocore` and the CORE network via your own programs and not manually through the console. To aid this, `gocore` has built-in support for a JSON-RPC based APIs and `gocore` specific APIs. These can be exposed via HTTP, WebSockets and IPC (UNIX sockets on UNIX based platforms, and named pipes on Windows).
+As a developer, sooner rather than later you'll want to start interacting with `gocore` and the CORE network via your own programs and not manually through the console. To aid this, `gocore` has built-in support for JSON-RPC based APIs and `gocore` specific APIs. These can be exposed via HTTP, WebSockets, and IPC (UNIX sockets on UNIX based platforms, and named pipes on Windows).
 
 The IPC interface is enabled by default and exposes all the APIs supported by `gocore`, whereas the HTTP and WS interfaces need to manually be enabled and only expose a subset of APIs due to security reasons. These can be turned on/off and configured as you'd expect.
 
@@ -119,7 +128,7 @@ HTTP based JSON-RPC API options:
   * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xcb,miner,net,personal,shh,txpool,web3`)
   * `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
 
-You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect via HTTP, WS or IPC to a `gocore` node configured with the above flags and you'll need to speak JSON-RPC on all transports. You can reuse the same connection for multiple requests!
+You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect via HTTP, WS, or IPC to a `gocore` node configured with the above flags and you'll need to speak JSON-RPC on all transports. You can reuse the same connection for multiple requests!
 
 **Note: Please understand the security implications of opening up an HTTP/WS based transport before doing so! Hackers on the internet are actively trying to subvert CORE nodes with exposed APIs! Further, all browser tabs can access locally running web servers, so malicious web pages could try to subvert locally available APIs!**
 
@@ -153,10 +162,10 @@ The above fields should be fine for most purposes, although we'd recommend chang
 ```json
 {
   "alloc": {
-    "0x0000000000000000000000000000000000000001": {
+    "ce180000000000000000000000000000000000000001": {
       "balance": "111111111"
     },
-    "0x0000000000000000000000000000000000000002": {
+    "ce880000000000000000000000000000000000000002": {
       "balance": "222222222"
     }
   }
@@ -196,7 +205,7 @@ $ gocore --datadir=path/to/custom/data/folder --bootnodes=<bootnode-enode-url-fr
 
 #### Running a private miner
 
-In a private network setting, however a single CPU miner instance is more than enough for practical purposes as it can produce a stable stream of blocks at the correct intervals without needing heavy resources (consider running on a single thread, no need for multiple ones either). To start a `gocore` instance for mining, run it with all your usual flags, extended by:
+In a private network setting, however, a single CPU miner instance is more than enough for practical purposes as it can produce a stable stream of blocks at the correct intervals without needing heavy resources (consider running on a single thread, no need for multiple ones either). To start a `gocore` instance for mining, run it with all your usual flags, extended by:
 
 ```shell
 $ gocore <usual-flags> --mine --miner.threads=1 --corebase=0x0000000000000000000000000000000000000000
@@ -204,11 +213,31 @@ $ gocore <usual-flags> --mine --miner.threads=1 --corebase=0x0000000000000000000
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all proceedings to the account specified by `--corebase`. You can further tune the mining by changing the default energy limit blocks converge to (`--targetenergylimit`) and the price transactions are accepted at (`--energyprice`).
 
+## Issue Labels
+
+### Priority
+
+Label | Meaning (SLA)
+--- | ---
+P1 Urgent | The current release + potentially immediate hotfix
+P2 High | The next release
+P3 Medium | Within the next 3 releases
+P4 Low | Anything outside the next 3 releases
+
+### Severity
+
+Label | Impact
+--- | ---
+S1 Blocker | Outage, broken feature with no workaround
+S2 Critical | Broken feature, workaround too complex & unacceptable
+S3 Major | Broken feature, workaround acceptable
+S4 Low | Functionality inconvenience or cosmetic issue
+
 ## Contribution
 
-Thank you for considering to help out with the source code! We welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
+Thank you for considering helping out with the source code! We welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
 
-If you'd like to contribute to go-core, please fork, fix, commit and send a pull request for the maintainers to review and merge into the main code base. If you wish to submit more complex changes though, please check up with the core devs first on the [Core ◆ Talk](https://coretalk.info) to ensure those changes are in line with the general philosophy of the project and/or get some early feedback which can make both your efforts much lighter as well as our review and merge procedures quick and simple.
+If you'd like to contribute to go-core, please fork, fix, commit and send a pull request for the maintainers to review and merge into the main codebase. If you wish to submit more complex changes though, please check up with the core devs first on the [Core ◆ Talk](https://coretalk.info) to ensure those changes are in line with the general philosophy of the project and/or get some early feedback which can make both your efforts much lighter as well as our review and merge procedures quick and simple.
 
 Please make sure your contributions adhere to our coding guidelines:
 
@@ -218,11 +247,15 @@ Please make sure your contributions adhere to our coding guidelines:
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "xcb, rpc: make trace configs optional"
 
+## Security vulnerability disclosure
+
+Please report suspected security vulnerabilities in private following the [Security manual](SECURITY.md). Do NOT create publicly viewable issues for suspected security vulnerabilities.
+
 ## License
 
 The go-core library (i.e. all code outside of the `cmd` directory) is licensed under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html), also included in our repository in the `COPYING.LESSER` file.
 
-The go-core binaries (i.e. all code inside of the `cmd` directory) is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also included in our repository in the `COPYING` file.
+The go-core binaries (i.e. all code inside of the `cmd` directory) are licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also included in our repository in the `COPYING` file.
 
 ## Community
 
