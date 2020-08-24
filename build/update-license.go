@@ -1,4 +1,4 @@
-// Copyright 2020 The CORE FOUNDATION, nadacia
+// Copyright 2018 The go-core Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -80,7 +80,7 @@ var (
 // this template generates the license comment.
 // its input is an info structure.
 var licenseT = template.Must(template.New("").Parse(`
-// Copyright {{.Year}} The CORE FOUNDATION, nadacia
+// Copyright {{.Year}} by the Authors
 // This file is part of {{.Whole false}}.
 //
 // {{.Whole true}} is free software: you can redistribute it and/or modify
