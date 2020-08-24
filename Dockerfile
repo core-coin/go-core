@@ -16,4 +16,4 @@ COPY --from=builder /go-core/core-genesis/genesis.json /
 
 EXPOSE 30300 30300/udp
 RUN gocore --datadir=/testdata init genesis.json
-ENTRYPOINT ["gocore", "--datadir=/testdata", "--networkid", "3"]
+ENTRYPOINT ["gocore", "--datadir=/testdata", "--networkid", "3", "--nat", "auto"]
