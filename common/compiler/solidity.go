@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package compiler wraps the Solidity and Vyper compiler executables (solc; vyper).
+// Package compiler wraps the Solidity and Vyper compiler executables (ylem; vyper).
 package compiler
 
 import (
@@ -34,7 +34,7 @@ type Solidity struct {
 }
 
 // --combined-output format
-type solcOutput struct {
+type ylemOutput struct {
 	Contracts map[string]struct {
 		BinRuntime                                  string `json:"bin-runtime"`
 		SrcMapRuntime                               string `json:"srcmap-runtime"`
@@ -56,13 +56,13 @@ func (s *Solidity) makeArgs() []string {
 	return p
 }
 
-// SolidityVersion runs solc and parses its version output.
-func SolidityVersion(solc string) (*Solidity, error) {
-	if solc == "" {
-		solc = "solc"
+// SolidityVersion runs ylem and parses its version output.
+func SolidityVersion(ylem string) (*Solidity, error) {
+	if ylem == "" {
+		ylem = "./ylem"
 	}
 	var out bytes.Buffer
-	cmd := exec.Command(solc, "--version")
+	cmd := exec.Command(ylem, "--version")
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
@@ -70,7 +70,7 @@ func SolidityVersion(solc string) (*Solidity, error) {
 	}
 	matches := versionRegexp.FindStringSubmatch(out.String())
 	if len(matches) != 4 {
-		return nil, fmt.Errorf("can't parse solc version %q", out.String())
+		return nil, fmt.Errorf("can't parse ylem version %q", out.String())
 	}
 	s := &Solidity{Path: cmd.Path, FullVersion: out.String(), Version: matches[0]}
 	if s.Major, err = strconv.Atoi(matches[1]); err != nil {
@@ -86,11 +86,11 @@ func SolidityVersion(solc string) (*Solidity, error) {
 }
 
 // CompileSolidityString builds and returns all the contracts contained within a source string.
-func CompileSolidityString(solc, source string) (map[string]*Contract, error) {
+func CompileSolidityString(ylem, source string) (map[string]*Contract, error) {
 	if len(source) == 0 {
-		return nil, errors.New("solc: empty source string")
+		return nil, errors.New("ylem: empty source string")
 	}
-	s, err := SolidityVersion(solc)
+	s, err := SolidityVersion(ylem)
 	if err != nil {
 		return nil, err
 	}
@@ -101,15 +101,15 @@ func CompileSolidityString(solc, source string) (map[string]*Contract, error) {
 }
 
 // CompileSolidity compiles all given Solidity source files.
-func CompileSolidity(solc string, sourcefiles ...string) (map[string]*Contract, error) {
+func CompileSolidity(ylem string, sourcefiles ...string) (map[string]*Contract, error) {
 	if len(sourcefiles) == 0 {
-		return nil, errors.New("solc: no source files")
+		return nil, errors.New("ylem: no source files")
 	}
 	source, err := slurpFiles(sourcefiles)
 	if err != nil {
 		return nil, err
 	}
-	s, err := SolidityVersion(solc)
+	s, err := SolidityVersion(ylem)
 	if err != nil {
 		return nil, err
 	}
@@ -123,23 +123,23 @@ func (s *Solidity) run(cmd *exec.Cmd, source string) (map[string]*Contract, erro
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("solc: %v\n%s", err, stderr.Bytes())
+		return nil, fmt.Errorf("ylem: %v\n%s", err, stderr.Bytes())
 	}
 
 	return ParseCombinedJSON(stdout.Bytes(), source, s.Version, s.Version, strings.Join(s.makeArgs(), " "))
 }
 
-// ParseCombinedJSON takes the direct output of a solc --combined-output run and
+// ParseCombinedJSON takes the direct output of a ylem --combined-output run and
 // parses it into a map of string contract name to Contract structs. The
 // provided source, language and compiler version, and compiler options are all
 // passed through into the Contract structs.
 //
-// The solc output is expected to contain ABI, source mapping, user docs, and dev docs.
+// The ylem output is expected to contain ABI, source mapping, user docs, and dev docs.
 //
 // Returns an error if the JSON is malformed or missing data, or if the JSON
 // embedded within the JSON is malformed.
 func ParseCombinedJSON(combinedJSON []byte, source string, languageVersion string, compilerVersion string, compilerOptions string) (map[string]*Contract, error) {
-	var output solcOutput
+	var output ylemOutput
 	if err := json.Unmarshal(combinedJSON, &output); err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func ParseCombinedJSON(combinedJSON []byte, source string, languageVersion strin
 		// Parse the individual compilation results.
 		var abi interface{}
 		if err := json.Unmarshal([]byte(info.Abi), &abi); err != nil {
-			return nil, fmt.Errorf("solc: error reading abi definition (%v)", err)
+			return nil, fmt.Errorf("ylem: error reading abi definition (%v)", err)
 		}
 		var userdoc, devdoc interface{}
 		json.Unmarshal([]byte(info.Userdoc), &userdoc)
