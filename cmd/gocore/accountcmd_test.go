@@ -1,4 +1,4 @@
-// Copyright 2020 The CORE FOUNDATION, nadacia
+// Copyright 2016 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
