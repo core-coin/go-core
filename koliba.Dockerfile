@@ -12,7 +12,7 @@ FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-core/build/bin/gocore /usr/local/bin/
-COPY --from=builder /go-core/core-genesis/genesis.json /
+COPY --from=builder /go-core/core-genesis/genesis-koliba.json /
 
 # Exposing ports:
 # 8545:8545/tcp = HTTP-RPC
@@ -20,5 +20,5 @@ COPY --from=builder /go-core/core-genesis/genesis.json /
 # 8547:8547/tcp = GraphQL
 # 30300 30300/udp = Peers
 EXPOSE 30300 30300/udp
-RUN gocore --datadir=/testdata init genesis.json
-ENTRYPOINT ["gocore", "--datadir=/.coredata", "--networkid", "1", "--nat", "auto"]
+RUN gocore --datadir=/testdata init genesis-koliba.json
+ENTRYPOINT ["gocore", "--datadir=/.kolibadata", "--networkid", "4", "--nat", "auto"]
