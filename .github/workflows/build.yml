@@ -2,7 +2,6 @@ name: go-core build
 on: [push, pull_request]
 jobs:
   build:
-    name: Build
     strategy:
       matrix:
         platform: [ubuntu-latest]
@@ -19,3 +18,9 @@ jobs:
       run: go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
+    - name: setup debuild
+      run: sudo apt-get install build-essential fakeroot devscripts
+    - name: run debuild
+      run: go run build/ci.go debsrc -goversion 1.14.6 -workdir /tmp/builded-debs/ 
+      
+    
