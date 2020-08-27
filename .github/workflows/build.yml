@@ -16,8 +16,8 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: go run build/ci.go install
-    - name: Test
-      run: go run build/ci.go test
+    #- name: Test
+    #  run: go run build/ci.go test
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts
     - name: run debuild
