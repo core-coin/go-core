@@ -19,7 +19,7 @@ jobs:
     #- name: Test
     #  run: go run build/ci.go test
     - name: setup debuild
-      run: sudo apt-get install build-essential fakeroot devscripts
+      run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
       run: go run build/ci.go debsrc -goversion 1.14.6 -workdir /tmp/builded-debs/ 
       
