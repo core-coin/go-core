@@ -345,13 +345,10 @@ func DefaultGenesisBlock() *Genesis {
 // DefaultDevinGenesisBlock returns the Devin network genesis block.
 func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:    defaultCoinbase,
 		Config:      params.DevinChainConfig,
-		Nonce:       66,
-		ExtraData:   hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
-		EnergyLimit: 16777216,
-		Difficulty:  big.NewInt(1048576),
-		Alloc:       decodePrealloc(devinAllocData),
+		Nonce:       0x000000000042,
+		EnergyLimit: 0x2fefd8,
+		Difficulty:  big.NewInt(1),
 	}
 }
 
