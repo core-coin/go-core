@@ -22,7 +22,9 @@ jobs:
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
       run: |
-        sudo go run build/ci.go debsrc -goversion 1.14.6 -workdir dist
-        cd dist && ls -al 
+        export DEB_SRC=/tmp/dist-deb
+        mkdir $DEB_SRC
+        sudo go run build/ci.go debsrc -goversion 1.14.6 -workdir $DEB_SRC
+        sudo cd $DEB_SRC && ls -al 
       
     
