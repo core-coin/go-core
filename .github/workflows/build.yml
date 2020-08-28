@@ -25,6 +25,6 @@ jobs:
         export DEB_SRC=/tmp/dist-deb
         mkdir $DEB_SRC
         sudo go run build/ci.go debsrc -goversion 1.14.6 -workdir $DEB_SRC
-        sudo cd $DEB_SRC && ls -al 
+        ls -al $DEB_SRC 
       
     
