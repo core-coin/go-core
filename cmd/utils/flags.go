@@ -826,6 +826,12 @@ func setNAT(ctx *cli.Context, cfg *p2p.Config) {
 			Fatalf("Option %s: %v", NATFlag.Name, err)
 		}
 		cfg.NAT = natif
+	} else {
+		autoIP, err := nat.RequestAutoIP()
+		if err != nil {
+			Fatalf("Failed to request external ip: %v", err)
+		}
+		cfg.NAT = autoIP
 	}
 }
 
