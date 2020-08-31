@@ -32,7 +32,7 @@ jobs:
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: docker login
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-    - name: docker build      
-      run: docker build . -f Dockerfile --build-arg NETWORK=devin CHAINDIR=~/.devin -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
+    - name: docker build
+      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
     - name: docker push
       run: docker push docker.pkg.github.com/core-coin/go-core/gocore
