@@ -79,8 +79,6 @@ func Parse(spec string) (Interface, error) {
 		return nil, nil
 	case "any", "on":
 		return Any(), nil
-	case "auto":
-		return requestExtIP()
 	case "extip", "ip":
 		if ip == nil {
 			return nil, errors.New("missing IP address")
@@ -178,20 +176,34 @@ func PMP(gateway net.IP) Interface {
 	return startautodisc("NAT-PMP", discoverPMP)
 }
 
-// requestExtIP returns external ip address of a host machine
-func requestExtIP() (ExtIP, error) {
+// RequestAutoIP returns external ip address of a host machine. IP address is taken from the site ifconfig.me
+func RequestAutoIP() (Interface, error) {
 	resp, err := http.Get("http://ifconfig.me")
 	if err != nil {
-		return []byte{}, err
+		return nil, err
 	}
 
 	ip, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, err
+		return nil, err
 	}
 
-	return ExtIP(net.ParseIP(string(ip))), nil
+	return AutoIP(net.ParseIP(string(ip))), nil
 }
+
+// AutoIP assumes that the local machine is reachable on the given
+// external IP address, and that any required ports were mapped manually.
+// Mapping operations will not return an error but won't actually do anything.
+type AutoIP net.IP
+
+func (n AutoIP) ExternalIP() (net.IP, error) { return net.IP(n), nil }
+func (n AutoIP) String() string              { return fmt.Sprintf("AutoIP(%v)", net.IP(n)) }
+
+// These do nothing.
+
+func (AutoIP) AddMapping(string, int, int, string, time.Duration) error { return nil }
+func (AutoIP) DeleteMapping(string, int, int) error                     { return nil }
+
 
 // autodisc represents a port mapping mechanism that is still being
 // auto-discovered. Calls to the Interface methods on this type will
