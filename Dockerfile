@@ -12,20 +12,19 @@ RUN if [[ -n "$ALLTOOLS" ]] ; then \
 
 # Pull Gocore into a second stage deploy alpine container
 FROM alpine:latest
-ARG NETWORK=mainnet
-ARG SYNCMODE=fast
-ARG GCMODE=full
-ARG CHAINDIR=~/.core
-ARG KEYDIR=$CHAINDIR/keystore
-ARG EXPOSEPORTS=30300 30300/udp
-# Exposing ports:
-# 8545:8545/tcp = HTTP-RPC
-# 8546:8546/tcp = WS
-# 8547:8547/tcp = GraphQL
-# 30300 30300/udp = Peers
+ENV NETWORK=mainnet
+ENV SYNCMODE=fast
+ENV GCMODE=full
+ENV DATADIR=~/.core
+ENV KEYDIR=$DATADIR/keystore
+# Ports:
+# 8545/tcp = HTTP-RPC
+# 8546/tcp = WS
+# 8547/tcp = GraphQL
+# 30300/tcp 30300/udp = Peers
 
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-core/build/bin/* /usr/local/bin/
 
-EXPOSE $EXPOSEPORTS
-ENTRYPOINT ["gocore", "--datadir=${CHAINDIR}", "--keystore=${KEYDIR}", "--${NETWORK}", "--nat", "auto", "--syncmode=${SYNCMODE}", "--gcmode=${GCMODE}"]
+EXPOSE 30300 30300/udp
+ENTRYPOINT ["gocore", "--datadir=${DATADIR}", "--keystore=${KEYDIR}", "--${NETWORK}", "--nat", "auto", "--syncmode=${SYNCMODE}", "--gcmode=${GCMODE}"]
