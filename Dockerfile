@@ -25,7 +25,7 @@ ARG EXPOSEPORTS=30300 30300/udp
 # 30300 30300/udp = Peers
 
 RUN apk add --no-cache ca-certificates
-COPY --from=builder /go-core/build/bin/gocore /usr/local/bin/
+COPY --from=builder /go-core/build/bin/* /usr/local/bin/
 
 EXPOSE $EXPOSEPORTS
 ENTRYPOINT ["gocore", "--datadir=${CHAINDIR}", "--keystore=${KEYDIR}", "--${NETWORK}", "--nat", "auto", "--syncmode=${SYNCMODE}", "--gcmode=${GCMODE}"]
