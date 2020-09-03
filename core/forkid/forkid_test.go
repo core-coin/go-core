@@ -51,7 +51,7 @@ func TestCreation(t *testing.T) {
 			params.DevinChainConfig,
 			params.DevinGenesisHash,
 			[]testcase{
-				{10, ID{Hash: checksumToBytes(0x239be3f9), Next: 0}},
+				{10, ID{Hash: checksumToBytes(0x3aa6e11a), Next: 0}},
 			},
 		},
 		// Koliba test cases
