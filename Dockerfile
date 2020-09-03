@@ -8,8 +8,8 @@ RUN if [[ -n "$ALLTOOLS" ]] ; then cd /go-core && make all ; else cd /go-core &&
 
 # Pull Gocore into a second stage deploy alpine container
 FROM alpine:latest
-ENV NETWORK=mainnet
-ENV SYNCMODE=fast
+ENV NETWORK=devin
+ENV SYNCMODE=full
 ENV GCMODE=full
 ENV DATADIR=~/.core
 ENV KEYDIR=$DATADIR/keystore
