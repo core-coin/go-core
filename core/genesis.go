@@ -346,7 +346,9 @@ func DefaultGenesisBlock() *Genesis {
 func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:      params.DevinChainConfig,
-		Nonce:       0x000000000001,
+		Timestamp:   0,
+		Mixhash:     common.Hash{},
+		Nonce:       0x000000000002,
 		EnergyLimit: 0x2fefd8,
 		Difficulty:  big.NewInt(1),
 	}
