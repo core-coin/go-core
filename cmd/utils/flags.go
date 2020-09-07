@@ -1190,13 +1190,13 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 
 func SetDefaultNetworkID(ctx *cli.Context) {
 	switch {
-	case ctx.GlobalBool(NetworkIdFlag.Name):
+	case ctx.GlobalIsSet(NetworkIdFlag.Name):
 		common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(NetworkIdFlag.Name))
-	case ctx.GlobalBool(DevinFlag.Name):
+	case ctx.GlobalIsSet(DevinFlag.Name):
 		common.DefaultNetworkID = 3
-	case ctx.GlobalBool(KolibaFlag.Name):
+	case ctx.GlobalIsSet(KolibaFlag.Name):
 		common.DefaultNetworkID = 4
-	case ctx.GlobalBool(DeveloperFlag.Name):
+	case ctx.GlobalIsSet(DeveloperFlag.Name):
 		common.DefaultNetworkID = 1337
 	}
 }
