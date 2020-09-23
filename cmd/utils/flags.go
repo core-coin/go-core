@@ -1188,6 +1188,19 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	}
 }
 
+func SetDefaultNetworkID(ctx *cli.Context) {
+	switch {
+	case ctx.GlobalIsSet(NetworkIdFlag.Name):
+		common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(NetworkIdFlag.Name))
+	case ctx.GlobalIsSet(DevinFlag.Name):
+		common.DefaultNetworkID = 3
+	case ctx.GlobalIsSet(KolibaFlag.Name):
+		common.DefaultNetworkID = 4
+	case ctx.GlobalIsSet(DeveloperFlag.Name):
+		common.DefaultNetworkID = 1337
+	}
+}
+
 func setSmartCard(ctx *cli.Context, cfg *node.Config) {
 	// Skip enabling smartcards if no path is set
 	path := ctx.GlobalString(SmartCardDaemonPathFlag.Name)
