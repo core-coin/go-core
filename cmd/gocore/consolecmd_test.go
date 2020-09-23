@@ -52,7 +52,7 @@ func TestConsoleWelcome(t *testing.T) {
 	gocore.SetTemplateFunc("gover", runtime.Version)
 	gocore.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
 	gocore.SetTemplateFunc("niltime", func() string {
-		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
+		return time.Unix(1599475790, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
 	gocore.SetTemplateFunc("apis", func() string { return ipcAPIs })
 
@@ -145,7 +145,7 @@ func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) 
 	attach.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
 	attach.SetTemplateFunc("corebase", func() string { return gocore.Corebase })
 	attach.SetTemplateFunc("niltime", func() string {
-		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
+		return time.Unix(1599475790, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
 	attach.SetTemplateFunc("ipc", func() bool { return strings.HasPrefix(endpoint, "ipc") })
 	attach.SetTemplateFunc("datadir", func() string { return gocore.Datadir })
