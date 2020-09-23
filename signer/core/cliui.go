@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import (
 	"sync"
 
 	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xccapi"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -201,7 +201,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("## Info \n%s\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx xcbapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	if jsn, err := json.MarshalIndent(tx.Tx, "  ", "  "); err != nil {
 		fmt.Printf("WARN: marshalling error %v\n", err)

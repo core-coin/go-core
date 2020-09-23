@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -34,8 +34,8 @@ func TestKeyEncryptDecrypt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	password := ""
-	address, err := common.HexToAddress("cb25798682fac39cfe662bb6d451827fd16b4a1a7172")
+	password := "foobar"
+	address, err := common.HexToAddress("cb33c2e3cfb3d905d5609c9e73eeb687052eedc518b1")
 	if err != nil {
 		t.Error(err)
 	}
@@ -54,7 +54,7 @@ func TestKeyEncryptDecrypt(t *testing.T) {
 			t.Errorf("test %d: key address mismatch: have %x, want %x", i, key.Address, address)
 		}
 		// Recrypt with a new password and start over
-		password += "new data appended"
+		password += "foobar2"
 		if keyjson, err = EncryptKey(key, password, veryLightScryptN, veryLightScryptP); err != nil {
 			t.Errorf("test %d: failed to recrypt key %v", i, err)
 		}

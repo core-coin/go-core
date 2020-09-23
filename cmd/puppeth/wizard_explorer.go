@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -31,8 +31,8 @@ func (w *wizard) deployExplorer() {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.xccstats == "" {
-		log.Error("No xccstats server configured")
+	if w.conf.xcbstats == "" {
+		log.Error("No xcbstats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -61,7 +61,7 @@ func (w *wizard) deployExplorer() {
 	fmt.Printf("Which port should the explorer listen on? (default = %d)\n", infos.port)
 	infos.port = w.readDefaultInt(infos.port)
 
-	// Figure which virtual-host to deploy xccstats on
+	// Figure which virtual-host to deploy xcbstats on
 	if infos.host, err = w.ensureVirtualHost(client, infos.port, infos.host); err != nil {
 		log.Error("Failed to decide on explorer host", "err", err)
 		return
@@ -91,12 +91,12 @@ func (w *wizard) deployExplorer() {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.node.xccstats == "" {
+	if infos.node.xcbstats == "" {
 		fmt.Printf("What should the explorer be called on the stats page?\n")
-		infos.node.xccstats = w.readString() + ":" + w.conf.xccstats
+		infos.node.xcbstats = w.readString() + ":" + w.conf.xcbstats
 	} else {
-		fmt.Printf("What should the explorer be called on the stats page? (default = %s)\n", infos.node.xccstats)
-		infos.node.xccstats = w.readDefaultString(infos.node.xccstats) + ":" + w.conf.xccstats
+		fmt.Printf("What should the explorer be called on the stats page? (default = %s)\n", infos.node.xcbstats)
+		infos.node.xcbstats = w.readDefaultString(infos.node.xcbstats) + ":" + w.conf.xcbstats
 	}
 	// Try to deploy the explorer on the host
 	nocache := false

@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 func NewState(ctx context.Context, head *types.Header, odr OdrBackend) *state.StateDB {
@@ -96,7 +96,7 @@ type odrTrie struct {
 }
 
 func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	var res []byte
 	err := t.do(key, func() (err error) {
 		res, err = t.trie.TryGet(key)
@@ -106,14 +106,14 @@ func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
 }
 
 func (t *odrTrie) TryUpdate(key, value []byte) error {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	return t.do(key, func() error {
 		return t.trie.TryUpdate(key, value)
 	})
 }
 
 func (t *odrTrie) TryDelete(key []byte) error {
-	key = crypto.Keccak256(key)
+	key = crypto.SHA3(key)
 	return t.do(key, func() error {
 		return t.trie.TryDelete(key)
 	})
@@ -141,7 +141,7 @@ func (t *odrTrie) GetKey(sha []byte) []byte {
 	return nil
 }
 
-func (t *odrTrie) Prove(key []byte, fromLevel uint, proofDb xccdb.KeyValueWriter) error {
+func (t *odrTrie) Prove(key []byte, fromLevel uint, proofDb xcbdb.KeyValueWriter) error {
 	return errors.New("not implemented, needs client/server interface split")
 }
 

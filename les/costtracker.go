@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -27,8 +27,8 @@ import (
 	"github.com/core-coin/go-core/les/flowcontrol"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 const makeCostStats = false // make request cost statistics during operation
@@ -115,7 +115,7 @@ const (
 // changes in the cost factor can be applied immediately without always notifying
 // the clients about the changed cost tables.
 type costTracker struct {
-	db     xccdb.Database
+	db     xcbdb.Database
 	stopCh chan chan struct{}
 
 	inSizeFactor  float64
@@ -137,7 +137,7 @@ type costTracker struct {
 
 // newCostTracker creates a cost tracker and loads the cost factor statistics from the database.
 // It also returns the minimum capacity that can be assigned to any peer.
-func newCostTracker(db xccdb.Database, config *xcc.Config) (*costTracker, uint64) {
+func newCostTracker(db xcbdb.Database, config *xcb.Config) (*costTracker, uint64) {
 	utilTarget := float64(config.LightServ) * flowcontrol.FixedPointMultiplier / 100
 	ct := &costTracker{
 		db:         db,
@@ -302,7 +302,7 @@ func (ct *costTracker) gfLoop() {
 				// the corresponding delay is relatively stable. While these two
 				// requests involve txpool query, which is usually unstable.
 				//
-				// TODO(rjl493456442) fixes this.
+				// TODO(raisty) fixes this.
 				if r.msgCode == SendTxV2Msg || r.msgCode == GetTxStatusMsg {
 					continue
 				}

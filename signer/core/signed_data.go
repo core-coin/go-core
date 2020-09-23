@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -291,7 +291,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 // hash = keccak256("\x19\x00"${address}${data}).
 func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 	msg := fmt.Sprintf("\x19\x00%s%s", string(validatorData.Address.Bytes()), string(validatorData.Message))
-	return crypto.Keccak256([]byte(msg)), msg
+	return crypto.SHA3([]byte(msg)), msg
 }
 
 // cliqueHeaderHashAndRlp returns the hash which is used as input for the proof-of-authority
@@ -321,7 +321,7 @@ func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.Address, ty
 		return nil, err
 	}
 	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
-	sighash := crypto.Keccak256(rawData)
+	sighash := crypto.SHA3(rawData)
 	messages, err := typedData.Format()
 	if err != nil {
 		return nil, err
@@ -341,7 +341,7 @@ func (typedData *TypedData) HashStruct(primaryType string, data TypedDataMessage
 	if err != nil {
 		return nil, err
 	}
-	return crypto.Keccak256(encodedData), nil
+	return crypto.SHA3(encodedData), nil
 }
 
 // Dependencies returns an array of custom types ordered by their hierarchical reference tree
@@ -404,7 +404,7 @@ func (typedData *TypedData) EncodeType(primaryType string) hexutil.Bytes {
 
 // TypeHash creates the keccak256 hash  of the data
 func (typedData *TypedData) TypeHash(primaryType string) hexutil.Bytes {
-	return crypto.Keccak256(typedData.EncodeType(primaryType))
+	return crypto.SHA3(typedData.EncodeType(primaryType))
 }
 
 // EncodeData generates the following encoding:
@@ -458,7 +458,7 @@ func (typedData *TypedData) EncodeData(primaryType string, data map[string]inter
 				}
 			}
 
-			buffer.Write(crypto.Keccak256(arrayBuffer.Bytes()))
+			buffer.Write(crypto.SHA3(arrayBuffer.Bytes()))
 		} else if typedData.Types[field.Type] != nil {
 			mapValue, ok := encValue.(map[string]interface{})
 			if !ok {
@@ -468,7 +468,7 @@ func (typedData *TypedData) EncodeData(primaryType string, data map[string]inter
 			if err != nil {
 				return nil, err
 			}
-			buffer.Write(crypto.Keccak256(encodedData))
+			buffer.Write(crypto.SHA3(encodedData))
 		} else {
 			byteValue, err := typedData.EncodePrimitiveValue(encType, encValue, depth)
 			if err != nil {
@@ -561,13 +561,13 @@ func (typedData *TypedData) EncodePrimitiveValue(encType string, encValue interf
 		if !ok {
 			return nil, dataMismatchError(encType, encValue)
 		}
-		return crypto.Keccak256([]byte(strVal)), nil
+		return crypto.SHA3([]byte(strVal)), nil
 	case "bytes":
 		bytesValue, ok := encValue.([]byte)
 		if !ok {
 			return nil, dataMismatchError(encType, encValue)
 		}
-		return crypto.Keccak256(bytesValue), nil
+		return crypto.SHA3(bytesValue), nil
 	}
 	if strings.HasPrefix(encType, "bytes") {
 		lengthStr := strings.TrimPrefix(encType, "bytes")
@@ -606,7 +606,7 @@ func dataMismatchError(encType string, encValue interface{}) error {
 func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hexutil.Bytes) (common.Address, error) {
 	// Returns the address for the Account that was used to create the signature.
 	//
-	// Note, this function is compatible with xcc_sign and personal_sign. As such it recovers
+	// Note, this function is compatible with xcb_sign and personal_sign. As such it recovers
 	// the address of:
 	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)

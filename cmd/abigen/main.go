@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -62,10 +62,10 @@ var (
 		Name:  "sol",
 		Usage: "Path to the Core contract Solidity source to build and bind",
 	}
-	solcFlag = cli.StringFlag{
-		Name:  "solc",
+	ylemFlag = cli.StringFlag{
+		Name:  "ylem",
 		Usage: "Solidity compiler to use if source builds are requested",
-		Value: "solc",
+		Value: "ylem",
 	}
 	vyFlag = cli.StringFlag{
 		Name:  "vy",
@@ -107,7 +107,7 @@ func init() {
 		typeFlag,
 		jsonFlag,
 		solFlag,
-		solcFlag,
+		ylemFlag,
 		vyFlag,
 		vyperFlag,
 		excFlag,
@@ -190,7 +190,7 @@ func abigen(c *cli.Context) error {
 
 		switch {
 		case c.GlobalIsSet(solFlag.Name):
-			contracts, err = compiler.CompileSolidity(c.GlobalString(solcFlag.Name), c.GlobalString(solFlag.Name))
+			contracts, err = compiler.CompileSolidity(c.GlobalString(ylemFlag.Name), c.GlobalString(solFlag.Name))
 			if err != nil {
 				utils.Fatalf("Failed to build Solidity contract: %v", err)
 			}
@@ -236,7 +236,7 @@ func abigen(c *cli.Context) error {
 			nameParts := strings.Split(name, ":")
 			types = append(types, nameParts[len(nameParts)-1])
 
-			libPattern := crypto.Keccak256Hash([]byte(name)).String()[:36]
+			libPattern := crypto.SHA3Hash([]byte(name)).String()[:36]
 			libs[libPattern] = nameParts[len(nameParts)-1]
 		}
 	}

@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -197,5 +197,5 @@ func (n *Node) URLv4() string {
 // PubkeyToIDV4 derives the v4 node address from the given public key.
 func PubkeyToIDV4(key *eddsa.PublicKey) ID {
 	e := key.X[:]
-	return ID(crypto.Keccak256Hash(e))
+	return ID(crypto.SHA3Hash(e))
 }

@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 // This file contains the implementation for interacting with the Ledger hardware
 // wallets. The wire protocol spec can be found in the Ledger Blue GitHub repo:
-// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcc/master/doc/xccapp.asc
+// https://raw.githubusercontent.com/LedgerHQ/blue-app-xcb/master/doc/xcbapp.asc
 
 package usbwallet
 

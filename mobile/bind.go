@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the bind package.
 
-package gcore
+package gocore
 
 import (
 	"math/big"
@@ -58,14 +58,14 @@ func NewCallOpts() *CallOpts {
 }
 
 func (opts *CallOpts) IsPending() bool       { return opts.opts.Pending }
-func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(karalabe) */ }
+func (opts *CallOpts) GetEnergyLimit() int64 { return 0 /* TODO(raisty) */ }
 
 // GetContext cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // Even then it's awkward to unpack the subtleties of a Go context out to Java.
 // func (opts *CallOpts) GetContext() *Context { return &Context{opts.opts.Context} }
 
 func (opts *CallOpts) SetPending(pending bool)     { opts.opts.Pending = pending }
-func (opts *CallOpts) SetEnergyLimit(limit int64)  { /* TODO(karalabe) */ }
+func (opts *CallOpts) SetEnergyLimit(limit int64)  { /* TODO(raisty) */ }
 func (opts *CallOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 func (opts *CallOpts) SetFrom(addr *Address)       { opts.opts.From = addr.address }
 

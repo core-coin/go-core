@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,24 +23,24 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // Tests that positional lookup metadata can be stored and retrieved.
 func TestLookupStorage(t *testing.T) {
 	tests := []struct {
 		name                 string
-		writeTxLookupEntries func(xccdb.Writer, *types.Block)
+		writeTxLookupEntries func(xcbdb.Writer, *types.Block)
 	}{
 		{
 			"DatabaseV6",
-			func(db xccdb.Writer, block *types.Block) {
+			func(db xcbdb.Writer, block *types.Block) {
 				WriteTxLookupEntries(db, block)
 			},
 		},
 		{
 			"DatabaseV4-V5",
-			func(db xccdb.Writer, block *types.Block) {
+			func(db xcbdb.Writer, block *types.Block) {
 				for _, tx := range block.Transactions() {
 					db.Put(txLookupKey(tx.Hash()), block.Hash().Bytes())
 				}
@@ -48,7 +48,7 @@ func TestLookupStorage(t *testing.T) {
 		},
 		{
 			"DatabaseV3",
-			func(db xccdb.Writer, block *types.Block) {
+			func(db xcbdb.Writer, block *types.Block) {
 				for index, tx := range block.Transactions() {
 					entry := LegacyTxLookupEntry{
 						BlockHash:  block.Hash(),

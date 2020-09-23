@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -192,7 +192,7 @@ func TextHash(data []byte) []byte {
 // This gives context to the signed message and prevents signing of transactions.
 func TextAndHash(data []byte) ([]byte, string) {
 	msg := fmt.Sprintf("\x19Core Signed Message:\n%d%s", len(data), string(data))
-	hasher := sha3.NewLegacyKeccak256()
+	hasher := sha3.New256()
 	hasher.Write([]byte(msg))
 	return hasher.Sum(nil), msg
 }

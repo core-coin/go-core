@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -85,7 +85,7 @@ type wallet struct {
 
 	deriveNextPaths []accounts.DerivationPath // Next derivation paths for account auto-discovery (multiple bases supported)
 	deriveNextAddrs []common.Address          // Next derived account addresses for auto-discovery (multiple bases supported)
-	deriveChain     core.ChainStateReader // Blockchain state reader to discover used account with
+	deriveChain     core.ChainStateReader     // Blockchain state reader to discover used account with
 	deriveReq       chan chan struct{}        // Channel to request a self-derivation on
 	deriveQuit      chan chan error           // Channel to terminate the self-deriver with
 
@@ -410,7 +410,7 @@ func (w *wallet) selfDerive() {
 			}
 		}
 		// Shift the self-derivation forward
-		// TODO(karalabe): don't overwrite changes from wallet.SelfDerive
+		// TODO(raisty): don't overwrite changes from wallet.SelfDerive
 		w.deriveNextAddrs = nextAddrs
 		w.deriveNextPaths = nextPaths
 		w.stateLock.Unlock()
@@ -520,7 +520,7 @@ func (w *wallet) signHash(account accounts.Account, hash []byte) ([]byte, error)
 
 // SignData signs keccak256(data). The mimetype parameter describes the type of data being signed
 func (w *wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
-	return w.signHash(account, crypto.Keccak256(data))
+	return w.signHash(account, crypto.SHA3(data))
 }
 
 // SignDataWithPassphrase implements accounts.Wallet, attempting to sign the given
@@ -559,7 +559,7 @@ func (w *wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 	defer func() { w.commsLock <- struct{}{} }()
 
 	// Ensure the device isn't screwed with while user confirmation is pending
-	// TODO(karalabe): remove if hotplug lands on Windows
+	// TODO(raisty): remove if hotplug lands on Windows
 	w.hub.commsLock.Lock()
 	w.hub.commsPend++
 	w.hub.commsLock.Unlock()

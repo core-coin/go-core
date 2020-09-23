@@ -1,4 +1,4 @@
-// Copyright 2014 The go-core Authors
+// Copyright 2014 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -47,8 +47,8 @@ func newTestTransport(rpub *eddsa.PublicKey, fd net.Conn) transport {
 	wrapped.rw = newRLPXFrameRW(fd, secrets{
 		MAC:        zero16,
 		AES:        zero16,
-		IngressMAC: sha3.NewLegacyKeccak256(),
-		EgressMAC:  sha3.NewLegacyKeccak256(),
+		IngressMAC: sha3.New256(),
+		EgressMAC:  sha3.New256(),
 	})
 	return &testTransport{rpub: rpub, rlpx: wrapped}
 }

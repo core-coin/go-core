@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -90,7 +90,7 @@ func TestPassingBlockNumber(t *testing.T) {
 const hexData = "0x00000000000000000000cb63376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158"
 
 func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
-	hash := crypto.Keccak256Hash([]byte("testName"))
+	hash := crypto.SHA3Hash([]byte("testName"))
 	addr, err := common.HexToAddress("cb540000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
@@ -153,12 +153,12 @@ func TestUnpackIndexedStringTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedSliceTyLogIntoMap(t *testing.T) { // TODO: TEST
 	sliceBytes, err := rlp.EncodeToBytes([]string{"name1", "name2", "name3", "name4"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := crypto.Keccak256Hash(sliceBytes)
+	hash := crypto.SHA3Hash(sliceBytes)
 	addr, err := common.HexToAddress("cb540000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)
@@ -231,7 +231,7 @@ func TestUnpackIndexedArrayTyLogIntoMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := crypto.Keccak256Hash(arrBytes)
+	hash := crypto.SHA3Hash(arrBytes)
 	mockLog := types.Log{
 		Address: addressEmpty,
 		Topics: []common.Hash{
@@ -290,7 +290,7 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 		t.Error(err)
 	}
 	addrBytes := mockAddress.Bytes()
-	hash := crypto.Keccak256Hash([]byte("mockFunction(address,uint)"))
+	hash := crypto.SHA3Hash([]byte("mockFunction(address,uint)"))
 	functionSelector := hash[:4]
 	functionTyBytes := append(addrBytes, functionSelector...)
 	var functionTy [25]byte
@@ -350,9 +350,9 @@ func TestUnpackIndexedFuncTyLogIntoMap(t *testing.T) {
 	}
 }
 
-func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) {
+func TestUnpackIndexedBytesTyLogIntoMap(t *testing.T) { //TODO: TEST
 	byts := []byte{1, 2, 3, 4, 5}
-	hash := crypto.Keccak256Hash(byts)
+	hash := crypto.SHA3Hash(byts)
 	addr, err := common.HexToAddress("cb540000000000000000000000000000000000000000")
 	if err != nil {
 		t.Error(err)

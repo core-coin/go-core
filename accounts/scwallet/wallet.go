@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,12 +20,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/hmac"
-	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/asn1"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"regexp"
 	"sort"
@@ -33,7 +33,7 @@ import (
 	"sync"
 	"time"
 
-	core "github.com/core-coin/go-core"
+	"github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
@@ -70,7 +70,7 @@ var ErrPubkeyMismatch = errors.New("smartcard: recovered public key mismatch")
 var (
 	appletAID = []byte{0xA0, 0x00, 0x00, 0x08, 0x04, 0x00, 0x01, 0x01, 0x01}
 	// DerivationSignatureHash is used to derive the public key from the signature of this hash
-	DerivationSignatureHash = sha256.Sum256(common.Hash{}.Bytes())
+	DerivationSignatureHash = sha3.Sum256(common.Hash{}.Bytes())
 )
 
 // List of APDU command-related constants
@@ -672,7 +672,7 @@ func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain core.ChainSta
 // the needed details via SignDataWithPassphrase, or by other means (e.g. unlock
 // the account in a keystore).
 func (w *Wallet) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
-	return w.signHash(account, crypto.Keccak256(data))
+	return w.signHash(account, crypto.SHA3(data))
 }
 
 func (w *Wallet) signHash(account accounts.Account, hash []byte) ([]byte, error) {
@@ -714,7 +714,7 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 // It looks up the account specified either solely via its address contained within,
 // or optionally with the aid of any location metadata from the embedded URL field.
 func (w *Wallet) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {
-	return w.signHashWithPassphrase(account, passphrase, crypto.Keccak256(data))
+	return w.signHashWithPassphrase(account, passphrase, crypto.SHA3(data))
 }
 
 func (w *Wallet) signHashWithPassphrase(account accounts.Account, passphrase string, hash []byte) ([]byte, error) {
@@ -745,7 +745,7 @@ func (w *Wallet) SignText(account accounts.Account, text []byte) ([]byte, error)
 // SignTextWithPassphrase implements accounts.Wallet, attempting to sign the
 // given hash with the given account using passphrase as extra authentication
 func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase string, text []byte) ([]byte, error) {
-	return w.signHashWithPassphrase(account, passphrase, crypto.Keccak256(accounts.TextHash(text)))
+	return w.signHashWithPassphrase(account, passphrase, crypto.SHA3(accounts.TextHash(text)))
 }
 
 // SignTxWithPassphrase requests the wallet to sign the given transaction, with the

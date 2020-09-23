@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 // clientHandler is responsible for receiving and processing all incoming server
@@ -400,7 +400,7 @@ func (d *downloaderPeerNotify) registerPeer(p *serverPeer) {
 		handler: h,
 		peer:    p,
 	}
-	h.downloader.RegisterLightPeer(p.id, xccVersion, pc)
+	h.downloader.RegisterLightPeer(p.id, xcbVersion, pc)
 }
 
 func (d *downloaderPeerNotify) unregisterPeer(p *serverPeer) {

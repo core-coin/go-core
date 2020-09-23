@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	gcore "github.com/core-coin/go-core"
+	gocore "github.com/core-coin/go-core"
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/math"
@@ -38,8 +38,8 @@ import (
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcc/filters"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcb/filters"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -58,7 +58,7 @@ var (
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   xccdb.Database   // In memory database to store our testing data
+	database   xcbdb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Core blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -72,7 +72,7 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database xccdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
+func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil)
@@ -217,7 +217,7 @@ func (b *SimulatedBackend) TransactionByHash(ctx context.Context, txHash common.
 	if tx != nil {
 		return tx, false, nil
 	}
-	return nil, false, gcore.NotFound
+	return nil, false, gocore.NotFound
 }
 
 // BlockByHash retrieves a block based on the block hash
@@ -338,7 +338,7 @@ func (b *SimulatedBackend) PendingCodeAt(ctx context.Context, contract common.Ad
 }
 
 // CallContract executes a contract call.
-func (b *SimulatedBackend) CallContract(ctx context.Context, call gcore.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -354,7 +354,7 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call gcore.CallMsg,
 }
 
 // PendingCallContract executes a contract call on the pending state.
-func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gcore.CallMsg) ([]byte, error) {
+func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gocore.CallMsg) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	defer b.pendingState.RevertToSnapshot(b.pendingState.Snapshot())
@@ -380,7 +380,7 @@ func (b *SimulatedBackend) SuggestEnergyPrice(ctx context.Context) (*big.Int, er
 
 // EstimateEnergy executes the requested code against the currently pending block/state and
 // returns the used amount of energy.
-func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gcore.CallMsg) (uint64, error) {
+func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -430,7 +430,7 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gcore.CallMs
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call gcore.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call gocore.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
 	// Ensure message is initialized properly.
 	if call.EnergyPrice == nil {
 		call.EnergyPrice = big.NewInt(1)
@@ -487,8 +487,8 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 // FilterLogs executes a log filter operation, blocking during execution and
 // returning all the results in one batch.
 //
-// TODO(karalabe): Deprecate when the subscription one can return past data too.
-func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gcore.FilterQuery) ([]types.Log, error) {
+// TODO(raisty): Deprecate when the subscription one can return past data too.
+func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gocore.FilterQuery) ([]types.Log, error) {
 	var filter *filters.Filter
 	if query.BlockHash != nil {
 		// Block filter requested, construct a single-shot filter
@@ -520,7 +520,7 @@ func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gcore.FilterQue
 
 // SubscribeFilterLogs creates a background log filtering operation, returning a
 // subscription immediately, which can be used to stream the found events.
-func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gcore.FilterQuery, ch chan<- types.Log) (gcore.Subscription, error) {
+func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gocore.FilterQuery, ch chan<- types.Log) (gocore.Subscription, error) {
 	// Subscribe to contract events
 	sink := make(chan []*types.Log)
 
@@ -553,7 +553,7 @@ func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gcore.
 }
 
 // SubscribeNewHead returns an event subscription for a new header
-func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (gcore.Subscription, error) {
+func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (gocore.Subscription, error) {
 	// subscribe to a new head
 	sink := make(chan *types.Header)
 	sub := b.events.SubscribeNewHeads(sink)
@@ -605,7 +605,7 @@ func (b *SimulatedBackend) Blockchain() *core.BlockChain {
 
 // callmsg implements core.Message to allow passing it as a transaction simulator.
 type callmsg struct {
-	gcore.CallMsg
+	gocore.CallMsg
 }
 
 func (m callmsg) From() common.Address  { return m.CallMsg.From }
@@ -620,11 +620,11 @@ func (m callmsg) Data() []byte          { return m.CallMsg.Data }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db xccdb.Database
+	db xcbdb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() xccdb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() xcbdb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ func TestFileStorage(t *testing.T) {
 			CipherText: common.Hex2Bytes("2df87baf86b5073ef1f03e3cc738de75b511400f5465bb0ddeacf47ae4dc267d"),
 		},
 	}
-	d, err := ioutil.TempDir("", "xcc-encrypted-storage-test")
+	d, err := ioutil.TempDir("", "xcb-encrypted-storage-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestFileStorage(t *testing.T) {
 func TestEnd2End(t *testing.T) {
 	log.Root().SetHandler(log.LvlFilterHandler(log.Lvl(3), log.StreamHandler(colorable.NewColorableStderr(), log.TerminalFormat(true))))
 
-	d, err := ioutil.TempDir("", "xcc-encrypted-storage-test")
+	d, err := ioutil.TempDir("", "xcb-encrypted-storage-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestSwappedKeys(t *testing.T) {
 	// K1:V1, K2:V2 can be swapped into K1:V2, K2:V1
 	log.Root().SetHandler(log.LvlFilterHandler(log.Lvl(3), log.StreamHandler(colorable.NewColorableStderr(), log.TerminalFormat(true))))
 
-	d, err := ioutil.TempDir("", "xcc-encrypted-storage-test")
+	d, err := ioutil.TempDir("", "xcb-encrypted-storage-test")
 	if err != nil {
 		t.Fatal(err)
 	}

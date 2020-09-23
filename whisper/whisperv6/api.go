@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -384,7 +384,7 @@ func (api *PublicWhisperAPI) Messages(ctx context.Context, crit Criteria) (*rpc.
 			return nil, ErrInvalidSymmetricKey
 		}
 		filter.KeySym = key
-		filter.SymKeyHash = crypto.Keccak256Hash(filter.KeySym)
+		filter.SymKeyHash = crypto.SHA3Hash(filter.KeySym)
 	}
 
 	// listen for messages that are encrypted with the given public key

@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import (
 	"github.com/core-coin/go-core/rlp"
 )
 
-var sha3Nil = crypto.Keccak256Hash(nil)
+var sha3Nil = crypto.SHA3Hash(nil)
 
 func GetHeaderByNumber(ctx context.Context, odr OdrBackend, number uint64) (*types.Header, error) {
 	db := odr.Database()
@@ -239,7 +239,7 @@ func GetBloomBits(ctx context.Context, odr OdrBackend, bitIdx uint, sectionIdxLi
 		if err == nil {
 			result[i] = bloomBits
 		} else {
-			// TODO(rjl493456442) Convert sectionIndex to BloomTrie relative index
+			// TODO(raisty) Convert sectionIndex to BloomTrie relative index
 			if sectionIdx >= bloomTrieCount {
 				return nil, errNoTrustedBloomTrie
 			}

@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -38,8 +38,8 @@ import (
 	"github.com/core-coin/go-core/p2p/simulations"
 	"github.com/core-coin/go-core/p2p/simulations/adapters"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/mattn/go-colorable"
 )
 
@@ -303,7 +303,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 
 func getHead(ctx context.Context, t *testing.T, client *rpc.Client) (uint64, common.Hash) {
 	res := make(map[string]interface{})
-	if err := client.CallContext(ctx, &res, "xcc_getBlockByNumber", "latest", false); err != nil {
+	if err := client.CallContext(ctx, &res, "xcb_getBlockByNumber", "latest", false); err != nil {
 		t.Fatalf("Failed to obtain head block: %v", err)
 	}
 	numStr, ok := res["number"].(string)
@@ -328,7 +328,7 @@ func testRequest(ctx context.Context, t *testing.T, client *rpc.Client) bool {
 	rand.Read(addr[:])
 	c, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
-	err := client.CallContext(c, &res, "xcc_getBalance", addr, "latest")
+	err := client.CallContext(c, &res, "xcb_getBalance", addr, "latest")
 	if err != nil {
 		t.Log("request error:", err)
 	}
@@ -493,18 +493,18 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 }
 
 func newLesClientService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := xcc.DefaultConfig
+	config := xcb.DefaultConfig
 	config.SyncMode = downloader.LightSync
 	config.Cryptore.PowMode = cryptore.ModeFake
 	return New(ctx.NodeContext, &config)
 }
 
 func newLesServerService(ctx *adapters.ServiceContext) (node.Service, error) {
-	config := xcc.DefaultConfig
+	config := xcb.DefaultConfig
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	core, err := xcc.New(ctx.NodeContext, &config)
+	core, err := xcb.New(ctx.NodeContext, &config)
 	if err != nil {
 		return nil, err
 	}

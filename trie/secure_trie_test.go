@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 func newEmptySecure() *SecureTrie {
@@ -83,19 +83,19 @@ func TestSecureDelete(t *testing.T) {
 		}
 	}
 	hash := trie.Hash()
-	exp := common.HexToHash("29b235a58c3c25ab83010c327d5932bcf05324b7d6b1185e650798034783ca9d")
+	exp := common.HexToHash("f4809d6b8b7fb94f7b32b3eff913f32a774ed57e5d2a1d8572eb5160ecc9f2b0")
 	if hash != exp {
 		t.Errorf("expected %x got %x", exp, hash)
 	}
 }
 
-func TestSecureGetKey(t *testing.T) {
+func TestSecureGetKey(t *testing.T) { //TODO: TEST
 	trie := newEmptySecure()
 	trie.Update([]byte("foo"), []byte("bar"))
 
 	key := []byte("foo")
 	value := []byte("bar")
-	seckey := crypto.Keccak256(key)
+	seckey := crypto.SHA3(key)
 
 	if !bytes.Equal(trie.Get(key), value) {
 		t.Errorf("Get did not return bar")

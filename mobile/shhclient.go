@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 // Contains a wrapper for the Whisper client.
 
-package gcore
+package gocore
 
 import (
 	"github.com/core-coin/go-core/whisper/shhclient"

@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -422,7 +422,7 @@ func (t *UDPv4) newRandomLookup(ctx context.Context) *lookup {
 }
 
 func (t *UDPv4) newLookup(ctx context.Context, targetKey encPubkey) *lookup {
-	target := enode.ID(crypto.Keccak256Hash(targetKey[:]))
+	target := enode.ID(crypto.SHA3Hash(targetKey[:]))
 	it := newLookup(ctx, t.tab, target, func(n *node) ([]*node, error) {
 		return t.findnode(n.ID(), n.addr(), targetKey)
 	})
@@ -675,7 +675,7 @@ func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 		return nil, nil, err
 	}
 	packet = b.Bytes()
-	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
+	sig, err := crypto.Sign(crypto.SHA3(packet[headSize:]), priv)
 	if err != nil {
 		t.log.Error(fmt.Sprintf("Can't sign %s packet", name), "err", err)
 		return nil, nil, err
@@ -684,7 +684,7 @@ func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 	// add the hash to the front. Note: this doesn't protect the
 	// packet in any way. Our public key will be part of this hash in
 	// The future.
-	hash = crypto.Keccak256(packet[macSize:])
+	hash = crypto.SHA3(packet[macSize:])
 	copy(packet, hash)
 	return packet, hash, nil
 }
@@ -741,11 +741,11 @@ func decodeV4(buf []byte) (packetV4, encPubkey, []byte, error) {
 		return nil, encPubkey{}, nil, errPacketTooSmall
 	}
 	hash, sig, sigdata := buf[:macSize], buf[macSize:headSize], buf[headSize:]
-	shouldhash := crypto.Keccak256(buf[macSize:])
+	shouldhash := crypto.SHA3(buf[macSize:])
 	if !bytes.Equal(hash, shouldhash) {
 		return nil, encPubkey{}, nil, errBadHash
 	}
-	fromKey, err := recoverNodeKey(crypto.Keccak256(buf[headSize:]), sig)
+	fromKey, err := recoverNodeKey(crypto.SHA3(buf[headSize:]), sig)
 	if err != nil {
 		return nil, fromKey, hash, err
 	}
@@ -888,7 +888,7 @@ func (req *findnodeV4) preverify(t *UDPv4, from *net.UDPAddr, fromID enode.ID, f
 
 func (req *findnodeV4) handle(t *UDPv4, from *net.UDPAddr, fromID enode.ID, mac []byte) {
 	// Determine closest nodes.
-	target := enode.ID(crypto.Keccak256Hash(req.Target[:]))
+	target := enode.ID(crypto.SHA3Hash(req.Target[:]))
 	t.tab.mutex.Lock()
 	closest := t.tab.closest(target, bucketSize, true).entries
 	t.tab.mutex.Unlock()

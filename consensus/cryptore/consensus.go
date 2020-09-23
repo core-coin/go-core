@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -425,7 +425,7 @@ func (cryptore *Cryptore) FinalizeAndAssemble(chain consensus.ChainReader, heade
 
 // SealHash returns the hash of a block prior to it being sealed.
 func (cryptore *Cryptore) SealHash(header *types.Header) (hash common.Hash) {
-	hasher := sha3.NewLegacyKeccak256()
+	hasher := sha3.New256()
 
 	rlp.Encode(hasher, []interface{}{
 		header.ParentHash,

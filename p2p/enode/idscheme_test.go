@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ func TestEmptyNodeID(t *testing.T) {
 	}
 
 	require.NoError(t, SignV4(&r, privkey))
-	expected := "56216b5b27615afd91f16063f22758bd4bacce2649f57756006b32738c41de45"
+	expected := "ac98468f4b55203bf43ee43a08629e61ccfc9ca206d5e62ec6397a63198f897a"
 	assert.Equal(t, expected, hex.EncodeToString(ValidSchemes.NodeAddr(&r)))
 }
 

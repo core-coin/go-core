@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ import (
 
 // nodeDockerfile is the Dockerfile required to run an Core node.
 var nodeDockerfile = `
-FROM corehub/go-core:latest
+FROM docker.pkg.github.com/core-coin/go-core/gocore:latest
 
 ADD genesis.json /genesis.json
 {{if .Unlock}}
@@ -40,11 +40,11 @@ ADD genesis.json /genesis.json
 	ADD signer.pass /signer.pass
 {{end}}
 RUN \
-  echo 'gcore --cache 512 init /genesis.json' > gcore.sh && \{{if .Unlock}}
-	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gcore.sh && \{{end}}
-	echo $'exec gcore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xccstats \'{{.Xccstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gcore.sh
+  echo 'gocore --cache 512 init /genesis.json' > gocore.sh && \{{if .Unlock}}
+	echo 'mkdir -p /root/core/keystore/ && cp /signer.json /root/core/keystore/' >> gocore.sh && \{{end}}
+	echo $'exec gocore --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --xcbstats \'{{.Xcbstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Corebase}}--miner.corebase {{.Corebase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.energytarget {{.EnergyTarget}} --miner.energylimit {{.EnergyLimit}} --miner.energyprice {{.EnergyPrice}}' >> gocore.sh
 
-ENTRYPOINT ["/bin/sh", "gcore.sh"]
+ENTRYPOINT ["/bin/sh", "gocore.sh"]
 `
 
 // nodeComposefile is the docker-compose.yml file required to deploy and maintain
@@ -66,7 +66,7 @@ services:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
       - LIGHT_PEERS={{.LightPeers}}
-      - STATS_NAME={{.Xccstats}}
+      - STATS_NAME={{.Xcbstats}}
       - MINER_NAME={{.Corebase}}
       - ENERGY_TARGET={{.EnergyTarget}}
       - ENERGY_LIMIT={{.EnergyLimit}}
@@ -104,7 +104,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"Peers":        config.peersTotal,
 		"LightFlag":    lightFlag,
 		"Bootnodes":    strings.Join(bootnodes, ","),
-		"Xccstats":     config.xccstats,
+		"Xcbstats":     config.xcbstats,
 		"Corebase":     config.corebase,
 		"EnergyTarget": uint64(1000000 * config.energyTarget),
 		"EnergyLimit":  uint64(1000000 * config.energyLimit),
@@ -123,7 +123,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"TotalPeers":   config.peersTotal,
 		"Light":        config.peersLight > 0,
 		"LightPeers":   config.peersLight,
-		"Xccstats":     config.xccstats[:strings.Index(config.xccstats, ":")],
+		"Xcbstats":     config.xcbstats[:strings.Index(config.xcbstats, ":")],
 		"Corebase":     config.corebase,
 		"EnergyTarget": config.energyTarget,
 		"EnergyLimit":  config.energyLimit,
@@ -156,7 +156,7 @@ type nodeInfos struct {
 	network      int64
 	datadir      string
 	cryptoredir  string
-	xccstats     string
+	xcbstats     string
 	port         int
 	enode        string
 	peersTotal   int
@@ -177,7 +177,7 @@ func (info *nodeInfos) Report() map[string]string {
 		"Listener port":            strconv.Itoa(info.port),
 		"Peer count (all total)":   strconv.Itoa(info.peersTotal),
 		"Peer count (light nodes)": strconv.Itoa(info.peersLight),
-		"Xccstats username":        info.xccstats,
+		"Xcbstats username":        info.xcbstats,
 	}
 	if info.energyTarget > 0 {
 		// Miner or signer node
@@ -234,7 +234,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 
 	// Container available, retrieve its node ID and its genesis json
 	var out []byte
-	if out, err = client.Run(fmt.Sprintf("docker exec %s_%s_1 gcore --exec admin.nodeInfo.enode --cache=16 attach", network, kind)); err != nil {
+	if out, err = client.Run(fmt.Sprintf("docker exec %s_%s_1 gocore --exec admin.nodeInfo.enode --cache=16 attach", network, kind)); err != nil {
 		return nil, ErrServiceUnreachable
 	}
 	enode := bytes.Trim(bytes.TrimSpace(out), "\"")
@@ -264,7 +264,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 		port:         port,
 		peersTotal:   totalPeers,
 		peersLight:   lightPeers,
-		xccstats:     infos.envvars["STATS_NAME"],
+		xcbstats:     infos.envvars["STATS_NAME"],
 		corebase:     infos.envvars["MINER_NAME"],
 		keyJSON:      keyJSON,
 		keyPass:      keyPass,

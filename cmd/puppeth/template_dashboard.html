@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.NetworkTitle}} ⛓️ Core Blockchain</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cryptohub-digital/coco@1.1.2/dist/css/coco.min.css" integrity="sha384-JvlL2lFehcenmtLifObTmZqOlGZtNufkvIlJFtI+Iw7z5SR2ZSNyLLHYb6xemQpJ" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cryptohub-digital/coco@1.1.4/dist/css/coco.min.css" integrity="sha384-oHEcBjbmLAzG2Iwiq7B0jNw7ml6FnjSm9sYN5isPKdWbxlJqgb/12CgRO4RKT2WA" crossorigin="anonymous" />
   <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsSAAALEgHS3X78AAAChElEQVRYhcVXy43bMBB9EfaedLDeCqxUEAfgRTx5K8huB0oFUTpwKohTQbQX8SIgSgfeCmJ3sKrAwSyGDk3PiNQmQB7gC01q3gzffPjqeDwiB8bZNwBW/Cv595qPPgJ4ArADMPRV12Z9FECSgHF2AaABsA4MpjAC2ALY9FW3fzEB4ywZ/pTrjYCRSTSzCHC4BwDLvzAe4idFsK+6pyQB42zJxnPDnQvSySomcUYg03P6UMv7QpA47wBcJ86ekbiKNrQTximMTV91sWEPWm+MsyS+D8qeJYtz7RdOETDOEvuvysGPfdVtJjw7gbPmV2LbrU/VK/wJvWbgvq+6bY7xBB44wnv+4URgIsc/v8B47Ajd+11fdTtpsydQC/8dpPzlaNVM2uvlkTWwijQkKv+MAN+ZJDzNuJQlS2FtTBknFMw6xqiEfk5x2qSME+gKFsL6xX1xlsypjBcOGGfXwXW3lFkaASnXpUhpOMRNyDhL578HS++Ms/tCISAhdx/CNEs4UBbcx/8bCum+FbbZQ4byzVLaqEVACveWUysHUlWVnHrWgCS4a27LJ3BKSQUrxr0iQKnS7goukZJnF4WIa8MtqVzYP3KTkeqHNBFRpuyeu+FEC32vtV/2yod1SOz7IfxFfabxBLQWSl6VqcFSQ2K6uqHvkgbABr4Jm+hgG+thhvFWMf7FO1UEi7WiBSq/g3E2R4DeeM2eS+PZIdREPBNq9xUfHgSlL7hF14m58G04G0hT8dRoFmIMCk6ZOUVfTFfauyCXRC6IbC2lqPoyYhFt/8HjZHIky3kbNnyvcx8qBx7jJ2fKOa9juhYSmVZWCRRqUj8NG1nDbDaBiAwpPm5Y+9kFC8BvdEcrTS/2KxYAAAAASUVORK5CYII=" rel="icon" type="image/png" />
   <style>
     iframe {
@@ -117,7 +117,7 @@
         <div class="container">
           <div class="content">
             <div>
-              <a href="https://coreblockchain.cc/download#gcore" target="_blank" class="button is-primary is-outlined"><em class="oji">⛓️</em>&nbsp;Download&nbsp;<strong>Gcore client</strong></a>
+              <a href="https://coreblockchain.cc/download#gocore" target="_blank" class="button is-primary is-outlined"><em class="oji">⛓️</em>&nbsp;Download&nbsp;<strong>Gocore client</strong></a>
               <a href="https://coreblockchain.cc/download#wallet" target="_blank" class="button is-primary is-outlined"><em class="oji">👝</em>&nbsp;Download&nbsp;<strong>Wallet</strong></a>
             </div>
             <div>
@@ -130,10 +130,10 @@
                 Initial processing required to execute all transactions may require non-negligible time and disk capacity required to store all past state may be non-insignificant. High end machines with SSD storage, modern CPUs and 8GB+ RAM are recommended.
               </p>
               <p>
-                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GocoreGenesis}}</em> and start Gocore with:
               </p>
-              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Xccstats}} --xccstats='{{.Xccstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gocore --datadir=$HOME/.{{.Network}} init {{.GocoreGenesis}}</code></pre>
+              <pre><code>gocore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Xcbstats}} --xcbstats='{{.Xcbstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Full node</h2>
@@ -145,10 +145,10 @@
                 Initial processing required to synchronize is more bandwidth intensive, but is light on the CPU and has significantly reduced disk requirements. Mid range machines with HDD storage, decent CPUs and 4GB+ RAM should be enough.
               </p>
               <p>
-                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GocoreGenesis}}</em> and start Gocore with:
               </p>
-              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --xccstats='{{.Xccstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gocore --datadir=$HOME/.{{.Network}} init {{.GocoreGenesis}}</code></pre>
+              <pre><code>gocore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Corestats}} --xcbstats='{{.Xcbstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Light node</h2>
@@ -160,10 +160,10 @@
                 Initial processing required to synchronize is light, as it only verifies the validity of the headers; similarly required disk capacity is small, tallying around 500 bytes per header. Low end machines with arbitrary storage, weak CPUs and 512MB+ RAM should cope well.
               </p>
               <p>
-                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GocoreGenesis}}</em> and start Gocore with:
               </p>
-              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gocore --datadir=$HOME/.{{.Network}} init {{.GocoreGenesis}}</code></pre>
+              <pre><code>gocore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Embedded node</h2>
@@ -175,10 +175,10 @@
                 Initial processing required to synchronize is light, as it only verifies the validity of the headers; similarly required disk capacity is small, tallying around 500 bytes per header. Embedded machines with arbitrary storage, low power CPUs and 128MB+ RAM may work.
               </p>
               <p>
-                To run an archive node, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
+                To run an archive node, download <em>{{.GocoreGenesis}}</em> and start Gocore with:
               </p>
-              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
-              <pre><code>gcore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --cryptore.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>gocore --datadir=$HOME/.{{.Network}} init {{.GocoreGenesis}}</code></pre>
+              <pre><code>gocore --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --cryptore.cachesinmem=1 --syncmode=light{{if .Corestats}} --corestats='{{.Corestats}}'{{end}} --bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
             <div>
               <h2 class="is-inline-block">Wallet</h2>
@@ -187,16 +187,16 @@
                 The Core Wallet is an Electron based desktop application to manage your Core accounts and funds. Beside the usual account life-cycle operations you would expect to perform, the wallet also provides a means to send transactions from your accounts and to interact with smart contracts deployed on the network.
               </p>
               <p>
-                Under the hood the wallet is backed by a Gcore full node, meaning that a mid range machine is assumed. Similarly, synchronization is based on fast-sync, which will download all blockchain data from the network and make it available to the wallet. Light nodes cannot currently fully back the wallet, but it's a target actively pursued.
+                Under the hood the wallet is backed by a Gocore full node, meaning that a mid range machine is assumed. Similarly, synchronization is based on fast-sync, which will download all blockchain data from the network and make it available to the wallet. Light nodes cannot currently fully back the wallet, but it's a target actively pursued.
               </p>
               <p>
-                To connect with the Core Wallet, you'll need to initialize your private network first via Gcore as the wallet does not currently support calling Gcore directly. To initialize your local chain, download <em>{{.GcoreGenesis}}</em> and start Gcore with:
+                To connect with the Core Wallet, you'll need to initialize your private network first via Gocore as the wallet does not currently support calling Gocore directly. To initialize your local chain, download <em>{{.GocoreGenesis}}</em> and start Gocore with:
               </p>
-              <pre><code>gcore --datadir=$HOME/.{{.Network}} init {{.GcoreGenesis}}</code></pre>
+              <pre><code>gocore --datadir=$HOME/.{{.Network}} init {{.GocoreGenesis}}</code></pre>
               <p>
                 With your local chain initialized, you can start the Core Wallet:
               </p>
-              <pre><code>corewallet --rpc $HOME/.{{.Network}}/gcore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Xccstats}} --node-xccstats='{{.Xccstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
+              <pre><code>corewallet --rpc $HOME/.{{.Network}}/gocore.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Xcbstats}} --node-xcbstats='{{.Xcbstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</code></pre>
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@
               Puppeth uses ssh to dial in to remote servers, and builds its network components out of docker containers using docker-compose. The user is guided through the process via a command line wizard that does the heavy lifting and topology configuration automatically behind the scenes.
             </p>
             <p>
-              Puppeth is distributed as part of the Gcore & Tools bundles, but can also be installed separately via:<br />
+              Puppeth is distributed as part of the Gocore & Tools bundles, but can also be installed separately via:<br />
               <code>go get github.com/core-coin/go-core/cmd/puppeth</code>
             </p>
             <p>

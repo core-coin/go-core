@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ import (
 
 // Config contains the settings of the global account manager.
 //
-// TODO(rjl493456442, karalabe, holiman): Get rid of this when account management
+// TODO(raisty): Get rid of this when account management
 // is removed in favor of Clef.
 type Config struct {
 	InsecureUnlockAllowed bool // Whether account unlocking in insecure environment is allowed

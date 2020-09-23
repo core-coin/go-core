@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -521,7 +521,7 @@ func TestOffset(t *testing.T) {
 		f.Append(1, getChunk(20, 0xEE))
 
 		f.Append(2, getChunk(20, 0xdd))
-		f.Append(3, getChunk(20, 0xcc))
+		f.Append(3, getChunk(20, 0xcb))
 
 		f.Append(4, getChunk(20, 0xbb))
 		f.Append(5, getChunk(20, 0xaa))
@@ -602,7 +602,7 @@ func TestOffset(t *testing.T) {
 	}
 }
 
-// TODO (?)
+// TODO(raisty)
 // - test that if we remove several head-files, aswell as data last data-file,
 //   the index is truncated accordingly
 // Right now, the freezer would fail on these conditions:

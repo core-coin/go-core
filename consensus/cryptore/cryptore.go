@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -231,7 +231,7 @@ func (cryptore *Cryptore) APIs(chain consensus.ChainReader) []rpc.API {
 	// to both eth and cryptore namespaces.
 	return []rpc.API{
 		{
-			Namespace: "xcc",
+			Namespace: "xcb",
 			Version:   "1.0",
 			Service:   &API{cryptore},
 			Public:    true,

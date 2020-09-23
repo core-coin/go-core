@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 // Contains all the wrappers from the golang.org/x/net/context package to support
 // client side context management on mobile platforms.
 
-package gcore
+package gocore
 
 import (
 	"context"

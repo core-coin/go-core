@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // AccountIterator is an iterator to step over all the accounts in a snapshot,
@@ -143,7 +143,7 @@ func (it *diffAccountIterator) Release() {}
 // contained within a disk layer.
 type diskAccountIterator struct {
 	layer *diskLayer
-	it    xccdb.Iterator
+	it    xcbdb.Iterator
 }
 
 // AccountIterator creates an account iterator over a disk layer.

@@ -1,4 +1,4 @@
-// Copyright 2014 The go-core Authors
+// Copyright 2014 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -234,7 +234,7 @@ func (st *StateTransition) refundEnergy() {
 	}
 	st.energy += refund
 
-	// Return XCC for remaining energy, exchanged at the original rate.
+	// Return XCB for remaining energy, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.energy), st.energyPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 

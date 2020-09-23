@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -565,7 +565,7 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
-func TestCreate2Addreses(t *testing.T) {
+func TestCreate2Addreses(t *testing.T) { //TODO: TEST
 	type testcase struct {
 		origin   string
 		salt     string
@@ -578,50 +578,50 @@ func TestCreate2Addreses(t *testing.T) {
 			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb327840851e3810e2d2f457485f9a1da6c12a0719fc",
+			expected: "cb60f356303e51d6ee297c776188ef56c9e5d76b7695",
 		},
 		{
 			origin:   "cb77deadbeef00000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb8774a53e4a8ea5b153f757d4bf1ab724dc4335640a",
+			expected: "cb2891ba774e8bbf175c3aff2d80cdb7b36487d25ff6",
 		},
 		{
 			origin:   "cb77deadbeef00000000000000000000000000000000",
 			salt:     "0xfeed000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb113a8a85b2b83110a7039b9c45d3e8951b02f770c4",
+			expected: "cb95b7cf3b91f690cd4d193ccf19730aad0784d446d4",
 		},
 		{
 			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0xdeadbeef",
-			expected: "cb213fbc6a1f90cf2c0d11694321ce3434c7f66e0cc6",
+			expected: "cb708f43364879754b833313fc56f01657f1e3d670f7",
 		},
 		{
 			origin:   "cb3300000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeef",
-			expected: "cb976e92b4f94fa483b0127e8d3a39e9d529d9f36441",
+			expected: "cb18953fbfbbe52bbfe20f7fe3bef330b23034b4bd94",
 		},
 		{
 			origin:   "cb3300000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-			expected: "cb88fbc57398e786b2e0de2a11f61dd0ff4fa568784e",
+			expected: "cb54ea7dc5a75453359296efc2773e922abc35938d69",
 		},
 		{
 			origin:   "cb540000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x",
-			expected: "cb57bd1cd1fe08bcaf558bb0b32a987eba7e37089dfa",
+			expected: "cb8880b45148bcd416fa91d843d169b55c1755356cdb",
 		},
 	} {
 
 		origin := common.BytesToAddress(common.FromHex(tt.origin))
 		salt := common.BytesToHash(common.FromHex(tt.salt))
 		code := common.FromHex(tt.code)
-		codeHash := crypto.Keccak256(code)
+		codeHash := crypto.SHA3(code)
 		address := crypto.CreateAddress2(origin, salt, codeHash)
 		/*
 			stack          := newstack()

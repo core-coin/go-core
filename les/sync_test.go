@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ func TestCheckpointSyncingLes3(t *testing.T) {
 	testCheckpointSyncing(t, 3, 2)
 }
 
-func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) {
+func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: TEST
 	config := light.TestServerIndexerConfig
 
 	waitIndexers := func(cIndexer, bIndexer, btIndexer *core.ChainIndexer) {
@@ -81,7 +81,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) {
 			header := server.backend.Blockchain().CurrentHeader()
 
 			data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
-			sig, _ := crypto.Sign(crypto.Keccak256(data), signerKey)
+			sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
 			//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 			if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(bind.NewKeyedTransactor(signerKey), cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 				t.Error("register checkpoint failed", err)
@@ -164,7 +164,7 @@ func testMissOracleBackend(t *testing.T, hasCheckpoint bool) {
 	header := server.backend.Blockchain().CurrentHeader()
 
 	data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
-	sig, _ := crypto.Sign(crypto.Keccak256(data), signerKey)
+	sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
 	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(bind.NewKeyedTransactor(signerKey), cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 		t.Error("register checkpoint failed", err)

@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/log"
 )
 
-// makeWizard creates and returns a new puppxcc wizard.
+// makeWizard creates and returns a new puppxcb wizard.
 func makeWizard(network string) *wizard {
 	return &wizard{
 		network: network,
@@ -46,10 +46,10 @@ func makeWizard(network string) *wizard {
 // setting up a new or managing an existing Core private network.
 func (w *wizard) run() {
 	fmt.Println("+-----------------------------------------------------------+")
-	fmt.Println("| Welcome to puppeth, your Core private network manager |")
+	fmt.Println("| Welcome to puppeth, your Core private network manager     |")
 	fmt.Println("|                                                           |")
-	fmt.Println("| This tool lets you create a new Core network down to  |")
-	fmt.Println("| the genesis block, bootnodes, miners and xccstats servers |")
+	fmt.Println("| This tool lets you create a new Core network down to      |")
+	fmt.Println("| the genesis block, bootnodes, miners and xcbstats servers |")
 	fmt.Println("| without the hassle that it would normally entail.         |")
 	fmt.Println("|                                                           |")
 	fmt.Println("| Puppeth uses SSH to dial in to remote servers, and builds |")

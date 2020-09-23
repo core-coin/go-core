@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -179,7 +179,7 @@ func TestMethodSignature(t *testing.T) {
 		t.Error("signature mismatch", exp, "!=", m.Sig())
 	}
 
-	idexp := crypto.Keccak256([]byte(exp))[:4]
+	idexp := crypto.SHA3([]byte(exp))[:4]
 	if !bytes.Equal(m.ID(), idexp) {
 		t.Errorf("expected ids to match %x != %x", m.ID(), idexp)
 	}
@@ -234,13 +234,13 @@ func TestOverloadedMethodSignature(t *testing.T) {
 	check("bar0", "bar(uint256,uint256)", false)
 }
 
-func TestMultiPack(t *testing.T) {
+func TestMultiPack(t *testing.T) { //TODO: TEST
 	abi, err := JSON(strings.NewReader(jsondata2))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	sig := crypto.Keccak256([]byte("bar(uint32,uint16)"))[:4]
+	sig := crypto.SHA3([]byte("bar(uint32,uint16)"))[:4]
 	sig = append(sig, make([]byte, 64)...)
 	sig[35] = 10
 	sig[67] = 11
@@ -272,7 +272,7 @@ func ExampleJSON() {
 
 	fmt.Printf("%x\n", out)
 	// Output:
-	// 1f2c409200000000000000000000cb270000000000000000000000000000000000000001
+	// ee7bfc3000000000000000000000cb270000000000000000000000000000000000000001
 }
 
 func TestInputVariableInputLength(t *testing.T) {
@@ -954,7 +954,7 @@ func TestABI_MethodById(t *testing.T) {
 	}
 }
 
-func TestABI_EventById(t *testing.T) {
+func TestABI_EventById(t *testing.T) { //todo: TEST
 	tests := []struct {
 		name  string
 		json  string
@@ -997,7 +997,7 @@ func TestABI_EventById(t *testing.T) {
 		}
 
 		topic := test.event
-		topicID := crypto.Keccak256Hash([]byte(topic))
+		topicID := crypto.SHA3Hash([]byte(topic))
 
 		event, err := abi.EventByID(topicID)
 		if err != nil {
@@ -1011,7 +1011,7 @@ func TestABI_EventById(t *testing.T) {
 			t.Errorf("Event id %s does not match topic %s, test #%d", event.ID().Hex(), topicID.Hex(), testnum)
 		}
 
-		unknowntopicID := crypto.Keccak256Hash([]byte("unknownEvent"))
+		unknowntopicID := crypto.SHA3Hash([]byte("unknownEvent"))
 		unknownEvent, err := abi.EventByID(unknowntopicID)
 		if err == nil {
 			t.Errorf("EventByID should return an error if a topic is not found, test #%d", testnum)

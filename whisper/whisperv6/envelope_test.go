@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -48,8 +48,8 @@ func TestPoWCalculationsWith8LeadingZeros(t *testing.T) {
 	}
 	e.calculatePoW(0)
 
-	if e.pow != 19.692307692307693 {
-		t.Fatalf("invalid PoW calculation. Expected 19.692307692307693, got %v", e.pow)
+	if e.pow != 0.3076923076923077 {
+		t.Fatalf("invalid PoW calculation. Expected 0.3076923076923077, got %v", e.pow)
 	}
 }
 

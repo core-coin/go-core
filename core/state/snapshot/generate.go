@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 var (
@@ -38,7 +38,7 @@ var (
 	emptyRoot = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
 	// emptyCode is the known hash of the empty EVM bytecode.
-	emptyCode = crypto.Keccak256Hash(nil)
+	emptyCode = crypto.SHA3Hash(nil)
 )
 
 // generatorStats is a collection of statistics gathered by the snapshot generator
@@ -91,7 +91,7 @@ func (gs *generatorStats) Log(msg string, marker []byte) {
 // generateSnapshot regenerates a brand new snapshot based on an existing state
 // database and head block asynchronously. The snapshot is returned immediately
 // and generation is continued in the background until done.
-func generateSnapshot(diskdb xccdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, wiper chan struct{}) *diskLayer {
+func generateSnapshot(diskdb xcbdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, wiper chan struct{}) *diskLayer {
 	// Wipe any previously existing snapshot from the database if no wiper is
 	// currently in progress.
 	if wiper == nil {
@@ -181,7 +181,7 @@ func (dl *diskLayer) generate(stats *generatorStats) {
 		case abort = <-dl.genAbort:
 		default:
 		}
-		if batch.ValueSize() > xccdb.IdealBatchSize || abort != nil {
+		if batch.ValueSize() > xcbdb.IdealBatchSize || abort != nil {
 			// Only write and set the marker if we actually did something useful
 			if batch.ValueSize() > 0 {
 				batch.Write()
@@ -219,7 +219,7 @@ func (dl *diskLayer) generate(stats *generatorStats) {
 				case abort = <-dl.genAbort:
 				default:
 				}
-				if batch.ValueSize() > xccdb.IdealBatchSize || abort != nil {
+				if batch.ValueSize() > xcbdb.IdealBatchSize || abort != nil {
 					// Only write and set the marker if we actually did something useful
 					if batch.ValueSize() > 0 {
 						batch.Write()

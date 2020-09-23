@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ import (
 	"github.com/core-coin/go-core/internal/jsre"
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcc"
+	"github.com/core-coin/go-core/xcb"
 )
 
 const (
@@ -76,7 +76,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	core      *xcc.Core
+	core      *xcb.Core
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -84,7 +84,7 @@ type tester struct {
 
 // newTester creates a test environment based on which the console can operate.
 // Please ensure you call Close() on the returned tester to avoid leaks.
-func newTester(t *testing.T, confOverride func(*xcc.Config)) *tester {
+func newTester(t *testing.T, confOverride func(*xcb.Config)) *tester {
 	// Create a temporary storage for the node keys and initialize it
 	workspace, err := ioutil.TempDir("", "console-tester-")
 	if err != nil {
@@ -100,7 +100,7 @@ func newTester(t *testing.T, confOverride func(*xcc.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to set corebase: %v", err)
 	}
-	xccConf := &xcc.Config{
+	xcbConf := &xcb.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
 			Corebase: corebase,
@@ -110,9 +110,9 @@ func newTester(t *testing.T, confOverride func(*xcc.Config)) *tester {
 		},
 	}
 	if confOverride != nil {
-		confOverride(xccConf)
+		confOverride(xcbConf)
 	}
-	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return xcc.New(ctx, xccConf) }); err != nil {
+	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return xcb.New(ctx, xcbConf) }); err != nil {
 		t.Fatalf("failed to register Core protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
@@ -138,7 +138,7 @@ func newTester(t *testing.T, confOverride func(*xcc.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var core *xcc.Core
+	var core *xcb.Core
 	stack.Service(&core)
 
 	return &tester{

@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -100,7 +100,7 @@ func (e *Envelope) Seal(options *MessageParams) error {
 	for nonce := uint64(0); time.Now().UnixNano() < finish; {
 		for i := 0; i < 1024; i++ {
 			binary.BigEndian.PutUint64(buf[len(rlp):], nonce)
-			h := crypto.Keccak256(buf)
+			h := crypto.SHA3(buf)
 			asAnInt.SetBytes(h)
 			leadingZeros := 256 - asAnInt.BitLen()
 			if leadingZeros > bestLeadingZeros {
@@ -134,7 +134,7 @@ func (e *Envelope) calculatePoW(diff uint32) {
 	buf := make([]byte, len(rlp)+8)
 	copy(buf, rlp)
 	binary.BigEndian.PutUint64(buf[len(rlp):], e.Nonce)
-	powHash := new(big.Int).SetBytes(crypto.Keccak256(buf))
+	powHash := new(big.Int).SetBytes(crypto.SHA3(buf))
 	leadingZeroes := 256 - powHash.BitLen()
 	x := gmath.Pow(2, float64(leadingZeroes))
 	x /= float64(len(rlp))
@@ -159,7 +159,7 @@ func (e *Envelope) powToFirstBit(pow float64) int {
 func (e *Envelope) Hash() common.Hash {
 	if (e.hash == common.Hash{}) {
 		encoded, _ := rlp.EncodeToBytes(e)
-		e.hash = crypto.Keccak256Hash(encoded)
+		e.hash = crypto.SHA3Hash(encoded)
 	}
 	return e.hash
 }
@@ -179,7 +179,7 @@ func (e *Envelope) DecodeRLP(s *rlp.Stream) error {
 	if err := rlp.DecodeBytes(raw, (*rlpenv)(e)); err != nil {
 		return err
 	}
-	e.hash = crypto.Keccak256Hash(raw)
+	e.hash = crypto.SHA3Hash(raw)
 	return nil
 }
 
@@ -226,7 +226,7 @@ func (e *Envelope) Open(watcher *Filter) (msg *ReceivedMessage) {
 	} else if watcher.expectsSymmetricEncryption() {
 		msg, _ = e.OpenSymmetric(watcher.KeySym)
 		if msg != nil {
-			msg.SymKeyHash = crypto.Keccak256Hash(watcher.KeySym)
+			msg.SymKeyHash = crypto.SHA3Hash(watcher.KeySym)
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -34,14 +34,14 @@ import (
 )
 
 var (
-	addr1, err1       = common.HexToAddress("cb23feefe02c246be13166ddebab5e102eca211e496f")
-	addr2, err2       = common.HexToAddress("cb32df9af33454ea4b84373adbdb3102bedb7838a228")
-	addr3, err3       = common.HexToAddress("cb03af52d4eae20e8199abbe74a94392c01ed5cdcfab")
+	addr1, err1       = common.HexToAddress("cb579a63c8441c9d1cd7870143119b52bf5ab9211c08")
+	addr2, err2       = common.HexToAddress("cb33c2e3cfb3d905d5609c9e73eeb687052eedc518b1")
+	addr3, err3       = common.HexToAddress("cb83b471a5b7d1481ad51dc4224110e5080bf13eb1f8")
 	cachetestDir, _   = filepath.Abs(filepath.Join("testdata", "keystore"))
 	cachetestAccounts = []accounts.Account{
 		{
 			Address: addr1,
-			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-07T10-47-53.209137411Z--cb23feefe02c246be13166ddebab5e102eca211e496f")},
+			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-20T17-37-08.515483762Z--cb579a63c8441c9d1cd7870143119b52bf5ab9211c08")},
 		},
 		{
 			Address: addr2,
@@ -101,7 +101,7 @@ func TestWatchNoDir(t *testing.T) {
 
 	// Create ks but not the directory that it watches.
 	rand.Seed(time.Now().UnixNano())
-	dir := filepath.Join(os.TempDir(), fmt.Sprintf("xcc-keystore-watch-test-%d-%d", os.Getpid(), rand.Int()))
+	dir := filepath.Join(os.TempDir(), fmt.Sprintf("xcb-keystore-watch-test-%d-%d", os.Getpid(), rand.Int()))
 	ks := NewKeyStore(dir, LightScryptN, LightScryptP)
 
 	list := ks.Accounts()
@@ -374,7 +374,7 @@ func TestUpdatedKeyfileContents(t *testing.T) {
 
 	// Create a temporary kesytore to test with
 	rand.Seed(time.Now().UnixNano())
-	dir := filepath.Join(os.TempDir(), fmt.Sprintf("xcc-keystore-watch-test-%d-%d", os.Getpid(), rand.Int()))
+	dir := filepath.Join(os.TempDir(), fmt.Sprintf("xcb-keystore-watch-test-%d-%d", os.Getpid(), rand.Int()))
 	ks := NewKeyStore(dir, LightScryptN, LightScryptP)
 
 	list := ks.Accounts()

@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -39,8 +39,8 @@ import (
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xcc/downloader"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcb/downloader"
 )
 
 func main() {
@@ -88,7 +88,7 @@ func main() {
 	time.Sleep(3 * time.Second)
 
 	for _, node := range nodes {
-		var core *xcc.Core
+		var core *xcb.Core
 		if err := node.Service(&core); err != nil {
 			panic(err)
 		}
@@ -104,7 +104,7 @@ func main() {
 		index := rand.Intn(len(faucets))
 
 		// Fetch the accessor for the relevant signer
-		var core *xcc.Core
+		var core *xcb.Core
 		if err := nodes[index%len(nodes)].Service(&core); err != nil {
 			panic(err)
 		}
@@ -149,7 +149,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 	datadir, _ := ioutil.TempDir("", "")
 
 	config := &node.Config{
-		Name:    "gcore",
+		Name:    "gocore",
 		Version: params.Version,
 		DataDir: datadir,
 		P2P: p2p.Config{
@@ -166,15 +166,15 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 		return nil, err
 	}
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return xcc.New(ctx, &xcc.Config{
+		return xcb.New(ctx, &xcb.Config{
 			Genesis:         genesis,
 			NetworkId:       genesis.Config.ChainID.Uint64(),
 			SyncMode:        downloader.FullSync,
 			DatabaseCache:   256,
 			DatabaseHandles: 256,
 			TxPool:          core.DefaultTxPoolConfig,
-			GPO:             xcc.DefaultConfig.GPO,
-			Cryptore:        xcc.DefaultConfig.Cryptore,
+			GPO:             xcb.DefaultConfig.GPO,
+			Cryptore:        xcb.DefaultConfig.Cryptore,
 			Miner: miner.Config{
 				EnergyFloor: genesis.EnergyLimit * 9 / 10,
 				EnergyCeil:  genesis.EnergyLimit * 11 / 10,

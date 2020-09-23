@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -202,7 +202,7 @@ func (db *nodeDB) node(id NodeID) *Node {
 	if err := db.fetchRLP(makeKey(id, nodeDBDiscoverRoot), &node); err != nil {
 		return nil
 	}
-	node.sha = crypto.Keccak256Hash(node.ID[:])
+	node.sha = crypto.SHA3Hash(node.ID[:])
 	return &node
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -186,7 +186,7 @@ func (c *Client) doResolveEntry(ctx context.Context, domain, hash string) (entry
 		if err == errUnknownEntry {
 			continue
 		}
-		if !bytes.HasPrefix(crypto.Keccak256([]byte(txt)), wantHash) {
+		if !bytes.HasPrefix(crypto.SHA3([]byte(txt)), wantHash) {
 			err = nameError{name, errHashMismatch}
 		} else if err != nil {
 			err = nameError{name, err}

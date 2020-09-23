@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -43,19 +43,19 @@ const (
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (xcc *LightCore) startBloomHandlers(sectionSize uint64) {
+func (xcb *LightCore) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
-			defer xcc.wg.Done()
+			defer xcb.wg.Done()
 			for {
 				select {
-				case <-xcc.closeCh:
+				case <-xcb.closeCh:
 					return
 
-				case request := <-xcc.bloomRequests:
+				case request := <-xcb.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
-					compVectors, err := light.GetBloomBits(task.Context, xcc.odr, task.Bit, task.Sections)
+					compVectors, err := light.GetBloomBits(task.Context, xcb.odr, task.Bit, task.Sections)
 					if err == nil {
 						for i := range task.Sections {
 							if blob, err := bitutil.DecompressBytes(compVectors[i], int(sectionSize/8)); err == nil {

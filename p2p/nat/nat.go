@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,7 +20,9 @@ package nat
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -56,6 +58,7 @@ type Interface interface {
 //     "" or "none"         return nil
 //     "extip:77.12.33.4"   will assume the local machine is reachable on the given IP
 //     "any"                uses the first auto-detected mechanism
+//     "auto"               use external ip of machine
 //     "upnp"               uses the Universal Plug and Play protocol
 //     "pmp"                uses NAT-PMP with an auto-detected gateway address
 //     "pmp:192.168.0.1"    uses NAT-PMP with the given gateway address
@@ -74,7 +77,7 @@ func Parse(spec string) (Interface, error) {
 	switch mech {
 	case "", "none", "off":
 		return nil, nil
-	case "any", "auto", "on":
+	case "any", "on":
 		return Any(), nil
 	case "extip", "ip":
 		if ip == nil {
@@ -172,6 +175,35 @@ func PMP(gateway net.IP) Interface {
 	}
 	return startautodisc("NAT-PMP", discoverPMP)
 }
+
+// RequestAutoIP returns external ip address of a host machine. IP address is taken from the site ifconfig.me
+func RequestAutoIP() (Interface, error) {
+	resp, err := http.Get("http://ifconfig.me")
+	if err != nil {
+		return nil, err
+	}
+
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return AutoIP(net.ParseIP(string(ip))), nil
+}
+
+// AutoIP assumes that the local machine is reachable on the given
+// external IP address, and that any required ports were mapped manually.
+// Mapping operations will not return an error but won't actually do anything.
+type AutoIP net.IP
+
+func (n AutoIP) ExternalIP() (net.IP, error) { return net.IP(n), nil }
+func (n AutoIP) String() string              { return fmt.Sprintf("AutoIP(%v)", net.IP(n)) }
+
+// These do nothing.
+
+func (AutoIP) AddMapping(string, int, int, string, time.Duration) error { return nil }
+func (AutoIP) DeleteMapping(string, int, int) error                     { return nil }
+
 
 // autodisc represents a port mapping mechanism that is still being
 // auto-discovered. Calls to the Interface methods on this type will

@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -33,14 +33,14 @@ contract test {
 `
 )
 
-func skipWithoutSolc(t *testing.T) {
-	if _, err := exec.LookPath("solc"); err != nil {
+func skipWithoutYlem(t *testing.T) {
+	if _, err := exec.LookPath("ylem"); err != nil {
 		t.Skip(err)
 	}
 }
 
 func TestSolidityCompiler(t *testing.T) {
-	skipWithoutSolc(t)
+	skipWithoutYlem(t)
 
 	contracts, err := CompileSolidityString("", testSource)
 	if err != nil {
@@ -68,7 +68,7 @@ func TestSolidityCompiler(t *testing.T) {
 }
 
 func TestSolidityCompileError(t *testing.T) {
-	skipWithoutSolc(t)
+	skipWithoutYlem(t)
 
 	contracts, err := CompileSolidityString("", testSource[4:])
 	if err == nil {

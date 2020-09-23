@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -136,7 +136,7 @@ func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uin
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, index)
 	data := append([]byte{0x19, 0x00}, append(addr.Bytes(), append(buf, hash.Bytes()...)...)...)
-	sig, _ := crypto.Sign(crypto.Keccak256(data), privateKey)
+	sig, _ := crypto.Sign(crypto.SHA3(data), privateKey)
 	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	return sig
 }
@@ -146,12 +146,12 @@ func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, index)
 	data := append([]byte{0x19, 0x00}, append(addr.Bytes(), append(buf, hash[:]...)...)...)
-	pubkey, err := crypto.Ecrecover(crypto.Keccak256(data), append(r[:], append(s[:], v-27)...))
+	pubkey, err := crypto.Ecrecover(crypto.SHA3(data), append(r[:], append(s[:], v-27)...))
 	if err != nil {
 		return false
 	}
 	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey)[12:])
+	copy(signer[:], crypto.SHA3(pubkey)[12:])
 	return bytes.Equal(signer.Bytes(), expect.Bytes())
 }
 

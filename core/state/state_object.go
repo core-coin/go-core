@@ -1,4 +1,4 @@
-// Copyright 2014 The go-core Authors
+// Copyright 2014 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import (
 	"github.com/core-coin/go-core/rlp"
 )
 
-var emptyCodeHash = crypto.Keccak256(nil)
+var emptyCodeHash = crypto.SHA3(nil)
 
 type Code []byte
 
@@ -120,7 +120,7 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 	return &stateObject{
 		db:             db,
 		address:        address,
-		addrHash:       crypto.Keccak256Hash(address[:]),
+		addrHash:       crypto.SHA3Hash(address[:]),
 		data:           data,
 		originStorage:  make(Storage),
 		pendingStorage: make(Storage),
@@ -213,7 +213,7 @@ func (s *stateObject) GetCommittedState(db Database, key common.Hash) common.Has
 		if _, destructed := s.db.snapDestructs[s.addrHash]; destructed {
 			return common.Hash{}
 		}
-		enc, err = s.db.snap.Storage(s.addrHash, crypto.Keccak256Hash(key[:]))
+		enc, err = s.db.snap.Storage(s.addrHash, crypto.SHA3Hash(key[:]))
 	}
 	// If snapshot unavailable or reading from it failed, load from the database
 	if s.db.snap == nil || err != nil {
@@ -332,7 +332,7 @@ func (s *stateObject) updateTrie(db Database) Trie {
 		}
 		// If state snapshotting is active, cache the data til commit
 		if storage != nil {
-			storage[crypto.Keccak256Hash(key[:])] = v // v will be nil if value is 0x00
+			storage[crypto.SHA3Hash(key[:])] = v // v will be nil if value is 0x00
 		}
 	}
 	if len(s.pendingStorage) > 0 {

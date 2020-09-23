@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -86,15 +86,15 @@ func TestIPCPathResolution(t *testing.T) {
 	}{
 		{"", "", false, ""},
 		{"data", "", false, ""},
-		{"", "gcore.ipc", false, filepath.Join(os.TempDir(), "gcore.ipc")},
-		{"data", "gcore.ipc", false, "data/gcore.ipc"},
-		{"data", "./gcore.ipc", false, "./gcore.ipc"},
-		{"data", "/gcore.ipc", false, "/gcore.ipc"},
+		{"", "gocore.ipc", false, filepath.Join(os.TempDir(), "gocore.ipc")},
+		{"data", "gocore.ipc", false, "data/gocore.ipc"},
+		{"data", "./gocore.ipc", false, "./gocore.ipc"},
+		{"data", "/gocore.ipc", false, "/gocore.ipc"},
 		{"", "", true, ``},
 		{"data", "", true, ``},
-		{"", "gcore.ipc", true, `\\.\pipe\gcore.ipc`},
-		{"data", "gcore.ipc", true, `\\.\pipe\gcore.ipc`},
-		{"data", `\\.\pipe\gcore.ipc`, true, `\\.\pipe\gcore.ipc`},
+		{"", "gocore.ipc", true, `\\.\pipe\gocore.ipc`},
+		{"data", "gocore.ipc", true, `\\.\pipe\gocore.ipc`},
+		{"data", `\\.\pipe\gocore.ipc`, true, `\\.\pipe\gocore.ipc`},
 	}
 	for i, test := range tests {
 		// Only run when platform/test match

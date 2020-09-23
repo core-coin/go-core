@@ -1,4 +1,4 @@
-// Copyright 2020 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 // conversionAccount is used for converting between full and slim format. When
@@ -104,7 +104,7 @@ func generateTrieRoot(it AccountIterator, generatorFn trieGeneratorFn) common.Ha
 }
 
 // stdGenerate is a very basic hexary trie builder which uses the same Trie
-// as the rest of gcore, with no enhancements or optimizations
+// as the rest of gocore, with no enhancements or optimizations
 func stdGenerate(in chan (trieKV), out chan (common.Hash)) {
 	t, _ := trie.New(common.Hash{}, trie.NewDatabase(memorydb.New()))
 	for leaf := range in {

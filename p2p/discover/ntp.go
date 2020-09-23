@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 package discover
 
 import (
-	"flag"
 	"fmt"
 	"net"
 	"sort"
@@ -32,6 +31,8 @@ import (
 const (
 	ntpChecks = 10 // Number of measurements to do against the NTP server
 )
+
+var NtpPool = "pool.ntp.org:123"
 
 // durationSlice attaches the methods of sort.Interface to []time.Duration,
 // sorting in increasing order.
@@ -63,10 +64,7 @@ func checkClockDrift() {
 // Note, it executes two extra measurements compared to the number of requested
 // ones to be able to discard the two extremes as outliers.
 func sntpDrift(measurements int) (time.Duration, error) {
-	// Resolve the address of the NTP server
-	var ntpPool = flag.String("ntp", "pool.ntp.org:123", "NTP server and port for time synchronisation")
-	flag.Parse()
-	addr, err := net.ResolveUDPAddr("udp", *ntpPool)
+	addr, err := net.ResolveUDPAddr("udp", NtpPool)
 	if err != nil {
 		return 0, err
 	}

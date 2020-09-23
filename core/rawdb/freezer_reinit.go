@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -26,14 +26,14 @@ import (
 	"github.com/core-coin/go-core/common/prque"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // InitDatabaseFromFreezer reinitializes an empty database from a previous batch
 // of frozen ancient blocks. The method iterates over all the frozen blocks and
 // injects into the database the block hash->number mappings and the transaction
 // lookup entries.
-func InitDatabaseFromFreezer(db xccdb.Database) error {
+func InitDatabaseFromFreezer(db xcbdb.Database) error {
 	// If we can't access the freezer or it's empty, abort
 	frozen, err := db.Ancients()
 	if err != nil || frozen == 0 {
@@ -105,7 +105,7 @@ func InitDatabaseFromFreezer(db xccdb.Database) error {
 			WriteTxLookupEntries(batch, block)
 
 			// If enough data was accumulated in memory or we're at the last block, dump to disk
-			if batch.ValueSize() > xccdb.IdealBatchSize || uint64(next) == frozen {
+			if batch.ValueSize() > xcbdb.IdealBatchSize || uint64(next) == frozen {
 				if err := batch.Write(); err != nil {
 					return err
 				}

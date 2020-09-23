@@ -27,8 +27,8 @@ import (
 	"math/big"
 )
 
-// BUG(agl): this implementation is not constant time.
-// TODO(agl): keep GF(p²) elements in Mongomery form.
+// BUG(raisty): this implementation is not constant time.
+// TODO(raisty): keep GF(p²) elements in Mongomery form.
 
 // G1 is an abstract cyclic group. The zero value is suitable for use as the
 // output of an operation, but cannot be used as an input.
@@ -83,7 +83,7 @@ func (e *G1) ScalarMult(a *G1, k *big.Int) *G1 {
 }
 
 // Add sets e to a+b and then returns e.
-// BUG(agl): this function is not complete: a==b fails.
+// BUG(raisty): this function is not complete: a==b fails.
 func (e *G1) Add(a, b *G1) *G1 {
 	if e.p == nil {
 		e.p = newCurvePoint(nil)
@@ -213,7 +213,7 @@ func (e *G2) ScalarMult(a *G2, k *big.Int) *G2 {
 }
 
 // Add sets e to a+b and then returns e.
-// BUG(agl): this function is not complete: a==b fails.
+// BUG(raisty): this function is not complete: a==b fails.
 func (e *G2) Add(a, b *G2) *G2 {
 	if e.p == nil {
 		e.p = newTwistPoint(nil)

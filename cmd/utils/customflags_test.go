@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify

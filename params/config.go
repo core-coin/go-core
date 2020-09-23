@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -27,9 +27,9 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0x0fd2fd2988c27b96b2c75c0ba5352bd03ef7542c8e15c803ecace50cb782936e")
-	DevinGenesisHash   = common.HexToHash("0xe9489866bb033ab58297fb48f6b4fc1955d792072794b9149b1a7800c03fcf41")
-	KolibaGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
+	MainnetGenesisHash = common.HexToHash("0xfee6040a4de92c0cbc9f60115b5c08985e95eb9f531cd6c5cc1f5c4b0c3d8a30")
+	DevinGenesisHash   = common.HexToHash("0x8a01081aebe75f1bd8308ca81748ad26c0ddb1d28a5e53206436d8636bc615a5")
+	KolibaGenesisHash  = common.HexToHash("0xf96869341a638cc56e5df6d4d716e7c3db2e5c8ac7861f3470d5ac983a238804")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -159,7 +159,7 @@ func (c *TrustedCheckpoint) Hash() common.Hash {
 	copy(buf[8:], c.SectionHead.Bytes())
 	copy(buf[8+common.HashLength:], c.CHTRoot.Bytes())
 	copy(buf[8+2*common.HashLength:], c.BloomRoot.Bytes())
-	return crypto.Keccak256Hash(buf)
+	return crypto.SHA3Hash(buf)
 }
 
 // Empty returns an indicator whether the checkpoint is regarded as empty.
@@ -249,7 +249,7 @@ func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64) *Confi
 	return lasterr
 }
 
-// CheckConfigForkOrder checks that we don't "skip" any forks, gcore isn't pluggable enough
+// CheckConfigForkOrder checks that we don't "skip" any forks, gocore isn't pluggable enough
 // to guarantee that forks can be implemented in a different order than on official networks
 func (c *ChainConfig) CheckConfigForkOrder() error {
 	type fork struct {

@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -59,7 +59,7 @@ func TestDBKey(t *testing.T) {
 }
 
 func generateEnvelope(t *testing.T) *whisper.Envelope {
-	h := crypto.Keccak256Hash([]byte("test sample data"))
+	h := crypto.SHA3Hash([]byte("test sample data"))
 	params := &whisper.MessageParams{
 		KeySym:   h[:],
 		Topic:    whisper.TopicType{0x1F, 0x7E, 0xA1, 0x7F},

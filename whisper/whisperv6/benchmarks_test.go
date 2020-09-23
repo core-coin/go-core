@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
+	"golang.org/x/crypto/sha3"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -27,7 +27,7 @@ import (
 
 func BenchmarkDeriveKeyMaterial(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		pbkdf2.Key([]byte("test"), nil, 65356, aesKeyLength, sha256.New)
+		pbkdf2.Key([]byte("test"), nil, 65356, aesKeyLength, sha3.New256)
 	}
 }
 

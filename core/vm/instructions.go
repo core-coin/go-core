@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -387,7 +387,7 @@ func opSha3(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory 
 	data := memory.GetPtr(offset.Int64(), size.Int64())
 
 	if interpreter.hasher == nil {
-		interpreter.hasher = sha3.NewLegacyKeccak256().(keccakState)
+		interpreter.hasher = sha3.New256().(keccakState)
 	} else {
 		interpreter.hasher.Reset()
 	}

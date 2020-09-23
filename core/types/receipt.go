@@ -1,4 +1,4 @@
-// Copyright 2014 The go-core Authors
+// Copyright 2014 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -55,7 +55,7 @@ type Receipt struct {
 	Bloom                Bloom  `json:"logsBloom"         gencodec:"required"`
 	Logs                 []*Log `json:"logs"              gencodec:"required"`
 
-	// Implementation fields: These fields are added by gcore when processing a transaction.
+	// Implementation fields: These fields are added by gocore when processing a transaction.
 	// They are stored in the chain database.
 	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress common.Address `json:"contractAddress"`

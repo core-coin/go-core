@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -25,8 +25,8 @@ import (
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xccdb"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 )
 
 // testAccount is the data associated with an account used by the state tests.
@@ -56,7 +56,7 @@ func makeTestState() (Database, common.Hash, []*testAccount) {
 		acc.nonce = uint64(42 * i)
 
 		if i%3 == 0 {
-			obj.SetCode(crypto.Keccak256Hash([]byte{i, i, i, i, i}), []byte{i, i, i, i, i})
+			obj.SetCode(crypto.SHA3Hash([]byte{i, i, i, i, i}), []byte{i, i, i, i, i})
 			acc.code = []byte{i, i, i, i, i}
 		}
 		state.updateStateObject(obj)
@@ -70,7 +70,7 @@ func makeTestState() (Database, common.Hash, []*testAccount) {
 
 // checkStateAccounts cross references a reconstructed state with an expected
 // account array.
-func checkStateAccounts(t *testing.T, db xccdb.Database, root common.Hash, accounts []*testAccount) {
+func checkStateAccounts(t *testing.T, db xcbdb.Database, root common.Hash, accounts []*testAccount) {
 	// Check root availability and state contents
 	state, err := New(root, NewDatabase(db), nil)
 	if err != nil {
@@ -93,7 +93,7 @@ func checkStateAccounts(t *testing.T, db xccdb.Database, root common.Hash, accou
 }
 
 // checkTrieConsistency checks that all nodes in a (sub-)trie are indeed present.
-func checkTrieConsistency(db xccdb.Database, root common.Hash) error {
+func checkTrieConsistency(db xcbdb.Database, root common.Hash) error {
 	if v, _ := db.Get(root[:]); v == nil {
 		return nil // Consider a non existent state consistent.
 	}
@@ -108,7 +108,7 @@ func checkTrieConsistency(db xccdb.Database, root common.Hash) error {
 }
 
 // checkStateConsistency checks that all data of a state root is present.
-func checkStateConsistency(db xccdb.Database, root common.Hash) error {
+func checkStateConsistency(db xcbdb.Database, root common.Hash) error {
 	// Create and iterate a state trie rooted in a sub-node
 	if _, err := db.Get(root.Bytes()); err != nil {
 		return nil // Consider a non existent state consistent.
@@ -298,11 +298,11 @@ func TestIterativeRandomDelayedStateSync(t *testing.T) {
 
 // Tests that at any point in time during a sync, only complete sub-tries are in
 // the database.
-func TestIncompleteStateSync(t *testing.T) {
+func TestIncompleteStateSync(t *testing.T) { // TODO: TEST
 	// Create a random state to copy
 	srcDb, srcRoot, srcAccounts := makeTestState()
 
-	checkTrieConsistency(srcDb.TrieDB().DiskDB().(xccdb.Database), srcRoot)
+	checkTrieConsistency(srcDb.TrieDB().DiskDB().(xcbdb.Database), srcRoot)
 
 	// Create a destination state and sync with the scheduler
 	dstDb := rawdb.NewMemoryDatabase()
@@ -336,7 +336,7 @@ func TestIncompleteStateSync(t *testing.T) {
 	checkSubtries:
 		for _, hash := range added {
 			for _, acc := range srcAccounts {
-				if hash == crypto.Keccak256Hash(acc.code) {
+				if hash == crypto.SHA3Hash(acc.code) {
 					continue checkSubtries // skip trie check of code nodes.
 				}
 			}

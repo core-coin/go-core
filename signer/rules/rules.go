@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/core-coin/go-core/internal/xccapi"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/signer/core"
 	"github.com/core-coin/go-core/signer/rules/deps"
@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	BigNumber_JS = deps.MustAsset("bignumber.js")
+	BigNumber_JS, _ = deps.Asset("bignumber.js")
 )
 
 // consoleOutput is an override for the console.log and console.error methods to
@@ -230,7 +230,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx xccapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx xcbapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

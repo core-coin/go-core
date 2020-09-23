@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xccclient"
+	"github.com/core-coin/go-core/xcbclient"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -172,7 +172,7 @@ func sign(ctx *cli.Context) error {
 		reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelFn()
 
-		head, err := xccclient.NewClient(node).HeaderByNumber(reqCtx, nil)
+		head, err := xcbclient.NewClient(node).HeaderByNumber(reqCtx, nil)
 		if err != nil {
 			return err
 		}
@@ -247,7 +247,7 @@ func sighash(index uint64, oracle common.Address, hash common.Hash) []byte {
 	binary.BigEndian.PutUint64(buf, index)
 
 	data := append([]byte{0x19, 0x00}, append(oracle[:], append(buf, hash[:]...)...)...)
-	return crypto.Keccak256(data)
+	return crypto.SHA3(data) //todo: check oracle compatibility (eduardo)
 }
 
 // ecrecover calculates the sender address from a sighash and signature combo.
@@ -299,12 +299,12 @@ func publish(ctx *cli.Context) error {
 	reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
-	head, err := xccclient.NewClient(client).HeaderByNumber(reqCtx, nil)
+	head, err := xcbclient.NewClient(client).HeaderByNumber(reqCtx, nil)
 	if err != nil {
 		return err
 	}
 	num := head.Number.Uint64()
-	recent, err := xccclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
+	recent, err := xcbclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
 	if err != nil {
 		return err
 	}

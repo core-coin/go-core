@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -136,7 +136,7 @@ func requireUnpackKind(v reflect.Value, t reflect.Type, k reflect.Kind,
 
 // mapArgNamesToStructFields maps a slice of argument names to struct fields.
 // first round: for each Exportable field that contains a `abi:""` tag
-//   and this field name exists in the given argument name list, pair them togcoreer.
+//   and this field name exists in the given argument name list, pair them togocoreer.
 // second round: for each argument name that has not been already linked,
 //   find what variable is expected to be mapped into, if it exists and has not been
 //   used, pair them.

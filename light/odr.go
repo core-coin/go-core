@@ -1,4 +1,4 @@
-// Copyright 2015 The go-core Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import (
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR
@@ -37,7 +37,7 @@ var ErrNoPeers = errors.New("no suitable peers available")
 
 // OdrBackend is an interface to a backend service that handles ODR retrievals type
 type OdrBackend interface {
-	Database() xccdb.Database
+	Database() xcbdb.Database
 	ChtIndexer() *core.ChainIndexer
 	BloomTrieIndexer() *core.ChainIndexer
 	BloomIndexer() *core.ChainIndexer
@@ -47,7 +47,7 @@ type OdrBackend interface {
 
 // OdrRequest is an interface for retrieval requests
 type OdrRequest interface {
-	StoreResult(db xccdb.Database)
+	StoreResult(db xcbdb.Database)
 }
 
 // TrieID identifies a state or account storage trie
@@ -89,7 +89,7 @@ type TrieRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TrieRequest) StoreResult(db xccdb.Database) {
+func (req *TrieRequest) StoreResult(db xcbdb.Database) {
 	req.Proof.Store(db)
 }
 
@@ -102,7 +102,7 @@ type CodeRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *CodeRequest) StoreResult(db xccdb.Database) {
+func (req *CodeRequest) StoreResult(db xcbdb.Database) {
 	db.Put(req.Hash[:], req.Data)
 }
 
@@ -115,7 +115,7 @@ type BlockRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BlockRequest) StoreResult(db xccdb.Database) {
+func (req *BlockRequest) StoreResult(db xcbdb.Database) {
 	rawdb.WriteBodyRLP(db, req.Hash, req.Number, req.Rlp)
 }
 
@@ -130,7 +130,7 @@ type ReceiptsRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ReceiptsRequest) StoreResult(db xccdb.Database) {
+func (req *ReceiptsRequest) StoreResult(db xcbdb.Database) {
 	if !req.Untrusted {
 		rawdb.WriteReceipts(db, req.Hash, req.Number, req.Receipts)
 	}
@@ -150,7 +150,7 @@ type ChtRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ChtRequest) StoreResult(db xccdb.Database) {
+func (req *ChtRequest) StoreResult(db xcbdb.Database) {
 	hash, num := req.Header.Hash(), req.Header.Number.Uint64()
 
 	if !req.Untrusted {
@@ -173,7 +173,7 @@ type BloomRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BloomRequest) StoreResult(db xccdb.Database) {
+func (req *BloomRequest) StoreResult(db xcbdb.Database) {
 	for i, sectionIdx := range req.SectionIndexList {
 		sectionHead := rawdb.ReadCanonicalHash(db, (sectionIdx+1)*req.Config.BloomTrieSize-1)
 		// if we don't have the canonical hash stored for this section head number, we'll still store it under
@@ -199,4 +199,4 @@ type TxStatusRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TxStatusRequest) StoreResult(db xccdb.Database) {}
+func (req *TxStatusRequest) StoreResult(db xcbdb.Database) {}

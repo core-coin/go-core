@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"github.com/core-coin/eddsa"
-	"crypto/sha256"
+	"golang.org/x/crypto/sha3"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -76,7 +76,7 @@ func TestWhisperBasic(t *testing.T) {
 		t.Fatalf("failed w.Envelopes().")
 	}
 
-	derived := pbkdf2.Key(peerID, nil, 65356, aesKeyLength, sha256.New)
+	derived := pbkdf2.Key(peerID, nil, 65356, aesKeyLength, sha3.New256)
 	if !validateDataIntegrity(derived, aesKeyLength) {
 		t.Fatalf("failed validateSymmetricKey with param = %v.", derived)
 	}

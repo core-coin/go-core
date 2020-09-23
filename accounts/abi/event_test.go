@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -80,7 +80,7 @@ var pledgeData1 = "00000000000000000000cb6000ce0d46d924cc8437c806721496599fc3ffa
 // 1000000,2218516807680,1000001
 var mixedCaseData1 = "00000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000020489e8000000000000000000000000000000000000000000000000000000000000000f4241"
 
-func TestEventId(t *testing.T) {
+func TestEventId(t *testing.T) { //TODO: TEST
 	var table = []struct {
 		definition   string
 		expectations map[string]common.Hash
@@ -91,8 +91,8 @@ func TestEventId(t *testing.T) {
 			{ "type" : "event", "name" : "Check", "inputs": [{ "name" : "t", "type": "address" }, { "name": "b", "type": "uint256" }] }
 			]`,
 			expectations: map[string]common.Hash{
-				"Balance": crypto.Keccak256Hash([]byte("Balance(uint256)")),
-				"Check":   crypto.Keccak256Hash([]byte("Check(address,uint256)")),
+				"Balance": crypto.SHA3Hash([]byte("Balance(uint256)")),
+				"Check":   crypto.SHA3Hash([]byte("Check(address,uint256)")),
 			},
 		},
 	}

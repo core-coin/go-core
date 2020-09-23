@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -31,8 +31,8 @@ import (
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcc"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 func errResp(code errCode, format string, v ...interface{}) error {
@@ -57,10 +57,10 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *xcc.Config
+	config                       *xcb.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
-	chainDb                      xccdb.Database
+	chainDb                      xcbdb.Database
 	chainReader                  chainReader
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 	oracle                       *checkpointoracle.CheckpointOracle

@@ -1,4 +1,4 @@
-// Copyright 2017 The go-core Authors
+// Copyright 2017 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -60,7 +60,7 @@ func (w *wizard) deployDashboard() {
 			available[service] = append(available[service], server)
 		}
 	}
-	for _, service := range []string{"xccstats", "explorer", "wallet", "faucet"} {
+	for _, service := range []string{"xcbstats", "explorer", "wallet", "faucet"} {
 		// Gather all the locally hosted pages of this type
 		var pages []string
 		for _, server := range available[service] {
@@ -71,8 +71,8 @@ func (w *wizard) deployDashboard() {
 			// If there's a service running on the machine, retrieve it's port number
 			var port int
 			switch service {
-			case "xccstats":
-				if infos, err := checkXccstats(client, w.network); err == nil {
+			case "xcbstats":
+				if infos, err := checkXcbstats(client, w.network); err == nil {
 					port = infos.port
 				}
 			case "explorer":
@@ -123,8 +123,8 @@ func (w *wizard) deployDashboard() {
 		}
 		// Save the users choice
 		switch service {
-		case "xccstats":
-			infos.xccstats = page
+		case "xcbstats":
+			infos.xcbstats = page
 		case "explorer":
 			infos.explorer = page
 		case "wallet":
@@ -133,10 +133,10 @@ func (w *wizard) deployDashboard() {
 			infos.faucet = page
 		}
 	}
-	// If we have xccstats running, ask whether to make the secret public or not
-	if w.conf.xccstats != "" {
+	// If we have xcbstats running, ask whether to make the secret public or not
+	if w.conf.xcbstats != "" {
 		fmt.Println()
-		fmt.Println("Include xccstats secret on dashboard (y/n)? (default = yes)")
+		fmt.Println("Include xcbstats secret on dashboard (y/n)? (default = yes)")
 		infos.trusted = w.readDefaultYesNo(true)
 	}
 	// Try to deploy the dashboard container on the host

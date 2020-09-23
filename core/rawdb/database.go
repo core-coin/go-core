@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -25,16 +25,16 @@ import (
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xccdb"
-	"github.com/core-coin/go-core/xccdb/leveldb"
-	"github.com/core-coin/go-core/xccdb/memorydb"
+	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/xcbdb/leveldb"
+	"github.com/core-coin/go-core/xcbdb/memorydb"
 	"github.com/olekukonko/tablewriter"
 )
 
 // freezerdb is a database wrapper that enabled freezer data retrievals.
 type freezerdb struct {
-	xccdb.KeyValueStore
-	xccdb.AncientStore
+	xcbdb.KeyValueStore
+	xcbdb.AncientStore
 }
 
 // Close implements io.Closer, closing both the fast key-value store as well as
@@ -55,7 +55,7 @@ func (frdb *freezerdb) Close() error {
 
 // nofreezedb is a database wrapper that disables freezer data retrievals.
 type nofreezedb struct {
-	xccdb.KeyValueStore
+	xcbdb.KeyValueStore
 }
 
 // HasAncient returns an error as we don't have a backing chain freezer.
@@ -95,7 +95,7 @@ func (db *nofreezedb) Sync() error {
 
 // NewDatabase creates a high level database on top of a given key-value data
 // store without a freezer moving immutable chain segments into cold storage.
-func NewDatabase(db xccdb.KeyValueStore) xccdb.Database {
+func NewDatabase(db xcbdb.KeyValueStore) xcbdb.Database {
 	return &nofreezedb{
 		KeyValueStore: db,
 	}
@@ -104,7 +104,7 @@ func NewDatabase(db xccdb.KeyValueStore) xccdb.Database {
 // NewDatabaseWithFreezer creates a high level database on top of a given key-
 // value data store with a freezer moving immutable chain segments into cold
 // storage.
-func NewDatabaseWithFreezer(db xccdb.KeyValueStore, freezer string, namespace string) (xccdb.Database, error) {
+func NewDatabaseWithFreezer(db xcbdb.KeyValueStore, freezer string, namespace string) (xcbdb.Database, error) {
 	// Create the idle freezer instance
 	frdb, err := newFreezer(freezer, namespace)
 	if err != nil {
@@ -182,20 +182,20 @@ func NewDatabaseWithFreezer(db xccdb.KeyValueStore, freezer string, namespace st
 
 // NewMemoryDatabase creates an ephemeral in-memory key-value database without a
 // freezer moving immutable chain segments into cold storage.
-func NewMemoryDatabase() xccdb.Database {
+func NewMemoryDatabase() xcbdb.Database {
 	return NewDatabase(memorydb.New())
 }
 
 // NewMemoryDatabaseWithCap creates an ephemeral in-memory key-value database
 // with an initial starting capacity, but without a freezer moving immutable
 // chain segments into cold storage.
-func NewMemoryDatabaseWithCap(size int) xccdb.Database {
+func NewMemoryDatabaseWithCap(size int) xcbdb.Database {
 	return NewDatabase(memorydb.NewWithCap(size))
 }
 
 // NewLevelDBDatabase creates a persistent key-value database without a freezer
 // moving immutable chain segments into cold storage.
-func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (xccdb.Database, error) {
+func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (xcbdb.Database, error) {
 	db, err := leveldb.New(file, cache, handles, namespace)
 	if err != nil {
 		return nil, err
@@ -205,7 +205,7 @@ func NewLevelDBDatabase(file string, cache int, handles int, namespace string) (
 
 // NewLevelDBDatabaseWithFreezer creates a persistent key-value database with a
 // freezer moving immutable chain segments into cold storage.
-func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer string, namespace string) (xccdb.Database, error) {
+func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer string, namespace string) (xcbdb.Database, error) {
 	kvdb, err := leveldb.New(file, cache, handles, namespace)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func NewLevelDBDatabaseWithFreezer(file string, cache int, handles int, freezer 
 
 // InspectDatabase traverses the entire database and checks the size
 // of all different categories of data.
-func InspectDatabase(db xccdb.Database) error {
+func InspectDatabase(db xcbdb.Database) error {
 	it := db.NewIterator()
 	defer it.Release()
 

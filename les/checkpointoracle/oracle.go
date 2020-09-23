@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -137,12 +137,12 @@ func (oracle *CheckpointOracle) VerifySigners(index uint64, hash [32]byte, signa
 		binary.BigEndian.PutUint64(buf, index)
 		data := append([]byte{0x19, 0x00}, append(oracle.config.Address.Bytes(), append(buf, hash[:]...)...)...)
 		//signatures[i][64] -= 27 // Transform V from 27/28 to 0/1 according to the yellow paper for verification.
-		pubkey, err := crypto.Ecrecover(crypto.Keccak256(data), signatures[i])
+		pubkey, err := crypto.Ecrecover(crypto.SHA3(data), signatures[i])
 		if err != nil {
 			return false, nil
 		}
 		var signer common.Address
-		copy(signer[:], crypto.Keccak256(pubkey)[12:])
+		copy(signer[:], crypto.SHA3(pubkey)[12:])
 		if _, exist := checked[signer]; exist {
 			continue
 		}

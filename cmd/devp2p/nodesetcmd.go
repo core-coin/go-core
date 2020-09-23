@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -93,7 +93,7 @@ type nodeFilterC struct {
 var filterFlags = map[string]nodeFilterC{
 	"-ip":          {1, ipFilter},
 	"-min-age":     {1, minAgeFilter},
-	"-xcc-network": {1, xccFilter},
+	"-xcb-network": {1, xcbFilter},
 	"-les-server":  {0, lesFilter},
 }
 
@@ -154,7 +154,7 @@ func minAgeFilter(args []string) (nodeFilter, error) {
 	return f, nil
 }
 
-func xccFilter(args []string) (nodeFilter, error) {
+func xcbFilter(args []string) (nodeFilter, error) {
 	var filter forkid.Filter
 	switch args[0] {
 	case "mainnet":
@@ -168,14 +168,14 @@ func xccFilter(args []string) (nodeFilter, error) {
 	}
 
 	f := func(n nodeJSON) bool {
-		var xcc struct {
+		var xcb struct {
 			ForkID forkid.ID
 			_      []rlp.RawValue `rlp:"tail"`
 		}
-		if n.N.Load(enr.WithEntry("xcc", &xcc)) != nil {
+		if n.N.Load(enr.WithEntry("xcb", &xcb)) != nil {
 			return false
 		}
-		return filter(xcc.ForkID) == nil
+		return filter(xcb.ForkID) == nil
 	}
 	return f, nil
 }

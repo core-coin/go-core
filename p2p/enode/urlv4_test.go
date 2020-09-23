@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2018 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ var parseNodeTests = []struct {
 }{
 	// Records
 	{
-		input: "enr:-QEEuKg-xhCAH4rxbeh_FAWSBkFQJg2uYqutz-8XM8SuYhFeOhX3tM1ZjGb6jPtvDYCpWULW2w5MiH_eHNBZcae1eKJBenm9qvrqyLEGqOppUceywwdFsGztcvKbBgHSuR8YmVH2417PFz6Fiz6WPd42wwYf8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdlw",
+		input: "enr:-QEEuKh3OHMesxQ6XvQz3vaq6iWmBxwx2jt8JSkiwQQM1a8dJwnrFZpHXsS9-xQfxl_EsjlC4_nso-3rXxMaaLyuB_1wf4yVHub46LkLDd9SExDO-QZ34B75M8Gpnn9qyHTuxrVal5Kh608UGHFwmQLIjXcY8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdlw",
 		wantResult: func() *Node {
 			testKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
 			var r enr.Record

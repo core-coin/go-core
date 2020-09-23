@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ import (
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xccdb"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 const (
@@ -114,7 +114,7 @@ type registerReq struct {
 // known light server nodes. It received discovered nodes, stores statistics about
 // known nodes and takes care of always having enough good quality servers connected.
 type serverPool struct {
-	db     xccdb.Database
+	db     xcbdb.Database
 	dbKey  []byte
 	server *p2p.Server
 	connWg sync.WaitGroup
@@ -143,7 +143,7 @@ type serverPool struct {
 }
 
 // newServerPool creates a new serverPool instance
-func newServerPool(db xccdb.Database, ulcServers []string) *serverPool {
+func newServerPool(db xcbdb.Database, ulcServers []string) *serverPool {
 	pool := &serverPool{
 		db:           db,
 		entries:      make(map[enode.ID]*poolEntry),

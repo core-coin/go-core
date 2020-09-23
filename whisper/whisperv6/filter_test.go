@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 	if symmetric {
 		f.KeySym = make([]byte, aesKeyLength)
 		mrand.Read(f.KeySym)
-		f.SymKeyHash = crypto.Keccak256Hash(f.KeySym)
+		f.SymKeyHash = crypto.SHA3Hash(f.KeySym)
 	} else {
 		f.KeyAsym, err = crypto.GenerateKey(rand.Reader)
 		if err != nil {

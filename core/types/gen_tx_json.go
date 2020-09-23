@@ -19,18 +19,18 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  hexutil.Uint64  `json:"energy"      gencodec:"required"`
-		ChainID      uint            `json:"chain_id" gencodec:"required"`
+		ChainID      hexutil.Uint64  `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
-		Signature    []byte          `json:"signature"    gencodec:"required"`
+		Signature    hexutil.Bytes   `json:"signature"    gencodec:"required"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var enc txdata
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
 	enc.Price = (*hexutil.Big)(t.Price)
 	enc.EnergyLimit = hexutil.Uint64(t.EnergyLimit)
-	enc.ChainID = t.ChainID
+	enc.ChainID = hexutil.Uint64(t.ChainID)
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
@@ -45,11 +45,11 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  *hexutil.Uint64 `json:"energy"      gencodec:"required"`
-		ChainID      *uint           `json:"chain_id" gencodec:"required"`
+		ChainID      *hexutil.Uint64 `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
-		Signature    []byte          `json:"signature"    gencodec:"required"`
+		Signature    *hexutil.Bytes  `json:"signature"    gencodec:"required"`
 		Hash         *common.Hash    `json:"hash" rlp:"-"`
 	}
 	var dec txdata
@@ -71,7 +71,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	if dec.ChainID == nil {
 		return errors.New("missing required field 'chain_id' for txdata")
 	}
-	t.ChainID = *dec.ChainID
+	t.ChainID = uint(*dec.ChainID)
 	if dec.Recipient != nil {
 		t.Recipient = dec.Recipient
 	}
@@ -86,7 +86,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	if dec.Signature == nil {
 		return errors.New("missing required field 'signature' for txdata")
 	}
-	t.Signature = dec.Signature
+	t.Signature = *dec.Signature
 	if dec.Hash != nil {
 		t.Hash = dec.Hash
 	}

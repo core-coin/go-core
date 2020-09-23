@@ -1,4 +1,4 @@
-// Copyright 2020 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcc/fetcher"
+	"github.com/core-coin/go-core/xcb/fetcher"
 )
 
 var (

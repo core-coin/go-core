@@ -1,4 +1,4 @@
-// Copyright 2016 The go-core Authors
+// Copyright 2016 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -160,8 +160,10 @@ func (c *Console) initConsoleObject() {
 }
 
 func (c *Console) initWeb3(bridge *bridge) error {
-	bnJS := string(deps.MustAsset("bignumber.js"))
-	web3JS := string(deps.MustAsset("web3.js"))
+	bignumber, _ := deps.Asset("bignumber.js")
+	bnJS := string(bignumber)
+	web3, _ := deps.Asset("web3.js")
+	web3JS := string(web3)
 	if err := c.jsre.Compile("bignumber.js", bnJS); err != nil {
 		return fmt.Errorf("bignumber.js: %v", err)
 	}
@@ -189,7 +191,7 @@ func (c *Console) initExtensions() error {
 	if err != nil {
 		return fmt.Errorf("api modules: %v", err)
 	}
-	aliases := map[string]struct{}{"xcc": {}, "personal": {}}
+	aliases := map[string]struct{}{"xcb": {}, "personal": {}}
 	for api := range apis {
 		if api == "web3" {
 			continue
@@ -275,7 +277,7 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 		return "", nil, ""
 	}
 	// Chunck data to relevant part for autocompletion
-	// E.g. in case of nested lines xcc.getBalance(xcc.coinb<tab><tab>
+	// E.g. in case of nested lines xcb.getBalance(xcb.coinb<tab><tab>
 	start := pos - 1
 	for ; start > 0; start-- {
 		// Skip all methods and namespaces (i.e. including the dot)
@@ -294,18 +296,18 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 	return line[:start], c.jsre.CompleteKeywords(line[start:pos]), line[pos:]
 }
 
-// Welcome show summary of current Gcore instance and some metadata about the
+// Welcome show summary of current Gocore instance and some metadata about the
 // console's available modules.
 func (c *Console) Welcome() {
-	message := "Welcome to the Gcore JavaScript console!\n\n"
+	message := "Welcome to the Gocore JavaScript console!\n\n"
 
-	// Print some generic Gcore metadata
+	// Print some generic Gocore metadata
 	if res, err := c.jsre.Run(`
 		var message = "instance: " + web3.version.node + "\n";
 		try {
-			message += "coinbase: " + xcc.coinbase + "\n";
+			message += "coinbase: " + xcb.coinbase + "\n";
 		} catch (err) {}
-		message += "at block: " + xcc.blockNumber + " (" + new Date(1000 * xcc.getBlock(xcc.blockNumber).timestamp) + ")\n";
+		message += "at block: " + xcb.blockNumber + " (" + new Date(1000 * xcb.getBlock(xcb.blockNumber).timestamp) + ")\n";
 		try {
 			message += " datadir: " + admin.datadir + "\n";
 		} catch (err) {}

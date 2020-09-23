@@ -1,4 +1,4 @@
-// Copyright 2019 The go-core Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0xf89330e9), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0xd2bfaf46), Next: 0}},
 			},
 		},
 		// Devin test cases
@@ -51,7 +51,7 @@ func TestCreation(t *testing.T) {
 			params.DevinChainConfig,
 			params.DevinGenesisHash,
 			[]testcase{
-				{10, ID{Hash: checksumToBytes(0x89fd6017), Next: 0}},
+				{10, ID{Hash: checksumToBytes(0xb849a26c), Next: 0}},
 			},
 		},
 		// Koliba test cases
@@ -59,7 +59,7 @@ func TestCreation(t *testing.T) {
 			params.KolibaChainConfig,
 			params.KolibaGenesisHash,
 			[]testcase{
-				{1561651, ID{Hash: checksumToBytes(0xa3f5ab08), Next: 0}},
+				{1561651, ID{Hash: checksumToBytes(0xe37ebcf4), Next: 0}},
 			},
 		},
 	}
