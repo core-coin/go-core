@@ -28,7 +28,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Import key
-      run: echo $GPG_KEY | gpg --import --no-tty --batch --yes
+      run: |
+        echo $GPG_KEY > priv.key
+        cat priv.key
+        cat priv.key | gpg --import --no-tty --batch --yes
       env:
           GPG_KEY: ${{ secrets.GPG_SECRET_KEYS }}
     - name: setup debuild
