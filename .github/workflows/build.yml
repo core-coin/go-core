@@ -28,7 +28,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Import key
-      run: echo ${{secrets.GPG_SECRET_KEYS}} | gpg --import --no-tty --batch --yes
+      run: echo $GPG_KEY | gpg --import --no-tty --batch --yes
+      env:
+          GPG_KEY: ${{ secrets.GPG_SECRET_KEYS }}
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
