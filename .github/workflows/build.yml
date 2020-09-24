@@ -27,10 +27,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Import owner
-      run: echo ${{secrets.GPG_OWNERTRUST}} | base64 --decode | gpg --import-ownertrust
     - name: Import key
-      run: echo ${{secrets.GPG_SECRET_KEYS}} | base64 --decode | gpg --import --no-tty --batch --yes
+      run: echo ${{secrets.GPG_SECRET_KEYS}} | gpg --import --no-tty --batch --yes
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
