@@ -17,7 +17,6 @@
 package cryptore
 
 import (
-	"ekyu.moe/cryptonight"
 	"encoding/binary"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
@@ -102,5 +101,6 @@ func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
 	for i, val := range mix {
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
-	return digest, cryptonight.Sum(append(seed, digest...), 2)
+
+	return digest, randomxhash(append(seed, digest...))
 }
