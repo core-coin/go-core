@@ -140,7 +140,6 @@ var (
 	// Note: artful is unsupported because it was officially deprecated on Launchpad.
 	// Note: cosmic is unsupported because it was officially deprecated on Launchpad.
 	debDistroGoBoots = map[string]string{
-		"trusty": "golang-1.11",
 		"xenial": "golang-go",
 		"bionic": "golang-go",
 		"disco":  "golang-go",
@@ -149,8 +148,7 @@ var (
 	}
 
 	debGoBootPaths = map[string]string{
-		"golang-1.11": "/usr/local/go",
-		"golang-go":   "/usr/local/go",
+		"golang-go": "/usr/local/go",
 	}
 )
 
@@ -462,12 +460,12 @@ func maybeSkipArchive(env build.Environment) {
 		log.Printf("skipping because this is a cron job")
 		os.Exit(0)
 	}
-  /*
-	if env.Branch != "develop" && !strings.HasPrefix(env.Tag, "v1.") {
-		log.Printf("skipping because branch %q, tag %q is not on the whitelist", env.Branch, env.Tag)
-		os.Exit(0)
-	}
-  */
+	/*
+		if env.Branch != "develop" && !strings.HasPrefix(env.Tag, "v1.") {
+			log.Printf("skipping because branch %q, tag %q is not on the whitelist", env.Branch, env.Tag)
+			os.Exit(0)
+		}
+	*/
 }
 
 // Debian Packaging
@@ -525,21 +523,22 @@ func doDebianSource(cmdline []string) {
 				log.Fatalf("Failed to copy Go module dependencies: %v", err)
 			}
 			// Run the packaging and upload to the PPA
-			debuild := exec.Command("debuild", "-F", "-sa", "-us", "-uc", "-d", "-Zxz", "-nc", "-tc", "-d")
+			debuild := exec.Command("debuild", "-S", "-sa", "-us", "-uc", "-d", "-Zxz", "-nc")
 			debuild.Dir = pkgdir
 			build.MustRun(debuild)
 
 			var (
-				basename = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
-				source   = filepath.Join(*workdir, basename+".tar.xz")
-				dsc      = filepath.Join(*workdir, basename+".dsc")
-				changes  = filepath.Join(*workdir, basename+"_source.changes")
+				basename  = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
+				source    = filepath.Join(*workdir, basename+".tar.xz")
+				dsc       = filepath.Join(*workdir, basename+".dsc")
+				changes   = filepath.Join(*workdir, basename+"_source.changes")
+				buildinfo = filepath.Join(*workdir, basename+"_source.buildinfo")
 			)
 			if *signer != "" {
 				build.MustRunCommand("debsign", changes)
 			}
 			if *upload != "" {
-				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes})
+				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes, buildinfo})
 			}
 		}
 	}
