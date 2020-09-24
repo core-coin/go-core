@@ -28,13 +28,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Import SSH key
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan ppa.launchpad.net  >> ~/.ssh/known_hosts
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+      uses: webfactory/ssh-agent@v0.4.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Import GPG key
       uses: crazy-max/ghaction-import-gpg@v3
       with:
