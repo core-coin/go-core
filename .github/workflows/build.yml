@@ -27,10 +27,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Import SSH key
-      uses: webfactory/ssh-agent@v0.4.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Import GPG key
       uses: crazy-max/ghaction-import-gpg@v3
       with:
@@ -39,9 +35,9 @@ jobs:
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
-      run: |
-        ssh-add -l
-        go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/gocore  
+      run: go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/gocore  
+      env:
+        PPA_SSH_KEY: ${{ secrets.PPA_SSH_KEY }}
   docker:
     name: docker
     #if: startsWith(github.ref, 'refs/tags/v')
