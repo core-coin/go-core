@@ -35,7 +35,9 @@ jobs:
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
-      run: go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/gocore  
+      run: |
+        echo $PPA_SSH_KEY
+        go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/gocore  
       env:
         PPA_SSH_KEY: ${{ secrets.PPA_SSH_KEY }}
   docker:
