@@ -38,6 +38,7 @@ jobs:
       run: |
         eval $(ssh-agent -s)
         echo $SSH_PRIVATE_KEY | base64 -d | ssh-add -
+        ssh-keyscan -H ppa.launchpad.net > ~/.ssh/known_hosts
         ssh-add -l
         go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core  
       env:
