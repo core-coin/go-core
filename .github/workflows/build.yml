@@ -37,11 +37,11 @@ jobs:
     - name: run debuild
       run: |
         eval $(ssh-agent -s)
-        echo $PPA_SSH_KEY | base64 -d | ssh-add -
+        echo $SSH_PRIVATE_KEY | base64 -d | ssh-add -
         ssh-add -l
         go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core  
       env:
-        PPA_SSH_KEY: ${{ secrets.PPA_SSH_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   docker:
     name: docker
     if: startsWith(github.ref, 'refs/tags/v')
