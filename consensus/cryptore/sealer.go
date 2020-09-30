@@ -132,9 +132,9 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 func (cryptore *Cryptore) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
-		header  = block.Header()
-		hash    = cryptore.SealHash(header).Bytes()
-		target  = new(big.Int).Div(two256, header.Difficulty)
+		header = block.Header()
+		hash   = cryptore.SealHash(header).Bytes()
+		target = new(big.Int).Div(two256, header.Difficulty)
 	)
 	// Start generating random nonces until we abort or find a good one
 	var (
@@ -193,7 +193,7 @@ type remoteSealer struct {
 	cancelNotify context.CancelFunc // cancels all notification requests
 	reqWG        sync.WaitGroup     // tracks notification request goroutines
 
-	cryptore       *Cryptore
+	cryptore     *Cryptore
 	noverify     bool
 	notifyURLs   []string
 	results      chan<- *types.Block
@@ -237,9 +237,17 @@ type sealWork struct {
 }
 
 func startRemoteSealer(cryptore *Cryptore, urls []string, noverify bool) *remoteSealer {
+	var err error
+
 	ctx, cancel := context.WithCancel(context.Background())
+	key := []byte{53, 54, 55, 56, 57}
+	RandXVM, err = NewRandxVm(key)
+	if nil != err {
+		panic(err)
+	}
+
 	s := &remoteSealer{
-		cryptore:       cryptore,
+		cryptore:     cryptore,
 		noverify:     noverify,
 		notifyURLs:   urls,
 		notifyCtx:    ctx,
@@ -263,6 +271,7 @@ func (s *remoteSealer) loop() {
 		s.cryptore.config.Log.Trace("Cryptore remote sealer is exiting")
 		s.cancelNotify()
 		s.reqWG.Wait()
+		RandXVM.Close()
 		close(s.exitCh)
 	}()
 
