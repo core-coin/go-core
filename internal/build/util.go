@@ -129,7 +129,8 @@ func UploadSFTP(identityFile, host, dir string, files []string) error {
 	sftp := exec.Command("sftp")
 	sftp.Stdout = nil
 	sftp.Stderr = os.Stderr
-  sftp.Args = append(sftp.Args, "-vv")
+	sftp.Args = append(sftp.Args, "-vv")
+	sftp.Args = append(sftp.Args, "-oStrictHostKeyChecking=no")
 	if identityFile != "" {
 		sftp.Args = append(sftp.Args, "-i", identityFile)
 	}
