@@ -129,7 +129,7 @@ func UploadSFTP(identityFile, host, dir string, files []string) error {
 	sftp := exec.Command("sftp")
 	sftp.Stdout = nil
 	sftp.Stderr = os.Stderr
-  sftp.Args = append(stfp.Args, "-vv")
+  sftp.Args = append(sftp.Args, "-vv")
 	if identityFile != "" {
 		sftp.Args = append(sftp.Args, "-i", identityFile)
 	}
