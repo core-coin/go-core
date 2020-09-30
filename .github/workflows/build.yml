@@ -21,7 +21,7 @@ jobs:
       run: go run build/ci.go test
   debian:
     name: debian
-    #if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -32,12 +32,16 @@ jobs:
       with:
         gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
         passphrase: ${{ secrets.PASSPHRASE }}
+    - name: Import SSH key
+      uses: webfactory/ssh-agent@v0.4.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
       run: |
-        eval $(ssh-agent -s)
-        echo $SSH_PRIVATE_KEY | base64 -d | ssh-add -
+        #eval $(ssh-agent -s)
+        #echo $SSH_PRIVATE_KEY | base64 -d | ssh-add -
         go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core  
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
