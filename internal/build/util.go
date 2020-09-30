@@ -126,9 +126,10 @@ func GoTool(tool string, args ...string) *exec.Cmd {
 // The destination host may be specified either as [user@]host[: or as a URI in
 // the form sftp://[user@]host[:port].
 func UploadSFTP(identityFile, host, dir string, files []string) error {
-	sftp := exec.Command("sftp -vv")
+	sftp := exec.Command("sftp")
 	sftp.Stdout = nil
 	sftp.Stderr = os.Stderr
+  sftp.Args = append(stfp.Args, "-vv")
 	if identityFile != "" {
 		sftp.Args = append(sftp.Args, "-i", identityFile)
 	}
