@@ -602,7 +602,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	doneCh := make(chan struct{}, totalPeers)
 	for _, peer := range peers {
 		go func(p *testPeer) {
-			if err := p2p.ExpectMsg(p.app, NewBlockMsg, &newBlockData{Block: chain[0], TD: big.NewInt(0x20)}); err != nil {
+			if err := p2p.ExpectMsg(p.app, NewBlockMsg, &newBlockData{Block: chain[0], TD: big.NewInt(0x8000)}); err != nil {
 				errCh <- err
 			} else {
 				doneCh <- struct{}{}
