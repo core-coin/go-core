@@ -22,6 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -96,7 +97,10 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		pend.Add(1)
 		go func(id int, nonce uint64) {
 			defer pend.Done()
-			cryptore.mine(block, id, nonce, abort, locals)
+
+			vm := newRandXVMWithKey()
+			cryptore.RandXVMs = append(cryptore.RandXVMs, vm)
+			cryptore.mine(vm, block, id, nonce, abort, locals)
 		}(i, uint64(cryptore.rand.Int63()))
 	}
 	// Wait until sealing is terminated or a nonce is found
@@ -105,9 +109,10 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		select {
 		case <-stop:
 			// Outside abort, stop all miner threads
-			vmMutex.Lock()
-			RandXVM.Close()
-			vmMutex.Unlock()
+			fmt.Println("last")
+			for _, vm := range cryptore.RandXVMs {
+				vm.Close()
+			}
 			close(abort)
 		case result = <-locals:
 			// One of the threads found a block, abort all others
@@ -132,7 +137,7 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 
 // mine is the actual proof-of-work miner that searches for a nonce starting from
 // seed that results in correct final block difficulty.
-func (cryptore *Cryptore) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
+func (cryptore *Cryptore) mine(vm *RandxVm, block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
 		header = block.Header()
@@ -164,7 +169,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := hashcryptonight(hash, nonce)
+			digest, result := randomX(vm, hash, nonce)
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
@@ -241,14 +246,7 @@ type sealWork struct {
 }
 
 func startRemoteSealer(cryptore *Cryptore, urls []string, noverify bool) *remoteSealer {
-	var err error
-
 	ctx, cancel := context.WithCancel(context.Background())
-	key := []byte{53, 54, 55, 56, 57}
-	RandXVM, err = NewRandxVm(key)
-	if nil != err {
-		panic(err)
-	}
 
 	s := &remoteSealer{
 		cryptore:     cryptore,

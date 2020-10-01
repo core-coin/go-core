@@ -2,7 +2,6 @@ package cryptore
 
 import (
 	"github.com/ngchain/go-randomx"
-	"sync"
 )
 
 type RandxVm struct {
@@ -48,12 +47,7 @@ func (this *RandxVm) Hash(buf []byte) (ret []byte) {
 	return randomx.CalculateHash(this.vm, buf)
 }
 
-var vmMutex sync.Mutex
-var RandXVM *RandxVm
-
-func randomxhash(buf []byte) (ret []byte) {
-	vmMutex.Lock()
-	ret = RandXVM.Hash(buf)
-	vmMutex.Unlock()
+func randomxhash(vm *RandxVm, buf []byte) (ret []byte) {
+	ret = vm.Hash(buf)
 	return
 }

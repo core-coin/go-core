@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	epochLength        = 30000   // Blocks per epoch
-	mixBytes           = 128     // Width of mix
+	epochLength = 30000 // Blocks per epoch
+	mixBytes    = 128   // Width of mix
 )
 
 // hasher is a repetitive hasher allowing the same hash data structures to be
@@ -77,7 +77,7 @@ func fnv(a, b uint32) uint32 {
 	return a*0x01000193 ^ b
 }
 
-func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
+func randomX(vm *RandxVm, hash []byte, nonce uint64) ([]byte, []byte) {
 	// Combine header+nonce into a 64 byte seed
 	seed := make([]byte, 40)
 	copy(seed, hash)
@@ -102,5 +102,5 @@ func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
 
-	return digest, randomxhash(append(seed, digest...))
+	return digest, randomxhash(vm, append(seed, digest...))
 }
