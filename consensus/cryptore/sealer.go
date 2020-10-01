@@ -150,6 +150,9 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
+			vmMutex.Lock()
+			RandXVM.Close()
+			vmMutex.Unlock()
 			break search
 
 		default:
@@ -271,7 +274,6 @@ func (s *remoteSealer) loop() {
 		s.cryptore.config.Log.Trace("Cryptore remote sealer is exiting")
 		s.cancelNotify()
 		s.reqWG.Wait()
-		RandXVM.Close()
 		close(s.exitCh)
 	}()
 
