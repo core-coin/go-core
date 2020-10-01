@@ -105,6 +105,9 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		select {
 		case <-stop:
 			// Outside abort, stop all miner threads
+			vmMutex.Lock()
+			RandXVM.Close()
+			vmMutex.Unlock()
 			close(abort)
 		case result = <-locals:
 			// One of the threads found a block, abort all others
@@ -150,9 +153,7 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
-			vmMutex.Lock()
-			RandXVM.Close()
-			vmMutex.Unlock()
+
 			break search
 
 		default:
