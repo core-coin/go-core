@@ -22,7 +22,6 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -109,7 +108,6 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		select {
 		case <-stop:
 			// Outside abort, stop all miner threads
-			fmt.Println("last")
 			for _, vm := range cryptore.RandXVMs {
 				vm.Close()
 			}
