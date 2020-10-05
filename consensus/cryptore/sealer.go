@@ -96,10 +96,9 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		pend.Add(1)
 		go func(id int, nonce uint64) {
 			defer pend.Done()
-
 			vm := newRandXVMWithKey()
-			cryptore.RandXVMs = append(cryptore.RandXVMs, vm)
 			cryptore.mine(vm, block, id, nonce, abort, locals)
+			vm.Close()
 		}(i, uint64(cryptore.rand.Int63()))
 	}
 	// Wait until sealing is terminated or a nonce is found
@@ -108,9 +107,6 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		select {
 		case <-stop:
 			// Outside abort, stop all miner threads
-			for _, vm := range cryptore.RandXVMs {
-				vm.Close()
-			}
 			close(abort)
 		case result = <-locals:
 			// One of the threads found a block, abort all others

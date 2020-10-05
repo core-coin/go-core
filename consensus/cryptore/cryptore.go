@@ -60,7 +60,7 @@ type Cryptore struct {
 	config Config
 
 	//RandomX Virtual Machine field
-	RandXVMs []*RandxVm
+	RandXVM *RandxVm
 
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
@@ -89,7 +89,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 		config:   config,
 		update:   make(chan struct{}),
 		hashrate: metrics.NewMeterForced(),
-		RandXVMs: []*RandxVm{newRandXVMWithKey()},
+		RandXVM:  newRandXVMWithKey(),
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -102,7 +102,7 @@ func NewTester(notify []string, noverify bool) *Cryptore {
 		config:   Config{PowMode: ModeTest, Log: log.Root()},
 		update:   make(chan struct{}),
 		hashrate: metrics.NewMeterForced(),
-		RandXVMs: []*RandxVm{newRandXVMWithKey()},
+		RandXVM:  newRandXVMWithKey(),
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -117,7 +117,7 @@ func NewFaker() *Cryptore {
 			PowMode: ModeFake,
 			Log:     log.Root(),
 		},
-		RandXVMs: []*RandxVm{newRandXVMWithKey()},
+		RandXVM: newRandXVMWithKey(),
 	}
 }
 
@@ -131,7 +131,7 @@ func NewFakeFailer(fail uint64) *Cryptore {
 			Log:     log.Root(),
 		},
 		fakeFail: fail,
-		RandXVMs: []*RandxVm{newRandXVMWithKey()},
+		RandXVM:  newRandXVMWithKey(),
 	}
 }
 
@@ -145,7 +145,7 @@ func NewFakeDelayer(delay time.Duration) *Cryptore {
 			Log:     log.Root(),
 		},
 		fakeDelay: delay,
-		RandXVMs:  []*RandxVm{newRandXVMWithKey()},
+		RandXVM:   newRandXVMWithKey(),
 	}
 }
 
@@ -157,14 +157,14 @@ func NewFullFaker() *Cryptore {
 			PowMode: ModeFullFake,
 			Log:     log.Root(),
 		},
-		RandXVMs: []*RandxVm{newRandXVMWithKey()},
+		RandXVM: newRandXVMWithKey(),
 	}
 }
 
 // NewShared creates a full sized cryptore PoW shared between all requesters running
 // in the same process.
 func NewShared() *Cryptore {
-	return &Cryptore{shared: sharedCryptore, RandXVMs: []*RandxVm{newRandXVMWithKey()}}
+	return &Cryptore{shared: sharedCryptore, RandXVM: newRandXVMWithKey()}
 }
 
 // Close closes the exit channel to notify all backend threads exiting.

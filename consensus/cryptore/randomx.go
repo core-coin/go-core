@@ -2,9 +2,11 @@ package cryptore
 
 import (
 	"github.com/ngchain/go-randomx"
+	"sync"
 )
 
 type RandxVm struct {
+	sync.Mutex
 	cache   randomx.Cache
 	dataset randomx.Dataset
 	vm      randomx.VM

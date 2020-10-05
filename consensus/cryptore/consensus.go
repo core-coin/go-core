@@ -380,7 +380,14 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		result []byte
 	)
 
-	digest, result = randomX(cryptore.RandXVMs[0], cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	// verify that randomX virtual machine exists
+	if cryptore.RandXVM == nil {
+		cryptore.RandXVM = newRandXVMWithKey()
+	}
+
+	cryptore.RandXVM.Lock()
+	digest, result = randomX(cryptore.RandXVM, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	cryptore.RandXVM.Unlock()
 
 	// Verify the calculated values against the ones provided in the header
 	if !bytes.Equal(header.MixDigest[:], digest) {
