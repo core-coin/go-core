@@ -50,6 +50,8 @@ func (this *RandxVm) Hash(buf []byte) (ret []byte) {
 }
 
 func randomxhash(vm *RandxVm, buf []byte) (ret []byte) {
+	vm.Lock()
 	ret = vm.Hash(buf)
+	vm.Unlock()
 	return
 }

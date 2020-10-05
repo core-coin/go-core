@@ -96,9 +96,7 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		pend.Add(1)
 		go func(id int, nonce uint64) {
 			defer pend.Done()
-			vm := newRandXVMWithKey()
-			cryptore.mine(vm, block, id, nonce, abort, locals)
-			vm.Close()
+			cryptore.mine(cryptore.RandXVM, block, id, nonce, abort, locals)
 		}(i, uint64(cryptore.rand.Int63()))
 	}
 	// Wait until sealing is terminated or a nonce is found
@@ -267,6 +265,7 @@ func (s *remoteSealer) loop() {
 		s.cryptore.config.Log.Trace("Cryptore remote sealer is exiting")
 		s.cancelNotify()
 		s.reqWG.Wait()
+		s.cryptore.RandXVM.Close()
 		close(s.exitCh)
 	}()
 

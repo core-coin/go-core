@@ -385,9 +385,7 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		cryptore.RandXVM = newRandXVMWithKey()
 	}
 
-	cryptore.RandXVM.Lock()
 	digest, result = randomX(cryptore.RandXVM, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
-	cryptore.RandXVM.Unlock()
 
 	// Verify the calculated values against the ones provided in the header
 	if !bytes.Equal(header.MixDigest[:], digest) {
