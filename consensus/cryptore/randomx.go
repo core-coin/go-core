@@ -6,7 +6,6 @@ import (
 )
 
 type RandxVm struct {
-	sync.Mutex
 	cache   randomx.Cache
 	dataset randomx.Dataset
 	vm      randomx.VM

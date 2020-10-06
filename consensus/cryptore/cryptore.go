@@ -259,12 +259,3 @@ func (cryptore *Cryptore) APIs(chain consensus.ChainReader) []rpc.API {
 func SeedHash(block uint64) []byte {
 	return seedHash(block)
 }
-
-func newRandXVMWithKey() *RandxVm {
-	key := []byte{53, 54, 55, 56, 57}
-	vm, err := NewRandxVm(key)
-	if nil != err {
-		panic(err)
-	}
-	return vm
-}
