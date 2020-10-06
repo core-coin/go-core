@@ -59,8 +59,8 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	//RandomX Virtual Machine field
-	RandXVM *RandxVm
+	randomXVM *RandxVm
+	vmMutex   *sync.Mutex
 
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
@@ -85,11 +85,13 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
+	vm, mutex := newRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:   config,
-		update:   make(chan struct{}),
-		hashrate: metrics.NewMeterForced(),
-		RandXVM:  newRandXVMWithKey(),
+		config:    config,
+		update:    make(chan struct{}),
+		hashrate:  metrics.NewMeterForced(),
+		randomXVM: vm,
+		vmMutex:   mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -98,11 +100,13 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
+	vm, mutex := newRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:   Config{PowMode: ModeTest, Log: log.Root()},
-		update:   make(chan struct{}),
-		hashrate: metrics.NewMeterForced(),
-		RandXVM:  newRandXVMWithKey(),
+		config:    Config{PowMode: ModeTest, Log: log.Root()},
+		update:    make(chan struct{}),
+		hashrate:  metrics.NewMeterForced(),
+		randomXVM: vm,
+		vmMutex:   mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -117,7 +121,6 @@ func NewFaker() *Cryptore {
 			PowMode: ModeFake,
 			Log:     log.Root(),
 		},
-		RandXVM: newRandXVMWithKey(),
 	}
 }
 
@@ -131,7 +134,6 @@ func NewFakeFailer(fail uint64) *Cryptore {
 			Log:     log.Root(),
 		},
 		fakeFail: fail,
-		RandXVM:  newRandXVMWithKey(),
 	}
 }
 
@@ -145,7 +147,6 @@ func NewFakeDelayer(delay time.Duration) *Cryptore {
 			Log:     log.Root(),
 		},
 		fakeDelay: delay,
-		RandXVM:   newRandXVMWithKey(),
 	}
 }
 
@@ -157,14 +158,13 @@ func NewFullFaker() *Cryptore {
 			PowMode: ModeFullFake,
 			Log:     log.Root(),
 		},
-		RandXVM: newRandXVMWithKey(),
 	}
 }
 
 // NewShared creates a full sized cryptore PoW shared between all requesters running
 // in the same process.
 func NewShared() *Cryptore {
-	return &Cryptore{shared: sharedCryptore, RandXVM: newRandXVMWithKey()}
+	return &Cryptore{shared: sharedCryptore}
 }
 
 // Close closes the exit channel to notify all backend threads exiting.

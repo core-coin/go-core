@@ -22,6 +22,7 @@ import (
 	"github.com/core-coin/go-core/crypto"
 	"golang.org/x/crypto/sha3"
 	"hash"
+	"sync"
 )
 
 const (
@@ -77,7 +78,7 @@ func fnv(a, b uint32) uint32 {
 	return a*0x01000193 ^ b
 }
 
-func randomX(vm *RandxVm, hash []byte, nonce uint64) ([]byte, []byte) {
+func randomX(vm *RandxVm, mutex *sync.Mutex, hash []byte, nonce uint64) ([]byte, []byte) {
 	// Combine header+nonce into a 64 byte seed
 	seed := make([]byte, 40)
 	copy(seed, hash)
@@ -102,5 +103,5 @@ func randomX(vm *RandxVm, hash []byte, nonce uint64) ([]byte, []byte) {
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
 
-	return digest, randomxhash(vm, append(seed, digest...))
+	return digest, randomxhash(vm, mutex, append(seed, digest...))
 }

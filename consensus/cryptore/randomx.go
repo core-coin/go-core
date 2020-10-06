@@ -39,6 +39,15 @@ func NewRandxVm(key []byte) (ret *RandxVm, err error) {
 	return
 }
 
+func newRandomXVMWithKeyAndMutex() (*RandxVm, *sync.Mutex) {
+	key := []byte{53, 54, 55, 56, 57}
+	vm, err := NewRandxVm(key)
+	if nil != err {
+		panic(err)
+	}
+	return vm, new(sync.Mutex)
+}
+
 func (this *RandxVm) Close() {
 	randomx.DestroyVM(this.vm)
 	randomx.ReleaseDataset(this.dataset)
@@ -49,9 +58,9 @@ func (this *RandxVm) Hash(buf []byte) (ret []byte) {
 	return randomx.CalculateHash(this.vm, buf)
 }
 
-func randomxhash(vm *RandxVm, buf []byte) (ret []byte) {
-	vm.Lock()
+func randomxhash(vm *RandxVm, mutex *sync.Mutex, buf []byte) (ret []byte) {
+	mutex.Lock()
 	ret = vm.Hash(buf)
-	vm.Unlock()
+	mutex.Unlock()
 	return
 }
