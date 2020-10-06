@@ -265,7 +265,6 @@ func (s *remoteSealer) loop() {
 		s.cryptore.config.Log.Trace("Cryptore remote sealer is exiting")
 		s.cancelNotify()
 		s.reqWG.Wait()
-		s.cryptore.RandXVM.Close()
 		close(s.exitCh)
 	}()
 
