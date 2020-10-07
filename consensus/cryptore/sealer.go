@@ -161,7 +161,10 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := randomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			digest, result, err := randomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			if err != nil {
+				logger.Error(err.Error())
+			}
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)

@@ -1,8 +1,13 @@
 package cryptore
 
 import (
+	"fmt"
 	"github.com/ngchain/go-randomx"
 	"sync"
+)
+
+var (
+	emptyVMError = fmt.Errorf("RandomX virtual machine does not exist and cannot create a hash")
 )
 
 type RandxVm struct {
@@ -57,7 +62,10 @@ func (this *RandxVm) Hash(buf []byte) (ret []byte) {
 	return randomx.CalculateHash(this.vm, buf)
 }
 
-func randomxhash(vm *RandxVm, mutex *sync.Mutex, buf []byte) (ret []byte) {
+func randomxhash(vm *RandxVm, mutex *sync.Mutex, buf []byte) (ret []byte, err error) {
+	if vm == nil {
+		return []byte{}, emptyVMError
+	}
 	mutex.Lock()
 	ret = vm.Hash(buf)
 	mutex.Unlock()

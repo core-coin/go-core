@@ -379,7 +379,10 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		digest []byte
 		result []byte
 	)
-	digest, result = randomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	digest, result, err := randomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	if err != nil {
+		return err
+	}
 
 	// Verify the calculated values against the ones provided in the header
 	if !bytes.Equal(header.MixDigest[:], digest) {
