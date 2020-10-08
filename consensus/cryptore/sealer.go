@@ -132,9 +132,9 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 func (cryptore *Cryptore) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
-		header  = block.Header()
-		hash    = cryptore.SealHash(header).Bytes()
-		target  = new(big.Int).Div(two256, header.Difficulty)
+		header = block.Header()
+		hash   = cryptore.SealHash(header).Bytes()
+		target = new(big.Int).Div(two256, header.Difficulty)
 	)
 	// Start generating random nonces until we abort or find a good one
 	var (
@@ -150,6 +150,7 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
+
 			break search
 
 		default:
@@ -160,7 +161,10 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := hashcryptonight(hash, nonce)
+			digest, result, err := randomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			if err != nil {
+				logger.Error(err.Error())
+			}
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
@@ -193,7 +197,7 @@ type remoteSealer struct {
 	cancelNotify context.CancelFunc // cancels all notification requests
 	reqWG        sync.WaitGroup     // tracks notification request goroutines
 
-	cryptore       *Cryptore
+	cryptore     *Cryptore
 	noverify     bool
 	notifyURLs   []string
 	results      chan<- *types.Block
@@ -238,8 +242,9 @@ type sealWork struct {
 
 func startRemoteSealer(cryptore *Cryptore, urls []string, noverify bool) *remoteSealer {
 	ctx, cancel := context.WithCancel(context.Background())
+
 	s := &remoteSealer{
-		cryptore:       cryptore,
+		cryptore:     cryptore,
 		noverify:     noverify,
 		notifyURLs:   urls,
 		notifyCtx:    ctx,

@@ -334,13 +334,12 @@ func GenesisBlockForTesting(db xcbdb.Database, addr common.Address, balance *big
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:    defaultCoinbaseMainnet,
-		Config:      params.MainnetChainConfig,
-		Timestamp:   1599475790,
-		Mixhash:     common.Hash{},
-		Nonce:       66,
-		EnergyLimit: 5000,
-		Difficulty:  big.NewInt(1),
+		Coinbase:   defaultCoinbaseMainnet,
+		Config:     params.MainnetChainConfig,
+		Timestamp:  1599475790,
+		Mixhash:    common.Hash{},
+		Nonce:      66,
+		Difficulty: big.NewInt(1),
 	}
 }
 
@@ -353,7 +352,6 @@ func DefaultDevinGenesisBlock() *Genesis {
 		Mixhash:     common.Hash{},
 		Nonce:       0x000000000002,
 		EnergyLimit: 0x2fefd8,
-		Difficulty:  big.NewInt(1),
 	}
 }
 

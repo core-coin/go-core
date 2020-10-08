@@ -36,12 +36,12 @@ import (
 
 // Cryptore proof-of-work protocol constants.
 var (
-	BlockReward = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
-	maxUncles                 = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTime    = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+	BlockReward            = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
+	maxUncles              = 2                 // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTime = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
 
 	calcDifficulty = makeDifficultyCalculator()
-	)
+)
 
 // Various error messages to mark blocks invalid. These should be private to
 // prevent engine specific errors from being referenced in the remainder of the
@@ -379,8 +379,10 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		digest []byte
 		result []byte
 	)
-
-	digest, result = hashcryptonight(cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	digest, result, err := randomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	if err != nil {
+		return err
+	}
 
 	// Verify the calculated values against the ones provided in the header
 	if !bytes.Equal(header.MixDigest[:], digest) {
