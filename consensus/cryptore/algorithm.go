@@ -17,17 +17,17 @@
 package cryptore
 
 import (
-	"ekyu.moe/cryptonight"
 	"encoding/binary"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"golang.org/x/crypto/sha3"
 	"hash"
+	"sync"
 )
 
 const (
-	epochLength        = 30000   // Blocks per epoch
-	mixBytes           = 128     // Width of mix
+	epochLength = 30000 // Blocks per epoch
+	mixBytes    = 128   // Width of mix
 )
 
 // hasher is a repetitive hasher allowing the same hash data structures to be
@@ -78,7 +78,7 @@ func fnv(a, b uint32) uint32 {
 	return a*0x01000193 ^ b
 }
 
-func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
+func randomX(vm *RandxVm, mutex *sync.Mutex, hash []byte, nonce uint64) ([]byte, []byte, error) {
 	// Combine header+nonce into a 64 byte seed
 	seed := make([]byte, 40)
 	copy(seed, hash)
@@ -102,5 +102,9 @@ func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
 	for i, val := range mix {
 		binary.LittleEndian.PutUint32(digest[i*4:], val)
 	}
-	return digest, cryptonight.Sum(append(seed, digest...), 2)
+	randXhash, err := randomxhash(vm, mutex, append(seed, digest...))
+	if err != nil {
+		return []byte{}, []byte{}, err
+	}
+	return digest, randXhash, nil
 }
