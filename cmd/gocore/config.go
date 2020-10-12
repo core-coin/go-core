@@ -97,7 +97,7 @@ func loadConfig(file string, cfg *gocoreConfig) error {
 func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
-	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
+	cfg.Version = params.VersionWithCommit(gitTag, gitBranch, gitCommit, gitDate)
 	cfg.HTTPModules = append(cfg.HTTPModules, "xcb")
 	cfg.WSModules = append(cfg.WSModules, "xcb")
 	cfg.IPCPath = "gocore.ipc"

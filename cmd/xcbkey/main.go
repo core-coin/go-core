@@ -29,13 +29,15 @@ const (
 )
 
 // Git SHA1 commit hash of the release (set via linker flags)
+var gitTag = ""
+var gitBranch = ""
 var gitCommit = ""
 var gitDate = ""
 
 var app *cli.App
 
 func init() {
-	app = utils.NewApp(gitCommit, gitDate, "an Core key manager")
+	app = utils.NewApp(gitTag, gitBranch, gitCommit, gitDate, "an Core key manager")
 	app.Commands = []cli.Command{
 		commandGenerate,
 		commandInspect,
