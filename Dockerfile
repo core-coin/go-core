@@ -1,13 +1,12 @@
 # Build Gocore in a stock Go builder container
-FROM golang:1.13-alpine as builder
+FROM golang:1.15-buster as builder
 ARG ALLTOOLS
-RUN apk add --no-cache make gcc musl-dev linux-headers git
 
 ADD . /go-core
 RUN if [[ -n "$ALLTOOLS" ]] ; then cd /go-core && make all ; else cd /go-core && make gocore ; fi
 
 # Pull Gocore into a second stage deploy alpine container
-FROM alpine:latest
+FROM buildpack-deps:buster-scm
 ENV NETWORK=devin
 ENV SYNCMODE=full
 ENV GCMODE=full
@@ -19,7 +18,6 @@ ENV KEYDIR=$DATADIR/keystore
 # 8547/tcp = GraphQL
 # 30300/tcp 30300/udp = Peers
 
-RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-core/build/bin/* /usr/local/bin/
 
 EXPOSE 30300 30300/udp
