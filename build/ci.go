@@ -509,7 +509,7 @@ func doDebianSource(cmdline []string) {
 	for _, pkg := range debPackages {
 		for distro, goboot := range debDistroGoBoots {
 			// Prepare the debian package with the go-core sources.
-			meta := newDebMetadata(distro, goboot, *signer, env, now, pkg.Name, pkg.Version, pkg.Executables)
+			meta := newDebMetadata(distro, goboot, *signer, env, now, pkg.Name, env.Tag, pkg.Executables)
 			pkgdir := stageDebianSource(*workdir, meta)
 
 			// Add Go source code
