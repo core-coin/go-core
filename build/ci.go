@@ -468,6 +468,8 @@ func doDebianSource(cmdline []string) {
 
 	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
 	debVersion := reg.FindString(env.Tag)
+	log.Printf(debVersion)
+	os.Exit(0)
 
 	// A debian package is created for all executables listed here.
 	debCore := debPackage{
