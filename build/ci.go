@@ -119,19 +119,6 @@ var (
 		},
 	}
 
-	// A debian package is created for all executables listed here.
-
-	debCore = debPackage{
-		Name:        "core",
-		Version:     params.Version,
-		Executables: debExecutables,
-	}
-
-	// Debian meta packages to build and push to Ubuntu PPA
-	debPackages = []debPackage{
-		debCore,
-	}
-
 	// Distros for which packages are created.
 	// Note: vivid is unsupported because there is no golang-1.6 package for it.
 	// Note: wily is unsupported because it was officially deprecated on Launchpad.
@@ -142,9 +129,8 @@ var (
 	debDistroGoBoots = map[string]string{
 		"xenial": "golang-go",
 		"bionic": "golang-go",
-		"disco":  "golang-go",
-		"eoan":   "golang-go",
 		"focal":  "golang-go",
+		"trusty": "golang-go",
 	}
 
 	debGoBootPaths = map[string]string{
@@ -462,12 +448,6 @@ func maybeSkipArchive(env build.Environment) {
 		log.Printf("skipping because this is a cron job")
 		os.Exit(0)
 	}
-	/*
-		if env.Branch != "develop" && !strings.HasPrefix(env.Tag, "v1.") {
-			log.Printf("skipping because branch %q, tag %q is not on the whitelist", env.Branch, env.Tag)
-			os.Exit(0)
-		}
-	*/
 }
 
 // Debian Packaging
@@ -505,11 +485,26 @@ func doDebianSource(cmdline []string) {
 	cidepfetch.Env = append(os.Environ(), "GOPATH="+filepath.Join(*workdir, "modgopath"))
 	cidepfetch.Run() // Command fails, don't care, we only need the deps to start it
 
+	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
+	debVersion := reg.FindStringSubmatch(env.Tag)
+
+	// A debian package is created for all executables listed here.
+	debCore = debPackage{
+		Name:        "core",
+		Version:     debVersion,
+		Executables: debExecutables,
+	}
+
+	// Debian meta packages to build and push to Ubuntu PPA
+	debPackages = []debPackage{
+		debCore,
+	}
+
 	// Create Debian packages and upload them.
 	for _, pkg := range debPackages {
 		for distro, goboot := range debDistroGoBoots {
 			// Prepare the debian package with the go-core sources.
-			meta := newDebMetadata(distro, goboot, *signer, env, now, pkg.Name, env.Tag, pkg.Executables)
+			meta := newDebMetadata(distro, goboot, *signer, env, now, pkg.Name, pkg.Version, pkg.Executables)
 			pkgdir := stageDebianSource(*workdir, meta)
 
 			// Add Go source code

@@ -18,7 +18,7 @@ package params
 
 // Version holds the textual version string.
 var Version = func() string {
-	return "#VERSION#";
+	return "99.99.99";
 }()
 
 // ArchiveVersion holds the textual version string used for Gocore archives.
