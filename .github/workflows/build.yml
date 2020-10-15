@@ -56,7 +56,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Version
-      run: sed -i 's/#TAG#/${{github.ref}}/g' params/version.go
+      run: sed -i 's/#TAG#/${GITHUB_REF:10}/g' params/version.go
     - name: Get the version
       id: vars
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
