@@ -459,6 +459,7 @@ func doDebianSource(cmdline []string) {
 		upload    = flag.String("upload", "", `Where to upload the source package (usually "core/core")`)
 		sshUser   = flag.String("sftp-user", "", `Username for SFTP upload (usually "gocore-ci")`)
 		workdir   = flag.String("workdir", "", `Output directory for packages (uses temp dir if unset)`)
+		ver       = flag.String("version", "",`Package version`)
 		now       = time.Now()
 	)
 	flag.CommandLine.Parse(cmdline)
@@ -467,8 +468,7 @@ func doDebianSource(cmdline []string) {
 	maybeSkipArchive(env)
 
 	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-	debVersion := reg.FindString(env.Tag)
-	log.Printf(env.Tag)
+	debVersion := reg.FindString(ver)
 	log.Printf(debVersion)
 	os.Exit(0)
 

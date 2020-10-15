@@ -40,7 +40,7 @@ jobs:
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
       run: |
-        go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core  
+        go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core -version ${{github.ref}}
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   docker:
