@@ -28,8 +28,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
+    - name: Tag
+      id: vars
+      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: Version
-      run: sed -i 's/#TAG#/${GITHUB_REF:10}/g' params/version.go
+      run: sed -i 's/#TAG#/${{steps.vars.outputs.tag}}/g' params/version.go
     - name: Import GPG key
       uses: crazy-max/ghaction-import-gpg@v3
       with:
@@ -55,11 +58,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Version
-      run: sed -i 's/#TAG#/${GITHUB_REF:10}/g' params/version.go
-    - name: Get the version
+    - name: Tag
       id: vars
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+    - name: Version
+      run: sed -i 's/#TAG#/${{steps.vars.outputs.tag}}/g' params/version.go
     - name: docker login
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
     - name: docker build
