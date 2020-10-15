@@ -130,7 +130,6 @@ var (
 		"xenial": "golang-go",
 		"bionic": "golang-go",
 		"focal":  "golang-go",
-		"trusty": "golang-go",
 	}
 
 	debGoBootPaths = map[string]string{
