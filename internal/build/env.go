@@ -86,6 +86,7 @@ func LocalEnv() Environment {
 	if info, err := os.Stat(".git/objects"); err == nil && info.IsDir() && env.Tag == "" {
 		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
 	}
+
 	return env
 }
 

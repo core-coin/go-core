@@ -466,6 +466,21 @@ func doDebianSource(cmdline []string) {
 	env := build.Env()
 	maybeSkipArchive(env)
 
+	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
+	debVersion := reg.FindString(env.Tag)
+
+	// A debian package is created for all executables listed here.
+	debCore := debPackage{
+		Name:        "core",
+		Version:     debVersion,
+		Executables: debExecutables,
+	}
+
+	// Debian meta packages to build and push to Ubuntu PPA
+	debPackages := []debPackage{
+		debCore,
+	}
+
 	// Import the signing key.
 	if key := getenvBase64("PPA_SIGNING_KEY"); len(key) > 0 {
 		gpg := exec.Command("gpg", "--import")
@@ -484,21 +499,6 @@ func doDebianSource(cmdline []string) {
 	cidepfetch := goTool("run", "./build/ci.go")
 	cidepfetch.Env = append(os.Environ(), "GOPATH="+filepath.Join(*workdir, "modgopath"))
 	cidepfetch.Run() // Command fails, don't care, we only need the deps to start it
-
-	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-	debVersion := reg.FindStringSubmatch(env.Tag)
-
-	// A debian package is created for all executables listed here.
-	debCore := debPackage{
-		Name:        "core",
-		Version:     debVersion[0],
-		Executables: debExecutables,
-	}
-
-	// Debian meta packages to build and push to Ubuntu PPA
-	debPackages := []debPackage{
-		debCore,
-	}
 
 	// Create Debian packages and upload them.
 	for _, pkg := range debPackages {
