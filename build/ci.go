@@ -468,7 +468,7 @@ func doDebianSource(cmdline []string) {
 	maybeSkipArchive(env)
 
 	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-	debVersion := reg.FindString(ver)
+	debVersion := reg.FindString(*ver)
 	log.Printf(debVersion)
 	os.Exit(0)
 
