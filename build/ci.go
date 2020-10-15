@@ -253,8 +253,6 @@ func doInstall(cmdline []string) {
 func buildFlags(env build.Environment) (flags []string) {
 	var ld []string
 	if env.Commit != "" {
-		ld = append(ld, "-X", "main.gitTag="+env.Tag)
-		ld = append(ld, "-X", "main.gitBranch="+env.Branch)
 		ld = append(ld, "-X", "main.gitCommit="+env.Commit)
 		ld = append(ld, "-X", "main.gitDate="+env.Date)
 	}
@@ -459,7 +457,6 @@ func doDebianSource(cmdline []string) {
 		upload    = flag.String("upload", "", `Where to upload the source package (usually "core/core")`)
 		sshUser   = flag.String("sftp-user", "", `Username for SFTP upload (usually "gocore-ci")`)
 		workdir   = flag.String("workdir", "", `Output directory for packages (uses temp dir if unset)`)
-		ver       = flag.String("version", "",`Package version`)
 		now       = time.Now()
 	)
 	flag.CommandLine.Parse(cmdline)
@@ -467,13 +464,11 @@ func doDebianSource(cmdline []string) {
 	env := build.Env()
 	maybeSkipArchive(env)
 
-	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-	debVersion := reg.FindString(*ver)
 
 	// A debian package is created for all executables listed here.
 	debCore := debPackage{
 		Name:        "core",
-		Version:     debVersion,
+		Version:     params.Version,
 		Executables: debExecutables,
 	}
 

@@ -36,8 +36,6 @@ import (
 
 var (
 	// Git SHA1 commit hash of the release (set via linker flags)
-	gitTag = ""
-	gitBranch = ""
 	gitCommit = ""
 	gitDate   = ""
 
@@ -102,7 +100,7 @@ var (
 )
 
 func init() {
-	app = utils.NewApp(gitTag, gitBranch, gitCommit, gitDate, "core checkpoint helper tool")
+	app = utils.NewApp(gitCommit, gitDate, "core checkpoint helper tool")
 	app.Flags = []cli.Flag{
 		abiFlag,
 		binFlag,

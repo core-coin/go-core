@@ -16,29 +16,28 @@
 
 package params
 
+import "regexp"
+
 // Version holds the textual version string.
 var Version = func() string {
-	return "99.99.99";
+	tag := "#TAG#";
+	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
+	return reg.FindString(tag)
 }()
 
 // ArchiveVersion holds the textual version string used for Gocore archives.
 // e.g. "1.8.11-dea1ce05" for stable releases, or
 //      "1.8.13-unstable-21c059b6" for unstable releases
 func ArchiveVersion(gitCommit string) string {
+	vsn := Version
 	if len(gitCommit) >= 8 {
-		return "-" + gitCommit[:8]
-	} else {
-		return ""
+		vsn += "-" + gitCommit[:8]
 	}
+	return vsn
 }
 
-func VersionWithCommit(gitTag, gitBranch, gitCommit, gitDate string) string {
-	vsn := ""
-	if (gitTag != "") {
-		vsn += gitTag
-	} else if (gitBranch != "") {
-		vsn += gitBranch
-	}
+func VersionWithCommit(gitCommit, gitDate string) string {
+	vsn := Version
 	if len(gitCommit) >= 8 {
 		vsn += "-" + gitCommit[:8]
 	}
