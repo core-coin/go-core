@@ -63,7 +63,7 @@ func Env() Environment {
 			Date:          getDate(commit),
 			Branch:        os.Getenv("GITHUB_REF"),
 			Tag:           os.Getenv("GITHUB_REF"),
-			Buildnum:      os.Getenv("GITHUB_RUN_NUMBER"),
+			Buildnum:      "",
 			IsPullRequest: false,
 			IsCronJob:     false,
 		}
