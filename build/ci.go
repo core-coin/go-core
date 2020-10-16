@@ -119,6 +119,18 @@ var (
 		},
 	}
 
+	// A debian package is created for all executables listed here.
+	debCore := debPackage{
+		Name:        "go-core",
+		Version:     params.Version,
+		Executables: debExecutables,
+	}
+
+	// Debian meta packages to build and push to Ubuntu PPA
+	debPackages := []debPackage{
+		debCore,
+	}
+
 	// Distros for which packages are created.
 	// Note: vivid is unsupported because there is no golang-1.6 package for it.
 	// Note: wily is unsupported because it was officially deprecated on Launchpad.
@@ -468,19 +480,6 @@ func doDebianSource(cmdline []string) {
 	*workdir = makeWorkdir(*workdir)
 	env := build.Env()
 	maybeSkipArchive(env)
-
-
-	// A debian package is created for all executables listed here.
-	debCore := debPackage{
-		Name:        "core",
-		Version:     params.Version,
-		Executables: debExecutables,
-	}
-
-	// Debian meta packages to build and push to Ubuntu PPA
-	debPackages := []debPackage{
-		debCore,
-	}
 
 	// Import the signing key.
 	if key := getenvBase64("PPA_SIGNING_KEY"); len(key) > 0 {
