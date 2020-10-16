@@ -120,14 +120,14 @@ var (
 	}
 
 	// A debian package is created for all executables listed here.
-	debCore := debPackage{
+	debCore = debPackage{
 		Name:        "go-core",
 		Version:     params.Version,
 		Executables: debExecutables,
 	}
 
 	// Debian meta packages to build and push to Ubuntu PPA
-	debPackages := []debPackage{
+	debPackages = []debPackage{
 		debCore,
 	}
 
