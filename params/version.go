@@ -22,7 +22,9 @@ import (
 
 // Version holds the textual version string.
 var Version = func() string {
-	return "99.99.99"
+	tag := "#TAG#"
+	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
+	return reg.FindString(tag)
 }()
 
 // ArchiveVersion holds the textual version string used for Gocore archives.
