@@ -54,7 +54,22 @@ func (env Environment) String() string {
 // Env returns metadata about the current CI environment, falling back to LocalEnv
 // if not running on CI.
 func Env() Environment {
-	return LocalEnv()
+	if os.Getenv("CI") == "true" && os.Getenv("GITHUB_ACTIONS") == "true" {
+		commit := os.Getenv("GITHUB_SHA")
+		return Environment{
+			Name:          "github actions",
+			Repo:          os.Getenv("GITHUB_REPOSITORY"),
+			Commit:        os.Getenv("GITHUB_SHA"),
+			Date:          getDate(commit),
+			Branch:        os.Getenv("GITHUB_REF"),
+			Tag:           os.Getenv("GITHUB_REF"),
+			Buildnum:      os.Getenv("GITHUB_RUN_NUMBER"),
+			IsPullRequest: false,
+			IsCronJob:     false,
+		}
+	} else {
+		return LocalEnv()
+	}
 }
 
 // LocalEnv returns build environment metadata gathered from git.
@@ -86,7 +101,6 @@ func LocalEnv() Environment {
 	if info, err := os.Stat(".git/objects"); err == nil && info.IsDir() && env.Tag == "" {
 		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
 	}
-
 	return env
 }
 
