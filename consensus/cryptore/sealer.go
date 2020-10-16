@@ -161,7 +161,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result, err := randomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			digest, result, err := RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
 			if err != nil {
 				logger.Error(err.Error())
 			}
