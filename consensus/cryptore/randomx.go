@@ -43,7 +43,7 @@ func NewRandxVm(key []byte) (ret *RandxVm, err error) {
 	return
 }
 
-func newRandomXVMWithKeyAndMutex() (*RandxVm, *sync.Mutex) {
+func NewRandomXVMWithKeyAndMutex() (*RandxVm, *sync.Mutex) {
 	key := []byte{53, 54, 55, 56, 57}
 	vm, err := NewRandxVm(key)
 	if nil != err {

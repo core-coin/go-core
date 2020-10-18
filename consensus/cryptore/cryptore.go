@@ -85,7 +85,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := newRandomXVMWithKeyAndMutex()
+	vm, mutex := NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    config,
 		update:    make(chan struct{}),
@@ -100,7 +100,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
-	vm, mutex := newRandomXVMWithKeyAndMutex()
+	vm, mutex := NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    Config{PowMode: ModeTest, Log: log.Root()},
 		update:    make(chan struct{}),
