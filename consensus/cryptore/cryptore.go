@@ -22,6 +22,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-randomx"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -59,7 +60,7 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	randomXVM *RandxVm
+	randomXVM *randomx.RandxVm
 	vmMutex   *sync.Mutex
 
 	// Mining related fields
@@ -85,7 +86,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := newRandomXVMWithKeyAndMutex()
+	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    config,
 		update:    make(chan struct{}),
@@ -100,7 +101,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
-	vm, mutex := newRandomXVMWithKeyAndMutex()
+	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    Config{PowMode: ModeTest, Log: log.Root()},
 		update:    make(chan struct{}),
