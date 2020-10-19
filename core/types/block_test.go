@@ -49,7 +49,6 @@ func TestBlockEncoding(t *testing.T) {
 	check("EnergyLimit", block.EnergyLimit(), uint64(3141592))
 	check("EnergyUsed", block.EnergyUsed(), uint64(21000))
 	check("Coinbase", block.Coinbase(), coinbase)
-	check("MixDigest", block.MixDigest(), common.HexToHash("bd4472abb6659ebe3ee06ee4d7b72a00a9f4d001caca51342001075469aff498"))
 	check("Root", block.Root(), common.HexToHash("ef1552a40b7165c3cd773806b9e0c165b75356e0314bf0706f279c729f51e017"))
 	check("Hash", block.Hash(), common.HexToHash("fdfbcfcfa3b2892a686304f9c2655cb1a3146462537f39de3448230ebfae16a8"))
 	check("Nonce", block.Nonce(), uint64(0xa13a5a8c8f2bb1c4))

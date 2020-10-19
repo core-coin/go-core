@@ -78,7 +78,7 @@ func fnv(a, b uint32) uint32 {
 	return a*0x01000193 ^ b
 }
 
-func RandomX(vm *RandxVm, mutex *sync.Mutex, hash []byte, nonce uint64) ([]byte, []byte, error) {
+func RandomX(vm *RandxVm, mutex *sync.Mutex, hash []byte, nonce uint64) ([]byte, error) {
 	// Combine header+nonce into a 64 byte seed
 	seed := make([]byte, 40)
 	copy(seed, hash)
@@ -104,7 +104,7 @@ func RandomX(vm *RandxVm, mutex *sync.Mutex, hash []byte, nonce uint64) ([]byte,
 	}
 	randXhash, err := randomxhash(vm, mutex, append(seed, digest...))
 	if err != nil {
-		return []byte{}, []byte{}, err
+		return []byte{}, err
 	}
-	return digest, randXhash, nil
+	return randXhash, nil
 }

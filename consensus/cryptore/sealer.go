@@ -52,7 +52,7 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 	// If we're running a fake PoW, simply return a 0 nonce immediately
 	if cryptore.config.PowMode == ModeFake || cryptore.config.PowMode == ModeFullFake {
 		header := block.Header()
-		header.Nonce, header.MixDigest = types.BlockNonce{}, common.Hash{}
+		header.Nonce = types.BlockNonce{}
 		select {
 		case results <- block.WithSeal(header):
 		default:
@@ -161,7 +161,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result, err := RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			result, err := RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
 			if err != nil {
 				logger.Error(err.Error())
 			}
@@ -169,7 +169,6 @@ search:
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
 				header.Nonce = types.EncodeNonce(nonce)
-				header.MixDigest = common.BytesToHash(digest)
 
 				// Seal and return a block (if still needed)
 				select {
@@ -218,9 +217,8 @@ type sealTask struct {
 
 // mineResult wraps the pow solution parameters for the specified block.
 type mineResult struct {
-	nonce     types.BlockNonce
-	mixDigest common.Hash
-	hash      common.Hash
+	nonce types.BlockNonce
+	hash  common.Hash
 
 	errc chan error
 }
@@ -293,7 +291,7 @@ func (s *remoteSealer) loop() {
 
 		case result := <-s.submitWorkCh:
 			// Verify submitted PoW solution based on maintained mining blocks.
-			if s.submitWork(result.nonce, result.mixDigest, result.hash) {
+			if s.submitWork(result.nonce, result.hash) {
 				result.errc <- nil
 			} else {
 				result.errc <- errInvalidSealResult
@@ -389,7 +387,7 @@ func (s *remoteSealer) sendNotification(ctx context.Context, url string, json []
 // submitWork verifies the submitted pow solution, returning
 // whether the solution was accepted or not (not can be both a bad pow as well as
 // any other error, like no pending work or stale mining result).
-func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash, sealhash common.Hash) bool {
+func (s *remoteSealer) submitWork(nonce types.BlockNonce, sealhash common.Hash) bool {
 	if s.currentBlock == nil {
 		s.cryptore.config.Log.Error("Pending work without block", "sealhash", sealhash)
 		return false
@@ -403,7 +401,6 @@ func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash,
 	// Verify the correctness of submitted result.
 	header := block.Header()
 	header.Nonce = nonce
-	header.MixDigest = mixDigest
 
 	start := time.Now()
 	if !s.noverify {
