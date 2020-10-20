@@ -1,6 +1,6 @@
-module github.com/core-coin/go-core
+module github.com/core-coin/go-core/v2
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Azure/azure-pipeline-go v0.2.2 // indirect
