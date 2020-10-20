@@ -64,7 +64,7 @@ var (
 	}
 	ylemFlag = cli.StringFlag{
 		Name:  "ylem",
-		Usage: "Solidity compiler to use if source builds are requested",
+		Usage: "Ylem compiler to use if source builds are requested",
 		Value: "ylem",
 	}
 	vyFlag = cli.StringFlag{
@@ -190,9 +190,9 @@ func abigen(c *cli.Context) error {
 
 		switch {
 		case c.GlobalIsSet(solFlag.Name):
-			contracts, err = compiler.CompileSolidity(c.GlobalString(ylemFlag.Name), c.GlobalString(solFlag.Name))
+			contracts, err = compiler.CompileYlem(c.GlobalString(ylemFlag.Name), c.GlobalString(solFlag.Name))
 			if err != nil {
-				utils.Fatalf("Failed to build Solidity contract: %v", err)
+				utils.Fatalf("Failed to build Ylem contract: %v", err)
 			}
 		case c.GlobalIsSet(vyFlag.Name):
 			output, err := compiler.CompileVyper(c.GlobalString(vyperFlag.Name), c.GlobalString(vyFlag.Name))

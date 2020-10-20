@@ -42,7 +42,7 @@ func skipWithoutYlem(t *testing.T) {
 func TestSolidityCompiler(t *testing.T) {
 	skipWithoutYlem(t)
 
-	contracts, err := CompileSolidityString("", testSource)
+	contracts, err := CompileYlemString("", testSource)
 	if err != nil {
 		t.Fatalf("error compiling source. result %v: %v", contracts, err)
 	}
@@ -70,7 +70,7 @@ func TestSolidityCompiler(t *testing.T) {
 func TestSolidityCompileError(t *testing.T) {
 	skipWithoutYlem(t)
 
-	contracts, err := CompileSolidityString("", testSource[4:])
+	contracts, err := CompileYlemString("", testSource[4:])
 	if err == nil {
 		t.Errorf("error expected compiling source. got none. result %v", contracts)
 	}
