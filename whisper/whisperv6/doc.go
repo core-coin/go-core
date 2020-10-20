@@ -33,7 +33,7 @@ particularly the notion of singular endpoints.
 package whisperv6
 
 import (
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 	"time"
 )
 

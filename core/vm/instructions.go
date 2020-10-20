@@ -20,10 +20,10 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -690,7 +690,7 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 		value        = stack.pop()
 		offset, size = stack.pop(), stack.pop()
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
-		energy          = contract.Energy
+		energy       = contract.Energy
 	)
 
 	energy -= energy / 64
@@ -721,7 +721,7 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memo
 		offset, size = stack.pop(), stack.pop()
 		salt         = stack.pop()
 		input        = memory.GetCopy(offset.Int64(), size.Int64())
-		energy          = contract.Energy
+		energy       = contract.Energy
 	)
 
 	// Apply CIP150

@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 const testSectionSize = 4096

@@ -30,8 +30,8 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Lang is a target programming language selector to generate bindings for.

@@ -19,10 +19,10 @@ package keystore
 import (
 	"math/big"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // keystoreWallet implements the accounts.Wallet interface for the original

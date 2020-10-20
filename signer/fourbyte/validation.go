@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core/signer/core"
+	"github.com/core-coin/go-core/v2/signer/core"
 )
 
 // ValidateTransaction does a number of checks on the supplied transaction, and

@@ -21,9 +21,9 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 var (

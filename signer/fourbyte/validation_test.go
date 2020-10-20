@@ -20,9 +20,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/signer/core"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/signer/core"
 )
 
 func mixAddr(a string) (*common.Address, error) {

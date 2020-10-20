@@ -24,9 +24,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

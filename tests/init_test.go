@@ -31,7 +31,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Command line flags to configure the interpreters.

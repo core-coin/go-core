@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"

@@ -25,16 +25,16 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/accounts/usbwallet"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/accounts/scwallet"
+	"github.com/core-coin/go-core/v2/accounts/usbwallet"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 const (

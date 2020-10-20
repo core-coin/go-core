@@ -22,12 +22,12 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/blake2b"
-	"github.com/core-coin/go-core/crypto/bn256"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/crypto/blake2b"
+	"github.com/core-coin/go-core/v2/crypto/bn256"
+	"github.com/core-coin/go-core/v2/params"
 
 	//lint:ignore SA1019 Needed for precompile
 	"golang.org/x/crypto/ripemd160"

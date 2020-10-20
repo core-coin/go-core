@@ -23,9 +23,9 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // makeTopics converts a filter query argument list into a filter topic set.

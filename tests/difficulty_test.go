@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (

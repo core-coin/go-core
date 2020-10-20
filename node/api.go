@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // PrivateAdminAPI is the collection of administrative API methods exposed only

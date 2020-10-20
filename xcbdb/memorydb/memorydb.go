@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 var (

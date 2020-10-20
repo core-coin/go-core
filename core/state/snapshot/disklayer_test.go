@@ -21,9 +21,9 @@ import (
 	"testing"
 
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
 )
 
 // reverse reverses the contents of a byte slice. It's used to update random accs

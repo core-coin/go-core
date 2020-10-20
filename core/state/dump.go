@@ -20,11 +20,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 // DumpAccount represents an account in the state.

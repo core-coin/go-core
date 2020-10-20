@@ -30,10 +30,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 const (

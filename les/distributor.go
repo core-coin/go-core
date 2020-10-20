@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/utils"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/les/utils"
 )
 
 // requestDistributor implements a mechanism that distributes requests to

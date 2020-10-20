@@ -17,10 +17,10 @@
 package discv5
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"math/rand"
 	"net"
 	"net/url"
@@ -28,8 +28,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // Node represents a host on the network.

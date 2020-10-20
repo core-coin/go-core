@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/xcb"
 	"gopkg.in/urfave/cli.v1"
 )
 

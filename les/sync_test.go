@@ -22,11 +22,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Test light syncing which will download all headers from genesis.

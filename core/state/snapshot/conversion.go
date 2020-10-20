@@ -20,11 +20,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
 )
 
 // conversionAccount is used for converting between full and slim format. When

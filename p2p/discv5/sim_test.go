@@ -29,7 +29,7 @@ import (
 
 	"github.com/core-coin/eddsa"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // In this test, nodes try to randomly resolve each other.

@@ -19,7 +19,7 @@ package vm
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func TestJumpDestAnalysis(t *testing.T) {

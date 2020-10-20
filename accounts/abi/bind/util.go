@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // WaitMined waits for tx to be mined on the blockchain.

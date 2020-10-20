@@ -19,9 +19,9 @@ package vm
 import (
 	"errors"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // memoryEnergyCost calculates the quadratic energy for memory expansion. It does so
@@ -234,7 +234,7 @@ func energyExp(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 	expByteLen := uint64((stack.data[stack.len()-2].BitLen() + 7) / 8)
 
 	var (
-		energy      = expByteLen * params.ExpByte // no overflow check required. Max is 256 * ExpByte energy
+		energy   = expByteLen * params.ExpByte // no overflow check required. Max is 256 * ExpByte energy
 		overflow bool
 	)
 	if energy, overflow = math.SafeAdd(energy, params.ExpEnergy); overflow {
@@ -245,7 +245,7 @@ func energyExp(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 
 func energyCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	var (
-		energy            uint64
+		energy         uint64
 		transfersValue = stack.Back(2).Sign() != 0
 		address        = common.BigToAddress(stack.Back(1))
 	)
@@ -264,7 +264,7 @@ func energyCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 		return 0, errEnergyUintOverflow
 	}
 
-	cvm.callEnergyTemp, err = callEnergy( contract.Energy, energy, stack.Back(0))
+	cvm.callEnergyTemp, err = callEnergy(contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
@@ -280,7 +280,7 @@ func energyCallCode(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, mem
 		return 0, err
 	}
 	var (
-		energy      uint64
+		energy   uint64
 		overflow bool
 	)
 	if stack.Back(2).Sign() != 0 {

@@ -22,11 +22,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // from bcValidBlockTest.json, "SimpleTx"

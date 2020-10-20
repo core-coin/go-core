@@ -20,10 +20,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // Tests that positional lookup metadata can be stored and retrieved.

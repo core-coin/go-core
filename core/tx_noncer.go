@@ -19,8 +19,8 @@ package core
 import (
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/state"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/state"
 )
 
 // txNoncer is a tiny virtual state database to manage the executable nonces of

@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 	"github.com/stretchr/testify/require"
 )
 

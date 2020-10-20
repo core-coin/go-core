@@ -25,13 +25,13 @@ import (
 	"sync"
 	"time"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbdb"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 var (

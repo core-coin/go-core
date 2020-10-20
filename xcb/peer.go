@@ -23,11 +23,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rlp"
 	mapset "github.com/deckarep/golang-set"
 )
 

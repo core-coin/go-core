@@ -23,7 +23,7 @@ import (
 	mrand "math/rand"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func TestPoWCalculationsWithNoLeadingZeros(t *testing.T) {

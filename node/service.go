@@ -20,12 +20,12 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // ServiceContext is a collection of service independent options inherited from

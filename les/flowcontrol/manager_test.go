@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
+	"github.com/core-coin/go-core/v2/common/mclock"
 )
 
 type testNode struct {

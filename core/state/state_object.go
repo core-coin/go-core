@@ -23,10 +23,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var emptyCodeHash = crypto.SHA3(nil)

@@ -24,7 +24,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var testAddrHex = "cb95a71d3dacb1a805776cb9c17785f040babcbb9fc1"

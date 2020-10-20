@@ -23,7 +23,7 @@ import (
 	"os"
 	"runtime/trace"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // StartGoTrace turns on tracing, writing to the given file.

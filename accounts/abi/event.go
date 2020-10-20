@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // Event is an event potentially triggered by the CVM's LOG mechanism. The Event

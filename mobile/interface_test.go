@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 func TestInterfaceGetSet(t *testing.T) {

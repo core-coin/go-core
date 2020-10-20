@@ -34,12 +34,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rpc"
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/gorilla/websocket"
 )
 

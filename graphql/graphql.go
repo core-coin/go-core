@@ -22,17 +22,17 @@ import (
 	"errors"
 	"time"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb/filters"
+	"github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb/filters"
 )
 
 var (

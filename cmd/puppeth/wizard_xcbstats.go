@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // deployXcbstats queries the user for various input on deploying an xcbstats

@@ -24,15 +24,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 func BenchmarkInsertChain_empty_memdb(b *testing.B) {

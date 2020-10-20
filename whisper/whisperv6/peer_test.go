@@ -27,13 +27,13 @@ import (
 
 	"net"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var keys = []string{

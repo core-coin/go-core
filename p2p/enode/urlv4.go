@@ -17,17 +17,17 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"net"
 	"net/url"
 	"regexp"
 	"strconv"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 var (

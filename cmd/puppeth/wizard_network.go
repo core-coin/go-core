@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // manageServers displays a list of servers the user can disconnect from, and an

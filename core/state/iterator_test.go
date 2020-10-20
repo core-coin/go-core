@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.

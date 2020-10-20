@@ -36,7 +36,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/core-coin/eddsa"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 	"hash"
 	"io"
 )

@@ -21,8 +21,8 @@ import (
 	"io"
 	"sync/atomic"
 
+	"github.com/core-coin/go-core/v2/log"
 	mapset "github.com/deckarep/golang-set"
-	"github.com/core-coin/go-core/log"
 )
 
 const MetadataApi = "rpc"

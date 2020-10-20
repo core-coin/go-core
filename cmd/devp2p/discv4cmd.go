@@ -23,11 +23,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/discover"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/discover"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
 	"gopkg.in/urfave/cli.v1"
 )
 

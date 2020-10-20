@@ -20,16 +20,16 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 type dummyContractRef struct {
 	calledForEach bool
 }
 
-func (dummyContractRef) ReturnEnergy(*big.Int)          {}
+func (dummyContractRef) ReturnEnergy(*big.Int)       {}
 func (dummyContractRef) Address() common.Address     { return common.Address{} }
 func (dummyContractRef) Value() *big.Int             { return new(big.Int) }
 func (dummyContractRef) SetCode(common.Hash, []byte) {}

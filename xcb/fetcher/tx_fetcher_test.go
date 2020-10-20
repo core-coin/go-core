@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 var (

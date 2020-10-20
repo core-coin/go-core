@@ -25,17 +25,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/les/flowcontrol"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/les/flowcontrol"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // requestBenchmark is an interface for different randomized request generators

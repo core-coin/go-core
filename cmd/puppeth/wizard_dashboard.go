@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // deployDashboard queries the user for various input on deploying a web-service

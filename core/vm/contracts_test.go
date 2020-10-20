@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.

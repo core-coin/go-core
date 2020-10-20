@@ -29,9 +29,9 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // Tests that updating a state trie does not leak any database writes prior to

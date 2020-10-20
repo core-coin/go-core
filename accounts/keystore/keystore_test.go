@@ -26,9 +26,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 var testSigData = make([]byte, 32)

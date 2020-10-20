@@ -17,8 +17,8 @@
 package runtime
 
 import (
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 func NewEnv(cfg *Config) *vm.CVM {
@@ -31,8 +31,8 @@ func NewEnv(cfg *Config) *vm.CVM {
 		BlockNumber: cfg.BlockNumber,
 		Time:        cfg.Time,
 		Difficulty:  cfg.Difficulty,
-		EnergyLimit:    cfg.EnergyLimit,
-		EnergyPrice:    cfg.EnergyPrice,
+		EnergyLimit: cfg.EnergyLimit,
+		EnergyPrice: cfg.EnergyPrice,
 	}
 
 	return vm.NewCVM(context, cfg.State, cfg.ChainConfig, cfg.CVMConfig)

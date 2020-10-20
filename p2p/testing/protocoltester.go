@@ -25,21 +25,21 @@ package testing
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"io"
 	"io/ioutil"
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // ProtocolTester is the tester environment used for unit testing protocol

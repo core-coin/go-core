@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 	natpmp "github.com/jackpal/go-nat-pmp"
 )
 
@@ -203,7 +203,6 @@ func (n AutoIP) String() string              { return fmt.Sprintf("AutoIP(%v)", 
 
 func (AutoIP) AddMapping(string, int, int, string, time.Duration) error { return nil }
 func (AutoIP) DeleteMapping(string, int, int) error                     { return nil }
-
 
 // autodisc represents a port mapping mechanism that is still being
 // auto-discovered. Calls to the Interface methods on this type will

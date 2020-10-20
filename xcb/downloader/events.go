@@ -16,7 +16,7 @@
 
 package downloader
 
-import "github.com/core-coin/go-core/core/types"
+import "github.com/core-coin/go-core/v2/core/types"
 
 type DoneEvent struct {
 	Latest *types.Header

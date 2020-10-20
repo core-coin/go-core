@@ -21,7 +21,7 @@ package metrics
 import (
 	"syscall"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // getProcessCPUTime retrieves the process' CPU time since program startup.

@@ -24,8 +24,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/core-coin/go-core/v2/log"
 	mapset "github.com/deckarep/golang-set"
-	"github.com/core-coin/go-core/log"
 )
 
 // fileCache is a cache of files seen during scan of keystore.

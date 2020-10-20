@@ -20,9 +20,9 @@ import (
 	"bytes"
 	"crypto/rand"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/whisper/whisperv6"
 )
 
 type MessageParams struct {

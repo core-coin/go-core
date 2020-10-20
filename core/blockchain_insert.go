@@ -19,10 +19,10 @@ package core
 import (
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // insertStats tracks and reports on block insertion.

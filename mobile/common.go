@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.

@@ -19,7 +19,7 @@ package snapshot
 import (
 	"bytes"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // binaryAccountIterator is a simplistic iterator to step over the accounts in

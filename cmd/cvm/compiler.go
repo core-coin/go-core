@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/core-coin/go-core/cmd/cvm/internal/compiler"
+	"github.com/core-coin/go-core/v2/cmd/cvm/internal/compiler"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

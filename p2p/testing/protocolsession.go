@@ -22,10 +22,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
 )
 
 var errTimedOut = errors.New("timed out")

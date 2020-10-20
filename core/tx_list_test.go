@@ -21,8 +21,8 @@ import (
 	crand "crypto/rand"
 	"testing"
 
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // Tests that transactions can be added to strict lists and list contents and

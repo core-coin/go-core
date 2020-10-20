@@ -34,11 +34,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/bitutil"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/ecies"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common/bitutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/crypto/ecies"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/rlp"
 	"github.com/golang/snappy"
 	"golang.org/x/crypto/sha3"
 )

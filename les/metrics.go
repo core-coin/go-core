@@ -17,8 +17,8 @@
 package les
 
 import (
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/p2p"
 )
 
 var (

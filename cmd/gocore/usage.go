@@ -22,8 +22,8 @@ import (
 	"io"
 	"sort"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/internal/debug"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/internal/debug"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

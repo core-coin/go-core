@@ -21,7 +21,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 // Iterator for disassembled CVM instructions

@@ -17,15 +17,15 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
+	"github.com/core-coin/eddsa"
 	"net"
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 func init() {

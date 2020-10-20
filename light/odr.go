@@ -21,11 +21,11 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR

@@ -21,9 +21,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -76,12 +76,12 @@ type Context struct {
 	GetHash GetHashFunc
 
 	// Message information
-	Origin   common.Address // Provides information for ORIGIN
+	Origin      common.Address // Provides information for ORIGIN
 	EnergyPrice *big.Int       // Provides information for ENERGYPRICE
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
-	EnergyLimit    uint64         // Provides information for ENERGYLIMIT
+	EnergyLimit uint64         // Provides information for ENERGYLIMIT
 	BlockNumber *big.Int       // Provides information for NUMBER
 	Time        *big.Int       // Provides information for TIME
 	Difficulty  *big.Int       // Provides information for DIFFICULTY

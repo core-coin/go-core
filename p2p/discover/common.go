@@ -20,11 +20,11 @@ import (
 	"github.com/core-coin/eddsa"
 	"net"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 // UDPConn is a network connection on which discovery can operate.

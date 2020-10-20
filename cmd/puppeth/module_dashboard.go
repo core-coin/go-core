@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // dashboardDockerfile is the Dockerfile required to build an dashboard container

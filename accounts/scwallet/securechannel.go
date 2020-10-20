@@ -23,7 +23,7 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"fmt"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 	pcsc "github.com/gballet/go-libpcsclite"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
@@ -74,8 +74,8 @@ func NewSecureChannelSession(card *pcsc.Card, keyData []byte) (*SecureChannelSes
 	secret := crypto.ComputeSecret(private, cardPublic)
 
 	return &SecureChannelSession{
-		card: card,
-		secret: secret,
+		card:      card,
+		secret:    secret,
 		publicKey: private.PublicKey.X,
 	}, nil
 }

@@ -19,8 +19,8 @@ package vm
 import (
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 // calcMemSize64 calculates the required memory size, and returns

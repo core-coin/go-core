@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/trie"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // Reduce some of the parameters to make the tester faster.

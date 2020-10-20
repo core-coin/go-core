@@ -17,10 +17,10 @@
 package discv5
 
 import (
-	"github.com/core-coin/eddsa"
-	"fmt"
-	"math/rand"
 	crand "crypto/rand"
+	"fmt"
+	"github.com/core-coin/eddsa"
+	"math/rand"
 
 	"net"
 	"reflect"
@@ -28,8 +28,8 @@ import (
 	"testing/quick"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func TestBucket_bumpNoDuplicates(t *testing.T) {

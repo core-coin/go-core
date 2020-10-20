@@ -19,7 +19,7 @@ package rpc
 import (
 	"net"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // checkModuleAvailability checks that all names given in modules are actually

@@ -21,10 +21,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 	"gopkg.in/urfave/cli.v1"
 )
 

@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/jsre"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/accounts/scwallet"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/internal/jsre"
+	"github.com/core-coin/go-core/v2/rpc"
 	"github.com/dop251/goja"
 )
 

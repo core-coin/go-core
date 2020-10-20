@@ -23,9 +23,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
 	"github.com/karalabe/usb"
 )
 

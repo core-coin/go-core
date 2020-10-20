@@ -23,7 +23,7 @@ const (
 
 // locationTrims are trimmed for display to avoid unwieldy log lines.
 var locationTrims = []string{
-	"github.com/core-coin/go-core/",
+	"github.com/core-coin/go-core/v2/",
 }
 
 // PrintOrigins sets or unsets log location (file:line) printing for terminal

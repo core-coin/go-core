@@ -19,13 +19,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 	"io/ioutil"
 	"strings"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/console"
+	"github.com/core-coin/go-core/v2/crypto"
 	"gopkg.in/urfave/cli.v1"
 )
 

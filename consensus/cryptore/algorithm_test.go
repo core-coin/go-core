@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 // Tests whether the cryptonight lookup works for both light as well as the full

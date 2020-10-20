@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common/fdlimit"
+	"github.com/core-coin/go-core/v2/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

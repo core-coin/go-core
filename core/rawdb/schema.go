@@ -20,8 +20,8 @@ package rawdb
 import (
 	"encoding/binary"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/metrics"
 )
 
 // The fields below define the low level database schema prefixing.

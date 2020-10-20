@@ -19,10 +19,10 @@ package core
 import (
 	"context"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 type AuditLogger struct {

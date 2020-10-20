@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/log"
 	"github.com/olekukonko/tablewriter"
 )
 

@@ -19,8 +19,8 @@
 package gocore
 
 import (
-	"github.com/core-coin/go-core/whisper/shhclient"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/v2/whisper/shhclient"
+	whisper "github.com/core-coin/go-core/v2/whisper/whisperv6"
 )
 
 // WhisperClient provides access to the Core APIs.

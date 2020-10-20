@@ -24,10 +24,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/console"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 

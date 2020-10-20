@@ -22,12 +22,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/prque"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/prque"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
 )
 
 const (

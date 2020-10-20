@@ -21,12 +21,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/trie"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 func NewState(ctx context.Context, head *types.Header, odr OdrBackend) *state.StateDB {

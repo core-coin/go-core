@@ -7,12 +7,12 @@ import (
 	"math/big"
 	"strings"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

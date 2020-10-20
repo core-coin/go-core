@@ -22,10 +22,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/rlp"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rlp"
+	whisper "github.com/core-coin/go-core/v2/whisper/whisperv6"
 )
 
 // A Nonce is a 64-bit hash which proves (combined with the mix-hash) that

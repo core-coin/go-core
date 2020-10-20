@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 // Memory implements a simple memory model for the Core Virtual Machine.
 type Memory struct {
-	store       []byte
+	store          []byte
 	lastEnergyCost uint64
 }
 

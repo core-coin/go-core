@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/internal/cmdtest"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/internal/cmdtest"
+	"github.com/core-coin/go-core/v2/rpc"
 	"github.com/docker/docker/pkg/reexec"
 )
 

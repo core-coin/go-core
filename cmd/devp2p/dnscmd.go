@@ -26,11 +26,11 @@ import (
 
 	"github.com/core-coin/eddsa"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
-	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/console"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

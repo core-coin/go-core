@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // Prove constructs a merkle proof for key. The result contains all encoded nodes

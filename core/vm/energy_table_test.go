@@ -21,11 +21,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func TestMemoryEnergyCost(t *testing.T) {

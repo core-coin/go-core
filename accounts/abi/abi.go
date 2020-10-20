@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // The ABI holds information about a contract's context and available

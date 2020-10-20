@@ -22,7 +22,7 @@ package gocore
 import (
 	"errors"
 
-	"github.com/core-coin/go-core/p2p/discv5"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
 )
 
 // Enode represents a host on the network.

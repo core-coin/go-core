@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // deployWallet creates a new web wallet based on some user input.

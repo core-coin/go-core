@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // SampleService is a trivial network service that can be attached to a node for

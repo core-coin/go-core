@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 func TestState(t *testing.T) {

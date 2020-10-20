@@ -19,7 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // ContractRef is a reference to the contract's backing object
@@ -57,8 +57,8 @@ type Contract struct {
 	CodeAddr *common.Address
 	Input    []byte
 
-	Energy   uint64
-	value *big.Int
+	Energy uint64
+	value  *big.Int
 }
 
 // NewContract returns a new contract environment for the execution of CVM.

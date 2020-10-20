@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // In this example, our client wishes to track the latest 'block number'

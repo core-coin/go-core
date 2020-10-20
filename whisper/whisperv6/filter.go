@@ -17,14 +17,14 @@
 package whisperv6
 
 import (
+	"bytes"
 	"fmt"
 	"sync"
-	"bytes"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/eddsa"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Filter represents a Whisper message filter

@@ -17,18 +17,18 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"math/bits"
 	"math/rand"
 	"net"
 	"strings"
 
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var errMissingPrefix = errors.New("missing 'enr:' prefix for base64-encoded record")

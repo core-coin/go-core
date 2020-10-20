@@ -19,22 +19,22 @@ package checkpointoracle
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
+	"github.com/core-coin/eddsa"
 	"math/big"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind/backends"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/contracts/checkpointoracle/contract"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (

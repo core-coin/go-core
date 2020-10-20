@@ -6,13 +6,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcb/energyprice"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
+	"github.com/core-coin/go-core/v2/xcb/energyprice"
 )
 
 // MarshalTOML marshals as TOML.

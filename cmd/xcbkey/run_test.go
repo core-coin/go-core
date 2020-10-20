@@ -21,7 +21,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/internal/cmdtest"
+	"github.com/core-coin/go-core/v2/internal/cmdtest"
 	"github.com/docker/docker/pkg/reexec"
 )
 

@@ -26,11 +26,11 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/params"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
-	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/params"
+	whisper "github.com/core-coin/go-core/v2/whisper/whisperv6"
+	"github.com/core-coin/go-core/v2/xcb"
 	"github.com/naoina/toml"
 )
 

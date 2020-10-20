@@ -23,11 +23,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcbdb"
-	"github.com/core-coin/go-core/xcbdb/leveldb"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb/leveldb"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
 	"github.com/olekukonko/tablewriter"
 )
 

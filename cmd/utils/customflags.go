@@ -26,7 +26,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common/math"
 	"gopkg.in/urfave/cli.v1"
 )
 

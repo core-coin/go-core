@@ -34,11 +34,11 @@ import (
 
 	"github.com/core-coin/eddsa"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 var (

@@ -20,9 +20,9 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
 )
 
 // Tests that given a database with random data content, all parts of a snapshot

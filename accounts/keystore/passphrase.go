@@ -38,9 +38,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"

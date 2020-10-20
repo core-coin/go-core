@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 	"golang.org/x/crypto/pbkdf2"
 )
 

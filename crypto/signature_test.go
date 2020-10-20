@@ -19,17 +19,17 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 var (
-	testmsg     = common.Hex2Bytes("ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
-	testsig     = common.Hex2Bytes("d89625e1348f5444e4aa07c65b6810d4984d2d75d28de35e4bf79cf2bf6068d6922e2628a7111ff91d6c676f0be5c9d464ea935045ad8cb0f0e29c15cd4473a474e3c950214d6303633c4abee7d4d1582530d1bc9f75d37754f6ed82bfafb4a70b3283ca6dc996815b0042eedd7c873671583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
-	testpubkey  = common.Hex2Bytes("71583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
+	testmsg    = common.Hex2Bytes("ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
+	testsig    = common.Hex2Bytes("d89625e1348f5444e4aa07c65b6810d4984d2d75d28de35e4bf79cf2bf6068d6922e2628a7111ff91d6c676f0be5c9d464ea935045ad8cb0f0e29c15cd4473a474e3c950214d6303633c4abee7d4d1582530d1bc9f75d37754f6ed82bfafb4a70b3283ca6dc996815b0042eedd7c873671583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
+	testpubkey = common.Hex2Bytes("71583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
 )
 
 func TestEcrecover(t *testing.T) {

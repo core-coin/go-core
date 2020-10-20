@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // ensureVirtualHost checks whether a reverse-proxy is running on the specified

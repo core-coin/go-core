@@ -21,11 +21,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 var errInvalidCheckpoint = errors.New("invalid advertised checkpoint")

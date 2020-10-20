@@ -21,10 +21,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 )

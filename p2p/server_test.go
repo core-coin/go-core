@@ -17,21 +17,21 @@
 package p2p
 
 import (
-	"github.com/core-coin/eddsa"
+	crand "crypto/rand"
 	"errors"
+	"github.com/core-coin/eddsa"
 	"io"
 	"math/rand"
-	crand "crypto/rand"
 	"net"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/testlog"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/testlog"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 	"golang.org/x/crypto/sha3"
 )
 

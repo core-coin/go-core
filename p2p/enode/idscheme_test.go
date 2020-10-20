@@ -18,13 +18,13 @@ package enode
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
+	"github.com/core-coin/eddsa"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

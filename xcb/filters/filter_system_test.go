@@ -25,17 +25,17 @@ import (
 	"testing"
 	"time"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbdb"
+	gocore "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 type testBackend struct {

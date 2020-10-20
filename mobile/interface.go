@@ -22,7 +22,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // Interface represents a wrapped version of Go's interface{}, with the capacity

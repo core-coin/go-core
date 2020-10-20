@@ -22,8 +22,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 type JSONLogger struct {
@@ -50,8 +50,8 @@ func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost u
 	log := StructLog{
 		Pc:            pc,
 		Op:            op,
-		Energy:           energy,
-		EnergyCost:       cost,
+		Energy:        energy,
+		EnergyCost:    cost,
 		MemorySize:    memory.Len(),
 		Storage:       nil,
 		Depth:         depth,
@@ -75,10 +75,10 @@ func (l *JSONLogger) CaptureFault(env *CVM, pc uint64, op OpCode, energy, cost u
 // CaptureEnd is triggered at end of execution.
 func (l *JSONLogger) CaptureEnd(output []byte, energyUsed uint64, t time.Duration, err error) error {
 	type endLog struct {
-		Output  string              `json:"output"`
+		Output     string              `json:"output"`
 		EnergyUsed math.HexOrDecimal64 `json:"energyUsed"`
-		Time    time.Duration       `json:"time"`
-		Err     string              `json:"error,omitempty"`
+		Time       time.Duration       `json:"time"`
+		Err        string              `json:"error,omitempty"`
 	}
 	if err != nil {
 		return l.encoder.Encode(endLog{common.Bytes2Hex(output), math.HexOrDecimal64(energyUsed), t, err.Error()})

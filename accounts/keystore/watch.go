@@ -21,7 +21,7 @@ package keystore
 import (
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 	"github.com/rjeczalik/notify"
 )
 

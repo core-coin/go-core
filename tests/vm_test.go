@@ -19,7 +19,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 func TestVM(t *testing.T) {

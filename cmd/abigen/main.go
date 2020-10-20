@@ -25,12 +25,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common/compiler"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common/compiler"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

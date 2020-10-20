@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 // Lengths of hashes and addresses in bytes.

@@ -17,16 +17,16 @@
 package les
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	"io"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // Constants to match up protocol versions and messages

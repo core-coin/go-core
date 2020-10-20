@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 // lookup performs a network search for nodes close to the given target. It approaches the

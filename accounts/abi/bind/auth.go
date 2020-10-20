@@ -23,12 +23,12 @@ import (
 
 	"github.com/core-coin/eddsa"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/external"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/external"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // NewTransactor is a utility method to easily create a transaction signer from

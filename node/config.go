@@ -27,17 +27,17 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/external"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/accounts/usbwallet"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/external"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/accounts/scwallet"
+	"github.com/core-coin/go-core/v2/accounts/usbwallet"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 const (

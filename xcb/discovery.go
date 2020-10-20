@@ -17,12 +17,12 @@
 package xcb
 
 import (
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // xcbEntry is the "xcb" ENR entry which advertises xcb protocol

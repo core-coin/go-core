@@ -26,7 +26,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // makeWizard creates and returns a new puppxcb wizard.

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Enabled is checked by the constructor functions for all of the

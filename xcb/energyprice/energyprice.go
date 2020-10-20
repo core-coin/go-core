@@ -22,11 +22,11 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 var maxPrice = big.NewInt(500 * params.Nucle)

@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // explorerDockerfile is the Dockerfile required to run a block explorer.

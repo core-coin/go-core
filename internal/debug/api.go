@@ -34,7 +34,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Handler is the global debugging handler.

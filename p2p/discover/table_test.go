@@ -17,10 +17,10 @@
 package discover
 
 import (
-	"github.com/core-coin/eddsa"
-	"fmt"
-	"math/rand"
 	crand "crypto/rand"
+	"fmt"
+	"github.com/core-coin/eddsa"
+	"math/rand"
 
 	"net"
 	"reflect"
@@ -28,10 +28,10 @@ import (
 	"testing/quick"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 func TestTable_pingReplace(t *testing.T) {

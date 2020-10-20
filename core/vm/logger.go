@@ -23,10 +23,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // Storage represents a contract's storage.
@@ -58,8 +58,8 @@ type LogConfig struct {
 type StructLog struct {
 	Pc            uint64                      `json:"pc"`
 	Op            OpCode                      `json:"op"`
-	Energy           uint64                      `json:"energy"`
-	EnergyCost       uint64                      `json:"energyCost"`
+	Energy        uint64                      `json:"energy"`
+	EnergyCost    uint64                      `json:"energyCost"`
 	Memory        []byte                      `json:"memory"`
 	MemorySize    int                         `json:"memSize"`
 	Stack         []*big.Int                  `json:"stack"`
@@ -72,8 +72,8 @@ type StructLog struct {
 // overrides for gencodec
 type structLogMarshaling struct {
 	Stack       []*math.HexOrDecimal256
-	Energy         math.HexOrDecimal64
-	EnergyCost     math.HexOrDecimal64
+	Energy      math.HexOrDecimal64
+	EnergyCost  math.HexOrDecimal64
 	Memory      hexutil.Bytes
 	OpName      string `json:"opName"` // adds call to OpName() in MarshalJSON
 	ErrorString string `json:"error"`  // adds call to ErrorString() in MarshalJSON

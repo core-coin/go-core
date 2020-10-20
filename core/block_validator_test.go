@@ -21,11 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Tests that simple header verification works, for both good and bad blocks.

@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // walletDockerfile is the Dockerfile required to run a web wallet.

@@ -21,8 +21,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
 )
 

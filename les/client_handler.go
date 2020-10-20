@@ -22,14 +22,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // clientHandler is responsible for receiving and processing all incoming server

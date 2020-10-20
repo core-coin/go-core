@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // AccountIterator is an iterator to step over all the accounts in a snapshot,

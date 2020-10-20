@@ -23,16 +23,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // Backend wraps all methods required for mining.

@@ -18,16 +18,16 @@ package mailserver
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
+	"github.com/core-coin/eddsa"
 	"io/ioutil"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	whisper "github.com/core-coin/go-core/v2/whisper/whisperv6"
 )
 
 const powRequirement = 0.00001

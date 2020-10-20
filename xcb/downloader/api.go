@@ -20,9 +20,9 @@ import (
 	"context"
 	"sync"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/rpc"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // PublicDownloaderAPI provides an API which gives information about the current synchronisation status.

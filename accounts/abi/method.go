@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // Method represents a callable given a `Name` and whether the method is a constant.

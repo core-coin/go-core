@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/rlp"
 	"golang.org/x/crypto/sha3"
 )
 

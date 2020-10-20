@@ -22,14 +22,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/trie"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/trie"
 )
 
 func TestNodeIterator(t *testing.T) {

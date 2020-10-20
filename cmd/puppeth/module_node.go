@@ -26,13 +26,13 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // nodeDockerfile is the Dockerfile required to run an Core node.
 var nodeDockerfile = `
-FROM docker.pkg.github.com/core-coin/go-core/gocore:latest
+FROM docker.pkg.github.com/core-coin/go-core/v2/gocore:latest
 
 ADD genesis.json /genesis.json
 {{if .Unlock}}

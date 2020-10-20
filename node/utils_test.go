@@ -22,8 +22,8 @@ package node
 import (
 	"reflect"
 
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // NoopService is a trivial implementation of the Service interface.

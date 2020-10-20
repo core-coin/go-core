@@ -22,11 +22,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/rules/deps"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/rules/deps"
+	"github.com/core-coin/go-core/v2/signer/storage"
 	"github.com/dop251/goja"
 )
 

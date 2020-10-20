@@ -25,14 +25,14 @@ import (
 	"net"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/discover"
-	"github.com/core-coin/go-core/p2p/discv5"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/discover"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 func main() {

@@ -23,8 +23,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // decodedCallData is an internal type to represent a method call parsed according

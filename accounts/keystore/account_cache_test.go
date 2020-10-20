@@ -28,8 +28,8 @@ import (
 	"time"
 
 	"github.com/cespare/cp"
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
 	"github.com/davecgh/go-spew/spew"
 )
 

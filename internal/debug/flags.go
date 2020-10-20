@@ -24,9 +24,9 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/metrics/exp"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/metrics/exp"
 	"github.com/fjl/memsize/memsizeui"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"

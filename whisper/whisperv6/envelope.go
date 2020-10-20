@@ -19,17 +19,17 @@
 package whisperv6
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
+	"github.com/core-coin/eddsa"
 	gmath "math"
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/ecies"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/crypto/ecies"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // Envelope represents a clear-text data packet to transmit through the Whisper

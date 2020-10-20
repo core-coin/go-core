@@ -21,7 +21,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 	"golang.org/x/crypto/pbkdf2"
 )
 

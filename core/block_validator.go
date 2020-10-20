@@ -19,10 +19,10 @@ package core
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and

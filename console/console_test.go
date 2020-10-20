@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/internal/jsre"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/internal/jsre"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 const (

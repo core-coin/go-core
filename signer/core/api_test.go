@@ -28,16 +28,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/fourbyte"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/fourbyte"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 //Used for testing

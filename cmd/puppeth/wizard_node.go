@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // deployNode creates a new node configuration based on some user input.

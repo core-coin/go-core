@@ -21,17 +21,17 @@ package whisperv6
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
+	"github.com/core-coin/eddsa"
 	mrand "math/rand"
 	"strconv"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/ecies"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/crypto/ecies"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // MessageParams specifies the exact way a message should be wrapped

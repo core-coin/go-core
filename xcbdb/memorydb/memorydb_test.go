@@ -19,8 +19,8 @@ package memorydb
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/xcbdb"
-	"github.com/core-coin/go-core/xcbdb/dbtest"
+	"github.com/core-coin/go-core/v2/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb/dbtest"
 )
 
 func TestMemoryDB(t *testing.T) {

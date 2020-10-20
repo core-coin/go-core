@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // Strings represents s slice of strs.
