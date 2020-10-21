@@ -16,7 +16,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Granting private modules access
-      run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+      run: git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
     - name: Build
       run: go run build/ci.go install
     - name: Test
