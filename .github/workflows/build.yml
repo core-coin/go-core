@@ -16,9 +16,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
-      run: |
-      export GOPRIVATE=github.com/core-coin/go-randomx
-      go run build/ci.go install
+      run: export GOPRIVATE=github.com/core-coin/go-randomx | go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
   deploy:
