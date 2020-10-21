@@ -15,10 +15,10 @@ jobs:
       id: go
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Granting private modules access
-      run: git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
     - name: Build
-      run: go run build/ci.go install
+      run: |
+      export GOPRIVATE=github.com/core-coin/go-randomx
+      go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
   deploy:
