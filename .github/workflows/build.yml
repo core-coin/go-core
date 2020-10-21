@@ -8,6 +8,8 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Granting private modules access
+      run: git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/core-coin".insteadOf "https://github.com/core-coin"
     - name: Setup
       uses: actions/setup-go@v1
       with:
@@ -17,8 +19,6 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: go run build/ci.go install
-      env:
-        GOPRIVATE: github.com/core-coin/go-randomx
     - name: Test
       run: go run build/ci.go test
   deploy:
