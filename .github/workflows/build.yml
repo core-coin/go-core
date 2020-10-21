@@ -8,8 +8,6 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - name: Granting private modules access
-      run: git config --global url."git@github.com:".insteadOf "https://github.com/"
     - name: Setup
       uses: actions/setup-go@v1
       with:
@@ -17,6 +15,8 @@ jobs:
       id: go
     - name: Checkout
       uses: actions/checkout@v1
+    - name: Granting private modules access
+      run: git config --global url."git@github.com:".insteadOf "https://github.com/"
     - name: Build
       run: go run build/ci.go install
     - name: Test
