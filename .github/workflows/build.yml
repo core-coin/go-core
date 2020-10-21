@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Granting private modules access
-      run: git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/core-coin".insteadOf "https://github.com/core-coin"
+      run: git config --global url."git@github.com:".insteadOf "https://github.com/"
     - name: Setup
       uses: actions/setup-go@v1
       with:
