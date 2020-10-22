@@ -85,8 +85,8 @@ func SolidityVersion(ylem string) (*Solidity, error) {
 	return s, nil
 }
 
-// CompileSolidityString builds and returns all the contracts contained within a source string.
-func CompileSolidityString(ylem, source string) (map[string]*Contract, error) {
+// CompileYlemString builds and returns all the contracts contained within a source string.
+func CompileYlemString(ylem, source string) (map[string]*Contract, error) {
 	if len(source) == 0 {
 		return nil, errors.New("ylem: empty source string")
 	}
@@ -100,8 +100,8 @@ func CompileSolidityString(ylem, source string) (map[string]*Contract, error) {
 	return s.run(cmd, source)
 }
 
-// CompileSolidity compiles all given Solidity source files.
-func CompileSolidity(ylem string, sourcefiles ...string) (map[string]*Contract, error) {
+// CompileYlem compiles all given Solidity source files.
+func CompileYlem(ylem string, sourcefiles ...string) (map[string]*Contract, error) {
 	if len(sourcefiles) == 0 {
 		return nil, errors.New("ylem: no source files")
 	}
