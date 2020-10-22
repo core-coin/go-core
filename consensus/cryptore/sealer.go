@@ -22,6 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
+	"github.com/core-coin/go-randomx"
 	"math"
 	"math/big"
 	"math/rand"
@@ -161,7 +162,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result, err := RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			digest, result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
 			if err != nil {
 				logger.Error(err.Error())
 			}
