@@ -19,6 +19,7 @@ package cryptore
 import (
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-randomx"
 	"math/big"
 	"runtime"
 	"time"
@@ -374,7 +375,7 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 
 	// Recompute PoW values
 	var result []byte
-	result, err := RandomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,8 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common/hexutil"
+
+	"github.com/core-coin/go-randomx"
 )
 
 // Tests whether the cryptonight lookup works for both light as well as the full
@@ -30,9 +32,9 @@ func TestCryptonight(t *testing.T) {
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
-	wantResult := hexutil.MustDecode("0x1f375cf3374bfa1bbda32674ef9077e7823b95a1a92ed07b5cea4d6004abf012")
-	vm, mutex := NewRandomXVMWithKeyAndMutex()
-	result, err := RandomX(vm, mutex, hash, nonce)
+	wantResult := hexutil.MustDecode("0x3bf47a8683fe5e1be74ac8a6e66a2c908339a756b26df737e706a6e50cfa419c")
+	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
+	result, err := randomx.RandomX(vm, mutex, hash, nonce)
 	if err != nil {
 		t.Error(err)
 	}
