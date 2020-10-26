@@ -17,7 +17,6 @@
 package cryptore
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/core-coin/go-randomx"
@@ -55,7 +54,6 @@ var (
 	errUncleIsAncestor   = errors.New("uncle is ancestor")
 	errDanglingUncle     = errors.New("uncle's parent is not ancestor")
 	errInvalidDifficulty = errors.New("non-positive difficulty")
-	errInvalidMixDigest  = errors.New("invalid mix digest")
 	errInvalidPoW        = errors.New("invalid proof-of-work")
 )
 
@@ -375,20 +373,13 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		return errInvalidDifficulty
 	}
 
-	// Recompute the digest and PoW values
-	var (
-		digest []byte
-		result []byte
-	)
-	digest, result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	// Recompute PoW values
+	var result []byte
+	result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
 	if err != nil {
 		return err
 	}
 
-	// Verify the calculated values against the ones provided in the header
-	if !bytes.Equal(header.MixDigest[:], digest) {
-		return errInvalidMixDigest
-	}
 	target := new(big.Int).Div(two256, header.Difficulty)
 	if new(big.Int).SetBytes(result).Cmp(target) > 0 {
 		return errInvalidPoW

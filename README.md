@@ -151,7 +151,6 @@ First, you'll need to create the genesis state of your networks, which all nodes
   "extraData": "",
   "energyLimit": "0x2fefd8",
   "nonce": "0x0000000000000042",
-  "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "timestamp": "0x00"
 }
