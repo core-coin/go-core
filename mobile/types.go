@@ -28,7 +28,7 @@ import (
 	whisper "github.com/core-coin/go-core/whisper/whisperv6"
 )
 
-// A Nonce is a 64-bit hash which proves (combined with the mix-hash) that
+// A Nonce is a 64-bit hash which proves that
 // a sufficient amount of computation has been carried out on a block.
 type Nonce struct {
 	nonce types.BlockNonce
@@ -110,7 +110,6 @@ func (h *Header) GetEnergyLimit() int64  { return int64(h.header.EnergyLimit) }
 func (h *Header) GetEnergyUsed() int64   { return int64(h.header.EnergyUsed) }
 func (h *Header) GetTime() int64         { return int64(h.header.Time) }
 func (h *Header) GetExtra() []byte       { return h.header.Extra }
-func (h *Header) GetMixDigest() *Hash    { return &Hash{h.header.MixDigest} }
 func (h *Header) GetNonce() *Nonce       { return &Nonce{h.header.Nonce} }
 func (h *Header) GetHash() *Hash         { return &Hash{h.header.Hash()} }
 
@@ -181,7 +180,6 @@ func (b *Block) GetEnergyLimit() int64          { return int64(b.block.EnergyLim
 func (b *Block) GetEnergyUsed() int64           { return int64(b.block.EnergyUsed()) }
 func (b *Block) GetTime() int64                 { return int64(b.block.Time()) }
 func (b *Block) GetExtra() []byte               { return b.block.Extra() }
-func (b *Block) GetMixDigest() *Hash            { return &Hash{b.block.MixDigest()} }
 func (b *Block) GetNonce() int64                { return int64(b.block.Nonce()) }
 func (b *Block) GetHash() *Hash                 { return &Hash{b.block.Hash()} }
 func (b *Block) GetHeader() *Header             { return &Header{b.block.Header()} }

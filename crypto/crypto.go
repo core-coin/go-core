@@ -31,7 +31,6 @@ import (
 )
 
 const SignatureLength = 112 + 56
-const DigestLength = 32
 const PubkeyLength = 56
 const PrivkeyLength = 144
 

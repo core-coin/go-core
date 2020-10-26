@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0x366db1fc), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0xc5220bd8), Next: 0}},
 			},
 		},
 		// Devin test cases
@@ -51,7 +51,7 @@ func TestCreation(t *testing.T) {
 			params.DevinChainConfig,
 			params.DevinGenesisHash,
 			[]testcase{
-				{10, ID{Hash: checksumToBytes(0x4c70d0a5), Next: 0}},
+				{10, ID{Hash: checksumToBytes(0xb15a6730), Next: 0}},
 			},
 		},
 		// Koliba test cases
@@ -59,7 +59,7 @@ func TestCreation(t *testing.T) {
 			params.KolibaChainConfig,
 			params.KolibaGenesisHash,
 			[]testcase{
-				{1561651, ID{Hash: checksumToBytes(0xe37ebcf4), Next: 0}},
+				{1561651, ID{Hash: checksumToBytes(0x3264e4dc), Next: 0}},
 			},
 		},
 	}

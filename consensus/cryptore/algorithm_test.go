@@ -32,15 +32,11 @@ func TestCryptonight(t *testing.T) {
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
-	wantDigest := hexutil.MustDecode("0x7496850e31f0c8b44aae2d57704312657496850e31f0c8b44aae2d5770431265")
-	wantResult := hexutil.MustDecode("0x1f375cf3374bfa1bbda32674ef9077e7823b95a1a92ed07b5cea4d6004abf012")
+	wantResult := hexutil.MustDecode("0x3bf47a8683fe5e1be74ac8a6e66a2c908339a756b26df737e706a6e50cfa419c")
 	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
-	digest, result, err := randomx.RandomX(vm, mutex, hash, nonce)
+	result, err := randomx.RandomX(vm, mutex, hash, nonce)
 	if err != nil {
 		t.Error(err)
-	}
-	if !bytes.Equal(digest, wantDigest) {
-		t.Errorf("cryptonight digest mismatch: have %x, want %x", digest, wantDigest)
 	}
 	if !bytes.Equal(result, wantResult) {
 		t.Errorf("cryptonight result mismatch: have %x, want %x", result, wantResult)

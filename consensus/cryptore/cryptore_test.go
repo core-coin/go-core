@@ -41,7 +41,6 @@ func TestTestMode(t *testing.T) {
 	select {
 	case block := <-results:
 		header.Nonce = types.EncodeNonce(block.Nonce())
-		header.MixDigest = block.MixDigest()
 		if err := cryptore.VerifySeal(nil, header); err != nil {
 			t.Fatalf("unexpected verification error: %v", err)
 		}
@@ -74,7 +73,7 @@ func TestRemoteSealer(t *testing.T) {
 		t.Error("expect to return a mining work has same hash")
 	}
 
-	if res := api.SubmitWork(types.BlockNonce{}, sealhash, common.Hash{}); res {
+	if res := api.SubmitWork(types.BlockNonce{}, sealhash); res {
 		t.Error("expect to return false when submit a fake solution")
 	}
 	// Push new block with same block number to replace the original one.

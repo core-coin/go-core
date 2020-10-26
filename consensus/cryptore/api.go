@@ -62,7 +62,7 @@ func (api *API) GetWork() ([4]string, error) {
 // SubmitWork can be used by external miner to submit their POW solution.
 // It returns an indication if the work was accepted.
 // Note either an invalid solution, a stale work a non-existent work will return false.
-func (api *API) SubmitWork(nonce types.BlockNonce, hash, digest common.Hash) bool {
+func (api *API) SubmitWork(nonce types.BlockNonce, hash common.Hash) bool {
 	if api.cryptore.remote == nil {
 		return false
 	}
@@ -70,10 +70,9 @@ func (api *API) SubmitWork(nonce types.BlockNonce, hash, digest common.Hash) boo
 	var errc = make(chan error, 1)
 	select {
 	case api.cryptore.remote.submitWorkCh <- &mineResult{
-		nonce:     nonce,
-		mixDigest: digest,
-		hash:      hash,
-		errc:      errc,
+		nonce: nonce,
+		hash:  hash,
+		errc:  errc,
 	}:
 	case <-api.cryptore.remote.exitCh:
 		return false
