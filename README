@@ -248,7 +248,7 @@ Please make sure your contributions adhere to our coding guidelines:
 
 ## Security vulnerability disclosure
 
-Please report suspected security vulnerabilities in private following the [Security manual](SECURITY.md). Do NOT create publicly viewable issues for suspected security vulnerabilities.
+Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.cc/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities.
 
 ## License
 
@@ -258,5 +258,5 @@ The go-core binaries (i.e. all code inside of the `cmd` directory) are licensed 
 
 ## Community
 
+[![Developer Portal](https://img.shields.io/badge/Developer-dev.coreblockchain.cc-46b549)](https://dev.coreblockchain.cc/)
 [![Core ◆ Talk](https://img.shields.io/badge/Core%20%E2%97%86%20Talk-Protocol%20and%20Client-green)](https://coretalk.info/c/protocol-and-client/8/)
-[![Discord](https://img.shields.io/discord/469227792538533888?label=Discord)](https://discord.gg/b3c5FvZ)
