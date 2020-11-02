@@ -1,0 +1,28 @@
+[Core]
+accounts/abi                    @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+consensus                       @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+core/                           @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+xcb/                            @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+graphql/                        @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+les/                            @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+light/                          @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+
+[Network]
+p2p/                            @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+rpc/                            @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+p2p/simulations                 @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+p2p/protocols                   @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+p2p/testing                     @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+signer/                         @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+whisper/                        @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+
+[Command]
+cmd/clef                        @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+cmd/puppeth                     @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+
+[Wallets]
+accounts/usbwallet              @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+accounts/scwallet               @eduardosanchezg @error2215 @rasty @SashaZezulinsky
+
+[Devices]
+mobile/                         @eduardosanchezg @error2215 @rasty @SashaZezulinsky
