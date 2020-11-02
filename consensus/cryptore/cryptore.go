@@ -36,6 +36,14 @@ var (
 	// sharedCryptore is a full instance that can be shared between multiple users.
 	sharedCryptore = New(Config{ModeNormal, nil}, nil, false)
 )
+var (
+	vm    *randomx.RandxVm
+	mutex *sync.Mutex
+)
+
+func init() {
+	vm, mutex = randomx.NewRandomXVMWithKeyAndMutex()
+}
 
 // Mode defines the type and amount of PoW verification an cryptore engine makes.
 type Mode uint
@@ -86,7 +94,6 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    config,
 		update:    make(chan struct{}),

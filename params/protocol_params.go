@@ -100,7 +100,7 @@ const (
 
 var (
 	DifficultyBoundDivisor = big.NewInt(512)  // The bound divisor of the difficulty, used in the update calculations.
-	GenesisDifficulty      = big.NewInt(4096) // Difficulty of the Genesis block.
-	MinimumDifficulty      = big.NewInt(4096) // The minimum that the difficulty may ever be.
+	GenesisDifficulty      = big.NewInt(8192) // Difficulty of the Genesis block.
+	MinimumDifficulty      = big.NewInt(8192) // The minimum that the difficulty may ever be.
 	DurationLimit          = big.NewInt(6)    // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
 )
