@@ -94,7 +94,7 @@ func TestIPCAttachWelcome(t *testing.T) {
 		gocore.ExpectExit()
 	}()
 
-	waitForEndpoint(t, ipc, 3*time.Second)
+	waitForEndpoint(t, ipc, 5*time.Second)
 	testAttachWelcome(t, gocore, "ipc:"+ipc, ipcAPIs)
 
 }
@@ -111,7 +111,7 @@ func TestHTTPAttachWelcome(t *testing.T) {
 	}()
 
 	endpoint := "http://127.0.0.1:" + port
-	waitForEndpoint(t, endpoint, 3*time.Second)
+	waitForEndpoint(t, endpoint, 5*time.Second)
 	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 
@@ -128,7 +128,7 @@ func TestWSAttachWelcome(t *testing.T) {
 	}()
 
 	endpoint := "ws://127.0.0.1:" + port
-	waitForEndpoint(t, endpoint, 3*time.Second)
+	waitForEndpoint(t, endpoint, 5*time.Second)
 	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 
