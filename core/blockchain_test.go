@@ -350,7 +350,7 @@ func TestReorgLongHeaders(t *testing.T) { testReorgLong(t, false) }
 func TestReorgLongBlocks(t *testing.T)  { testReorgLong(t, true) }
 
 func testReorgLong(t *testing.T, full bool) {
-	testReorg(t, []int64{0, 0, -9}, []int64{0, 0, 0, -9}, 24584, full)
+	testReorg(t, []int64{0, 0, -9}, []int64{0, 0, 0, -9}, 24592, full)
 }
 
 // Tests that reorganising a short difficult chain after a long easy one
