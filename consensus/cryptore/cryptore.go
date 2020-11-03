@@ -94,6 +94,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
+	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    config,
 		update:    make(chan struct{}),
