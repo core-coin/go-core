@@ -32,7 +32,7 @@ func TestRandomX(t *testing.T) {
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
-	wantResult := hexutil.MustDecode("0x3bf47a8683fe5e1be74ac8a6e66a2c908339a756b26df737e706a6e50cfa419c")
+	wantResult := hexutil.MustDecode("0xb620364373923b57353c668dcedcfc636d456e1c0d7da8733586c0e54ada6aa4")
 	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
 	result, err := randomx.RandomX(vm, mutex, hash, nonce)
 	if err != nil {
