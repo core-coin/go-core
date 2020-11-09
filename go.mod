@@ -13,7 +13,7 @@ require (
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9
 	github.com/core-coin/eddsa v1.0.2
-	github.com/core-coin/go-randomx v0.2.3-0.20201105111432-1d458ce8d7a1
+	github.com/core-coin/go-randomx v0.2.3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
 	github.com/dlclark/regexp2 v1.2.0 // indirect
