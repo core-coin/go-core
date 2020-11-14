@@ -1,0 +1,12 @@
+name: mirror repo
+on: [push]
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: spyoungtech/mirror-action@master
+        with:
+          REMOTE: 'https://git.energy/core/go-core.git'
+          GIT_USERNAME: ${{ secrets.MIRROR_GIT_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.MIRROR_GIT_PASSWORD }}
