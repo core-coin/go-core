@@ -21,4 +21,4 @@ ENV KEYDIR=$DATADIR/keystore
 COPY --from=builder /go-core/build/bin/* /usr/local/bin/
 
 EXPOSE 30300 30300/udp
-ENTRYPOINT gocore --datadir=${DATADIR} --keystore=${KEYDIR} --${NETWORK} --syncmode=${SYNCMODE} --gcmode=${GCMODE}
+CMD gocore --datadir=${DATADIR} --keystore=${KEYDIR} --${NETWORK} --syncmode=${SYNCMODE} --gcmode=${GCMODE}
