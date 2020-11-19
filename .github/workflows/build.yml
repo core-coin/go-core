@@ -2,10 +2,10 @@ name: go-core build
 on: [push, pull_request]
 jobs:
   build:
-    name: Build
+    name: Build & Publish
     strategy:
       matrix:
-        platform: [ubuntu-latest]
+        platform: [ubuntu-20.04]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
@@ -15,12 +15,12 @@ jobs:
       id: go
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Build
-      run: go run build/ci.go install
     - name: Test
       run: go run build/ci.go test
-  deploy:
-    name: Deploy
+    - name: Build
+      run: go run build/ci.go install
+  deploy_to_github:
+    name: Deploy container to GitHub
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     needs: build
@@ -33,6 +33,52 @@ jobs:
     - name: docker login
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
     - name: docker build
-      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
-    - name: docker push
+      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{ steps.vars.outputs.tag }} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
+    - name: docker push to GitHub
       run: docker push docker.pkg.github.com/core-coin/go-core/gocore
+  #deploy_to_jfrog:
+  #  name: Deploy container to jFrog
+  #  if: startsWith(github.ref, 'refs/tags/v')
+  #  runs-on: ubuntu-latest
+  #  needs: build
+  #  steps:
+  #  - name: Checkout
+  #    uses: actions/checkout@v1
+  #  - name: Get the version
+  #    id: vars
+  #    run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+  #  - name: docker login
+  #    run: docker login corereg.jfrog.io -u ${{ github.actor }} -p ${{ secrets.JFROG_TOKEN }}
+  #  - name: docker build
+  #    run: docker build . -f Dockerfile -t corereg.jfrog.io/core/gocore:${{ steps.vars.outputs.tag }} -t corereg.jfrog.io/core/gocore:latest
+  #  - name: docker push to jFrog
+  #    run: docker push corereg.jfrog.io/core/gocore
+  #deploy_to_ipfs:
+  #  name: Deploy to IPFS
+  #  if: startsWith(github.ref, 'refs/tags/v')
+  #  runs-on: ubuntu-latest
+  #  needs: build
+  #  steps:
+  #  - name: Checkout
+  #    uses: actions/checkout@v1
+  #  - name: Upload to IPFS
+  #    if: startsWith(github.ref, 'refs/tags/v')
+  #    uses: aquiladev/ipfs-action@v0.1.3
+  #    id: ipfs
+  #    with:
+  #      path: ./build
+  #      service: pinata
+  #      pinataKey: ${{ secrets.PINATA_KEY }}
+  #      pinataSecret: ${{ secrets.PINATA_SECRET }}
+  #      pinataPinName: gocore_${{ github.event.release.tag_name }}_${{ matrix.platform }}
+  #  - name: Update IPNS at Cloudflare
+  #    if: startsWith(github.ref, 'refs/tags/v') && steps.ipfs.outputs.hash
+  #    uses: rez0n/create-dns-record@v2
+  #    with:
+  #      type: "TXT"
+  #      name: "_dnslink.gocore.${{ matrix.platform }}.ipfs.download"
+  #      content: "dnslink=/ipfs/${{ steps.ipfs.outputs.hash }}"
+  #      ttl: 60
+  #      proxied: false
+  #      token: ${{ secrets.CLOUDFLARE_TOKEN }}
+  #      zone: ${{ secrets.CLOUDFLARE_ZONE }}
