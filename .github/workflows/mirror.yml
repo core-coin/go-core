@@ -1,5 +1,5 @@
 name: mirror repo
-on: [push]
+on: [push, delete, create]
 jobs:
   mirror:
     runs-on: ubuntu-latest
