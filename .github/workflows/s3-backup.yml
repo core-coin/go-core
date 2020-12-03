@@ -9,13 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: S3 Backup
         uses: peter-evans/s3-backup@v1
         env:
-          STORAGE_SERVICE_ALIAS: s3
           STORAGE_SERVICE_URL: ${{ secrets.S3_SERVICE_URL }}
           ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
           SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          MIRROR_TARGET: source/${GITHUB_REF#refs/heads/}
+          MIRROR_TARGET: coreblockchain/source/${{ steps.extract_branch.outputs.branch }}
         with:
           args: --overwrite --remove
