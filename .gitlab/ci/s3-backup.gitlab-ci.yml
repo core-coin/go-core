@@ -1,0 +1,11 @@
+variables:
+  S3_BUCKET_NAME: "coreblockchain/source"
+
+backup:
+  image: python:latest
+  script:
+  - pip install awscli
+  - aws s3 sync ./ s3://$S3_BUCKET_NAME/$CI_COMMIT_REF_NAME/ --recursive --endpoint-url=$AWS_ENDPOINT --only-show-errors --no-progress --delete --exclude ".git/*" --exclude ".github/*" --exclude ".gitlab/*"
+  only:
+  - master
+  - develop
