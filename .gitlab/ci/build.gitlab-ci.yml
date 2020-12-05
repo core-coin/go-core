@@ -1,0 +1,34 @@
+image: golang:1.14
+
+cache:
+  paths:
+    - /apt-cache
+    - /go/src/github.com
+    - /go/src/golang.org
+    - /go/src/google.golang.org
+    - /go/src/gopkg.in
+
+stages:
+  - test
+  - build
+
+before_script:
+  - mkdir -p /go/src/github.com/core-coin /go/src/_/builds
+  - cp -r $CI_PROJECT_DIR /go/src/github.com/core-coin/go-core
+  - ln -s /go/src/github.com/core-coin /go/src/_/builds/go-core
+  - make dep
+
+unit_tests:
+  stage: test
+  script:
+    - go run build/ci.go test
+
+lint_code:
+  stage: test
+  script:
+    - go run build/ci.go lint
+
+build:
+  stage: build
+  script:
+    - go run build/ci.go install
