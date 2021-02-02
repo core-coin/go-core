@@ -138,20 +138,23 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	return stack, cfg
 }
 
-// disableWhisper returns false in case shh.disable is set.
-func disableWhisper(ctx *cli.Context) bool {
-	return !ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name)
+// enableWhisper returns false in case --shh.disable flag is set.
+func enableWhisper(ctx *cli.Context) bool {
+	if ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name) {
+		return false
+	}
+
+	return true
 }
 
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 	utils.RegisterXcbService(stack, &cfg.Xcb)
 
-	// Whisper must be explicitly disabled by specifying --shh.disable flag or in dev mode will be enabled automatically
-
-	shhDisabled := disableWhisper(ctx)
-	shhAutoEnabled := ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
-	if !shhDisabled || shhAutoEnabled {
+	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
+	shhEnabled := enableWhisper(ctx)
+	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
+	if shhEnabled || shhAutoEnabled {
 		if ctx.GlobalIsSet(utils.WhisperMaxMessageSizeFlag.Name) {
 			cfg.Shh.MaxMessageSize = uint32(ctx.Int(utils.WhisperMaxMessageSizeFlag.Name))
 		}
