@@ -20,7 +20,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/p2p/discover"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -31,6 +30,8 @@ import (
 	"text/tabwriter"
 	"text/template"
 	"time"
+
+	"github.com/core-coin/go-core/p2p/discover"
 
 	"github.com/core-coin/eddsa"
 
@@ -624,9 +625,9 @@ var (
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
 		Value: xcb.DefaultConfig.GPO.Percentile,
 	}
-	WhisperEnabledFlag = cli.BoolFlag{
-		Name:  "shh",
-		Usage: "Enable Whisper",
+	WhisperDisabledFlag = cli.BoolFlag{
+		Name:  "shh.disable",
+		Usage: "Disable Whisper (enabled by default)",
 	}
 	WhisperMaxMessageSizeFlag = cli.IntFlag{
 		Name:  "shh.maxmessagesize",

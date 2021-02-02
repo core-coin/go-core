@@ -179,7 +179,7 @@ var (
 	}
 
 	whisperFlags = []cli.Flag{
-		utils.WhisperEnabledFlag,
+		utils.WhisperDisabledFlag,
 		utils.WhisperMaxMessageSizeFlag,
 		utils.WhisperMinPOWFlag,
 		utils.WhisperRestrictConnectionBetweenLightClientsFlag,
