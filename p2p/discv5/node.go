@@ -296,7 +296,7 @@ func PubkeyID(pub *eddsa.PublicKey) NodeID {
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
 func (n NodeID) Pubkey() (*eddsa.PublicKey, error) {
-	if n.String() == "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
+	if n.String() == "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
 		return nil, errors.New("invalid node id")
 	}
 	return crypto.UnmarshalPubkey(n[:])

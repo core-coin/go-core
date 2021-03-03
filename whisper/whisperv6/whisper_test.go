@@ -105,9 +105,6 @@ func TestWhisperBasic(t *testing.T) {
 	if !validatePrivateKey(pk) {
 		t.Fatalf("failed validatePrivateKey: %v.", pk)
 	}
-	if !ValidatePublicKey(&pk.PublicKey) {
-		t.Fatalf("failed ValidatePublicKey: %v.", pk)
-	}
 }
 
 func TestWhisperAsymmetricKeyImport(t *testing.T) {
@@ -636,8 +633,9 @@ func TestSymmetricSendCycle(t *testing.T) {
 		t.Fatalf("failed generateMessageParams with seed %d: %s.", seed, err)
 	}
 
-	filter1.Src = &params.Src.PublicKey
-	filter2.Src = &params.Src.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*params.Src)
+	filter1.Src = &pub
+	filter2.Src = &pub
 
 	params.KeySym = filter1.KeySym
 	params.Topic = BytesToTopic(filter1.Topics[2])

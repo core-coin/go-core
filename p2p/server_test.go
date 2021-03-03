@@ -90,9 +90,10 @@ func startTestServer(t *testing.T, remoteKey *eddsa.PublicKey, pf func(*Peer)) *
 func TestServerListen(t *testing.T) {
 	// start the test server
 	connected := make(chan *Peer)
-	remid := &newkey().PublicKey
-	srv := startTestServer(t, remid, func(p *Peer) {
-		if p.ID() != enode.PubkeyToIDV4(remid) {
+	key := newkey()
+	remid := eddsa.Ed448DerivePublicKey(*key)
+	srv := startTestServer(t, &remid, func(p *Peer) {
+		if p.ID() != enode.PubkeyToIDV4(&remid) {
 			t.Error("peer func called with wrong node id")
 		}
 		connected <- p
@@ -140,14 +141,15 @@ func TestServerDial(t *testing.T) {
 
 	// start the server
 	connected := make(chan *Peer)
-	remid := &newkey().PublicKey
-	srv := startTestServer(t, remid, func(p *Peer) { connected <- p })
+	key := newkey()
+	remid := eddsa.Ed448DerivePublicKey(*key)
+	srv := startTestServer(t, &remid, func(p *Peer) { connected <- p })
 	defer close(connected)
 	defer srv.Stop()
 
 	// tell the server to connect
 	tcpAddr := listener.Addr().(*net.TCPAddr)
-	node := enode.NewV4(remid, tcpAddr.IP, tcpAddr.Port, 0)
+	node := enode.NewV4(&remid, tcpAddr.IP, tcpAddr.Port, 0)
 	srv.AddPeer(node)
 
 	select {
@@ -156,7 +158,7 @@ func TestServerDial(t *testing.T) {
 
 		select {
 		case peer := <-connected:
-			if peer.ID() != enode.PubkeyToIDV4(remid) {
+			if peer.ID() != enode.PubkeyToIDV4(&remid) {
 				t.Errorf("peer has wrong id")
 			}
 			if peer.Name() != "test" {
@@ -236,7 +238,8 @@ func TestServerRemovePeerDisconnect(t *testing.T) {
 // when the server is at capacity. Trusted connections should still be accepted.
 func TestServerAtCap(t *testing.T) {
 	trustedNode := newkey()
-	trustedID := enode.PubkeyToIDV4(&trustedNode.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*trustedNode)
+	trustedID := enode.PubkeyToIDV4(&pub)
 	srv := &Server{
 		Config: Config{
 			PrivateKey:   newkey(),
@@ -254,7 +257,7 @@ func TestServerAtCap(t *testing.T) {
 
 	newconn := func(id enode.ID) *conn {
 		fd, _ := net.Pipe()
-		tx := newTestTransport(&trustedNode.PublicKey, fd)
+		tx := newTestTransport(&pub, fd)
 		node := enode.SignNull(new(enr.Record), id)
 		return &conn{fd: fd, transport: tx, flags: inboundConn, node: node, cont: make(chan error)}
 	}
@@ -302,12 +305,13 @@ func TestServerAtCap(t *testing.T) {
 func TestServerPeerLimits(t *testing.T) {
 	srvkey := newkey()
 	clientkey := newkey()
-	clientnode := enode.NewV4(&clientkey.PublicKey, nil, 0, 0)
+	pub := eddsa.Ed448DerivePublicKey(*clientkey)
+	clientnode := enode.NewV4(&pub, nil, 0, 0)
 
 	var tp = &setupTransport{
-		pubkey: &clientkey.PublicKey,
+		pubkey: &pub,
 		phs: protoHandshake{
-			ID: crypto.FromEDDSAPub(&clientkey.PublicKey),
+			ID: crypto.FromEDDSAPub(&pub),
 			// Force "DiscUselessPeer" due to unmatching caps
 			// Caps: []Cap{discard.cap()},
 		},
@@ -367,9 +371,11 @@ func TestServerPeerLimits(t *testing.T) {
 func TestServerSetupConn(t *testing.T) {
 	var (
 		clientkey, srvkey = newkey(), newkey()
-		clientpub         = &clientkey.PublicKey
-		srvpub            = &srvkey.PublicKey
+		clientpub         = eddsa.Ed448DerivePublicKey(*clientkey)
+		srvpub            = eddsa.Ed448DerivePublicKey(*srvkey)
 	)
+	testKey := newkey()
+	testPub := eddsa.Ed448DerivePublicKey(*testKey)
 	tests := []struct {
 		dontstart bool
 		tt        *setupTransport
@@ -381,45 +387,45 @@ func TestServerSetupConn(t *testing.T) {
 	}{
 		{
 			dontstart:    true,
-			tt:           &setupTransport{pubkey: clientpub},
+			tt:           &setupTransport{pubkey: &clientpub},
 			wantCalls:    "close,",
 			wantCloseErr: errServerStopped,
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub, encHandshakeErr: errors.New("read error")},
+			tt:           &setupTransport{pubkey: &clientpub, encHandshakeErr: errors.New("read error")},
 			flags:        inboundConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: errors.New("read error"),
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub},
-			dialDest:     enode.NewV4(&newkey().PublicKey, nil, 0, 0),
+			tt:           &setupTransport{pubkey: &clientpub},
+			dialDest:     enode.NewV4(&testPub, nil, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: DiscUnexpectedIdentity,
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub, phs: protoHandshake{ID: randomID().Bytes()}},
-			dialDest:     enode.NewV4(clientpub, nil, 0, 0),
+			tt:           &setupTransport{pubkey: &clientpub, phs: protoHandshake{ID: randomID().Bytes()}},
+			dialDest:     enode.NewV4(&clientpub, nil, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: DiscUnexpectedIdentity,
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub, protoHandshakeErr: errors.New("foo")},
-			dialDest:     enode.NewV4(clientpub, nil, 0, 0),
+			tt:           &setupTransport{pubkey: &clientpub, protoHandshakeErr: errors.New("foo")},
+			dialDest:     enode.NewV4(&clientpub, nil, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: errors.New("foo"),
 		},
 		{
-			tt:           &setupTransport{pubkey: srvpub, phs: protoHandshake{ID: crypto.FromEDDSAPub(srvpub)}},
+			tt:           &setupTransport{pubkey: &srvpub, phs: protoHandshake{ID: crypto.FromEDDSAPub(&srvpub)}},
 			flags:        inboundConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: DiscSelf,
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub, phs: protoHandshake{ID: crypto.FromEDDSAPub(clientpub)}},
+			tt:           &setupTransport{pubkey: &clientpub, phs: protoHandshake{ID: crypto.FromEDDSAPub(&clientpub)}},
 			flags:        inboundConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: DiscUselessPeer,

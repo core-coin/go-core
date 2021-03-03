@@ -17,6 +17,7 @@
 package dnsdisc
 
 import (
+	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 
@@ -62,6 +63,7 @@ func TestParseRoot(t *testing.T) {
 
 func TestParseEntry(t *testing.T) {
 	testkey := testKey(signingKeySeed)
+	pub := eddsa.Ed448DerivePublicKey(*testkey)
 	tests := []struct {
 		input string
 		e     entry
@@ -91,7 +93,7 @@ func TestParseEntry(t *testing.T) {
 		// Links
 		{
 			input: "enrtree://ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org",
-			e:     &linkEntry{"ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
+			e:     &linkEntry{"ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org", "nodes.example.org", &pub},
 		},
 		{
 			input: "enrtree://nodes.example.org",

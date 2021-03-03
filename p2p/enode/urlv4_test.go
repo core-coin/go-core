@@ -46,7 +46,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enr:-QEEuKh3OHMesxQ6XvQz3vaq6iWmBxwx2jt8JSkiwQQM1a8dJwnrFZpHXsS9-xQfxl_EsjlC4_nso-3rXxMaaLyuB_1wf4yVHub46LkLDd9SExDO-QZ34B75M8Gpnn9qyHTuxrVal5Kh608UGHFwmQLIjXcY8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdlw",
 		wantResult: func() *Node {
-			testKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
+			testKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
 			var r enr.Record
 			r.Set(enr.IP{127, 0, 0, 1})
 			r.Set(enr.UDP(30300))
@@ -85,7 +85,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 1},
 			52150,
 			52150,
@@ -94,7 +94,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@[::]:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("::"),
 			52150,
 			52150,
@@ -103,7 +103,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@[2001:db8:3c4d:15::abcd:ef12]:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
 			52150,
 			52150,
@@ -112,7 +112,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:52150?discport=22334",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			52150,
 			22334,
@@ -120,9 +120,9 @@ var parseNodeTests = []struct {
 	},
 	// Incomplete node URLs with no address
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632",
+		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			nil, 0, 0,
 		),
 	},
@@ -132,7 +132,7 @@ var parseNodeTests = []struct {
 		wantError: errMissingPrefix.Error(),
 	},
 	{
-		input:     "1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632",
+		input:     "1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa",
 		wantError: errMissingPrefix.Error(),
 	},
 	{

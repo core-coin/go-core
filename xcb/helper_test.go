@@ -47,7 +47,8 @@ import (
 
 var (
 	testBankKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	testBank       = crypto.PubkeyToAddress(testBankKey.PublicKey)
+	pub            = eddsa.Ed448DerivePublicKey(*testBankKey)
+	testBank       = crypto.PubkeyToAddress(pub)
 )
 
 // newTestProtocolManager creates a new protocol manager for testing purposes,

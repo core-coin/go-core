@@ -8,6 +8,7 @@ import (
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcbdb"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math"
 	"math/big"
 	"testing"
@@ -188,7 +189,8 @@ func (b *testBackend) ChainConfig() *params.ChainConfig {
 func newTestBackend(t *testing.T) *testBackend {
 	var (
 		key, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		addr   = crypto.PubkeyToAddress(key.PublicKey)
+		pub    = eddsa.Ed448DerivePublicKey(*key)
+		addr   = crypto.PubkeyToAddress(pub)
 		gspec  = &core.Genesis{
 			Config: params.TestChainConfig,
 			Alloc:  core.GenesisAlloc{addr: {Balance: big.NewInt(math.MaxInt64)}},
@@ -199,7 +201,7 @@ func newTestBackend(t *testing.T) *testBackend {
 	db := rawdb.NewMemoryDatabase()
 	genesis, _ := gspec.Commit(db)
 
-	addr, err := common.HexToAddress("cb6508629e61ccfc9ca206d5e62ec6397a63198f897a")
+	addr, err := common.HexToAddress("cb79c0b7afce8c1aa50eb259d87fdf72f6220f173ab6")
 
 	// Generate testing blocks
 	blocks, _ := core.GenerateChain(params.TestChainConfig, genesis, engine, db, 32, func(i int, b *core.BlockGen) {
