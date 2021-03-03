@@ -17,10 +17,10 @@
 package discv5
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"net"
 	"net/url"
@@ -238,7 +238,7 @@ func (n *Node) UnmarshalText(text []byte) error {
 // 	*nl = append(slice[:i], slice[i+1:]...)
 // }
 
-const nodeIDBits = 448
+const nodeIDBits = 456
 
 // NodeID is a unique identifier for each node.
 // The node identifier is a marshaled elliptic curve public key.
@@ -286,10 +286,10 @@ func MustHexID(in string) NodeID {
 // PubkeyID returns a marshaled representation of the given public key.
 func PubkeyID(pub *eddsa.PublicKey) NodeID {
 	var id NodeID
-	if len(pub.X) != len(id) {
+	if len(pub) != len(id) {
 		panic("id len != pub len")
 	}
-	copy(id[:], pub.X)
+	copy(id[:], pub[:])
 	return id
 }
 

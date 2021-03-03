@@ -34,14 +34,14 @@ import (
 )
 
 var (
-	addr1, err1       = common.HexToAddress("cb579a63c8441c9d1cd7870143119b52bf5ab9211c08")
-	addr2, err2       = common.HexToAddress("cb33c2e3cfb3d905d5609c9e73eeb687052eedc518b1")
-	addr3, err3       = common.HexToAddress("cb83b471a5b7d1481ad51dc4224110e5080bf13eb1f8")
+	addr1, err1       = common.HexToAddress("cb94b11771b0a90d32421b0bca90701f16923c32993c")
+	addr2, err2       = common.HexToAddress("cb30f22ac2235ef6020516a503ba3c6222a068e65da6")
+	addr3, err3       = common.HexToAddress("cb22ac06311d367113a9ec35e2f44260b8a55a3753bd")
 	cachetestDir, _   = filepath.Abs(filepath.Join("testdata", "keystore"))
 	cachetestAccounts = []accounts.Account{
 		{
 			Address: addr1,
-			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-20T17-37-08.515483762Z--cb579a63c8441c9d1cd7870143119b52bf5ab9211c08")},
+			URL:     accounts.URL{Scheme: KeyStoreScheme, Path: filepath.Join(cachetestDir, "UTC--2020-07-20T17-37-08.515483762Z--cb94b11771b0a90d32421b0bca90701f16923c32993c")},
 		},
 		{
 			Address: addr2,

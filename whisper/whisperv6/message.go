@@ -21,10 +21,10 @@ package whisperv6
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mrand "math/rand"
 	"strconv"
 

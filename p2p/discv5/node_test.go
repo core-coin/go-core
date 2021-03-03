@@ -18,6 +18,7 @@ package discv5
 
 import (
 	"fmt"
+	eddsa2 "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"math/rand"
 	"net"
@@ -63,7 +64,7 @@ var parseNodeTests = []struct {
 	},
 	{
 		rawurl:    "enode://01010101@123.124.125.126:3",
-		wantError: `invalid node ID (wrong length, want 112 hex chars)`,
+		wantError: `invalid node ID (wrong length, want 114 hex chars)`,
 	},
 	// Complete nodes with IP address.
 	{
@@ -81,7 +82,7 @@ var parseNodeTests = []struct {
 	{
 		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			52150,
 			52150,
@@ -90,7 +91,7 @@ var parseNodeTests = []struct {
 	{
 		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@[::]:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 			net.ParseIP("::"),
 			52150,
 			52150,
@@ -99,16 +100,16 @@ var parseNodeTests = []struct {
 	{
 		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@[2001:db8:3c4d:15::abcd:ef12]:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:52150?discport=22334",
+		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@127.0.0.1:52150?discport=22334",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			22334,
 			52150,
@@ -116,9 +117,9 @@ var parseNodeTests = []struct {
 	},
 	// Incomplete nodes with no address.
 	{
-		rawurl: "43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439",
+		rawurl: "43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439a",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 			nil, 0, 0,
 		),
 	},
@@ -132,11 +133,11 @@ var parseNodeTests = []struct {
 	// Invalid URLs
 	{
 		rawurl:    "01010101",
-		wantError: `invalid node ID (wrong length, want 112 hex chars)`,
+		wantError: `invalid node ID (wrong length, want 114 hex chars)`,
 	},
 	{
 		rawurl:    "enode://01010101",
-		wantError: `invalid node ID (wrong length, want 112 hex chars)`,
+		wantError: `invalid node ID (wrong length, want 114 hex chars)`,
 	},
 	{
 		// This test checks that errors from url.Parse are handled.
@@ -199,8 +200,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Fatalf("signing error: %v", err)
 	}
-
-	pub := PubkeyID(&prv.PublicKey)
+	p := eddsa2.Ed448DerivePublicKey(*prv)
+	pub := PubkeyID(&p)
 	recpub, err := recoverNodeID(hash, sig)
 	if err != nil {
 		t.Fatalf("recovery error: %v", err)
@@ -213,8 +214,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Errorf("Pubkey error: %v", err)
 	}
-	if !reflect.DeepEqual(eddsa, &prv.PublicKey) {
-		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, &prv.PublicKey)
+	if !reflect.DeepEqual(eddsa, &p) {
+		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, &p)
 	}
 }
 

@@ -17,10 +17,10 @@
 package discv5
 
 import (
-	"github.com/core-coin/eddsa"
-	"fmt"
-	"math/rand"
 	crand "crypto/rand"
+	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
+	"math/rand"
 
 	"net"
 	"reflect"

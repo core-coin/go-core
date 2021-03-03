@@ -1432,13 +1432,15 @@ var bindTests = []struct {
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
+	eddsa "github.com/core-coin/go-goldilocks"
 		"github.com/core-coin/go-core/crypto"
 		"github.com/core-coin/go-core/core"
 		`,
 		`
 		// Initialize test accounts
 		key, _ := crypto.GenerateKey(rand.Reader)
-		addr := crypto.PubkeyToAddress(key.PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		addr := crypto.PubkeyToAddress(pub)
 
 		// Deploy registrar contract
 		sim := backends.NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000)
@@ -1494,6 +1496,7 @@ var bindTests = []struct {
 		"math/big"		
 		"crypto/rand"
 
+		eddsa "github.com/core-coin/go-goldilocks"
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
 		"github.com/core-coin/go-core/crypto"
@@ -1501,7 +1504,8 @@ var bindTests = []struct {
         `,
 		`
 		key, _ := crypto.GenerateKey(rand.Reader)
-		addr := crypto.PubkeyToAddress(key.PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		addr := crypto.PubkeyToAddress(pub)
 
 		// Deploy registrar contract
 		sim := backends.NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000)

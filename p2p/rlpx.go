@@ -25,7 +25,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -48,13 +48,13 @@ const (
 
 	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
 	sigLen = crypto.SignatureLength
-	pubLen = 56
+	pubLen = 57
 	shaLen = 64
 
 	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1
 	authRespLen = pubLen + shaLen + 1
 
-	eciesOverhead = 56 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
+	eciesOverhead = 57 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
 
 	encAuthMsgLen  = authMsgLen + eciesOverhead  // size of encrypted pre-CIP-8 initiator handshake
 	encAuthRespLen = authRespLen + eciesOverhead // size of encrypted pre-CIP-8 handshake reply
@@ -164,7 +164,7 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 	if err := msg.Decode(&hs); err != nil {
 		return nil, err
 	}
-	if len(hs.ID) != 56 || !bitutil.TestBytes(hs.ID) {
+	if len(hs.ID) != 57 || !bitutil.TestBytes(hs.ID) {
 		return nil, DiscInvalidIdentity
 	}
 	return &hs, nil
@@ -329,7 +329,8 @@ func (h *encHandshake) makeAuthMsg(prv *eddsa.PrivateKey) (*authMsgV4, error) {
 
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
-	copy(msg.InitiatorPubkey[:], crypto.FromEDDSAPub(&prv.PublicKey)[:])
+	pub := eddsa.Ed448DerivePublicKey(*prv)
+	copy(msg.InitiatorPubkey[:], crypto.FromEDDSAPub(&pub)[:])
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = 4
 	return msg, nil

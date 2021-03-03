@@ -19,9 +19,9 @@ package checkpointoracle
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"reflect"
 	"sort"
@@ -171,7 +171,8 @@ func TestCheckpointRegister(t *testing.T) {
 	var accounts Accounts
 	for i := 0; i < 3; i++ {
 		key, _ := crypto.GenerateKey(rand.Reader)
-		addr := crypto.PubkeyToAddress(key.PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		addr := crypto.PubkeyToAddress(pub)
 		accounts = append(accounts, Account{key: key, addr: addr})
 	}
 	sort.Sort(accounts)

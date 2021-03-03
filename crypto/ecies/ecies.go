@@ -35,8 +35,8 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 	"fmt"
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/crypto"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"hash"
 	"io"
 )
@@ -64,7 +64,7 @@ func (pub *PublicKey) ExportEDDSA() *eddsa.PublicKey {
 // Import an EDDSA public key as an ECIES public key.
 func ImportEDDSAPublic(pub *eddsa.PublicKey) *PublicKey {
 	return &PublicKey{
-		X:      pub.X,
+		X:      pub[:],
 		Params: ParamsFromCurve(),
 	}
 }
@@ -83,8 +83,9 @@ func (prv *PrivateKey) ExportEDDSA() *eddsa.PrivateKey {
 
 // Import an EDDSA private key as an ECIES private key.
 func ImportEDDSA(prv *eddsa.PrivateKey) *PrivateKey {
-	pub := ImportEDDSAPublic(&prv.PublicKey)
-	return &PrivateKey{*pub, prv.D}
+	pubEDDSA := eddsa.Ed448DerivePublicKey(*prv)
+	pub := ImportEDDSAPublic(&pubEDDSA)
+	return &PrivateKey{*pub, prv[:]}
 }
 
 // Generate an elliptic curve public / private keypair. If params is nil,
@@ -95,8 +96,9 @@ func GenerateKey(rand io.Reader, params *ECIESParams) (prv *PrivateKey, err erro
 		return
 	}
 	prv = new(PrivateKey)
-	prv.PublicKey.X = pb.X
-	prv.D = pb.D
+	pub := eddsa.Ed448DerivePublicKey(*pb)
+	prv.PublicKey.X = pub[:]
+	prv.D = pb[:]
 	prv.PublicKey.Params = params
 	return
 }

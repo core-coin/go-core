@@ -28,7 +28,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
@@ -384,7 +384,8 @@ func (srv *Server) Self() *enode.Node {
 	srv.lock.Unlock()
 
 	if ln == nil {
-		return enode.NewV4(&srv.PrivateKey.PublicKey, net.ParseIP("0.0.0.0"), 0, 0)
+		pub := eddsa.Ed448DerivePublicKey(*srv.PrivateKey)
+		return enode.NewV4(&pub, net.ParseIP("0.0.0.0"), 0, 0)
 	}
 	return ln.Node()
 }
@@ -492,7 +493,8 @@ func (srv *Server) Start() (err error) {
 
 func (srv *Server) setupLocalNode() error {
 	// Create the devp2p handshake.
-	pubkey := crypto.FromEDDSAPub(&srv.PrivateKey.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*srv.PrivateKey)
+	pubkey := crypto.FromEDDSAPub(&pub)
 	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey}
 	for _, p := range srv.Protocols {
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
@@ -951,7 +953,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	}
 	if dialDest != nil {
 		// For dialed connections, check that the remote public key matches.
-		if bytes.Compare(dialPubkey.X, remotePubkey.X) != 0 {
+		if bytes.Compare(dialPubkey[:], remotePubkey[:]) != 0 {
 			return DiscUnexpectedIdentity
 		}
 		c.node = dialDest

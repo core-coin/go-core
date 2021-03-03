@@ -18,6 +18,7 @@ package whisperv6
 
 import (
 	"crypto/rand"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -60,7 +61,8 @@ func generateFilter(t *testing.T, symmetric bool) (*Filter, error) {
 		t.Fatalf("generateFilter 1 failed with seed %d.", seed)
 		return nil, err
 	}
-	f.Src = &key.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	f.Src = &pub
 
 	if symmetric {
 		f.KeySym = make([]byte, aesKeyLength)
@@ -191,8 +193,9 @@ func TestInstallIdenticalFilters(t *testing.T) {
 	params.KeySym = filter1.KeySym
 	params.Topic = BytesToTopic(filter1.Topics[0])
 
-	filter1.Src = &params.Src.PublicKey
-	filter2.Src = &params.Src.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*params.Src)
+	filter1.Src = &pub
+	filter2.Src = &pub
 
 	sentMessage, err := NewSentMessage(params)
 	if err != nil {
@@ -265,7 +268,9 @@ func TestComparePubKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate second key with seed %d: %s.", seed, err)
 	}
-	if IsPubKeyEqual(&key1.PublicKey, &key2.PublicKey) {
+	pub1 := eddsa.Ed448DerivePublicKey(*key1)
+	pub2 := eddsa.Ed448DerivePublicKey(*key2)
+	if IsPubKeyEqual(&pub1, &pub2) {
 		t.Fatalf("public keys are equal, seed %d.", seed)
 	}
 
@@ -275,7 +280,8 @@ func TestComparePubKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate third key with seed %d: %s.", seed, err)
 	}
-	if IsPubKeyEqual(&key1.PublicKey, &key3.PublicKey) {
+	pub3 := eddsa.Ed448DerivePublicKey(*key3)
+	if IsPubKeyEqual(&pub1, &pub3) {
 		t.Fatalf("key1 == key3, seed %d.", seed)
 	}
 }
@@ -356,7 +362,8 @@ func TestMatchEnvelope(t *testing.T) {
 		t.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
 	params.KeySym = nil
-	params.Dst = &key.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	params.Dst = &pub
 	msg, err = NewSentMessage(params)
 	if err != nil {
 		t.Fatalf("failed to create new message with seed %d: %s.", seed, err)
@@ -452,12 +459,6 @@ func TestMatchMessageSym(t *testing.T) {
 		t.Fatalf("failed Open with seed %d.", seed)
 	}
 
-	// Src: match
-	copy(f.Src.X, params.Src.PublicKey.X[:])
-	if !f.MatchMessage(msg) {
-		t.Fatalf("failed MatchEnvelope(src match) with seed %d.", seed)
-	}
-
 	// insufficient PoW: mismatch
 	f.PoW = msg.PoW + 1.0
 	if f.MatchMessage(msg) {
@@ -528,7 +529,8 @@ func TestMatchMessageAsym(t *testing.T) {
 
 	const index = 1
 	params.Topic = BytesToTopic(f.Topics[index])
-	params.Dst = &f.KeyAsym.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*f.KeyAsym)
+	params.Dst = &pub
 	keySymOrig := params.KeySym
 	params.KeySym = nil
 
@@ -543,12 +545,6 @@ func TestMatchMessageAsym(t *testing.T) {
 	msg := env.Open(f)
 	if msg == nil {
 		t.Fatalf("failed to open with seed %d.", seed)
-	}
-
-	// Src: match
-	copy(f.Src.X, params.Src.PublicKey.X[:])
-	if !f.MatchMessage(msg) {
-		t.Fatalf("failed MatchMessage(src match) with seed %d.", seed)
 	}
 
 	// insufficient PoW: mismatch
@@ -570,20 +566,6 @@ func TestMatchMessageAsym(t *testing.T) {
 		t.Fatalf("failed MatchEnvelope(topic mismatch) with seed %d.", seed)
 	}
 	f.Topics[index][0]--
-
-	// key mismatch
-	var prev [56]byte
-	copy(prev[:], f.KeyAsym.PublicKey.X[:])
-	f.KeyAsym.PublicKey.X = f.KeyAsym.PublicKey.X[:0]
-	if f.MatchMessage(msg) {
-		t.Fatalf("failed MatchEnvelope(key mismatch) with seed %d.", seed)
-	}
-	f.KeyAsym.PublicKey.X = prev[:]
-	// Src absent: match
-	f.Src = nil
-	if !f.MatchMessage(msg) {
-		t.Fatalf("failed MatchEnvelope(src absent) with seed %d.", seed)
-	}
 
 	// encryption method mismatch
 	f.KeySym = keySymOrig

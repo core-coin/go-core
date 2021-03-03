@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
@@ -143,7 +143,7 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	}
 	if tx.data.ChainID != 0 && signer.ChainID() != 0 {
 		hash := signer.Hash(tx)
-		if !crypto.VerifySignature(pubk.X, hash[:], tx.data.Signature[:]) {
+		if !crypto.VerifySignature(pubk[:], hash[:], tx.data.Signature[:]) {
 			return common.Address{}, ErrInvalidSig
 		}
 	}

@@ -18,20 +18,20 @@ package dnsdisc
 
 import (
 	"context"
-	"github.com/core-coin/eddsa"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/internal/testlog"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -85,9 +85,9 @@ func TestClientSyncTreeBadNode(t *testing.T) {
 	// fmt.Printf("%#v\n", tree.ToTXT("n"))
 
 	r := mapResolver{
-		"n":                            "enrtree-root:v1 e=JZ7RET254NLCICBLV5AZ3WVUHCXBPW5S7VM7ZWYRIAHGVFIWOVM l=MQXVTT7AWMPCQZLLCF6OI4PWOBYEBODNT324O2DO2FVD7TWKGSMA seq=3 sig=XEC_y0aPgNujlkCCwMGJhXeNZuN2f3t4NYSJWN_ETtvSfJ1IMxbsos60bviaI2Xln0Gl3laXvWHfM8Bcn1sYgAFTYVlBRXvJlwh7TEcBDOZnfd_bmlAU6mAq83fKYbLZoDZ6btqpVXwr3Re-IwNBLGBg4gCAhk-5QLDFuJX-jqweDuRq7etFByjtGPycI39kBHufkjBW46v0tB3qWsI07Cs3my_or6Fs",
+		"n": "enrtree-root:v1 e=JZ7RET254NLCICBLV5AZ3WVUHCXBPW5S7VM7ZWYRIAHGVFIWOVM l=MQXVTT7AWMPCQZLLCF6OI4PWOBYEBODNT324O2DO2FVD7TWKGSMA seq=3 sig=XEC_y0aPgNujlkCCwMGJhXeNZuN2f3t4NYSJWN_ETtvSfJ1IMxbsos60bviaI2Xln0Gl3laXvWHfM8Bcn1sYgAFTYVlBRXvJlwh7TEcBDOZnfd_bmlAU6mAq83fKYbLZoDZ6btqpVXwr3Re-IwNBLGBg4gCAhk-5QLDFuJX-jqweDuRq7etFByjtGPycI39kBHufkjBW46v0tB3qWsI07Cs3my_or6Fs",
 		"MQXVTT7AWMPCQZLLCF6OI4PWOBYEBODNT324O2DO2FVD7TWKGSMA.n": "enrtree://MJKQMAHXTDNOWVILXACK25P54GVTLUJHRXUEPWAYXCFOITYOMYUO7746ZHHWZYPEFXKNFBV4QDCC4S7POQMCBGVLJM@morenodes.example.org",
-		"JZ7RET254NLCICBLV5AZ3WVUHCXBPW5S7VM7ZWYRIAHGVFIWOVM.n": "enr:-----",
+		"JZ7RET254NLCICBLV5AZ3WVUHCXBPW5S7VM7ZWYRIAHGVFIWOVM.n":  "enr:-----",
 	}
 	c := NewClient(Config{Resolver: r, Logger: testlog.Logger(t, log.LvlTrace)})
 	_, err := c.SyncTree("enrtree://MBQOEAEAQZH3SQFQYW4JL7UOVQPA5ZDK5XVUKBZI5UMPZHBDP5SAI647SIYFNY5L6S2B32S2YI2OYKZXTMX6RL5BNQ@n")

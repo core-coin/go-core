@@ -25,8 +25,8 @@ package testing
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"io/ioutil"
 	"strings"

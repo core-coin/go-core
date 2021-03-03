@@ -17,8 +17,8 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"reflect"
 	"strings"
@@ -141,11 +141,11 @@ var parseNodeTests = []struct {
 	},
 	{
 		input:     "enode://01010101@123.124.125.126:3",
-		wantError: `invalid public key (wrong length, want 112 hex chars)`,
+		wantError: `invalid public key (wrong length, want 114 hex chars)`,
 	},
 	{
 		input:     "enode://01010101",
-		wantError: `invalid public key (wrong length, want 112 hex chars)`,
+		wantError: `invalid public key (wrong length, want 114 hex chars)`,
 	},
 	{
 		input:     "http://foobar",

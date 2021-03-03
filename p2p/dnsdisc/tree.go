@@ -18,10 +18,10 @@ package dnsdisc
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"sort"
 	"strings"
@@ -48,7 +48,8 @@ func (t *Tree) Sign(key *eddsa.PrivateKey, domain string) (url string, err error
 	}
 	root.sig = sig
 	t.root = &root
-	link := newLinkEntry(domain, &key.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	link := newLinkEntry(domain, &pub)
 	return link.String(), nil
 }
 

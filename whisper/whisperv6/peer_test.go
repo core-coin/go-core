@@ -19,7 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mrand "math/rand"
 	"sync"
 	"testing"

@@ -23,12 +23,13 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/common"
 	"io"
 	"net"
 	"sync"
 	"time"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
@@ -412,7 +413,8 @@ func (t *UDPv4) lookupRandom() []*enode.Node {
 
 // lookupSelf implements transport.
 func (t *UDPv4) lookupSelf() []*enode.Node {
-	return t.newLookup(t.closeCtx, encodePubkey(&t.priv.PublicKey)).run()
+	pub := eddsa.Ed448DerivePublicKey(*t.priv)
+	return t.newLookup(t.closeCtx, encodePubkey(&pub)).run()
 }
 
 func (t *UDPv4) newRandomLookup(ctx context.Context) *lookup {
@@ -688,6 +690,29 @@ func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 	copy(packet, hash)
 	return packet, hash, nil
 }
+func (t *UDPv4) Encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byte, err error) {
+	name := req.name()
+	b := new(bytes.Buffer)
+	b.Write(headSpace)
+	b.WriteByte(req.kind())
+	if err := rlp.Encode(b, req); err != nil {
+		t.log.Error(fmt.Sprintf("Can't encode %s packet", name), "err", err)
+		return nil, nil, err
+	}
+	packet = b.Bytes()
+	sig, err := crypto.Sign(crypto.SHA3(packet[headSize:]), priv)
+	if err != nil {
+		t.log.Error(fmt.Sprintf("Can't sign %s packet", name), "err", err)
+		return nil, nil, err
+	}
+	copy(packet[macSize:], sig)
+	// add the hash to the front. Note: this doesn't protect the
+	// packet in any way. Our public key will be part of this hash in
+	// The future.
+	hash = crypto.SHA3(packet[macSize:])
+	copy(packet, hash)
+	return packet, hash, nil
+}
 
 // readLoop runs in its own goroutine. it handles incoming UDP packets.
 func (t *UDPv4) readLoop(unhandled chan<- ReadPacket) {
@@ -743,6 +768,8 @@ func decodeV4(buf []byte) (packetV4, encPubkey, []byte, error) {
 	hash, sig, sigdata := buf[:macSize], buf[macSize:headSize], buf[headSize:]
 	shouldhash := crypto.SHA3(buf[macSize:])
 	if !bytes.Equal(hash, shouldhash) {
+		fmt.Println(common.Bytes2Hex(hash))
+		fmt.Println(common.Bytes2Hex(shouldhash))
 		return nil, encPubkey{}, nil, errBadHash
 	}
 	fromKey, err := recoverNodeKey(crypto.SHA3(buf[headSize:]), sig)

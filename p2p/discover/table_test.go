@@ -17,10 +17,10 @@
 package discover
 
 import (
-	"github.com/core-coin/eddsa"
-	"fmt"
-	"math/rand"
 	crand "crypto/rand"
+	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
+	"math/rand"
 
 	"net"
 	"reflect"
@@ -58,8 +58,9 @@ func testPingReplace(t *testing.T, newNodeIsResponding, lastInBucketIsResponding
 	<-tab.initDone
 
 	// Fill up the sender's bucket.
-	pingKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2bcef60235cab768f2c3f8f301e8cfee41e04f26d8d01c46a10b08dd3d27c61ca48dfc7433d2d5e3bf60b862cedd3197e82c0b709c75c47ced2896631075043550b8d6b0cfb0ec165d178df945ff8038f30c9ada2e7a69e")
-	pingSender := wrapNode(enode.NewV4(&pingKey.PublicKey, net.IP{}, 99, 99))
+	pingKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
+	pub := eddsa.Ed448DerivePublicKey(*pingKey)
+	pingSender := wrapNode(enode.NewV4(&pub, net.IP{}, 99, 99))
 	last := fillBucket(tab, pingSender)
 
 	// Add the sender as if it just pinged us. Revalidate should replace the last node in

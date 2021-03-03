@@ -19,7 +19,7 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -92,9 +92,10 @@ If you want to encrypt an existing private key, it can be specified by setting
 
 		// Create the keyfile object with a random UUID.
 		id := uuid.NewRandom()
+		pub := eddsa.Ed448DerivePublicKey(*privateKey)
 		key := &keystore.Key{
 			Id:         id,
-			Address:    crypto.PubkeyToAddress(privateKey.PublicKey),
+			Address:    crypto.PubkeyToAddress(pub),
 			PrivateKey: privateKey,
 		}
 

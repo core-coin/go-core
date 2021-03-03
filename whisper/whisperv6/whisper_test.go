@@ -18,7 +18,7 @@ package whisperv6
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	mrand "math/rand"
 	"testing"

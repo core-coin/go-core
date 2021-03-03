@@ -25,7 +25,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
@@ -202,8 +202,8 @@ func RandomNodeConfig() *NodeConfig {
 	if err != nil {
 		panic("unable to assign tcp port")
 	}
-
-	enodId := enode.PubkeyToIDV4(&prvkey.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*prvkey)
+	enodId := enode.PubkeyToIDV4(&pub)
 	return &NodeConfig{
 		PrivateKey:      prvkey,
 		ID:              enodId,

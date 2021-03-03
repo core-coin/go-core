@@ -17,11 +17,11 @@
 package p2p
 
 import (
-	"github.com/core-coin/eddsa"
+	crand "crypto/rand"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"math/rand"
-	crand "crypto/rand"
 	"net"
 	"reflect"
 	"testing"
