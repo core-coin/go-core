@@ -415,7 +415,6 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 		if res, err := RunPrecompiledContract(p, in, contract); err != nil {
 			t.Error(err)
 		} else if common.Bytes2Hex(res) != test.expected {
-			fmt.Println(res)
 			t.Errorf("Expected %v, got %v", test.expected, common.Bytes2Hex(res))
 		}
 		// Verify that the precompile did not touch the input buffer
