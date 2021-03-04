@@ -19,7 +19,6 @@ package dnsdisc
 import (
 	"context"
 	"errors"
-	"fmt"
 	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"reflect"
@@ -328,9 +327,6 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(tree.root.String())
-	fmt.Println(tree.entries)
-	panic(1)
 	return tree, url
 }
 
