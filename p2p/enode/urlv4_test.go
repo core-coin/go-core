@@ -83,7 +83,7 @@ var parseNodeTests = []struct {
 		wantError: `invalid discport in query`,
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:52150",
+		input: "enr:-GOAgIJpZIJ2NIJpcIR_AAABiXNlY3AyNTZrMbg5HdnWXEVStetD1a1Vou4_VsbLwcZKXI1ln1H81Rus4kNRIyuNeCFhfSsptUuBze-5s-nDfX_V9jKqg3RjcILLtoN1ZHCCy7Y",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 1},
@@ -92,7 +92,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@[::]:52150",
+		input: "enr:-HCAgIJpZIJ2NINpcDaQAAAAAAAAAAAAAAAAAAAAAIlzZWNwMjU2azG4OR3Z1lxFUrXrQ9WtVaLuP1bGy8HGSlyNZZ9R_NUbrOJDUSMrjXghYX0rKbVLgc3vubPpw31_1fYyqoN0Y3CCy7aDdWRwgsu2",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("::"),
@@ -101,7 +101,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@[2001:db8:3c4d:15::abcd:ef12]:52150",
+		input: "enr:-HCAgIJpZIJ2NINpcDaQIAENuDxNABUAAAAAq83vEolzZWNwMjU2azG4OR3Z1lxFUrXrQ9WtVaLuP1bGy8HGSlyNZZ9R_NUbrOJDUSMrjXghYX0rKbVLgc3vubPpw31_1fYyqoN0Y3CCy7aDdWRwgsu2",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
@@ -110,7 +110,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:52150?discport=22334",
+		input: "enr:-GOAgIJpZIJ2NIJpcIR_AAABiXNlY3AyNTZrMbg5HdnWXEVStetD1a1Vou4_VsbLwcZKXI1ln1H81Rus4kNRIyuNeCFhfSsptUuBze-5s-nDfX_V9jKqg3RjcILLtoN1ZHCCVz4",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
@@ -120,7 +120,7 @@ var parseNodeTests = []struct {
 	},
 	// Incomplete node URLs with no address
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa",
+		input: "enr:-E2AgIJpZIJ2NIlzZWNwMjU2azG4OR3Z1lxFUrXrQ9WtVaLuP1bGy8HGSlyNZZ9R_NUbrOJDUSMrjXghYX0rKbVLgc3vubPpw31_1fYyqg",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			nil, 0, 0,
