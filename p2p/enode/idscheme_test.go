@@ -30,7 +30,7 @@ import (
 var (
 	privkey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
 	pub        = eddsa.Ed448DerivePublicKey(*privkey)
-	pubkey     = pub
+	pubkey     = Secp256k1(pub)
 )
 
 func TestEmptyNodeID(t *testing.T) {
@@ -53,5 +53,5 @@ func TestGetSetSecp256k1(t *testing.T) {
 
 	var pk Secp256k1
 	require.NoError(t, r.Load(&pk))
-	assert.EqualValues(t, pubkey, &pk)
+	assert.EqualValues(t, &pubkey, &pk)
 }

@@ -44,7 +44,7 @@ var parseNodeTests = []struct {
 }{
 	// Records
 	{
-		input: "enr:-QEEuKh3OHMesxQ6XvQz3vaq6iWmBxwx2jt8JSkiwQQM1a8dJwnrFZpHXsS9-xQfxl_EsjlC4_nso-3rXxMaaLyuB_1wf4yVHub46LkLDd9SExDO-QZ34B75M8Gpnn9qyHTuxrVal5Kh608UGHFwmQLIjXcY8rzvYCNcq3aPLD-PMB6M_uQeBPJtjQHEahCwjdPSfGHKSN_HQz0tXjv2C4Ys7dMZfoLAtwnHXEdjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDjyvO9gI1yrdo8sP48wHoz-5B4E8m2NAcRqELCN09J8YcpI38dDPS1eO_YLhizt0xl-gsC3CcdcR4N1ZHCCdlw",
+		input: "enr:-QEIuKt6aR02JVEasAcN6aHg5djoI9oFRkCd2aPONGpfY8suq9fCqrNSKfea1-8ZequFoRebWIuTHUUKBADSCdZYQmgwJHUDUKfrJ-oNLokbrJfPwUmIPZcGDLuh2GhgpBYuxZa1E1ANjVnri__1UcAFxvuXOwBKxeNrt2K0-fU-Gj7OlAcN8THGp_AGZCTvynw2lCt5fBwAXZNM8RBn0a8A_vqhA7TV3M0AeOkGCoBjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDlKxeNrt2K0-fU-Gj7OlAcN8THGp_AGZCTvynw2lCt5fBwAXZNM8RBn0a8A_vqhA7TV3M0AeOkGCoCDdWRwgnZc",
 		wantResult: func() *Node {
 			testKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
 			var r enr.Record
@@ -71,19 +71,19 @@ var parseNodeTests = []struct {
 	},
 	// Complete node URLs with IP address and ports
 	{
-		input:     "enode://767b2d3eb5828a9c2e11d1e9aa515f0435ee7ce80f3749ed33f462921587bc9bb55a7231b2e79ae6ce86e8ff4f83e9a151e855d6bbe87838@invalid.:3",
+		input:     "enode://767b2d3eb5828a9c2e11d1e9aa515f0435ee7ce80f3749ed33f462921587bc9bb55a7231b2e79ae6ce86e8ff4f83e9a151e855d6bbe87838aa@invalid.:3",
 		wantError: `no such host`,
 	},
 	{
-		input:     "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:foo",
+		input:     "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:foo",
 		wantError: `invalid port`,
 	},
 	{
-		input:     "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:3?discport=foo",
+		input:     "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:3?discport=foo",
 		wantError: `invalid discport in query`,
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:52150",
+		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:52150",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 1},
@@ -92,7 +92,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@[::]:52150",
+		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@[::]:52150",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("::"),
@@ -101,7 +101,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@[2001:db8:3c4d:15::abcd:ef12]:52150",
+		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@[2001:db8:3c4d:15::abcd:ef12]:52150",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
@@ -110,7 +110,7 @@ var parseNodeTests = []struct {
 		),
 	},
 	{
-		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632@127.0.0.1:52150?discport=22334",
+		input: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@127.0.0.1:52150?discport=22334",
 		wantResult: NewV4(
 			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},

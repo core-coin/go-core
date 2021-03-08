@@ -55,12 +55,6 @@ func TestUDPv4_Lookup(t *testing.T) {
 	// Verify result nodes.
 	results := <-resultC
 	t.Logf("results:")
-	for _, e := range lookupDevin.dists {
-		for _, ee := range e {
-			pub := eddsa.Ed448DerivePublicKey(*ee)
-			fmt.Println(common.Bytes2Hex(ee[:]), common.Bytes2Hex(pub[:]))
-		}
-	}
 	for _, e := range results {
 		t.Logf("  ld=%d, %x, %v", enode.LogDist(lookupDevin.target.id(), e.ID()), e.ID().Bytes(), common.Bytes2Hex(e.Pubkey()[:]))
 	}
