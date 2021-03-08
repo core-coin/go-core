@@ -126,7 +126,7 @@ func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
 }
 
 func signV4Compat(r *enr.Record, pubkey *eddsa.PublicKey) {
-	r.Set(enr.ID("v4"))
+	//r.Set(enr.ID("v4"))
 	r.Set((*Secp256k1)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {
 		panic(err)
