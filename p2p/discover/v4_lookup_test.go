@@ -173,7 +173,7 @@ func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) 
 // This is the test network for the Lookup test.
 // The nodes were obtained by running lookupDevin.mine with a random NodeID as target.
 var lookupDevin = &preminedDevin{
-	target: hexEncPubkey("5d485bdcbe9bc89314a10ae9231e429d33853e3a8fa2af39f5f827370a2e4185e344ace5d16237491dad41f278f1d3785210d29ace76cd62aa"),
+	target: hexEncPubkey("8e3646849ec3232a7a73aef657f05ae9437c0b7960919e9d2c41760ba1fb8fa81970339ef20ffded54da1c7c1a48698d56ea6cda5fa4535f60"),
 	dists: [257][]*eddsa.PrivateKey{
 		250: {
 			hexEncPrivkey("4e0fa28ffcc38dde53d62cae67296a409dbac36abc5b77242a1e36f9569cf5073fc4dbb8cbf656b2219e173071bc46eb52c3788b92635430ab"),
