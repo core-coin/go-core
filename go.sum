@@ -70,6 +70,10 @@ github.com/core-coin/go-goldilocks v0.0.9 h1:COPXL+AizwJ9ZenTi9SIesz0yd55aovJbOD
 github.com/core-coin/go-goldilocks v0.0.9/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v0.0.10 h1:S3kilpU0MoiOwUJ5xl9o1GHYp0Jgti8vKK77ISRxLwI=
 github.com/core-coin/go-goldilocks v0.0.10/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
+github.com/core-coin/go-goldilocks v0.0.11 h1:cW40dylUblOZhzaMMhLXdOHJfG9fWbYF5Fz8bNh/+OE=
+github.com/core-coin/go-goldilocks v0.0.11/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
+github.com/core-coin/go-goldilocks v0.0.12 h1:W+i80XFry9r0NZuCvpsWa8tuZjqyiHTye8FSKxZNGY8=
+github.com/core-coin/go-goldilocks v0.0.12/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-randomx v0.2.3 h1:oLjl2b/wv1L/q2biSA8XiBDIjyELGhBqb3L9hLG3K7k=
 github.com/core-coin/go-randomx v0.2.3/go.mod h1:N36UST6BS6iR5+HSFqyA7yj7OqBlytORpQc4YE3i3dg=
 github.com/core-coin/gofortuna v0.0.0-20210215182135-8d9eed96287e h1:dvYDkFTK6dOGOzf4sKEpNNYQK4KVSJeiKwF6oNpgKwA=

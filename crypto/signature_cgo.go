@@ -54,10 +54,8 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	if prv == nil || len(prv) == 0 {
 		return []byte{}, errInvalidPrivkey
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prv)
-	sig := eddsa.Ed448Sign(*prv, pub, hash, []byte{}, false)
-	sigg := sig[:]
-	return append(sigg, pub[:]...), nil
+	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
+	return sig[:], nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.
@@ -69,7 +67,7 @@ func VerifySignature(pub, hash, signature []byte) bool {
 	if err != nil {
 		return false
 	}
-	return eddsa.Ed448Verify(*pubkey, signature[:SignatureLength-PrivkeyLength], hash, []byte{}, false)
+	return eddsa.Ed448Verify(*pubkey, signature[:], hash, []byte{}, false)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.

@@ -109,6 +109,10 @@ func singleMessageTest(t *testing.T, symmetric bool) {
 	if len(decrypted.Signature) != signatureLength {
 		t.Fatalf("failed with seed %d: signature len %d.", seed, len(decrypted.Signature))
 	}
+	paramsPub := eddsa.Ed448DerivePublicKey(*params.Src)
+	if !IsPubKeyEqual(decrypted.Src, &paramsPub) {
+		t.Fatalf("failed with seed %d: signature mismatch.", seed)
+	}
 }
 
 func TestMessageEncryption(t *testing.T) {
@@ -264,6 +268,10 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 	if len(decrypted.Signature) != signatureLength {
 		t.Fatalf("failed with seed %d: signature len %d.", seed, len(decrypted.Signature))
 	}
+	srcPub := eddsa.Ed448DerivePublicKey(*params.Src)
+	if !IsPubKeyEqual(decrypted.Src, &srcPub) {
+		t.Fatalf("failed with seed %d: signature mismatch.", seed)
+	}
 	if decrypted.isAsymmetricEncryption() == symmetric {
 		t.Fatalf("failed with seed %d: asymmetric %v vs. %v.", seed, decrypted.isAsymmetricEncryption(), symmetric)
 	}
@@ -273,6 +281,11 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 	if !symmetric {
 		if decrypted.Dst == nil {
 			t.Fatalf("failed with seed %d: dst is nil.", seed)
+		}
+
+		keyPub := eddsa.Ed448DerivePublicKey(*key)
+		if !IsPubKeyEqual(decrypted.Dst, &keyPub) {
+			t.Fatalf("failed with seed %d: Dst.", seed)
 		}
 	}
 }

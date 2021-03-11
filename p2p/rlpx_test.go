@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/ecies"
 	"github.com/core-coin/go-core/p2p/simulations/pipes"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/davecgh/go-spew/spew"
@@ -45,14 +44,8 @@ func TestSharedSecret(t *testing.T) {
 	prv1, _ := crypto.GenerateKey(rand.Reader)
 	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
 
-	ss0, err := ecies.ImportEDDSA(prv0).GenerateShared(ecies.ImportEDDSAPublic(&pub1), sskLen, sskLen)
-	if err != nil {
-		return
-	}
-	ss1, err := ecies.ImportEDDSA(prv1).GenerateShared(ecies.ImportEDDSAPublic(&pub0), sskLen, sskLen)
-	if err != nil {
-		return
-	}
+	ss0 := crypto.ComputeSecret(prv0, &pub1)
+	ss1 := crypto.ComputeSecret(prv1, &pub0)
 	t.Logf("Secret:\n%v %x\n%v %x", len(ss0), ss0, len(ss0), ss1)
 	if !bytes.Equal(ss0, ss1) {
 		t.Errorf("dont match :(")
@@ -511,7 +504,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		hs = &encHandshake{
 			initiator:     false,
 			respNonce:     nonceB,
-			randomPrivKey: ecies.ImportEDDSA(ephB),
+			randomPrivKey: ephB,
 		}
 		authCiphertext     = unhex(cip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(cip8HandshakeRespTests[1].input)

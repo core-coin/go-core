@@ -459,6 +459,13 @@ func TestMatchMessageSym(t *testing.T) {
 		t.Fatalf("failed Open with seed %d.", seed)
 	}
 
+	// Src: match
+	pub := eddsa.Ed448DerivePublicKey(*params.Src)
+	copy(f.Src[:], pub[:])
+	if !f.MatchMessage(msg) {
+		t.Fatalf("failed MatchEnvelope(src match) with seed %d.", seed)
+	}
+
 	// insufficient PoW: mismatch
 	f.PoW = msg.PoW + 1.0
 	if f.MatchMessage(msg) {
@@ -547,6 +554,13 @@ func TestMatchMessageAsym(t *testing.T) {
 		t.Fatalf("failed to open with seed %d.", seed)
 	}
 
+	// Src: match
+	pub = eddsa.Ed448DerivePublicKey(*params.Src)
+	copy(f.Src[:], pub[:])
+	if !f.MatchMessage(msg) {
+		t.Fatalf("failed MatchMessage(src match) with seed %d.", seed)
+	}
+
 	// insufficient PoW: mismatch
 	f.PoW = msg.PoW + 1.0
 	if f.MatchMessage(msg) {
@@ -566,6 +580,22 @@ func TestMatchMessageAsym(t *testing.T) {
 		t.Fatalf("failed MatchEnvelope(topic mismatch) with seed %d.", seed)
 	}
 	f.Topics[index][0]--
+
+	// key mismatch
+	var prev [57]byte
+	copy(prev[:], f.KeyAsym[:])
+
+	pub = eddsa.Ed448DerivePublicKey(*f.KeyAsym)
+	f.KeyAsym[0] = 0
+	if f.MatchMessage(msg) {
+		t.Fatalf("failed MatchEnvelope(key mismatch) with seed %d.", seed)
+	}
+	copy(f.KeyAsym[:], prev[:])
+	// Src absent: match
+	f.Src = nil
+	if !f.MatchMessage(msg) {
+		t.Fatalf("failed MatchEnvelope(src absent) with seed %d.", seed)
+	}
 
 	// encryption method mismatch
 	f.KeySym = keySymOrig

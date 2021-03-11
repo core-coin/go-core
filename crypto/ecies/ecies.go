@@ -30,96 +30,22 @@
 package ecies
 
 import (
+	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/subtle"
 	"encoding/binary"
 	"fmt"
 	"github.com/core-coin/go-core/crypto"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/go-goldilocks"
+	"golang.org/x/crypto/sha3"
 	"hash"
 	"io"
 )
 
 var (
-	ErrImport                     = fmt.Errorf("ecies: failed to import key")
-	ErrInvalidCurve               = fmt.Errorf("ecies: invalid elliptic curve")
-	ErrInvalidPublicKey           = fmt.Errorf("ecies: invalid public key")
-	ErrSharedKeyIsPointAtInfinity = fmt.Errorf("ecies: shared key is point at infinity")
-	ErrSharedKeyTooBig            = fmt.Errorf("ecies: shared key params are too big")
-)
-
-// PublicKey is a representation of an elliptic curve public key.
-type PublicKey struct {
-	X      []byte
-	Params *ECIESParams
-}
-
-// Export an ECIES public key as an EDDSA public key.
-func (pub *PublicKey) ExportEDDSA() *eddsa.PublicKey {
-	key, _ := crypto.UnmarshalPubkey(pub.X)
-	return key
-}
-
-// Import an EDDSA public key as an ECIES public key.
-func ImportEDDSAPublic(pub *eddsa.PublicKey) *PublicKey {
-	return &PublicKey{
-		X:      pub[:],
-		Params: ParamsFromCurve(),
-	}
-}
-
-// PrivateKey is a representation of an elliptic curve private key.
-type PrivateKey struct {
-	PublicKey
-	D []byte
-}
-
-// Export an ECIES private key as an EDDSA private key.
-func (prv *PrivateKey) ExportEDDSA() *eddsa.PrivateKey {
-	privkey, _ := crypto.ToEDDSA(prv.D)
-	return privkey
-}
-
-// Import an EDDSA private key as an ECIES private key.
-func ImportEDDSA(prv *eddsa.PrivateKey) *PrivateKey {
-	pubEDDSA := eddsa.Ed448DerivePublicKey(*prv)
-	pub := ImportEDDSAPublic(&pubEDDSA)
-	return &PrivateKey{*pub, prv[:]}
-}
-
-// Generate an elliptic curve public / private keypair. If params is nil,
-// the recommended default parameters for the key will be chosen.
-func GenerateKey(rand io.Reader, params *ECIESParams) (prv *PrivateKey, err error) {
-	pb, err := crypto.GenerateKey(rand)
-	if err != nil {
-		return
-	}
-	prv = new(PrivateKey)
-	pub := eddsa.Ed448DerivePublicKey(*pb)
-	prv.PublicKey.X = pub[:]
-	prv.D = pb[:]
-	prv.PublicKey.Params = params
-	return
-}
-
-// ECDH key agreement method used to establish secret keys for encryption.
-func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []byte, err error) {
-	privkey, err := crypto.ToEDDSA(prv.D)
-	if err != nil {
-		return nil, err
-	}
-	pubkey, err := crypto.UnmarshalPubkey(pub.X)
-	if err != nil {
-		return nil, err
-	}
-	secret := crypto.ComputeSecret(privkey, pubkey)
-	return secret, nil
-}
-
-var (
-	ErrSharedTooLong  = fmt.Errorf("ecies: shared secret is too long")
-	ErrInvalidMessage = fmt.Errorf("ecies: invalid message")
+	ErrInvalidPublicKey = fmt.Errorf("ecies: invalid public key")
+	ErrInvalidMessage   = fmt.Errorf("ecies: invalid message")
 )
 
 // NIST SP 800-56 Concatenation Key Derivation Function (see section 5.8.1).
@@ -164,43 +90,43 @@ func messageTag(hash func() hash.Hash, km, msg, shared []byte) []byte {
 }
 
 // Generate an initialisation vector for CTR mode.
-func generateIV(params *ECIESParams, rand io.Reader) (iv []byte, err error) {
-	iv = make([]byte, params.BlockSize)
+func generateIV(rand io.Reader) (iv []byte, err error) {
+	iv = make([]byte, aes.BlockSize)
 	_, err = io.ReadFull(rand, iv)
 	return
 }
 
 // symEncrypt carries out CTR encryption using the block cipher specified in the
-func symEncrypt(rand io.Reader, params *ECIESParams, key, m []byte) (ct []byte, err error) {
-	c, err := params.Cipher(key)
+func symEncrypt(rand io.Reader, key, m []byte) (ct []byte, err error) {
+	c, err := aes.NewCipher(key)
 	if err != nil {
 		return
 	}
 
-	iv, err := generateIV(params, rand)
+	iv, err := generateIV(rand)
 	if err != nil {
 		return
 	}
 	ctr := cipher.NewCTR(c, iv)
 
-	ct = make([]byte, len(m)+params.BlockSize)
+	ct = make([]byte, len(m)+aes.BlockSize)
 	copy(ct, iv)
-	ctr.XORKeyStream(ct[params.BlockSize:], m)
+	ctr.XORKeyStream(ct[aes.BlockSize:], m)
 	return
 }
 
 // symDecrypt carries out CTR decryption using the block cipher specified in
 // the parameters
-func symDecrypt(params *ECIESParams, key, ct []byte) (m []byte, err error) {
-	c, err := params.Cipher(key)
+func symDecrypt(key, ct []byte) (m []byte, err error) {
+	c, err := aes.NewCipher(key)
 	if err != nil {
 		return
 	}
 
-	ctr := cipher.NewCTR(c, ct[:params.BlockSize])
+	ctr := cipher.NewCTR(c, ct[:aes.BlockSize])
 
-	m = make([]byte, len(ct)-params.BlockSize)
-	ctr.XORKeyStream(m, ct[params.BlockSize:])
+	m = make([]byte, len(ct)-aes.BlockSize)
+	ctr.XORKeyStream(m, ct[aes.BlockSize:])
 	return
 }
 
@@ -209,75 +135,62 @@ func symDecrypt(params *ECIESParams, key, ct []byte) (m []byte, err error) {
 // s1 and s2 contain shared information that is not part of the resulting
 // ciphertext. s1 is fed into key derivation, s2 is fed into the MAC. If the
 // shared information parameters aren't being used, they should be nil.
-func Encrypt(rand io.Reader, pub *PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
-	params, err := pubkeyParams(pub)
+func Encrypt(rand io.Reader, pub *goldilocks.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
+	R, err := crypto.GenerateKey(rand)
 	if err != nil {
 		return nil, err
 	}
 
-	R, err := GenerateKey(rand, params)
-	if err != nil {
+	z := crypto.ComputeSecret(R, pub)
+
+	hash := sha3.New256()
+	Ke, Km := deriveKeys(hash, z, s1, 16)
+
+	em, err := symEncrypt(rand, Ke, m)
+	if err != nil || len(em) <= aes.BlockSize {
 		return nil, err
 	}
 
-	z, err := R.GenerateShared(pub, params.KeyLen, params.KeyLen)
-	if err != nil {
-		return nil, err
-	}
+	d := messageTag(sha3.New256, Km, em, s2)
 
-	hash := params.Hash()
-	Ke, Km := deriveKeys(hash, z, s1, params.KeyLen)
-
-	em, err := symEncrypt(rand, params, Ke, m)
-	if err != nil || len(em) <= params.BlockSize {
-		return nil, err
-	}
-
-	d := messageTag(params.Hash, Km, em, s2)
-
-	Rb := R.PublicKey.X
+	Rb := goldilocks.Ed448DerivePublicKey(*R)
 	ct = make([]byte, len(Rb)+len(em)+len(d))
-	copy(ct, Rb)
+	copy(ct, Rb[:])
 	copy(ct[len(Rb):], em)
 	copy(ct[len(Rb)+len(em):], d)
 	return ct, nil
 }
 
 // Decrypt decrypts an ECIES ciphertext.
-func (prv *PrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
+func Decrypt(prv *goldilocks.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
+	pub := goldilocks.Ed448DerivePublicKey(*prv)
+
 	if len(c) == 0 {
 		return nil, ErrInvalidMessage
 	}
-	params, err := pubkeyParams(&prv.PublicKey)
-	if err != nil {
-		return nil, err
-	}
 
-	hash := params.Hash()
+	hash := sha3.New256()
 
 	var (
-		rLen   int = len(prv.PublicKey.X)
+		rLen   int = len(pub)
 		hLen   int = hash.Size()
 		mStart int = rLen
 		mEnd   int = len(c) - hLen
 	)
 
-	R := new(PublicKey)
-	R.X = c[:rLen]
-	if R.X == nil {
+	R := goldilocks.BytesToPublicKey(c[:rLen])
+	if len(R) == 0 {
 		return nil, ErrInvalidPublicKey
 	}
 
-	z, err := prv.GenerateShared(R, params.KeyLen, params.KeyLen)
-	if err != nil {
-		return nil, err
-	}
-	Ke, Km := deriveKeys(hash, z, s1, params.KeyLen)
+	z := crypto.ComputeSecret(prv, &R)
 
-	d := messageTag(params.Hash, Km, c[mStart:mEnd], s2)
+	Ke, Km := deriveKeys(hash, z, s1, 16)
+
+	d := messageTag(sha3.New256, Km, c[mStart:mEnd], s2)
 	if subtle.ConstantTimeCompare(c[mEnd:], d) != 1 {
 		return nil, ErrInvalidMessage
 	}
 
-	return symDecrypt(params, Ke, c[mStart:mEnd])
+	return symDecrypt(Ke, c[mStart:mEnd])
 }
