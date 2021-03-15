@@ -26,12 +26,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/internal/testlog"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
+	eddsa "github.com/core-coin/go-goldilocks"
 )
 
 // Real sockets, real crypto: this test checks end-to-end connectivity for UDPv5.
@@ -561,7 +561,8 @@ func (test *udpV5Test) packetInFrom(key *eddsa.PrivateKey, addr *net.UDPAddr, pa
 
 // getNode ensures the test knows about a node at the given endpoint.
 func (test *udpV5Test) getNode(key *eddsa.PrivateKey, addr *net.UDPAddr) *enode.LocalNode {
-	id := encodePubkey(&key.PublicKey).id()
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	id := encodePubkey(&pub).id()
 	ln := test.nodesByID[id]
 	if ln == nil {
 		db, _ := enode.OpenDB("")

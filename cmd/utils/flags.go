@@ -33,7 +33,7 @@ import (
 
 	"github.com/core-coin/go-core/p2p/discover"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/keystore"

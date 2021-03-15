@@ -24,16 +24,16 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"github.com/davecgh/go-spew/spew"
 )
 
 var (
-	testKeyA, _ = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a5280ba4b5fd3f28a70138c81a4334eb1d16a35b09f0e272667f320a26c40fe22117f34d131d217b3b172a04532a33eb0cf148d501887293956ab04737a0d08e21fc151203a8ab402afa497899d16b2a84c7736ef1d07b1")
-	testKeyB, _ = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b98ac408e75d35449de00b8fc89c042f3cea4dfdd3dcc7878a836edb2a5516163ee5218a0af44e80c7d4ad114d5302109289c29925de77c82fb0e081f0732c15dbe54440ea719327d13acbbb3aaebd58dbc6e0a5c83c5c06")
+	testKeyA, _ = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a")
+	testKeyB, _ = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b9")
 	testIDnonce = [32]byte{5, 6, 7, 8, 9, 10, 11, 12}
 )
 
@@ -50,8 +50,10 @@ func TestDeriveKeysV5(t *testing.T) {
 	)
 	defer db.Close()
 
-	sec1 := c.deriveKeys(n1, n2, testKeyA, &testKeyB.PublicKey, challenge)
-	sec2 := c.deriveKeys(n1, n2, testKeyB, &testKeyA.PublicKey, challenge)
+	pubA := eddsa.Ed448DerivePublicKey(*testKeyA)
+	pubB := eddsa.Ed448DerivePublicKey(*testKeyB)
+	sec1 := c.deriveKeys(n1, n2, testKeyA, &pubB, challenge)
+	sec2 := c.deriveKeys(n1, n2, testKeyB, &pubA, challenge)
 	if sec1 == nil || sec2 == nil {
 		t.Fatal("key agreement failed")
 	}

@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"sort"
 	"testing"
 
@@ -70,7 +70,8 @@ func (ap *testerAccountPool) address(account string) common.Address {
 		ap.accounts[account], _ = crypto.GenerateKey(rand.Reader)
 	}
 	// Resolve and return the Core address
-	return crypto.PubkeyToAddress(ap.accounts[account].PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*ap.accounts[account])
+	return crypto.PubkeyToAddress(pub)
 }
 
 // sign calculates a Clique digital signature for the given block and embeds it

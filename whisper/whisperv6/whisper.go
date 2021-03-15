@@ -26,13 +26,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/rpc"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/crypto/pbkdf2"
@@ -987,15 +987,16 @@ func (s *Statistics) reset() {
 
 // ValidatePublicKey checks the format of the given public key.
 func ValidatePublicKey(k *eddsa.PublicKey) bool {
-	return k != nil && k.X != nil && len(k.X) > 0
+	return k != nil && len(k) > 0
 }
 
 // validatePrivateKey checks the format of the given private key.
 func validatePrivateKey(k *eddsa.PrivateKey) bool {
-	if k == nil || k.D == nil {
+	if k == nil {
 		return false
 	}
-	return ValidatePublicKey(&k.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*k)
+	return ValidatePublicKey(&pub)
 }
 
 // validateDataIntegrity returns false if the data have the wrong or contains all zeros,

@@ -113,7 +113,7 @@ func TestDBInt64(t *testing.T) {
 
 func TestDBFetchStore(t *testing.T) {
 	node := NewV4(
-		hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+		hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 		net.IP{192, 168, 0, 1},
 		30300,
 		30300,
@@ -176,7 +176,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// pong time is too far in the past.
 	{
 		node: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -187,7 +187,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// nodeID is the local node's ID.
 	{
 		node: NewV4(
-			hexPubkey("ff93ff820abacd4351b0f14e47b324bc82ff014c226f3f66a53535734a3c150e7e38ca03ef0964ba55acddc768f5e99cd59dea95ddd4defb"),
+			hexPubkey("ff93ff820abacd4351b0f14e47b324bc82ff014c226f3f66a53535734a3c150e7e38ca03ef0964ba55acddc768f5e99cd59dea95ddd4defbaa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -198,7 +198,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// These should be in the result set.
 	{
 		node: NewV4(
-			hexPubkey("c2b5eb3f5dde05f815b63777809ee3e7e0cbb20035a6b00ce327191e6eaa8f26a8d461c9112b7ab94698e7361fa19fd647e603e732390029"),
+			hexPubkey("c2b5eb3f5dde05f815b63777809ee3e7e0cbb20035a6b00ce327191e6eaa8f26a8d461c9112b7ab94698e7361fa19fd647e603e732390029aa"),
 			net.IP{127, 0, 0, 1},
 			30300,
 			30300,
@@ -207,7 +207,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("6ca1d400c8ddf8acc94bcb0dd254911ad71a57bed5e0ae5aa205beed59b28c2339908e97990c493499613cff8ecf6c3dc7112a8ead220cdc"),
+			hexPubkey("6ca1d400c8ddf8acc94bcb0dd254911ad71a57bed5e0ae5aa205beed59b28c2339908e97990c493499613cff8ecf6c3dc7112a8ead220cdcaa"),
 			net.IP{127, 0, 0, 2},
 			30300,
 			30300,
@@ -216,7 +216,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("234dc63fe4d131212b38236c4c3411288d7bec61cbf7b120ff12c43dc60c96182882f4291d209db66f8a38e986c9c010ff59231a67f9515c"),
+			hexPubkey("234dc63fe4d131212b38236c4c3411288d7bec61cbf7b120ff12c43dc60c96182882f4291d209db66f8a38e986c9c010ff59231a67f9515caa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -225,7 +225,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("c013a50b4d1ebce5c377d8af8cb7114fd933ffc9627f96ad56d90fef5b7253ec736fd07ef9a81dc2955a997e54b7bf50afd0aa9f110595e2"),
+			hexPubkey("c013a50b4d1ebce5c377d8af8cb7114fd933ffc9627f96ad56d90fef5b7253ec736fd07ef9a81dc2955a997e54b7bf50afd0aa9f110595e2aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -234,7 +234,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("f141087e3e08af1aeec261ff75f48b5b1637f594ea9ad670e50051646b0416daa3b134c28788cbe98af26992a47652889cd8577ccc108ac0"),
+			hexPubkey("f141087e3e08af1aeec261ff75f48b5b1637f594ea9ad670e50051646b0416daa3b134c28788cbe98af26992a47652889cd8577ccc108ac0aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -341,7 +341,7 @@ var nodeDBExpirationNodes = []struct {
 	// Node has new enough pong time and isn't expired:
 	{
 		node: NewV4(
-			hexPubkey("8d110e2ed4b446d9b5fb50f117e5f37fb7597af455e1dab0e6f045a6eeaa786a6781141659020d38bdc5e698ed3d4d2bafa8b5061810dfa6"),
+			hexPubkey("8d110e2ed4b446d9b5fb50f117e5f37fb7597af455e1dab0e6f045a6eeaa786a6781141659020d38bdc5e698ed3d4d2bafa8b5061810dfa6aa"),
 			net.IP{127, 0, 0, 1},
 			30300,
 			30300,
@@ -353,7 +353,7 @@ var nodeDBExpirationNodes = []struct {
 	// Node with pong time before expiration is removed:
 	{
 		node: NewV4(
-			hexPubkey("913a205579c32425b220dfba999d215066e5bdbf900226b11da1907eae5e93eb40616d47412cf819664e9eacbdfcca6b0c6e07e09847a384"),
+			hexPubkey("913a205579c32425b220dfba999d215066e5bdbf900226b11da1907eae5e93eb40616d47412cf819664e9eacbdfcca6b0c6e07e09847a384aa"),
 			net.IP{127, 0, 0, 2},
 			30300,
 			30300,
@@ -365,7 +365,7 @@ var nodeDBExpirationNodes = []struct {
 	// Just pong time, no node stored:
 	{
 		node: NewV4(
-			hexPubkey("b56670e0b6bad2c5dab9f9fe6f061a16cf78d68b6ae2cfda3144262d08d97ce5f46fd8799b6d1f709b1abe718f2863e224488bd7518e5e3b"),
+			hexPubkey("b56670e0b6bad2c5dab9f9fe6f061a16cf78d68b6ae2cfda3144262d08d97ce5f46fd8799b6d1f709b1abe718f2863e224488bd7518e5e3baa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -377,7 +377,7 @@ var nodeDBExpirationNodes = []struct {
 	// Node with multiple pong times, all older than expiration.
 	{
 		node: NewV4(
-			hexPubkey("29f619cebfd32c9eab34aec797ed5e3fe15b9b45be95b4df3f5fe6a9ae892f433eb08d7698b2ef3621568b0fb70d57b515ab30d4e72583b7"),
+			hexPubkey("29f619cebfd32c9eab34aec797ed5e3fe15b9b45be95b4df3f5fe6a9ae892f433eb08d7698b2ef3621568b0fb70d57b515ab30d4e72583b7aa"),
 			net.IP{127, 0, 0, 4},
 			30300,
 			30300,
@@ -388,7 +388,7 @@ var nodeDBExpirationNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("29f619cebfd32c9eab34aec797ed5e3fe15b9b45be95b4df3f5fe6a9ae892f433eb08d7698b2ef3621568b0fb70d57b515ab30d4e72583b7"),
+			hexPubkey("29f619cebfd32c9eab34aec797ed5e3fe15b9b45be95b4df3f5fe6a9ae892f433eb08d7698b2ef3621568b0fb70d57b515ab30d4e72583b7aa"),
 			net.IP{127, 0, 0, 5},
 			30300,
 			30300,
@@ -400,7 +400,7 @@ var nodeDBExpirationNodes = []struct {
 	// Node with multiple pong times, one newer, one older than expiration.
 	{
 		node: NewV4(
-			hexPubkey("3b73a9e5f4af6c4701c57c73cc8cfa0f4802840b24c11eba92aac3aef65644a3728b4b2aec8199f6d72bd66be2c65861c773129039bd47da"),
+			hexPubkey("3b73a9e5f4af6c4701c57c73cc8cfa0f4802840b24c11eba92aac3aef65644a3728b4b2aec8199f6d72bd66be2c65861c773129039bd47daaa"),
 			net.IP{127, 0, 0, 6},
 			30300,
 			30300,
@@ -411,7 +411,7 @@ var nodeDBExpirationNodes = []struct {
 	},
 	{
 		node: NewV4(
-			hexPubkey("3b73a9e5f4af6c4701c57c73cc8cfa0f4802840b24c11eba92aac3aef65644a3728b4b2aec8199f6d72bd66be2c65861c773129039bd47da"),
+			hexPubkey("3b73a9e5f4af6c4701c57c73cc8cfa0f4802840b24c11eba92aac3aef65644a3728b4b2aec8199f6d72bd66be2c65861c773129039bd47daaa"),
 			net.IP{127, 0, 0, 7},
 			30300,
 			30300,

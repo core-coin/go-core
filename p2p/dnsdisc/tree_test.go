@@ -17,6 +17,7 @@
 package dnsdisc
 
 import (
+	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 
@@ -40,12 +41,12 @@ func TestParseRoot(t *testing.T) {
 			err:   entryError{"root", errInvalidSig},
 		},
 		{
-			input: "enrtree-root:v1 e=QFT4PBCRX4XQCV3VUYJ6BTCEPU l=JGUFMSAGI7KZYB3P7IZW4S5Y3A seq=3 sig=ab4ORUpvvYww0a4tQjlPFzDGsYHpe-KCDtPd90UpFepgkbKePE7GVl-apanTF5epCknYPmWcJkm2C_uQwKuqbv0IXcOo1VJSOap3lxvtqyOpRce37HazGZSaQpmbEk7OpbMjGxMJeirfCy6jS5CiPWHZ_At5y_o8wmjIVjusNrbwkvfjZhTlkpaOzxNv_3D3JcY2hQaVz5N5YELlJDGH2hWzPCh7NMsI",
+			input: "enrtree-root:v1 e=QAO2PMLNIZU6HVN4OGDWWQ4UCQ l=UXCFO6UUOO6E4BTJNZPMHAH2HY seq=1 sig=dKx74xYd64nBzlEXzYdK2UiCiKT05oqi3rL3C75nQ4dWxPh2RyY6R7hcXbDPomvdd7LuAbzTPhYAQWgNfReglAJL6gm6baXw46oA-5KpvZIt6qmUwFE8W2BUQWl34Xr4m3hKmUlU4AJO9OR8rNci5h8ASnsKymLWBgRmVCKoPAQ5OAZITJYZuTbCaLUSZjp91KylRphiCcVVLJpwqIOG5K34ZndqiPAvZ0QA",
 			e: rootEntry{
-				eroot: "QFT4PBCRX4XQCV3VUYJ6BTCEPU",
-				lroot: "JGUFMSAGI7KZYB3P7IZW4S5Y3A",
-				seq:   3,
-				sig:   hexutil.MustDecode("0x69be0e454a6fbd8c30d1ae2d42394f1730c6b181e97be2820ed3ddf7452915ea6091b29e3c4ec6565f9aa5a9d31797a90a49d83e659c2649b60bfb90c0abaa6efd085dc3a8d5525239aa77971bedab23a945c7b7ec76b319949a42999b124ecea5b3231b13097a2adf0b2ea34b90a23d61d9fc0b79cbfa3cc268c8563bac36b6f092f7e36614e592968ecf136fff70f725c636850695cf93796042e5243187da15b33c287b34cb08"),
+				eroot: "QAO2PMLNIZU6HVN4OGDWWQ4UCQ",
+				lroot: "UXCFO6UUOO6E4BTJNZPMHAH2HY",
+				seq:   1,
+				sig:   hexutil.MustDecode("0x74ac7be3161deb89c1ce5117cd874ad9488288a4f4e68aa2deb2f70bbe67438756c4f87647263a47b85c5db0cfa26bdd77b2ee01bcd33e160041680d7d17a094024bea09ba6da5f0e3aa00fb92a9bd922deaa994c0513c5b6054416977e17af89b784a994954e0024ef4e47cacd722e61f004a7b0aca62d60604665422a83c04393806484c9619b936c268b512663a7dd4aca546986209c5552c9a70a88386e4adf866776a88f02f674400"),
 			},
 		},
 	}
@@ -62,6 +63,7 @@ func TestParseRoot(t *testing.T) {
 
 func TestParseEntry(t *testing.T) {
 	testkey := testKey(signingKeySeed)
+	pub := eddsa.Ed448DerivePublicKey(*testkey)
 	tests := []struct {
 		input string
 		e     entry
@@ -90,8 +92,8 @@ func TestParseEntry(t *testing.T) {
 		},
 		// Links
 		{
-			input: "enrtree://ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org",
-			e:     &linkEntry{"ZFB62B25A272YUGLWYBUY4XJI2IVOP5ONZUV2OHVFDLC6RLWFCDOQUHKM3SKPBMBFHQ6CA7Q3OEEO2APB5H5XYZ3JQ@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
+			input: "enrtree://JJ5QVSTC2YDAIZSUEKUDYBBZHADEQTEWDG4TNQTIWUJGMOT52SWKKRUYMIE4KVJMTJYKRA4G4SW7QZTXNKEPAL3HIQAA@nodes.example.org",
+			e:     &linkEntry{"JJ5QVSTC2YDAIZSUEKUDYBBZHADEQTEWDG4TNQTIWUJGMOT52SWKKRUYMIE4KVJMTJYKRA4G4SW7QZTXNKEPAL3HIQAA@nodes.example.org", "nodes.example.org", &pub},
 		},
 		{
 			input: "enrtree://nodes.example.org",
@@ -107,7 +109,7 @@ func TestParseEntry(t *testing.T) {
 		},
 		// ENRs
 		{
-			input: "enr:-PW4qH7cG4dllE36VCDWgjhj5Rv8pchCnzMpXhbMMGNOnqHv02POGtkUewfj1XX9Z3DhggbsmiGYn8qmMC0iBF3d1fyxlhBlX8s4QqrwXoMbs6V08iTaM7_k70Xvtz_Gvk-DLd9HCKsBakSJ_N97_Ny5LQ5vGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGICCaWSCdjSJc2VjcDI1NmsxuDhvGZVeIhUqYfABAeD0g-l58Suhbo8ZGu8Dv6HUT33kYlbXcXKSeUavooPsGySJV3YUDMra7UuAGA",
+			input: "enr:-Pm4qzzDbjdzIJFOmZh6d1MP3dEFux7I5rEVg5jJ9kJHHli36IDCVM5L0bm1_MmD-KdxejveeMGCJ05_AHeBVyk5UqI1s7z1Tl1fabjz2RKwFI_eO8kEYZTY__1uzGDKL7GmeVSaw1Yzdc13QGgRYQfks3UpAJAWaK-iqL2b5kBPTptnt-o0ykcEJ9kX5KWWyxbxyUjFpEjFblysvBQWw6k605gvwuzD9V0f_-pmgICCaWSCdjSJc2VjcDI1NmsxuDmQFmivoqi9m-ZAT06bZ7fqNMpHBCfZF-SllssW8clIxaRIxW5crLwUFsOpOtOYL8Lsw_VdH__qZoA",
 			e:     &enrEntry{node: testNode(nodesSeed1)},
 		},
 		{

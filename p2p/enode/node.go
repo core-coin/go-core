@@ -17,11 +17,11 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/bits"
 	"math/rand"
 	"net"

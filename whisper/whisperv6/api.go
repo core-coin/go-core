@@ -18,9 +18,9 @@ package whisperv6
 
 import (
 	"context"
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"sync"
 	"time"
 
@@ -145,7 +145,8 @@ func (api *PublicWhisperAPI) GetPublicKey(ctx context.Context, id string) (hexut
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return crypto.FromEDDSAPub(&key.PublicKey), nil
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	return crypto.FromEDDSAPub(&pub), nil
 }
 
 // GetPrivateKey returns the private key associated with the given key. The key is the hex

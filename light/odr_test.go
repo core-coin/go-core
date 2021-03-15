@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
@@ -41,14 +42,17 @@ import (
 )
 
 var (
-	testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
-	testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
+	testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
+	testBankPub     = eddsa.Ed448DerivePublicKey(*testBankKey)
+	testBankAddress = crypto.PubkeyToAddress(testBankPub)
 	testBankFunds   = big.NewInt(100000000)
 
-	acc1Key, _ = crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc58e25e14a72ed78cdb9f548c184ed0832b63c40d5a1676f57af96a4b3553ffa32e6902a4a5e7e9cb825506c840deb4c5e712527a145a850058c14249e21225ad937eb07659a7d5ab1064be4159fdd22175845e9aa24620f")
-	acc2Key, _ = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383e6c839b66f15fd1b172bd0ccf0a00e5a4ca1f8675a9aa1251c5375d2dd8eccb3d637820a0204faf8e110911a25501a6a8200c633d5b7f8553c5662abd270756f096b04e0a834a49cf218c5fce341ec9af5e47d1fe7bf6d")
-	acc1Addr   = crypto.PubkeyToAddress(acc1Key.PublicKey)
-	acc2Addr   = crypto.PubkeyToAddress(acc2Key.PublicKey)
+	acc1Key, _ = crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
+	acc2Key, _ = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
+	acc1Pub    = eddsa.Ed448DerivePublicKey(*acc1Key)
+	acc2Pub    = eddsa.Ed448DerivePublicKey(*acc2Key)
+	acc1Addr   = crypto.PubkeyToAddress(acc1Pub)
+	acc2Addr   = crypto.PubkeyToAddress(acc2Pub)
 
 	testContractCode = common.Hex2Bytes("606060405260cc8060106000396000f360606040526000357c01000000000000000000000000000000000000000000000000000000009004806360cd2685146041578063c16431b914606b57603f565b005b6055600480803590602001909190505060a9565b6040518082815260200191505060405180910390f35b60886004808035906020019091908035906020019091905050608a565b005b80600060005083606481101560025790900160005b50819055505b5050565b6000600060005082606481101560025790900160005b5054905060c7565b91905056")
 	testContractAddr common.Address

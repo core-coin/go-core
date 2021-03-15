@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 
 	"github.com/core-coin/go-core/accounts/keystore"
@@ -71,10 +72,11 @@ make sure to use this feature with great caution!`,
 
 		// Output all relevant information we can retrieve.
 		showPrivate := ctx.Bool("private")
+		pub := eddsa.Ed448DerivePublicKey(*key.PrivateKey)
 		out := outputInspect{
 			Address: key.Address.Hex(),
 			PublicKey: hex.EncodeToString(
-				crypto.FromEDDSAPub(&key.PrivateKey.PublicKey)),
+				crypto.FromEDDSAPub(&pub)),
 		}
 		if showPrivate {
 			out.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(key.PrivateKey))

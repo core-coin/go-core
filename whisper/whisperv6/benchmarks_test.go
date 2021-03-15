@@ -18,6 +18,7 @@ package whisperv6
 
 import (
 	"crypto/rand"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	"testing"
 
@@ -62,7 +63,8 @@ func BenchmarkEncryptionAsym(b *testing.B) {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
 	params.KeySym = nil
-	params.Dst = &key.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	params.Dst = &pub
 
 	for i := 0; i < b.N; i++ {
 		msg, _ := NewSentMessage(params)
@@ -130,7 +132,8 @@ func BenchmarkDecryptionAsymValid(b *testing.B) {
 	}
 	f := Filter{KeyAsym: key}
 	params.KeySym = nil
-	params.Dst = &key.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	params.Dst = &pub
 	msg, _ := NewSentMessage(params)
 	env, err := msg.Wrap(params)
 	if err != nil {
@@ -157,7 +160,8 @@ func BenchmarkDecryptionAsymInvalid(b *testing.B) {
 		b.Fatalf("failed GenerateKey with seed %d: %s.", seed, err)
 	}
 	params.KeySym = nil
-	params.Dst = &key.PublicKey
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	params.Dst = &pub
 	msg, _ := NewSentMessage(params)
 	env, err := msg.Wrap(params)
 	if err != nil {
