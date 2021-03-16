@@ -57,6 +57,9 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	pub := eddsa.Ed448DerivePublicKey(*prv)
 
 	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
+	if len(sig) == 171 {
+		return sig[:], nil
+	}
 	return append(sig[:], pub[:]...), nil
 }
 
