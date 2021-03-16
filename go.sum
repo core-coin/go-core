@@ -50,6 +50,8 @@ github.com/core-coin/ed448 v0.0.0-20200423082241-9d8e0553c6d2 h1:paoJ3Q0zXKTLBB2
 github.com/core-coin/ed448 v0.0.0-20200423082241-9d8e0553c6d2/go.mod h1:/S7hge2XKh2GI/dFp551tIsXDGGD6OU/CSRId+/OjII=
 github.com/core-coin/eddsa v1.0.2 h1:wKfG/W5QpB3YBYUJyQaURDSi6uH7bXdw6EReUiNdGiw=
 github.com/core-coin/eddsa v1.0.2/go.mod h1:n1KUK4H37IqC7gvWlmrTS2tA9t4Z2t+Xj6cBwdoJsJU=
+github.com/core-coin/go-goldilocks v0.0.0-20210316130856-aa5102ffc078 h1:Q5Di+fIxnMtcCNOrSaVfNWqR732DMjJkaOmtKjL34Es=
+github.com/core-coin/go-goldilocks v0.0.0-20210316130856-aa5102ffc078/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v0.0.1 h1:Y/H0fydWrVD1dEgnxM90mJNlcOhndMK9VNv5aGSr+EM=
 github.com/core-coin/go-goldilocks v0.0.1/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v0.0.2 h1:D+KnAy/2jwMe/1pJQTeHYFqjMR0+RawUmgWSC3HTil4=
@@ -76,6 +78,8 @@ github.com/core-coin/go-goldilocks v0.0.12 h1:W+i80XFry9r0NZuCvpsWa8tuZjqyiHTye8
 github.com/core-coin/go-goldilocks v0.0.12/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v1.0.1 h1:6TmBNabkCNTS8uPyPBlAKgQWnXDYCDWaObSufFmGL0g=
 github.com/core-coin/go-goldilocks v1.0.1/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
+github.com/core-coin/go-goldilocks v1.0.2-0.20210316125652-cd1e35f598e5 h1:CKeZyOvDyzfJUR9pGwH7UEmcDdsIhPzIV+4Q5IRxlDI=
+github.com/core-coin/go-goldilocks v1.0.2-0.20210316125652-cd1e35f598e5/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-randomx v0.2.3 h1:oLjl2b/wv1L/q2biSA8XiBDIjyELGhBqb3L9hLG3K7k=
 github.com/core-coin/go-randomx v0.2.3/go.mod h1:N36UST6BS6iR5+HSFqyA7yj7OqBlytORpQc4YE3i3dg=
 github.com/core-coin/gofortuna v0.0.0-20210215182135-8d9eed96287e h1:dvYDkFTK6dOGOzf4sKEpNNYQK4KVSJeiKwF6oNpgKwA=
