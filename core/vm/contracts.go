@@ -83,7 +83,7 @@ func (c *ecrecover) RequiredEnergy(input []byte) uint64 {
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = crypto.SignatureLength
+	const ecRecoverInputLength = crypto.ExtendedSignatureLength
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
 

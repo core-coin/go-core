@@ -215,8 +215,8 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != crypto.SignatureLength {
-		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.SignatureLength, len(signature))
+	if signature == nil || len(signature) != crypto.ExtendedSignatureLength {
+		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.ExtendedSignatureLength, len(signature))
 	}
 	// data/typed
 	control.approveCh <- "Y"
@@ -225,8 +225,8 @@ func TestSignData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if signature == nil || len(signature) != crypto.SignatureLength {
-		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.SignatureLength, len(signature))
+	if signature == nil || len(signature) != crypto.ExtendedSignatureLength {
+		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.ExtendedSignatureLength, len(signature))
 	}
 }
 

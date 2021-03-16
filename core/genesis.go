@@ -373,7 +373,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	return &Genesis{
 		Coinbase:    defaultCoinbaseMainnet,
 		Config:      &config,
-		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
+		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.ExtendedSignatureLength)...),
 		EnergyLimit: 6283185,
 		Difficulty:  big.NewInt(1),
 		Alloc: map[common.Address]GenesisAccount{

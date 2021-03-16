@@ -35,11 +35,11 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 func SigToPub(hash, sig []byte) (*eddsa.PublicKey, error) {
 	_ = hash
 
-	if len(sig) != SignatureLength {
+	if len(sig) != ExtendedSignatureLength {
 		return nil, errInvalidSignature
 	}
 
-	return UnmarshalPubkey(sig[114:])
+	return UnmarshalPubkey(sig[SignatureLength:])
 }
 
 // Sign calculates an EDDSA signature.
@@ -60,7 +60,7 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 
 // VerifySignature checks that the given public key created signature over hash.
 func VerifySignature(pub, hash, signature []byte) bool {
-	if len(signature) != SignatureLength {
+	if len(signature) != ExtendedSignatureLength {
 		return false
 	}
 	pubkey, err := UnmarshalPubkey(pub)

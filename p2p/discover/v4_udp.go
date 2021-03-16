@@ -623,7 +623,7 @@ func (t *UDPv4) loop() {
 
 const (
 	macSize  = 256 / 8
-	sigSize  = crypto.SignatureLength
+	sigSize  = crypto.ExtendedSignatureLength
 	headSize = macSize + sigSize // space of packet frame data
 )
 
