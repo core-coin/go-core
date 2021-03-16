@@ -54,10 +54,9 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	if prv == nil || len(prv) == 0 {
 		return []byte{}, errInvalidPrivkey
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prv)
 
 	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
-	return append(sig[:], pub[:]...), nil
+	return sig[:], nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.

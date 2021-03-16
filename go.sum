@@ -52,6 +52,8 @@ github.com/core-coin/eddsa v1.0.2 h1:wKfG/W5QpB3YBYUJyQaURDSi6uH7bXdw6EReUiNdGiw
 github.com/core-coin/eddsa v1.0.2/go.mod h1:n1KUK4H37IqC7gvWlmrTS2tA9t4Z2t+Xj6cBwdoJsJU=
 github.com/core-coin/go-goldilocks v0.0.0-20210316130856-aa5102ffc078 h1:Q5Di+fIxnMtcCNOrSaVfNWqR732DMjJkaOmtKjL34Es=
 github.com/core-coin/go-goldilocks v0.0.0-20210316130856-aa5102ffc078/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
+github.com/core-coin/go-goldilocks v0.0.0-20210316150742-67a8be978ed9 h1:qVSnlnO/ofRlVxy04uoTS/78uL4lKsExZgbw/83f97o=
+github.com/core-coin/go-goldilocks v0.0.0-20210316150742-67a8be978ed9/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v0.0.1 h1:Y/H0fydWrVD1dEgnxM90mJNlcOhndMK9VNv5aGSr+EM=
 github.com/core-coin/go-goldilocks v0.0.1/go.mod h1:4+R6/Dn4IgGaTDmuby6bRnKb2/AgwC2MC5zoJx0TB3g=
 github.com/core-coin/go-goldilocks v0.0.2 h1:D+KnAy/2jwMe/1pJQTeHYFqjMR0+RawUmgWSC3HTil4=

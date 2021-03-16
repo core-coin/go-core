@@ -13,7 +13,7 @@ require (
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9
 	github.com/core-coin/eddsa v1.0.2
-	github.com/core-coin/go-goldilocks v0.0.0-20210316130856-aa5102ffc078
+	github.com/core-coin/go-goldilocks v0.0.0-20210316150742-67a8be978ed9
 	github.com/core-coin/go-randomx v0.2.3
 	github.com/core-coin/gofortuna v0.0.0-20210215182135-8d9eed96287e // indirect
 	github.com/davecgh/go-spew v1.1.1
