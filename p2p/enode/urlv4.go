@@ -158,8 +158,8 @@ func parsePubkey(in string) (*eddsa.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
-	} else if len(b) != 57 {
-		return nil, fmt.Errorf("wrong length, want %d hex chars", 114)
+	} else if len(b) != crypto.PubkeyLength {
+		return nil, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
 	}
 	return crypto.UnmarshalPubkey(b)
 }

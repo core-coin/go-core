@@ -343,7 +343,7 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		op = ledgerP1ContTransactionData
 	}
 	// Extract the Core signature and do a sanity validation
-	if len(reply) != crypto.SignatureLength {
+	if len(reply) != crypto.ExtendedSignatureLength {
 		return common.Address{}, nil, errors.New("reply lacks signature")
 	}
 	signature := append(reply[1:], reply[0])

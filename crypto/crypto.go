@@ -30,9 +30,10 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-const SignatureLength = 114 + 57
+const SignatureLength = 114
 const PubkeyLength = 57
 const PrivkeyLength = 57
+const ExtendedSignatureLength = SignatureLength + PubkeyLength
 
 var errInvalidPubkey = errors.New("invalid public key")
 var errInvalidPrivkey = errors.New("invalid private key")

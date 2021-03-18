@@ -57,12 +57,12 @@ var (
 
 	// Test accounts
 	testBankKey, _  = crypto.GenerateKey(crand.Reader)
-	testBankPub 	= eddsa.Ed448DerivePublicKey(*testBankKey)
+	testBankPub     = eddsa.Ed448DerivePublicKey(*testBankKey)
 	testBankAddress = crypto.PubkeyToAddress(testBankPub)
 	testBankFunds   = big.NewInt(1000000000000000000)
 
 	testUserKey, _  = crypto.GenerateKey(crand.Reader)
-	testUserPub		= eddsa.Ed448DerivePublicKey(*testUserKey)
+	testUserPub     = eddsa.Ed448DerivePublicKey(*testUserKey)
 	testUserAddress = crypto.PubkeyToAddress(testUserPub)
 
 	// Test transactions
@@ -110,7 +110,7 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 
 	switch e := engine.(type) {
 	case *clique.Clique:
-		gspec.ExtraData = make([]byte, 32+common.AddressLength+crypto.SignatureLength)
+		gspec.ExtraData = make([]byte, 32+common.AddressLength+crypto.ExtendedSignatureLength)
 		copy(gspec.ExtraData[32:32+common.AddressLength], testBankAddress.Bytes())
 		e.Authorize(testBankAddress, func(account accounts.Account, s string, data []byte) ([]byte, error) {
 			return crypto.Sign(crypto.SHA3(data), testBankKey)

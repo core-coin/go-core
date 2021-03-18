@@ -35,11 +35,11 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 func SigToPub(hash, sig []byte) (*eddsa.PublicKey, error) {
 	_ = hash
 
-	if len(sig) != SignatureLength {
+	if len(sig) != ExtendedSignatureLength {
 		return nil, errInvalidSignature
 	}
 
-	return UnmarshalPubkey(sig[114:])
+	return UnmarshalPubkey(sig[SignatureLength:])
 }
 
 // Sign calculates an EDDSA signature.
@@ -54,20 +54,25 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	if prv == nil || len(prv) == 0 {
 		return []byte{}, errInvalidPrivkey
 	}
+	pub := eddsa.Ed448DerivePublicKey(*prv)
+
 	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
-	return sig[:], nil
+	if len(sig) == 171 {
+		return sig[:], nil
+	}
+	return append(sig[:], pub[:]...), nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.
 func VerifySignature(pub, hash, signature []byte) bool {
-	if len(signature) != SignatureLength {
+	if len(signature) != ExtendedSignatureLength {
 		return false
 	}
 	pubkey, err := UnmarshalPubkey(pub)
 	if err != nil {
 		return false
 	}
-	return eddsa.Ed448Verify(*pubkey, signature[:], hash, []byte{}, false)
+	return eddsa.Ed448Verify(*pubkey, signature[:SignatureLength], hash, []byte{}, false)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
