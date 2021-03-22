@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/crypto"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
@@ -83,10 +84,10 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 	}
 	xcbPriv := crypto.SHA3(plainText)
 	ecKey := crypto.ToEDDSAUnsafe(xcbPriv)
-
+	pub := eddsa.Ed448DerivePublicKey(*ecKey)
 	key = &Key{
 		Id:         nil,
-		Address:    crypto.PubkeyToAddress(ecKey.PublicKey),
+		Address:    crypto.PubkeyToAddress(pub),
 		PrivateKey: ecKey,
 	}
 	derivedAddr := hex.EncodeToString(key.Address.Bytes()) // needed because .Hex() gives leading "0x"

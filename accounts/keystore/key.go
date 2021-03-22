@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -128,16 +128,17 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 
 func newKeyFromEDDSA(privateKeyEDDSA *eddsa.PrivateKey) *Key {
 	id := uuid.NewRandom()
+	pub := eddsa.Ed448DerivePublicKey(*privateKeyEDDSA)
 	key := &Key{
 		Id:         id,
-		Address:    crypto.PubkeyToAddress(privateKeyEDDSA.PublicKey),
+		Address:    crypto.PubkeyToAddress(pub),
 		PrivateKey: privateKeyEDDSA,
 	}
 	return key
 }
 
 func newKey(rand io.Reader) (*Key, error) {
-	privateKeyEDDSA, err := eddsa.Ed448().GenerateKey(rand)
+	privateKeyEDDSA, err := crypto.GenerateKey(rand)
 	if err != nil {
 		return nil, err
 	}

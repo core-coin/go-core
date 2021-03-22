@@ -28,8 +28,10 @@ var MainnetBootnodes = []string{
 // DevinBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Devin test network.
 var DevinBootnodes = []string{
-	"enode://92fd9892e06692c9c4fb4d7e63ecadd67703c60c6082bfdfcd55a367b5782f0a0389cd7d9761aadb2ab2a08b35cfa2712c1ed59120af63b6@77.73.68.177:30300", // core-devin-ca-qc
-	"enode://40b7524d2096b03af81279b3a3213e49aea27e8d4541949bae50a1f7482dd456576528c82fd7f4122eaeb487d4d88aa6d905a05fadbbfdda@77.73.68.195:30300", // core-devin-eu-nl
+	"enode://caeef3fe131f1ed322735e4195ed8a887c3a5316dbd13595e09d98f02ef816c375a8be2baf9dbfac571d6d497c0d1afeb5b014d8df04cc5c00@168.119.231.210:30300", // core-devin-node-9 core-devin-eu-ge-by
+	"enode://d67d5db87c8e6bc8139df78c45819675bbd992eded7bbc5c18b1868c53beb7a0b5242e95d7e9ddfdd0ad5f833531302616059fd4f60ce24a80@78.47.203.14:30300",    // core-devin-node-10 core-devin-eu-ge-sn
+	"enode://4a19d5ac99da155f54cc5d56751f069a8a7e475c8d0a5fafdcabeb409a9fb71f33008592571cfdc949d8db8733a6ba7ecf8b759c42799baa80@51.15.51.158:30300",    // core-devin-node-18 core-devin-eu-nl-ams
+	"enode://6819914de7cc04e0cd8521974e0c0910acf89d862bce0b284afda70d0fe8e7b5115e058d33b54cc6eb73e9f8ccdc3a6400fb1499109769d680@51.158.123.140:30300",  // core-devin-node-20 core-devin-eu-fr-idf
 }
 
 // KolibaBootnodes are the enode URLs of the P2P bootstrap nodes running on the

@@ -17,9 +17,9 @@
 package les
 
 import (
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"math/big"
 

@@ -28,12 +28,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -337,7 +337,8 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't generate ephemeral key")
 	}
-	ephpubkey := encodePubkey(&ephkey.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*ephkey)
+	ephpubkey := encodePubkey(&pub)
 
 	// Add ID nonce signature to response.
 	idsig, err := c.signIDNonce(challenge.IDNonce[:], ephpubkey[:])

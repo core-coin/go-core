@@ -19,7 +19,7 @@ package crypto
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -27,8 +27,8 @@ import (
 	"github.com/core-coin/go-core/common"
 )
 
-var testAddrHex = "cb95a71d3dacb1a805776cb9c17785f040babcbb9fc1"
-var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
+var testAddrHex = "cb82a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5"
+var testPrivHex = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e"
 
 // These tests are sanity checks.
 // They should ensure that we don't e.g. use Sha3-224 instead of Sha3-256
@@ -66,7 +66,7 @@ func TestUnmarshalPubkey(t *testing.T) {
 	}
 
 	var (
-		enc, _ = hex.DecodeString("ee47e4f7afb3a0dfd813320278e8ce0c9b1f94bded9a7e0ad9f9250c3360e16cbb3d90484ccc59805be6398b6ca774959d37a8a4cdc81faf")
+		enc, _ = hex.DecodeString("aaee47e4f7afb3a0dfd813320278e8ce0c9b1f94bded9a7e0ad9f9250c3360e16cbb3d90484ccc59805be6398b6ca774959d37a8a4cdc81faf")
 	)
 	key, err = UnmarshalPubkey(enc)
 	if err != nil {
@@ -121,22 +121,23 @@ func TestNewContractAddress(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	genAddr := PubkeyToAddress(key.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	genAddr := PubkeyToAddress(pub)
 	// sanity check before using addr to create contract address
 	checkAddr(t, genAddr, addr)
 	caddr0 := CreateAddress(addr, 0)
 	caddr1 := CreateAddress(addr, 1)
 	caddr2 := CreateAddress(addr, 2)
 
-	addr0, err := common.HexToAddress("cb7954179cc81edab0387ed40814656a449482425c29")
+	addr0, err := common.HexToAddress("cb57718e2b338b99d2587a6dd6c01fc2b97a4296449f")
 	if err != nil {
 		t.Error(err)
 	}
-	addr1, err := common.HexToAddress("cb28b5fbfc191d74aa50febef5c1a03197a1ca3d8f19")
+	addr1, err := common.HexToAddress("cb812bae2e00797890802e8aa6c162aac5cac4d8990c")
 	if err != nil {
 		t.Error(err)
 	}
-	addr2, err := common.HexToAddress("cb4007813c639e1272a434b00749259d0aa81cdfe428")
+	addr2, err := common.HexToAddress("cb98c562c98ac1be66b1302be0cac7f8da9694900b09")
 	if err != nil {
 		t.Error(err)
 	}
@@ -151,7 +152,8 @@ func TestLoadEDDSAFile(t *testing.T) {
 	fileName1 := "test_key1"
 	addr, _ := common.HexToAddress(testAddrHex)
 	checkKey := func(k *eddsa.PrivateKey) {
-		checkAddr(t, PubkeyToAddress(k.PublicKey), addr)
+		pub := eddsa.Ed448DerivePublicKey(*k)
+		checkAddr(t, PubkeyToAddress(pub), addr)
 		loadedKeyBytes := FromEDDSA(k)
 		if !bytes.Equal(loadedKeyBytes, keyBytes) {
 			t.Fatalf("private key mismatch: want: %x have: %x", keyBytes, loadedKeyBytes)

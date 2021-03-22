@@ -2,7 +2,7 @@
 
 Official Golang implementation of the CORE protocol.
 
-Automated builds are available for stable releases and the unstable master branch. Binary archives are published at [CORE website > downloads](https://coreblockchain.cc/downloads).
+Automated builds are available for stable releases and the unstable master branch. Binary archives are published at [CORE website > downloads](https://coreblockchain.cc/download).
 
 ## Building the source
 
@@ -24,9 +24,9 @@ CORE Client implements ICAN-based addresses with following formats:
 
 Name | Prefix | Length | Format
 --- | --- | --- | ---
-Mainnet | CB | 44 | H40
-Testnets | AB | 44 | H40
-Privatenets | CE | 44 | H40
+Mainnet | CB | 44 | hh!kk!hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh!
+Testnets | AB | 44 | hh!kk!hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh!
+Privatenets | CE | 44 | hh!kk!hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh!
 
 ## Executables
 
@@ -146,12 +146,11 @@ First, you'll need to create the genesis state of your networks, which all nodes
     "chainId": "<arbitrary positive integer>"
   },
   "alloc": {},
-  "coinbase": "0x0000000000000000000000000000000000000000",
+  "corebase": "ce450000000000000000000000000000000000000000",
   "difficulty": "0x20000",
   "extraData": "",
   "energyLimit": "0x2fefd8",
   "nonce": "0x0000000000000042",
-  "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "timestamp": "0x00"
 }
@@ -208,7 +207,7 @@ $ gocore --datadir=path/to/custom/data/folder --bootnodes=<bootnode-enode-url-fr
 In a private network setting, however, a single CPU miner instance is more than enough for practical purposes as it can produce a stable stream of blocks at the correct intervals without needing heavy resources (consider running on a single thread, no need for multiple ones either). To start a `gocore` instance for mining, run it with all your usual flags, extended by:
 
 ```shell
-$ gocore <usual-flags> --mine --miner.threads=1 --corebase=0x0000000000000000000000000000000000000000
+$ gocore <usual-flags> --mine --miner.threads=1 --corebase=ce450000000000000000000000000000000000000000
 ```
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all proceedings to the account specified by `--corebase`. You can further tune the mining by changing the default energy limit blocks converge to (`--targetenergylimit`) and the price transactions are accepted at (`--energyprice`).
@@ -228,10 +227,11 @@ P4 Low | Anything outside the next 3 releases
 
 Label | Impact
 --- | ---
-S1 Blocker | Outage, broken feature with no workaround
-S2 Critical | Broken feature, workaround too complex & unacceptable
-S3 Major | Broken feature, workaround acceptable
+S1 Critical | Outage, broken feature with no workaround
+S2 High | Broken feature, workaround too complex & unacceptable
+S3 Moderate | Broken feature, workaround acceptable
 S4 Low | Functionality inconvenience or cosmetic issue
+S5 Note | Note about feature and/or code
 
 ## Contribution
 
@@ -249,7 +249,7 @@ Please make sure your contributions adhere to our coding guidelines:
 
 ## Security vulnerability disclosure
 
-Please report suspected security vulnerabilities in private following the [Security manual](SECURITY.md). Do NOT create publicly viewable issues for suspected security vulnerabilities.
+Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.cc/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities.
 
 ## License
 
@@ -259,5 +259,5 @@ The go-core binaries (i.e. all code inside of the `cmd` directory) are licensed 
 
 ## Community
 
+[![Developer Portal](https://img.shields.io/badge/Developer-dev.coreblockchain.cc-46b549)](https://dev.coreblockchain.cc/)
 [![Core ◆ Talk](https://img.shields.io/badge/Core%20%E2%97%86%20Talk-Protocol%20and%20Client-green)](https://coretalk.info/c/protocol-and-client/8/)
-[![Discord](https://img.shields.io/discord/469227792538533888?label=Discord)](https://discord.gg/b3c5FvZ)

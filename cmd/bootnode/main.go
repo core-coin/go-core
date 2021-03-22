@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"os"
 
@@ -87,7 +87,8 @@ func main() {
 
 	if *genKey != "" || *writeAddr {
 		fmt.Printf("%x\n", crypto.FromEDDSA(nodeKey))
-		fmt.Printf("%x\n", crypto.FromEDDSAPub(&nodeKey.PublicKey))
+		pub := eddsa.Ed448DerivePublicKey(*nodeKey)
+		fmt.Printf("%x\n", crypto.FromEDDSAPub(&pub))
 		return
 	}
 
@@ -117,8 +118,8 @@ func main() {
 			realaddr = &net.UDPAddr{IP: ext, Port: realaddr.Port}
 		}
 	}
-
-	printNotice(&nodeKey.PublicKey, *realaddr)
+	pub := eddsa.Ed448DerivePublicKey(*nodeKey)
+	printNotice(&pub, *realaddr)
 
 	if *runv5 {
 		if _, err := discv5.ListenUDP(nodeKey, conn, "", restrictList); err != nil {

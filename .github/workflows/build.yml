@@ -67,5 +67,7 @@ jobs:
       run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
     - name: docker build
       run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
-    - name: docker push
-      run: docker push docker.pkg.github.com/core-coin/go-core/gocore
+    - name: docker push latest version
+      run: docker push docker.pkg.github.com/core-coin/go-core/gocore:latest
+    - name: docker push current version
+      run: docker push docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}}

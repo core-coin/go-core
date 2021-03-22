@@ -17,8 +17,8 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"reflect"
 	"strconv"
@@ -63,8 +63,9 @@ type lnEndpoint struct {
 
 // NewLocalNode creates a local node.
 func NewLocalNode(db *DB, key *eddsa.PrivateKey) *LocalNode {
+	pub := eddsa.Ed448DerivePublicKey(*key)
 	ln := &LocalNode{
-		id:      PubkeyToIDV4(&key.PublicKey),
+		id:      PubkeyToIDV4(&pub),
 		db:      db,
 		key:     key,
 		entries: make(map[string]enr.Entry),

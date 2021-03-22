@@ -17,17 +17,12 @@
 package cryptore
 
 import (
-	"ekyu.moe/cryptonight"
-	"encoding/binary"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 	"golang.org/x/crypto/sha3"
 	"hash"
 )
 
 const (
-	epochLength        = 30000   // Blocks per epoch
-	mixBytes           = 128     // Width of mix
+	epochLength = 30000 // Blocks per epoch
 )
 
 // hasher is a repetitive hasher allowing the same hash data structures to be
@@ -68,39 +63,4 @@ func seedHash(block uint64) []byte {
 		keccak256(seed, seed)
 	}
 	return seed
-}
-
-// fnv is an algorithm inspired by the FNV hash, which in some cases is used as
-// a non-associative substitute for XOR. Note that we multiply the prime with
-// the full 32-bit input, in contrast with the FNV-1 spec which multiplies the
-// prime with one byte (octet) in turn.
-func fnv(a, b uint32) uint32 {
-	return a*0x01000193 ^ b
-}
-
-func hashcryptonight(hash []byte, nonce uint64) ([]byte, []byte) {
-	// Combine header+nonce into a 64 byte seed
-	seed := make([]byte, 40)
-	copy(seed, hash)
-	binary.LittleEndian.PutUint64(seed[32:], nonce)
-
-	seed = crypto.SHA3_512(seed)
-
-	// Start the mix with replicated seed
-	mix := make([]uint32, mixBytes/4)
-	for i := 0; i < len(mix); i++ {
-		mix[i] = binary.LittleEndian.Uint32(seed[i%16*4:])
-	}
-
-	// Compress mix
-	for i := 0; i < len(mix); i += 4 {
-		mix[i/4] = fnv(fnv(fnv(mix[i], mix[i+1]), mix[i+2]), mix[i+3])
-	}
-	mix = mix[:len(mix)/4]
-
-	digest := make([]byte, common.HashLength)
-	for i, val := range mix {
-		binary.LittleEndian.PutUint32(digest[i*4:], val)
-	}
-	return digest, cryptonight.Sum(append(seed, digest...), 2)
 }

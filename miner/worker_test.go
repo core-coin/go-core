@@ -18,6 +18,7 @@ package miner
 
 import (
 	crand "crypto/rand"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"math/rand"
 	"sync/atomic"
@@ -56,11 +57,13 @@ var (
 
 	// Test accounts
 	testBankKey, _  = crypto.GenerateKey(crand.Reader)
-	testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
+	testBankPub     = eddsa.Ed448DerivePublicKey(*testBankKey)
+	testBankAddress = crypto.PubkeyToAddress(testBankPub)
 	testBankFunds   = big.NewInt(1000000000000000000)
 
 	testUserKey, _  = crypto.GenerateKey(crand.Reader)
-	testUserAddress = crypto.PubkeyToAddress(testUserKey.PublicKey)
+	testUserPub     = eddsa.Ed448DerivePublicKey(*testUserKey)
+	testUserAddress = crypto.PubkeyToAddress(testUserPub)
 
 	// Test transactions
 	pendingTxs []*types.Transaction
@@ -107,7 +110,7 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 
 	switch e := engine.(type) {
 	case *clique.Clique:
-		gspec.ExtraData = make([]byte, 32+common.AddressLength+crypto.SignatureLength)
+		gspec.ExtraData = make([]byte, 32+common.AddressLength+crypto.ExtendedSignatureLength)
 		copy(gspec.ExtraData[32:32+common.AddressLength], testBankAddress.Bytes())
 		e.Authorize(testBankAddress, func(account accounts.Account, s string, data []byte) ([]byte, error) {
 			return crypto.Sign(crypto.SHA3(data), testBankKey)

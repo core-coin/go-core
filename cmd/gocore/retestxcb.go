@@ -139,7 +139,6 @@ type CParamsParams struct {
 type CParamsGenesis struct {
 	Nonce       math.HexOrDecimal64   `json:"nonce"`
 	Difficulty  *math.HexOrDecimal256 `json:"difficulty"`
-	MixHash     *math.HexOrDecimal256 `json:"mixHash"`
 	Author      common.Address        `json:"author"`
 	Timestamp   math.HexOrDecimal64   `json:"timestamp"`
 	ParentHash  common.Hash           `json:"parentHash"`
@@ -311,7 +310,6 @@ func (api *RetestxcbAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 		ExtraData:   chainParams.Genesis.ExtraData,
 		EnergyLimit: uint64(chainParams.Genesis.EnergyLimit),
 		Difficulty:  big.NewInt(0).Set((*big.Int)(chainParams.Genesis.Difficulty)),
-		Mixhash:     common.BigToHash((*big.Int)(chainParams.Genesis.MixHash)),
 		Coinbase:    chainParams.Genesis.Author,
 		ParentHash:  chainParams.Genesis.ParentHash,
 		Alloc:       accounts,

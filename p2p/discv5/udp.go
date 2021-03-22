@@ -18,9 +18,9 @@ package discv5
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
 
@@ -227,7 +227,8 @@ func ListenUDP(priv *eddsa.PrivateKey, conn conn, nodeDBPath string, netrestrict
 	if err != nil {
 		return nil, err
 	}
-	net, err := newNetwork(transport, priv.PublicKey, nodeDBPath, netrestrict)
+	pub := eddsa.Ed448DerivePublicKey(*priv)
+	net, err := newNetwork(transport, pub, nodeDBPath, netrestrict)
 	if err != nil {
 		return nil, err
 	}

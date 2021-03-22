@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"github.com/core-coin/go-core/common"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 
@@ -27,9 +28,9 @@ import (
 )
 
 var (
-	testmsg     = common.Hex2Bytes("ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
-	testsig     = common.Hex2Bytes("d89625e1348f5444e4aa07c65b6810d4984d2d75d28de35e4bf79cf2bf6068d6922e2628a7111ff91d6c676f0be5c9d464ea935045ad8cb0f0e29c15cd4473a474e3c950214d6303633c4abee7d4d1582530d1bc9f75d37754f6ed82bfafb4a70b3283ca6dc996815b0042eedd7c873671583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
-	testpubkey  = common.Hex2Bytes("71583e2e906397e2833cb0c4321941cd91592ca47cf10ccccc5a7df7442d750616d943f01ef6841c2e248148264c66bdc0649ddd8d62e3b6")
+	testmsg    = common.Hex2Bytes("ce0677bb30baa8cf067c88db9811f4333d131bf8bcf12fe7065d211dce971008")
+	testsig    = common.Hex2Bytes("59bcf2f083adb0df2d45adf500effdec7bf50396c41ad6bef98bbe9f05b127d4ee0557197cc489cb2446d0824bbcdedadf7e649f4d04e3c18012d49157fe68aea683779db4e579bc4b17d815a924f8f9cfe0c1e301bbee423aaba58952cebb60d43135d0a70237d691c178f36136140926009c9023964b1c45772f748867b8f3dbf02732537c21bceb3b7b0cc69d1b5c275fb3a76bfc482dfff2336d3e18da9fdb3139459b02b51a8d8f00")
+	testpubkey = common.Hex2Bytes("9c9023964b1c45772f748867b8f3dbf02732537c21bceb3b7b0cc69d1b5c275fb3a76bfc482dfff2336d3e18da9fdb3139459b02b51a8d8f00")
 )
 
 func TestEcrecover(t *testing.T) {
@@ -88,11 +89,12 @@ func TestPubkeyRandom(t *testing.T) {
 		if err != nil {
 			t.Fatalf("iteration %d: %v", i, err)
 		}
-		pubkey2, err := DecompressPubkey(CompressPubkey(&key.PublicKey))
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		pubkey2, err := DecompressPubkey(CompressPubkey(&pub))
 		if err != nil {
 			t.Fatalf("iteration %d: %v", i, err)
 		}
-		if !reflect.DeepEqual(key.PublicKey, *pubkey2) {
+		if !reflect.DeepEqual(pub, *pubkey2) {
 			t.Fatalf("iteration %d: keys not equal", i)
 		}
 	}

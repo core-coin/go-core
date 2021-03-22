@@ -24,6 +24,7 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"github.com/core-coin/go-core/crypto"
+	eddsa "github.com/core-coin/go-goldilocks"
 	pcsc "github.com/gballet/go-libpcsclite"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
@@ -72,11 +73,11 @@ func NewSecureChannelSession(card *pcsc.Card, keyData []byte) (*SecureChannelSes
 	}
 
 	secret := crypto.ComputeSecret(private, cardPublic)
-
+	pub := eddsa.Ed448DerivePublicKey(*private)
 	return &SecureChannelSession{
-		card: card,
-		secret: secret,
-		publicKey: private.PublicKey.X,
+		card:      card,
+		secret:    secret,
+		publicKey: pub[:],
 	}, nil
 }
 

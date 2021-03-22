@@ -17,14 +17,14 @@
 package whisperv6
 
 import (
+	"bytes"
 	"fmt"
 	"sync"
-	"bytes"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/eddsa"
 	"github.com/core-coin/go-core/log"
+	eddsa "github.com/core-coin/go-goldilocks"
 )
 
 // Filter represents a Whisper message filter
@@ -236,7 +236,8 @@ func (f *Filter) MatchMessage(msg *ReceivedMessage) bool {
 	}
 
 	if f.expectsAsymmetricEncryption() && msg.isAsymmetricEncryption() {
-		return IsPubKeyEqual(&f.KeyAsym.PublicKey, msg.Dst)
+		pub := eddsa.Ed448DerivePublicKey(*f.KeyAsym)
+		return IsPubKeyEqual(&pub, msg.Dst)
 	} else if f.expectsSymmetricEncryption() && msg.isSymmetricEncryption() {
 		return f.SymKeyHash == msg.SymKeyHash
 	}
@@ -259,5 +260,5 @@ func IsPubKeyEqual(a, b *eddsa.PublicKey) bool {
 		return false
 	}
 	// the curve is always the same, just compare the points
-	return bytes.Compare(a.X, b.X) == 0
+	return bytes.Compare(a[:], b[:]) == 0
 }

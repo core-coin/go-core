@@ -17,9 +17,9 @@
 package cryptore
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-randomx"
 	"math/big"
 	"runtime"
 	"time"
@@ -36,12 +36,12 @@ import (
 
 // Cryptore proof-of-work protocol constants.
 var (
-	BlockReward = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
-	maxUncles                 = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTime    = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+	BlockReward            = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
+	maxUncles              = 2                 // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTime = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
 
 	calcDifficulty = makeDifficultyCalculator()
-	)
+)
 
 // Various error messages to mark blocks invalid. These should be private to
 // prevent engine specific errors from being referenced in the remainder of the
@@ -54,7 +54,6 @@ var (
 	errUncleIsAncestor   = errors.New("uncle is ancestor")
 	errDanglingUncle     = errors.New("uncle's parent is not ancestor")
 	errInvalidDifficulty = errors.New("non-positive difficulty")
-	errInvalidMixDigest  = errors.New("invalid mix digest")
 	errInvalidPoW        = errors.New("invalid proof-of-work")
 )
 
@@ -374,18 +373,13 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 		return errInvalidDifficulty
 	}
 
-	// Recompute the digest and PoW values
-	var (
-		digest []byte
-		result []byte
-	)
-
-	digest, result = hashcryptonight(cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
-
-	// Verify the calculated values against the ones provided in the header
-	if !bytes.Equal(header.MixDigest[:], digest) {
-		return errInvalidMixDigest
+	// Recompute PoW values
+	var result []byte
+	result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
+	if err != nil {
+		return err
 	}
+
 	target := new(big.Int).Div(two256, header.Difficulty)
 	if new(big.Int).SetBytes(result).Cmp(target) > 0 {
 		return errInvalidPoW

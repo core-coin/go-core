@@ -40,11 +40,16 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	if block.Hash() != params.DevinGenesisHash {
 		t.Errorf("wrong devin genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
 	}
+	block = DefaultKolibaGenesisBlock().ToBlock(nil)
+
+	if block.Hash() != params.KolibaGenesisHash {
+		t.Errorf("wrong koliba genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
+	}
 }
 
 func TestSetupGenesis(t *testing.T) {
 	var (
-		customghash = common.HexToHash("0x06e09622363925df71aaeee886d306426dabafa7da6715097453940b9df9aa2c")
+		customghash = common.HexToHash("0xd3fde1cd83b29aea233b42e6c72bc51f77d44911d829ae0e0627d5ccad74da66")
 		customg     = Genesis{
 			Config: &params.ChainConfig{EWASMBlock: big.NewInt(3)},
 			Alloc: GenesisAlloc{

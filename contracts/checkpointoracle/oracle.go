@@ -25,9 +25,9 @@ import (
 
 	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
 	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/crypto"
 )
 
 // CheckpointOracle is a Go wrapper around an on-chain checkpoint oracle contract.
@@ -80,7 +80,7 @@ func (oracle *CheckpointOracle) LookupCheckpointEvents(blockLogs [][]*types.Log,
 // Notably all signatures given should be transformed to "core style" which transforms
 func (oracle *CheckpointOracle) RegisterCheckpoint(opts *bind.TransactOpts, index uint64, hash []byte, rnum *big.Int, rhash [32]byte, sigs [][]byte) (*types.Transaction, error) {
 	for i := 0; i < len(sigs); i++ {
-		if len(sigs[i]) != crypto.SignatureLength {
+		if len(sigs[i]) != crypto.ExtendedSignatureLength {
 			return nil, errors.New("invalid signature")
 		}
 	}

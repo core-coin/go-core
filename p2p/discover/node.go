@@ -17,7 +17,7 @@
 package discover
 
 import (
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
 
@@ -33,10 +33,10 @@ type node struct {
 	livenessChecks uint      // how often liveness was checked
 }
 
-type encPubkey [56]byte
+type encPubkey [57]byte
 
 func encodePubkey(pub *eddsa.PublicKey) (key encPubkey) {
-	copy(key[:], pub.X[:])
+	copy(key[:], pub[:])
 	return key
 }
 

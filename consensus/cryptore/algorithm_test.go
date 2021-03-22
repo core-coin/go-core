@@ -21,23 +21,24 @@ import (
 	"testing"
 
 	"github.com/core-coin/go-core/common/hexutil"
+
+	"github.com/core-coin/go-randomx"
 )
 
-// Tests whether the cryptonight lookup works for both light as well as the full
+// Tests whether the randomx lookup works for both light as well as the full
 // datasets.
-func TestCryptonight(t *testing.T) {
+func TestRandomX(t *testing.T) {
 	// Create a block to verify
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
-	wantDigest := hexutil.MustDecode("0x7496850e31f0c8b44aae2d57704312657496850e31f0c8b44aae2d5770431265")
-	wantResult := hexutil.MustDecode("0x7f756e07438b62fcafb1e5027ca3c9bf263270cd12e285ee60b44a6e8a20d850")
-
-	digest, result := hashcryptonight(hash, nonce)
-	if !bytes.Equal(digest, wantDigest) {
-		t.Errorf("cryptonight digest mismatch: have %x, want %x", digest, wantDigest)
+	wantResult := hexutil.MustDecode("0xb620364373923b57353c668dcedcfc636d456e1c0d7da8733586c0e54ada6aa4")
+	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
+	result, err := randomx.RandomX(vm, mutex, hash, nonce)
+	if err != nil {
+		t.Error(err)
 	}
 	if !bytes.Equal(result, wantResult) {
-		t.Errorf("cryptonight result mismatch: have %x, want %x", result, wantResult)
+		t.Errorf("randomx result mismatch: have %x, want %x", result, wantResult)
 	}
 }

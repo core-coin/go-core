@@ -56,7 +56,6 @@ type Genesis struct {
 	ExtraData   []byte              `json:"extraData"`
 	EnergyLimit uint64              `json:"energyLimit"   gencodec:"required"`
 	Difficulty  *big.Int            `json:"difficulty" gencodec:"required"`
-	Mixhash     common.Hash         `json:"mixHash"`
 	Coinbase    common.Address      `json:"coinbase"`
 	Alloc       GenesisAlloc        `json:"alloc"      gencodec:"required"`
 
@@ -272,7 +271,6 @@ func (g *Genesis) ToBlock(db xcbdb.Database) *types.Block {
 		EnergyLimit: g.EnergyLimit,
 		EnergyUsed:  g.EnergyUsed,
 		Difficulty:  g.Difficulty,
-		MixDigest:   g.Mixhash,
 		Coinbase:    g.Coinbase,
 		Root:        root,
 	}
@@ -334,13 +332,11 @@ func GenesisBlockForTesting(db xcbdb.Database, addr common.Address, balance *big
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:    defaultCoinbaseMainnet,
-		Config:      params.MainnetChainConfig,
-		Timestamp:   1599475790,
-		Mixhash:     common.Hash{},
-		Nonce:       66,
-		EnergyLimit: 5000,
-		Difficulty:  big.NewInt(1),
+		Coinbase:   defaultCoinbaseMainnet,
+		Config:     params.MainnetChainConfig,
+		Timestamp:  1599475790,
+		Nonce:      66,
+		Difficulty: big.NewInt(1),
 	}
 }
 
@@ -350,10 +346,8 @@ func DefaultDevinGenesisBlock() *Genesis {
 		Coinbase:    defaultCoinbaseDevin,
 		Config:      params.DevinChainConfig,
 		Timestamp:   1599475790,
-		Mixhash:     common.Hash{},
 		Nonce:       0x000000000002,
 		EnergyLimit: 0x2fefd8,
-		Difficulty:  big.NewInt(1),
 	}
 }
 
@@ -363,7 +357,6 @@ func DefaultKolibaGenesisBlock() *Genesis {
 		Coinbase:    defaultCoinbaseKoliba,
 		Config:      params.KolibaChainConfig,
 		Timestamp:   1599475790,
-		Mixhash:     common.Hash{},
 		Nonce:       0x000000000002,
 		EnergyLimit: 10485760,
 		Difficulty:  big.NewInt(1),
@@ -380,7 +373,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	return &Genesis{
 		Coinbase:    defaultCoinbaseMainnet,
 		Config:      &config,
-		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
+		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.ExtendedSignatureLength)...),
 		EnergyLimit: 6283185,
 		Difficulty:  big.NewInt(1),
 		Alloc: map[common.Address]GenesisAccount{

@@ -21,10 +21,10 @@ package whisperv6
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/core-coin/eddsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mrand "math/rand"
 	"strconv"
 
@@ -172,7 +172,7 @@ func (msg *sentMessage) encryptAsymmetric(key *eddsa.PublicKey) error {
 	if !ValidatePublicKey(key) {
 		return errors.New("invalid public key provided for asymmetric encryption")
 	}
-	encrypted, err := ecies.Encrypt(crand.Reader, ecies.ImportEDDSAPublic(key), msg.Raw, nil, nil)
+	encrypted, err := ecies.Encrypt(crand.Reader, key, msg.Raw, nil, nil)
 	if err == nil {
 		msg.Raw = encrypted
 	}
@@ -289,7 +289,7 @@ func (msg *ReceivedMessage) decryptSymmetric(key []byte) error {
 
 // decryptAsymmetric decrypts an encrypted payload with a private key.
 func (msg *ReceivedMessage) decryptAsymmetric(key *eddsa.PrivateKey) error {
-	decrypted, err := ecies.ImportEDDSA(key).Decrypt(msg.Raw, nil, nil)
+	decrypted, err := ecies.Decrypt(key, msg.Raw, nil, nil)
 	if err == nil {
 		msg.Raw = decrypted
 	}

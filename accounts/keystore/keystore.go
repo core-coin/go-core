@@ -32,7 +32,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -482,5 +482,5 @@ func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (account
 
 // zeroKey zeroes a private key in memory.
 func zeroKey(k *eddsa.PrivateKey) {
-	k.D = k.D[:0]
+	k = new(eddsa.PrivateKey)
 }

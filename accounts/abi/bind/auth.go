@@ -21,7 +21,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/external"
@@ -67,7 +67,8 @@ func NewKeyStoreTransactor(keystore *keystore.KeyStore, account accounts.Account
 // NewKeyedTransactor is a utility method to easily create a transaction signer
 // from a single private key.
 func NewKeyedTransactor(key *eddsa.PrivateKey) *TransactOpts {
-	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	keyAddr := crypto.PubkeyToAddress(pub)
 	return &TransactOpts{
 		From: keyAddr,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {

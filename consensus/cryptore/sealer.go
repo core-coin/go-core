@@ -22,6 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
+	"github.com/core-coin/go-randomx"
 	"math"
 	"math/big"
 	"math/rand"
@@ -52,7 +53,7 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 	// If we're running a fake PoW, simply return a 0 nonce immediately
 	if cryptore.config.PowMode == ModeFake || cryptore.config.PowMode == ModeFullFake {
 		header := block.Header()
-		header.Nonce, header.MixDigest = types.BlockNonce{}, common.Hash{}
+		header.Nonce = types.BlockNonce{}
 		select {
 		case results <- block.WithSeal(header):
 		default:
@@ -132,9 +133,9 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 func (cryptore *Cryptore) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
-		header  = block.Header()
-		hash    = cryptore.SealHash(header).Bytes()
-		target  = new(big.Int).Div(two256, header.Difficulty)
+		header = block.Header()
+		hash   = cryptore.SealHash(header).Bytes()
+		target = new(big.Int).Div(two256, header.Difficulty)
 	)
 	// Start generating random nonces until we abort or find a good one
 	var (
@@ -150,6 +151,7 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
+
 			break search
 
 		default:
@@ -160,12 +162,14 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := hashcryptonight(hash, nonce)
+			result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			if err != nil {
+				logger.Error(err.Error())
+			}
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
 				header.Nonce = types.EncodeNonce(nonce)
-				header.MixDigest = common.BytesToHash(digest)
 
 				// Seal and return a block (if still needed)
 				select {
@@ -193,7 +197,7 @@ type remoteSealer struct {
 	cancelNotify context.CancelFunc // cancels all notification requests
 	reqWG        sync.WaitGroup     // tracks notification request goroutines
 
-	cryptore       *Cryptore
+	cryptore     *Cryptore
 	noverify     bool
 	notifyURLs   []string
 	results      chan<- *types.Block
@@ -214,9 +218,8 @@ type sealTask struct {
 
 // mineResult wraps the pow solution parameters for the specified block.
 type mineResult struct {
-	nonce     types.BlockNonce
-	mixDigest common.Hash
-	hash      common.Hash
+	nonce types.BlockNonce
+	hash  common.Hash
 
 	errc chan error
 }
@@ -238,8 +241,9 @@ type sealWork struct {
 
 func startRemoteSealer(cryptore *Cryptore, urls []string, noverify bool) *remoteSealer {
 	ctx, cancel := context.WithCancel(context.Background())
+
 	s := &remoteSealer{
-		cryptore:       cryptore,
+		cryptore:     cryptore,
 		noverify:     noverify,
 		notifyURLs:   urls,
 		notifyCtx:    ctx,
@@ -288,7 +292,7 @@ func (s *remoteSealer) loop() {
 
 		case result := <-s.submitWorkCh:
 			// Verify submitted PoW solution based on maintained mining blocks.
-			if s.submitWork(result.nonce, result.mixDigest, result.hash) {
+			if s.submitWork(result.nonce, result.hash) {
 				result.errc <- nil
 			} else {
 				result.errc <- errInvalidSealResult
@@ -384,7 +388,7 @@ func (s *remoteSealer) sendNotification(ctx context.Context, url string, json []
 // submitWork verifies the submitted pow solution, returning
 // whether the solution was accepted or not (not can be both a bad pow as well as
 // any other error, like no pending work or stale mining result).
-func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash, sealhash common.Hash) bool {
+func (s *remoteSealer) submitWork(nonce types.BlockNonce, sealhash common.Hash) bool {
 	if s.currentBlock == nil {
 		s.cryptore.config.Log.Error("Pending work without block", "sealhash", sealhash)
 		return false
@@ -398,7 +402,6 @@ func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash,
 	// Verify the correctness of submitted result.
 	header := block.Header()
 	header.Nonce = nonce
-	header.MixDigest = mixDigest
 
 	start := time.Now()
 	if !s.noverify {

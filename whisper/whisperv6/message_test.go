@@ -21,6 +21,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	eddsa "github.com/core-coin/go-goldilocks"
 	mrand "math/rand"
 	"testing"
 
@@ -68,7 +69,8 @@ func singleMessageTest(t *testing.T, symmetric bool) {
 
 	if !symmetric {
 		params.KeySym = nil
-		params.Dst = &key.PublicKey
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		params.Dst = &pub
 	}
 
 	text := make([]byte, 0, 512)
@@ -107,7 +109,8 @@ func singleMessageTest(t *testing.T, symmetric bool) {
 	if len(decrypted.Signature) != signatureLength {
 		t.Fatalf("failed with seed %d: signature len %d.", seed, len(decrypted.Signature))
 	}
-	if !IsPubKeyEqual(decrypted.Src, &params.Src.PublicKey) {
+	paramsPub := eddsa.Ed448DerivePublicKey(*params.Src)
+	if !IsPubKeyEqual(decrypted.Src, &paramsPub) {
 		t.Fatalf("failed with seed %d: signature mismatch.", seed)
 	}
 }
@@ -229,7 +232,8 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 
 	if !symmetric {
 		params.KeySym = nil
-		params.Dst = &key.PublicKey
+		pub := eddsa.Ed448DerivePublicKey(*key)
+		params.Dst = &pub
 	}
 
 	text := make([]byte, 0, 512)
@@ -264,7 +268,8 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 	if len(decrypted.Signature) != signatureLength {
 		t.Fatalf("failed with seed %d: signature len %d.", seed, len(decrypted.Signature))
 	}
-	if !IsPubKeyEqual(decrypted.Src, &params.Src.PublicKey) {
+	srcPub := eddsa.Ed448DerivePublicKey(*params.Src)
+	if !IsPubKeyEqual(decrypted.Src, &srcPub) {
 		t.Fatalf("failed with seed %d: signature mismatch.", seed)
 	}
 	if decrypted.isAsymmetricEncryption() == symmetric {
@@ -277,7 +282,9 @@ func singleEnvelopeOpenTest(t *testing.T, symmetric bool) {
 		if decrypted.Dst == nil {
 			t.Fatalf("failed with seed %d: dst is nil.", seed)
 		}
-		if !IsPubKeyEqual(decrypted.Dst, &key.PublicKey) {
+
+		keyPub := eddsa.Ed448DerivePublicKey(*key)
+		if !IsPubKeyEqual(decrypted.Dst, &keyPub) {
 			t.Fatalf("failed with seed %d: Dst.", seed)
 		}
 	}
