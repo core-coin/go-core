@@ -2265,6 +2265,16 @@ var toBigNumber = function(number) {
     if (isString(number) && (number.indexOf('0x') === 0 || number.indexOf('-0x') === 0)) {
         return new BigNumber(number.replace('0x',''), 16);
     }
+    if (isString(number) && (number.indexOf('ce') === 0 || number.indexOf('-ce') === 0)) {
+        return new BigNumber(number, 16);
+    }
+    if (isString(number) && (number.indexOf('cb') === 0 || number.indexOf('-cb') === 0)) {
+        return new BigNumber(number, 16);
+    }
+    if (isString(number) && (number.indexOf('ab') === 0 || number.indexOf('-ab') === 0)) {
+        return new BigNumber(number, 16);
+    }
+   
 
     return new BigNumber(number.toString(10), 10);
 };
