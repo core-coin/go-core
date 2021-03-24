@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.48
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9
-	github.com/core-coin/go-goldilocks v0.0.1
+	github.com/core-coin/go-goldilocks v0.0.2
 	github.com/core-coin/go-randomx v0.2.3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
