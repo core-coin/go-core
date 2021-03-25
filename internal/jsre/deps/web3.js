@@ -4073,7 +4073,7 @@ var SolidityFunction = function (xcb, json, address) {
     this._constant = json.constant;
     this._payable = json.stateMutability === "payable";
     this._name = utils.transformToFullName(json);
-    this._address = address;    
+    this._address = address;
 };
 
 SolidityFunction.prototype.extractCallback = function (args) {
@@ -4194,9 +4194,6 @@ SolidityFunction.prototype.sendTransaction = function () {
     var args = Array.prototype.slice.call(arguments).filter(function (a) {return a !== undefined; });
     var callback = this.extractCallback(args);
     var payload = this.toPayload(args);
-
-    console.log("this._payable:",this._payable);
-    console.log("this.payable",this.payable);
 
     if (payload.value > 0 && !this._payable) {
         throw new Error('Cannot send value to non-payable function');
