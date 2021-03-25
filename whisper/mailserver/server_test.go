@@ -18,8 +18,8 @@ package mailserver
 
 import (
 	"bytes"
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/rand"
 	"testing"
@@ -142,7 +142,8 @@ func deliverTest(t *testing.T, server *WMailServer, env *whisper.Envelope) {
 
 func singleRequest(t *testing.T, server *WMailServer, env *whisper.Envelope, p *ServerTestParams, expect bool) {
 	request := createRequest(t, p)
-	src := crypto.FromEDDSAPub(&p.key.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*p.key)
+	src := crypto.FromEDDSAPub(&pub)
 	ok, lower, upper, bloom := server.validateRequest(src, request)
 	if !ok {
 		t.Fatalf("request validation failed, seed: %d.", seed)

@@ -34,6 +34,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	"testing"
 
@@ -62,36 +63,24 @@ func TestKDF(t *testing.T) {
 
 var ErrBadSharedKeys = fmt.Errorf("ecies: shared keys don't match")
 
-// cmpParams compares a set of ECIES parameters. We assume, as per the
-// docs, that AES is the only supported symmetric encryption algorithm.
-func cmpParams(p1, p2 *ECIESParams) bool {
-	return p1.hashAlgo == p2.hashAlgo &&
-		p1.KeyLen == p2.KeyLen &&
-		p1.BlockSize == p2.BlockSize
-}
-
 // Validate the ECDH component.
 func TestSharedKey(t *testing.T) {
-	prv1, err := GenerateKey(rand.Reader, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	skLen := 16
-
-	prv2, err := GenerateKey(rand.Reader, nil)
+	prv1, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	sk1, err := prv1.GenerateShared(&prv2.PublicKey, skLen, skLen)
+	prv2, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	sk2, err := prv2.GenerateShared(&prv1.PublicKey, skLen, skLen)
-	if err != nil {
-		t.Fatal(err)
-	}
+	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
+	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
+
+	sk1 := crypto.ComputeSecret(prv1, &pub2)
+
+	sk2 := crypto.ComputeSecret(prv2, &pub1)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys)
@@ -100,27 +89,25 @@ func TestSharedKey(t *testing.T) {
 
 func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
-	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
-	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
-	pub0 := decode("919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1")
-	pub1 := decode("68f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13b")
-	if !bytes.Equal(prv0.PublicKey.X, pub0) {
-		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0.PublicKey.X, pub0)
+	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
+	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
+	pub0 := decode("d0ac61cb8a3712468f5264def724a8e569d0973a88da1a14c3c3fd6db8cb79c947f36ac1b5a975790ffe46a019ed7c28500aa2f5a8b9562200")
+	pub1 := decode("77b1d24670fee6dd811f4f06573ce5f19844eb50cb6ce960d12bdbc8bf77be2221111cf755371d9e896e544ea2a4ebf206b775df55f5e74580")
+
+	prv0Pub := eddsa.Ed448DerivePublicKey(*prv0)
+	prv1Pub := eddsa.Ed448DerivePublicKey(*prv1)
+
+	if !bytes.Equal(prv0Pub[:], pub0) {
+		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0Pub, pub0)
 	}
-	if !bytes.Equal(prv1.PublicKey.X, pub1) {
-		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1.PublicKey.X, pub1)
+	if !bytes.Equal(prv1Pub[:], pub1) {
+		t.Errorf("mismatched prv1.X:\nhave: %x\nwant: %x\n", prv1Pub, pub1)
 	}
 
 	// test shared secret generation
-	sk1, err := prv0.GenerateShared(&prv1.PublicKey, 16, 16)
-	if err != nil {
-		t.Log(err.Error())
-	}
+	sk1 := crypto.ComputeSecret(prv0, &prv1Pub)
 
-	sk2, err := prv1.GenerateShared(&prv0.PublicKey, 16, 16)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	sk2 := crypto.ComputeSecret(prv1, &prv0Pub)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys.Error())
@@ -129,38 +116,41 @@ func TestSharedKeyPadding(t *testing.T) {
 
 // Benchmark the generation of S256 shared keys.
 func BenchmarkGenSharedKeyS256(b *testing.B) {
-	prv, err := GenerateKey(rand.Reader, nil)
+	prv, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatal(err)
 	}
+	pub := eddsa.Ed448DerivePublicKey(*prv)
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := prv.GenerateShared(&prv.PublicKey, 16, 16)
-		if err != nil {
-			b.Fatal(err)
+		k := crypto.ComputeSecret(prv, &pub)
+		if len(k) != 0 {
+			b.Fatal("zero key len")
 		}
 	}
 }
 
 // Verify that an encrypted message can be successfully decrypted.
 func TestEncryptDecrypt(t *testing.T) {
-	prv1, err := GenerateKey(rand.Reader, nil)
+	prv1, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	prv2, err := GenerateKey(rand.Reader, nil)
+	prv2, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
+	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
 
 	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, &prv2.PublicKey, message, nil, nil)
+	ct, err := Encrypt(rand.Reader, &pub2, message, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pt, err := prv2.Decrypt(ct, nil, nil)
+	pt, err := Decrypt(prv2, ct, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,26 +159,28 @@ func TestEncryptDecrypt(t *testing.T) {
 		t.Fatal("ecies: plaintext doesn't match message")
 	}
 
-	_, err = prv1.Decrypt(ct, nil, nil)
+	_, err = Decrypt(prv1, ct, nil, nil)
 	if err == nil {
 		t.Fatal("ecies: encryption should not have succeeded")
 	}
 }
 
 func TestDecryptShared2(t *testing.T) {
-	prv, err := GenerateKey(rand.Reader, nil)
+	prv, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
+	pub := eddsa.Ed448DerivePublicKey(*prv)
+
 	message := []byte("Hello, world.")
 	shared2 := []byte("shared data 2")
-	ct, err := Encrypt(rand.Reader, &prv.PublicKey, message, nil, shared2)
+	ct, err := Encrypt(rand.Reader, &pub, message, nil, shared2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Check that decrypting with correct shared data works.
-	pt, err := prv.Decrypt(ct, nil, shared2)
+	pt, err := Decrypt(prv, ct, nil, shared2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,94 +189,33 @@ func TestDecryptShared2(t *testing.T) {
 	}
 
 	// Decrypting without shared data or incorrect shared data fails.
-	if _, err = prv.Decrypt(ct, nil, nil); err == nil {
+	if _, err = Decrypt(prv, ct, nil, nil); err == nil {
 		t.Fatal("ecies: decrypting without shared data didn't fail")
 	}
-	if _, err = prv.Decrypt(ct, nil, []byte("garbage")); err == nil {
+	if _, err = Decrypt(prv, ct, nil, []byte("garbage")); err == nil {
 		t.Fatal("ecies: decrypting with incorrect shared data didn't fail")
 	}
 }
 
-type testCase struct {
-	Name     string
-	Expected *ECIESParams
-}
-
-var testCases = []testCase{
-	{
-		Name:     "S256",
-		Expected: ECIES_AES128_SHA256,
-	},
-}
-
-// Test parameter selection for each curve, and that P224 fails automatic
-// parameter selection (see README for a discussion of P224). Ensures that
-// selecting a set of parameters automatically for the given curve works.
-func TestParamSelection(t *testing.T) {
-	for _, c := range testCases {
-		testParamSelection(t, c)
-	}
-}
-
-func testParamSelection(t *testing.T, c testCase) {
-	params := ParamsFromCurve()
-	if params == nil {
-		t.Fatal("ParamsFromCurve returned nil")
-	} else if params != nil && !cmpParams(params, c.Expected) {
-		t.Fatalf("ecies: parameters should be invalid (%s)\n", c.Name)
-	}
-
-	prv1, err := GenerateKey(rand.Reader, nil)
-	if err != nil {
-		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
-	}
-
-	prv2, err := GenerateKey(rand.Reader, nil)
-	if err != nil {
-		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
-	}
-
-	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, &prv2.PublicKey, message, nil, nil)
-	if err != nil {
-		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
-	}
-
-	pt, err := prv2.Decrypt(ct, nil, nil)
-	if err != nil {
-		t.Fatalf("%s (%s)\n", err.Error(), c.Name)
-	}
-
-	if !bytes.Equal(pt, message) {
-		t.Fatalf("ecies: plaintext doesn't match message (%s)\n", c.Name)
-	}
-
-	_, err = prv1.Decrypt(ct, nil, nil)
-	if err == nil {
-		t.Fatalf("ecies: encryption should not have succeeded (%s)\n", c.Name)
-	}
-
-}
-
 func TestBox(t *testing.T) {
-	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
-	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
-	pub2 := &prv2.PublicKey
+	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
+	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
+	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
 
 	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, pub2, message, nil, nil)
+	ct, err := Encrypt(rand.Reader, &pub2, message, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pt, err := prv2.Decrypt(ct, nil, nil)
+	pt, err := Decrypt(prv2, ct, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(pt, message) {
 		t.Fatal("ecies: plaintext doesn't match message")
 	}
-	if _, err = prv1.Decrypt(ct, nil, nil); err == nil {
+	if _, err = Decrypt(prv1, ct, nil, nil); err == nil {
 		t.Fatal("ecies: encryption should not have succeeded")
 	}
 }
@@ -292,37 +223,32 @@ func TestBox(t *testing.T) {
 // Verify GenerateShared against static values - useful when
 // debugging changes in underlying libs
 func TestSharedKeyStatic(t *testing.T) {
-	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e783639919d879fb971fc1857f8744ddbd489a668527eaedf4941b8fb5b1252e8431a5072695b65912e99d12c45e2d207f115a1c2d930bce2272bd1d2aadf161392088ca860e461536cb3729a5852f002d7ad6b3ffcdfa95999f3a9")
-	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868f3c1ffadea540d3f1277c439825929abc05f113a32e71ddb8c8e2f65e8677a052101e85b62ed46ba249d433a40262eb8ae3d9def99a13bf2fc20ac3e0077b6a0413efbed5d21e6a488b68d8b9b7f1381ff1e1b066b69ec")
+	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
+	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
 
-	skLen := 16
+	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
+	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
 
-	sk1, err := prv1.GenerateShared(&prv2.PublicKey, skLen, skLen)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sk1 := crypto.ComputeSecret(prv1, &pub2)
 
-	sk2, err := prv2.GenerateShared(&prv1.PublicKey, skLen, skLen)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sk2 := crypto.ComputeSecret(prv2, &pub1)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys)
 	}
 
-	sk := decode("ecdba3fbaadf7769d0846084d39efd53de415fea7247feacc85c1ffcb312a6b796205337ae282b2278b3f44ad53be8b65372b0f22470d722279e440debd46b69")
+	sk := decode("3db819aa0ebae1996860cf44941e57b4df43b50908e46717e3a23b1eee114ce0a4535683eb44b9e533075d0a4e3333d8c6752736a6faa327")
 	if !bytes.Equal(sk1, sk) {
 		t.Fatalf("shared secret mismatch: want: %x have: %x", sk, sk1)
 	}
 }
 
-func hexKey(prv string) *PrivateKey {
+func hexKey(prv string) *eddsa.PrivateKey {
 	key, err := crypto.HexToEDDSA(prv)
 	if err != nil {
 		panic(err)
 	}
-	return ImportEDDSA(key)
+	return key
 }
 
 func decode(s string) []byte {

@@ -23,16 +23,17 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
 )
 
-const SignatureLength = 112 + 56
-const PubkeyLength = 56
-const PrivkeyLength = 144
+const SignatureLength = 114
+const PubkeyLength = 57
+const PrivkeyLength = 57
+const ExtendedSignatureLength = SignatureLength + PubkeyLength
 
 var errInvalidPubkey = errors.New("invalid public key")
 var errInvalidPrivkey = errors.New("invalid private key")
@@ -123,7 +124,10 @@ func ToEDDSA(d []byte) (*eddsa.PrivateKey, error) {
 // never be used unless you are sure the input is valid and want to avoid hitting
 // errors due to bad origin encoding (0 prefixes cut off).
 func ToEDDSAUnsafe(d []byte) *eddsa.PrivateKey {
-	priv, _ := toEDDSA(d, false)
+	priv, err := toEDDSA(d, false)
+	if err != nil {
+		panic(err)
+	}
 	return priv
 }
 
@@ -135,7 +139,9 @@ func toEDDSA(d []byte, strict bool) (*eddsa.PrivateKey, error) {
 	if len(d) != PrivkeyLength {
 		return nil, errInvalidPrivkey
 	}
-	return eddsa.Ed448().UnmarshalPriv(d)
+	p := eddsa.PrivateKey{}
+	copy(p[:], d[:])
+	return &p, nil
 }
 
 // FromEDDSA exports a private key into a binary dump.
@@ -143,7 +149,7 @@ func FromEDDSA(priv *eddsa.PrivateKey) []byte {
 	if priv == nil {
 		return nil
 	}
-	return priv.D
+	return priv[:]
 }
 
 // UnmarshalPubkey converts bytes to a secp256k1 public key.
@@ -151,14 +157,16 @@ func UnmarshalPubkey(pub []byte) (*eddsa.PublicKey, error) {
 	if len(pub) != PubkeyLength {
 		return nil, errInvalidPubkey
 	}
-	return eddsa.Ed448().UnmarshalPub(pub)
+	p := eddsa.PublicKey{}
+	copy(p[:], pub[:])
+	return &p, nil
 }
 
 func FromEDDSAPub(pub *eddsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil {
+	if pub == nil {
 		return nil
 	}
-	return pub.X
+	return pub[:]
 }
 
 // HexToEDDSA parses a secp256k1 private key.
@@ -172,7 +180,7 @@ func HexToEDDSA(hexkey string) (*eddsa.PrivateKey, error) {
 
 // LoadEDDSA loads a secp256k1 private key from the given file.
 func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
-	buf := make([]byte, 144*2)
+	buf := make([]byte, PrivkeyLength*2)
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -186,18 +194,19 @@ func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return eddsa.Ed448().UnmarshalPriv(key)
+	return toEDDSA(key, true)
 }
 
 // SaveEDDSA saves a secp256k1 private key to the given file with
 // restrictive permissions. The key data is saved hex-encoded.
 func SaveEDDSA(file string, key *eddsa.PrivateKey) error {
-	k := hex.EncodeToString(key.D)
+	k := hex.EncodeToString(key[:])
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
 
 func GenerateKey(read io.Reader) (*eddsa.PrivateKey, error) {
-	return eddsa.Ed448().GenerateKey(read)
+	key, err := eddsa.Ed448GenerateKey(read)
+	return &key, err
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with
@@ -207,7 +216,7 @@ func ValidateSignatureValues(v byte) bool {
 }
 
 func ComputeSecret(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
-	secret := eddsa.Ed448().ComputeSecret(privkey, pubkey)
+	secret := eddsa.Ed448DeriveSecret(*pubkey, *privkey)
 	return secret[:]
 }
 

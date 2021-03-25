@@ -21,7 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"net"
 	"sort"

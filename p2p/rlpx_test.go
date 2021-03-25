@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"io/ioutil"
 	"net"
@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/ecies"
 	"github.com/core-coin/go-core/p2p/simulations/pipes"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/davecgh/go-spew/spew"
@@ -41,18 +40,12 @@ import (
 
 func TestSharedSecret(t *testing.T) {
 	prv0, _ := crypto.GenerateKey(rand.Reader) // = eddsa.GenerateKey(crypto.S256(), rand.Reader)
-	pub0 := &prv0.PublicKey
+	pub0 := eddsa.Ed448DerivePublicKey(*prv0)
 	prv1, _ := crypto.GenerateKey(rand.Reader)
-	pub1 := &prv1.PublicKey
+	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
 
-	ss0, err := ecies.ImportEDDSA(prv0).GenerateShared(ecies.ImportEDDSAPublic(pub1), sskLen, sskLen)
-	if err != nil {
-		return
-	}
-	ss1, err := ecies.ImportEDDSA(prv1).GenerateShared(ecies.ImportEDDSAPublic(pub0), sskLen, sskLen)
-	if err != nil {
-		return
-	}
+	ss0 := crypto.ComputeSecret(prv0, &pub1)
+	ss1 := crypto.ComputeSecret(prv1, &pub0)
 	t.Logf("Secret:\n%v %x\n%v %x", len(ss0), ss0, len(ss0), ss1)
 	if !bytes.Equal(ss0, ss1) {
 		t.Errorf("dont match :(")
@@ -97,12 +90,13 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd0.Close()
 
-		r.pubkey, r.err = c0.doEncHandshake(prv0, &prv1.PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*prv1)
+		r.pubkey, r.err = c0.doEncHandshake(prv0, &pub)
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv1.PublicKey) {
-			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &prv1.PublicKey)
+		if !reflect.DeepEqual(r.pubkey, &pub) {
+			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
 	go func() {
@@ -114,8 +108,9 @@ func testEncHandshake(token []byte) error {
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv0.PublicKey) {
-			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &prv0.PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*prv0)
+		if !reflect.DeepEqual(r.pubkey, &pub) {
+			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
 
@@ -147,11 +142,13 @@ func testEncHandshake(token []byte) error {
 func TestProtocolHandshake(t *testing.T) {
 	var (
 		prv0, _ = crypto.GenerateKey(rand.Reader)
-		pub0    = crypto.FromEDDSAPub(&prv0.PublicKey)
+		pubb0   = eddsa.Ed448DerivePublicKey(*prv0)
+		pub0    = crypto.FromEDDSAPub(&pubb0)
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
 		prv1, _ = crypto.GenerateKey(rand.Reader)
-		pub1    = crypto.FromEDDSAPub(&prv1.PublicKey)
+		pubb1   = eddsa.Ed448DerivePublicKey(*prv1)
+		pub1    = crypto.FromEDDSAPub(&pubb1)
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
@@ -167,13 +164,13 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd0.Close()
 		rlpx := newRLPX(fd0)
-		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.PublicKey)
+		rpubkey, err := rlpx.doEncHandshake(prv0, &pubb1)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &prv1.PublicKey) {
-			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &prv1.PublicKey)
+		if !reflect.DeepEqual(rpubkey, &pubb1) {
+			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb1)
 			return
 		}
 
@@ -198,8 +195,8 @@ func TestProtocolHandshake(t *testing.T) {
 			t.Errorf("listen side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &prv0.PublicKey) {
-			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &prv0.PublicKey)
+		if !reflect.DeepEqual(rpubkey, &pubb0) {
+			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb0)
 			return
 		}
 
@@ -385,19 +382,20 @@ type handshakeAuthTest struct {
 var cip8HandshakeAuthTests = []handshakeAuthTest{
 	// (Auth₁) RLPx v4 plain encoding
 	{
-		input: `b8ec62567ab29777109c00b363791fd31b8cd21bac29f35dc2e65fe01b0e470768c7f07337b4f69d2cf8574a73be25734832714f9b9655ffac57daddf65c6d60956072e30635c6312771ce9d5d8b1b452e4a622a26730a811ef0d9656c7df25f408b0a8d783b61c31868a26480b645b8c7a3a8e8eef3752614334e93394ec8870b49eec84afb0ee5ae52584078097dd99891e981599d43975de1b6478bc0293f8e63248d77e9e1c16abe2a21e4beca7a9350f15371063f3c843c5ee90e945048715a395552dec6273994872100119f343b0a34c3d970993559f7f09aecb4cc078ba6a0fe4d1a2821ba3a234feb509519cc21212b1965d0f821d1f5e26ecd48422460902ad44a3a80f665e26a6dd1206f951c82b44875c0c39bb137e609b09c1b70d253e871f43fe11124ec57d5c517fe0849b822a46c01174da965c2b6e2f77f9070202e961978adcb465c183368cb52ae4bd5aefe79d08114d72b468ef984a408c4c4fb99a2cd06282f89a25e8a8db551d9ea1e11c55edd4fdcefc5ece3de4c861e401a57166f886c238fe6233bb9d49ee1437da876476051e1f4990b38a9ad3be5d4e1df994ec0226f874a24479b098f4f1296435a44898bc6471962ae1fe9247cad1fbacb5811ff`,
-		isPlain:     true,
+		input:       `024ccaa282473fe2718cfcf4d5d6ce65499d8809440081990379e0ca3aa12eca48009ad477f937e715195edc2b3226695a4ee5a30a9610fa82d500b5bb179807a200f161a5c1c514acc3b7044eeccf4a7c7381c56854e52e2a7ba8ccdd1378ff23898ce6736baba741213dec92df504f5d00c7793db58ad4138eccbb431412acc2edb4005d7842821d63dfecf649953a55af5d748283862d8acea675caab55f53410a2a2c3d6d667fc005fd38dff87a277f53214e6a864ee7ec4a84fdccbc29ee5ce0b68a804dd3c3c40c3cb28abe33aa593c195112bb853d4016997cba6c1b79dcb7e2396a558b07c79eeb1ed46649389825f071eda9a76c7ecd9e849e863774c51c118b0e23d0960a4b04e606d4bc140160dbd502e92cf96140ac6f4ccca6b7c9c5b89dc8e0375f4ab299e84f68ed87a7270567b80d66ee42cdaadeb914163b9b6b3ca59c3f6379332052a8a6d6d7b9a426bcfb7929b096155c2d1c69b839b0d266c4329b69ac8d1c82fdac64327f223ee539537df4ebaae7deb0aa6cb8b5542e336fe23ac5accf7637c17b9b112ccfd316657fc21aac1408db58aceaa9c21b43574ee0d19489268061006631d37a6e002998f0dd5dcffe8fe72b40e7f6aec61115570db8ab099793802fe6d43872dfb802b44a0413f9a93aa26661cc976c0952e0ea31d4727e1c96279f9d836e277f87f40c81f07eedd1311c1a5e31473d904c5cf61c7295341747b72e5d4e6e5794e999067c836ae8582574fbf80dcfbb97fdd91cbbe3ba835847f8174242f83a2e638246c0c9c1a2c85f2c1c29ba68d45ec2932030229df79a3f6e0d9825a`,
+		isPlain:     false,
+		wantRest:    []rlp.RawValue{},
 		wantVersion: 4,
 	},
 	// (Auth₂) CIP-8 encoding
 	{
-		input: `02470b949f1bc7213dcf8b25340d76442fb3593c7118efd449685e83d62cffc6be2aa68be8ee23239a39b0f2a43b623b8fbaee8fbf536e742a760ecab19efc637ea9b0690465502fc542b0b33509c4b6246a4d36f3867b12e29d5f2b75bfd608c40afb4a0833c96c53199fc7a2cd530782a227112d7540bc98570b16e76c117dd789c339e3e51899b0ee221af3a1d5579209ad5e5730200e32d14e438cc842e6b83961dd2d7ee4900c2276fc870911b1c2da3380f4dd4590f4060adb52de62770a82b3c6f9271aba47ec61bb84692061d0653e0d50d3d743ada97abdbdb7606924cdd138a666e0179caf9b2bbf0edea0d9bdd833c99311bcad2d74471d4527223d9a2c56e3efb104a824f30d2d31f2da64d72ade2042f53e679e44abaa4aae5df3acc1b179e0bb63ff869c88e358f9506136824a9d911260cc9b68484682b3099579714a863a1a9e2f6c6161618afc89e5200b0a87b8be0e024ed4159080c4e197772b6f2d48525acbe11355f3140de50373dfa6b3cf2c5d71565234637abe12d4ff81b73260c6f226fd0b3e3be80c0e0ba5d25e9f4ed157ae583dc1e0c99f10be4d615c00484ebffbfc3615310358abb2444bc97168bcd0e27cb349598af35c9a388e94b63152ac96e1d3853253474d41d3010ffc8f22a06c9988f84a710988ef4dc2e9b18d32138aab56f2ea75a7c0970b506297ebe18e3f5198a55349d3c810a35a020483603ac47040ba2a9505bc5cd48d9fdc6571054d3852491f2e036d7f5f5d925da391e51a1ae583bb5bd44f930d26f88f4b2d4439c66cac206f53fa3fb2b96adb32399573`,
+		input:       `024c00e693f8ac1a8f9fa5954ca75e33bda54d95d16a64730bacd4c05a026a9898bf1d95f2615ded585fd3b764ec20dc2afa97e82fc4724a378600b2886c70206df3c9ec6bac0fc42ee5aa1a035d5b6c7e2252ea40f02d653c0a4efa7b26ca74bbd71f8110dc50718e3ffd8e722e79a7809b065888c466f5664d855ef647e0f4269af519269e706b16f5a0ea5eea7a6ceaca40b04600a30360e35d8dc24cc1227980f82e3cae6f3d9b428e67d4d519b5c7de6663771f69ef49a47eb42830028471cbb7944cfe7af011af9d4c6168de19dcffdf35edabb6c05f9ca336793b90f1ef1437f84abeaaaecd66522cf984469c9bf3adc15f1559a52d86a1e3bbd516cdc7cc5fa9fa94b7d52b823e40e5f8bd35d04a5d62c1bec939c6a33e8ad961cfcf18a6506f79569ff38a23fded109d8159dbcb149f4376f7f6bca9c765518b4a65cff5c3b54b1d2ea7ba03aa8302b62a972d2557b0528e4437f870fc5202a11de0caca781e964cdfe27f6bb2ea4af92397e133b04d3e43b4c28d672b31b75edc14edbcdb63dd0a76c7ba16c53981cc3ab3d22e9f852ff5ee42d2380a5b0e9992dcf0f76e35064db506de7551140084035baf01a8d3c48f923ee3d7428e99c9a364979c4fbae430b2916ce4be3cff09bdd793c3b7ea056251119d8fb3ae63c352fa3644e5f86a56e3534367625e5a9e638fc24e9ea4b22d14e617d1486d4862019b29464bb43afc10b8fbfd93c0f76e38d17037fe38f7137216ab4d1ca0899b7e9c365056f742d2ef150943676c4731aa0f7a7ce2877b070f7666147e85e6f0502d43ad35be1f067baa036d8ea81500`,
 		wantVersion: 4,
 		wantRest:    []rlp.RawValue{},
 	},
 	// (Auth₃) RLPx v4 CIP-8 encoding with version 56, additional list elements
 	{
-		input: `024cfc58214e0f9842ced5a3eab08ab00fa9fecf1d0edcebd36edae3992bc5e12c0e05aeacf7ad4808b9fa1f7031e69698d0979f04ade73d75dcb9b87fdc161ed14a02eea618cb7017195c30634cb2deb3f654597e6a6b4365191620dd842a39e7291ca79093881818110423ce70d2a5b98c8a3cd52f01f8b7d1565c1b9ad286f83a91625c52f0cf9cff347e44a9706801292ff84e2547e9f84a2e1adf7c2fadb836bcc941705dbad5c20065997de4a11c1ad4df8d4e8671f6fac1cc36ad075c7c8948d70383015ad1fc4d0b8abf9f67da11c17a2653983ab157255114f567da72bc04249032b591322492d0e96f7f841497f89d53850cd7a65a5422ef28a1f534467f0a1effafb2b798e4339e8cfeda9c27b9aec5556ebf6c605574ddeabd5de506340216c1b79dfd1f8807a3ba9e6ef99540c2f0b1ce1778102e66c2b79c5818a642eda45852dfa8934b0a4bab54753d2b7189e395a5850d0f75f2df71d778b8b931f716011edfa867546fa5ea23cf54db9cc6ee08318bb2c313325cf73fe610c7974762fb280cd5416a1b51ed8311ab62595141c7ea89dbca0e6710f585b22b6081143f132bf85909f03d7db475b9b5d447bf436a12bf17ccd17667639c117b44d7c7c15eb7ead08d9110e681a4470a2a5c6466859ea455d1f085bbb0fb84dd507a02e12f8d61703d0fff6f8d2146af3e93da29ae381425cfb092fde50056cc1fa5010dcdd359010ccad760cecf24d301ef3fdfab5a8d95feea59924c60d4aa2afaee6a6702f7a0adcf3ae6b706fafa9a68f115f585d08a1b123c4a43a18e7e3cbb22b2b4109971fb8ad564d7`,
+		input:       `02515e429fabaa78028bb306d98e1f15bffbdda86e19853e5ad2b907b865c5c7d9dc437d289ae6da99993e38e1945077df131813eab07a93f48c8086015630a81aaac26d69d31906d570070f36229a339750b4bb6fec927c0a80d1697e72426c0ac93b86eff07fcacd5f6b87141797450e70cafa60c9a52b91bcf2d1a249f46a315a3c7d77e0630bbd5d2b91311817cb18a51c50c0a14ed302c8738b259b94e91ef1885218b71a588016d6f4adc6e1de638b57ea5e1940cbf2317afc200a7c40fa4c4fe67c46a9f3982b4be1d014831aeb4ba23fc7a54f54539c8b261d72958667c84b6b461aa96e65b80f642aa0201070e3b6e8644fb14fc0295f41ea66ebfb1ec365bc15127318b8f1b9f434da9dff2433efb9d9459d9cda16eb9e762d58127e0680f796f3655c28cb2b4a4320ad7faca17464e4a9f529b6549c917dcb6d5c32a72cc887c39a960b3b8991a90cd6055e5812b4b5af880b65980101891468cc078ea0c67cfe99126bc837acdf6c08757b0b3fdea4f792980bd09774694c856dfb159fd22a89cd3cc56f81ec6b829fddcc59dd01424d560f473378c0d85a02ff0a2a14d92ebdc49072872945847e20dd86865c51ade87b1a63d9c71f7e647ebb4df318f70ea3c3cd97115a1bd0e8ad164451f19dc736ac532fd1e6d0c5956cb7512e2d5ea00396f88689bf148808b3bd78bee2159a7bc57e3ae0f325ced6c3bb8f1b06e88b44b26f3ffa6e41cff8acfb668652e11f228816c24afd4b7d94eb58508c7148755b5b2df7f262997eb8681b81be8016fe7189440a680289936c9c874bdbad7db04a218ca8bfebf33641bca3681aae`,
 		wantVersion: 56,
 		wantRest:    []rlp.RawValue{{0x01}, {0x02}, {0xC2, 0x04, 0x05}},
 	},
@@ -412,18 +410,18 @@ type handshakeAckTest struct {
 var cip8HandshakeRespTests = []handshakeAckTest{
 	// (Ack₁) RLPx v4 plain encoding
 	{
-		input: `cf3f09b06c6739e072d89b6d860df06e5b9b01291c1af8dc52c63a0c061e6fe9e5e81ec5046e4c29795af2a890f69d7b743aef409a0d40d3e9cffe3fb602a1378db3e27848cf2a71ed861f2aedc5ea89fd8f5717d240ab04bde0d9512061980f93f3f04bb0d9588947b92df7ae09f3cd0e04f28376c8eab685bae7b2ec81ad389f75479e20464f7245bbeb127251569df91843bc316b5003cd2a5458a5ca3a6ceba9eebcc0d3ab4c5942fa6152a123591c3374107593878e1622288f35eb8501d4fdb0d1429e9392e09d6e445f77c7b47ae6dcc52bce41b7a138f9ab6de21a159d`,
+		input:       `d406a79a5e5d5eca83ccb30403fd63c799ddd802c83865e120119d81f1eab26f919f9ce12f276ae242948073e0407097e31fa131b34499f4800f09fbfbf8e5f209b793928f3d12f3426659a548320907b25fb7609a6a5aabc2dcb021238e2e925be75ce64a9ff9c6c7907218622cbda77c19095eee7d6bf86942320e078d82cb15f4b10397c9c3679fe00ede416370ad79367d91dd3e56d65968fa1394754dd3790ed13d2b621e9d3b96b24f157be486a91b066b9fb0c93b92edd1fde89e42d4c15f579a3d503c3fb65aafff96b15e28d2179ab654e06338dbfe0b412c99d4848621c4`,
 		wantVersion: 4,
 	},
 	// (Ack₂) CIP-8 encoding
 	{
-		input: `019cbc523128ebd1970d46a6b21ac8cbeb1cb7b4ba767f4ed2be5d3568aaa5dab8bb51b0c3f016765a903deb2027090eb0b50aa8fa3eb24631587ff09101e5ea130d47fb4460d7e172b158bfe8c53e06d19d685018bf1f644427d0f4ffaa1a2931845c34abf557bc5b00860dfbc426e71056dd534af7a925ed0d63e5f6b644f99c3a3d08dbfa7fe34dc2572f8f3100ddc87e88b62fab1c9ab1ccf30715a68f519e4e4edc1cf2b661102ee754e47ea05299a411c132be4c0cee32ac7de314885d19a859c56646fb6030179aad56a12cdddfb8617bdc8dc68b51b9a17528c7f6bf3fc9da31151df44187e1976985e44e7db33bcf451504dd248fddb165c3d847f4f1bd54f8033ddc45efc7b55a83441b28ec99943a9153ada3e7c0b55e96ef9499708f1f45d2a783f6c19848cd125637f87f4876b4110e39e2d864d057b58de1b364d9a9086c2f874b036e7b4853fd9b95beb31510580c971877aa92b814dce29843853cbd38361859b730990f9de4dc31dd70d0f92859e284d50ab975148b0f99d9dfd42fa0df31166a4b52a141ec8d0a9a3f775b28e4c0b4630edb7ae6c8`,
+		input:       `019e8f9bf08d580cc5d80b82e7a411986536ec6ab649ebbaf29ff194396a76b34218a58b86df203752ced226549cab712acacff20328cdae1327804812d2ded3675fd695a4581c8672b550f9bce745fef58a9e0ddf23fdb4cd583d8a74f407af55386dbb26edb34007fdd5d7fe6d4c1d65b2b0288293d18cbfb38a60db3cd8879e4a3fe4595d347a17b13594bfeb9571ecc4d1e7cc046ee1d1dbcf05d44206233e2c43873d659d5e8ead3d2907f2154e0ac5bd3f4cabdd5b5fc0c321e443aefa3de1d537025e6aed9840ec4300301eff0afdbccdd01b0684c34ef0adc1d4a28d542a6daf4fc3a973038e33e6b55a14338a433624e2b7840bd0258eec90cef96dd27d6f300acba015e1781215c1f654d47f433385c1e64f9fd6aba4fa2b78e4a172a1614f6680477f8c4fd273503c9d8ed18b8deb37fd4d44f11d13602c7cc272cdaf57073e003bb48163be085f431f3a23694a59fa09aeac17f3b10c5d601d03967c638fd5b2c704db95cf410d02f38123a9555079b5d866ce9535d1b97b7e784fcf9451c8495986e50299b21aa5d9ab8c7b1f3fe0535a3dcadbe53007c0a651`,
 		wantVersion: 4,
 		wantRest:    []rlp.RawValue{},
 	},
 	// (Ack₃) CIP-8 encoding with version 57, additional list elements
 	{
-		input: `01a276aebf7cf63d53295230ebed1f1c5e20e9badbd0b5f26f9e40d606d58297dc346557289afb0cb60f945d583ee64783b51e1a782cd3c6c08e046e9ade544193663b2f36593eba6b909348f241986a3ba7a3ea9c5204a3970b489d46d5b2e93b003d5b182fcc3299340823ea475bcc5ab71708b53cd4684539a9997c3c6776a6037fca0e6d4bbff3cd11958fbe0945a8a02793a54568b350c8560ceaacf604a9f36ed62a3d9b1cdeb6f12b8fca0800a342cef65da01d24bdd28ea75f958398b0e63cab020ab3632b647c8717a75c9410bc12acda6a7cb7bdbc94e6779932c6363f25178b68c1f64c75bd463855fd73d6f55a8ef88382a97224009e94a9d7689e0daae9af58f8b3213651f44be865af1c2bf9324817bc945c19a20b230a6086c368d96ba5f4a08866fbf5d4c721419e9db6dc008254aacdcf9e28b009db09d130204d43d85d05944e8295fec3b66d746856a0a64e8d96338d164e28a8685d013d650757ffcbeffaa52d4a8980036fa1719d75a856ed8b44e99bbd9c3f9ce3bf40777800462ddc696c88bd2ae31cd14de204e769905f91cd59fe1a48cd5ea521c2afcfa2`,
+		input:       `01a43466491884d97389b884cf285d37ccd13063a626c390c9ff95924b0a12f21e7ae155c8eac52105d255ee761ef42778eda5fcf6d73a620cc9803159a00d3b778427c2e3776679ede784f35d6db5630b7f45461eb5024b7ec11ae29e8c72a76ce4d2f1374222b32942b986ffcab6ce7ad0ff0988bdd80112c3122f7883a3913e234a15344f89883cd0f33f03a7dd4f3899b5e46199694225311ac6783d818db8b271b4cd373d980faf739cf374544bf8ed33e6b86fa64f022c6975d29ee83550eec7117d90323ef37fa40e7991902663508c2234892f42cc7693942ca382d31b5624fd87de8c665235d20cdd49846be439c22fdcc65852c7115bbe1a772be15f1e14177a3cb5d6c5c776f20587b933d16329ffa6705af00c21be4bac6062276cf525d5ff0d9d85363639dd4fe6d3893a6a31ef79c1a21cc50bd63c4ccfb610e34e129982a03af543e60e483e96ccc5eb459d65057689a111f8d3f3334084ccfae120731f212209dcba30f8a9ad1bffca54067231d1e5dd7073699d446a182d354c00b32c8e2e2ceeeaeca2d1b9dae01e1b9e26b3bfc215c5081bd071c7f189a910a096c28c`,
 		wantVersion: 57,
 		wantRest:    []rlp.RawValue{{0x06}, {0xC2, 0x07, 0x08}, {0x81, 0xFA}},
 	},
@@ -431,20 +429,25 @@ var cip8HandshakeRespTests = []handshakeAckTest{
 
 func TestHandshakeForwardCompatibility(t *testing.T) {
 	var (
-		keyA, _       = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383e6c839b66f15fd1b172bd0ccf0a00e5a4ca1f8675a9aa1251c5375d2dd8eccb3d637820a0204faf8e110911a25501a6a8200c633d5b7f8553c5662abd270756f096b04e0a834a49cf218c5fce341ec9af5e47d1fe7bf6d")
-		keyB, _       = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
-		pubA          = crypto.FromEDDSAPub(&keyA.PublicKey)
-		pubB          = crypto.FromEDDSAPub(&keyB.PublicKey)
-		ephA, _       = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a5280ba4b5fd3f28a70138c81a4334eb1d16a35b09f0e272667f320a26c40fe22117f34d131d217b3b172a04532a33eb0cf148d501887293956ab04737a0d08e21fc151203a8ab402afa497899d16b2a84c7736ef1d07b1")
-		ephB, _       = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b98ac408e75d35449de00b8fc89c042f3cea4dfdd3dcc7878a836edb2a5516163ee5218a0af44e80c7d4ad114d5302109289c29925de77c82fb0e081f0732c15dbe54440ea719327d13acbbb3aaebd58dbc6e0a5c83c5c06")
-		ephPubA       = crypto.FromEDDSAPub(&ephA.PublicKey)
-		ephPubB       = crypto.FromEDDSAPub(&ephB.PublicKey)
+		keyA, _       = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
+		keyB, _       = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
+		pubbA         = eddsa.Ed448DerivePublicKey(*keyA)
+		pubbB         = eddsa.Ed448DerivePublicKey(*keyB)
+		pubA          = crypto.FromEDDSAPub(&pubbA)
+		pubB          = crypto.FromEDDSAPub(&pubbB)
+		ephA, _       = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a")
+		ephB, _       = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b9")
+		pubbEpthA     = eddsa.Ed448DerivePublicKey(*ephA)
+		pubbEpthB     = eddsa.Ed448DerivePublicKey(*ephB)
+		ephPubA       = crypto.FromEDDSAPub(&pubbEpthA)
+		ephPubB       = crypto.FromEDDSAPub(&pubbEpthB)
 		nonceA        = unhex("7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6")
 		nonceB        = unhex("559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd")
 		_, _, _, _    = pubA, pubB, ephPubA, ephPubB
 		authSignature = unhex("299ca6acfd35e3d72d8ba3d1e2b60b5561d5af5218eb5bc182045769eb4226910a301acae3b369fffc4a4899d6b02531e89fd4fe36a2cf0d93607ba470b50f7800")
 		_             = authSignature
 	)
+
 	makeAuth := func(test handshakeAuthTest) *authMsgV4 {
 		msg := &authMsgV4{Version: test.wantVersion, Rest: test.wantRest, gotPlain: test.isPlain}
 		copy(msg.Signature[:], authSignature)
@@ -501,14 +504,14 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		hs = &encHandshake{
 			initiator:     false,
 			respNonce:     nonceB,
-			randomPrivKey: ecies.ImportEDDSA(ephB),
+			randomPrivKey: ephB,
 		}
 		authCiphertext     = unhex(cip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(cip8HandshakeRespTests[1].input)
 		authMsg            = makeAuth(cip8HandshakeAuthTests[1])
-		wantAES            = unhex("ac14d7f2b36e3869666788316d6b8beeea2af3debdee374a12d43f6807e398aa")
-		wantMAC            = unhex("c0119ca14d507c205da36a00bb52199efde3dcdea718229e9f2d0eeb4aa0a068")
-		wantFooIngressHash = unhex("79c4970f30ae34fdad070c2efb8ab46000d1f0fbb207586d668f18a4cc2d4e74")
+		wantAES            = unhex("cdcc598bb62e495bdb9074838d6be8ef43f348924bf307b147f32682ef1d1023")
+		wantMAC            = unhex("00081dc2481ba5423b56703bce94d27c502543d202424db5b0933c6352c486c3")
+		wantFooIngressHash = unhex("c4823b0caa3b2105551b286fc7f176108f76c7db3f5ce46ff0091bc1f55db53d")
 	)
 	if err := hs.handleAuthMsg(authMsg, keyB); err != nil {
 		t.Fatalf("handleAuthMsg: %v", err)

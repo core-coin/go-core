@@ -19,9 +19,9 @@
 package whisperv6
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/binary"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	gmath "math"
 	"math/big"
 	"time"
@@ -221,7 +221,8 @@ func (e *Envelope) Open(watcher *Filter) (msg *ReceivedMessage) {
 	if watcher.expectsAsymmetricEncryption() {
 		msg, _ = e.OpenAsymmetric(watcher.KeyAsym)
 		if msg != nil {
-			msg.Dst = &watcher.KeyAsym.PublicKey
+			pub := eddsa.Ed448DerivePublicKey(*watcher.KeyAsym)
+			msg.Dst = &pub
 		}
 	} else if watcher.expectsSymmetricEncryption() {
 		msg, _ = e.OpenSymmetric(watcher.KeySym)

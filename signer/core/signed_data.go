@@ -238,9 +238,9 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			return nil, useCoreV, err
 		}
 		// The incoming clique header is already truncated, sent to us with a extradata already shortened
-		if len(header.Extra) < crypto.SignatureLength {
+		if len(header.Extra) < crypto.ExtendedSignatureLength {
 			// Need to add it back, to get a suitable length for hashing
-			newExtra := make([]byte, len(header.Extra)+crypto.SignatureLength)
+			newExtra := make([]byte, len(header.Extra)+crypto.ExtendedSignatureLength)
 			copy(newExtra, header.Extra)
 			header.Extra = newExtra
 		}
@@ -300,8 +300,8 @@ func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 // in clique.go panics if this is the case, thus it's been reimplemented here to avoid the panic
 // and simply return an error instead
 func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
-	if len(header.Extra) < crypto.SignatureLength {
-		err = fmt.Errorf("clique header extradata too short, %d < %d", len(header.Extra), crypto.SignatureLength)
+	if len(header.Extra) < crypto.ExtendedSignatureLength {
+		err = fmt.Errorf("clique header extradata too short, %d < %d", len(header.Extra), crypto.ExtendedSignatureLength)
 		return
 	}
 	rlp = clique.CliqueRLP(header)

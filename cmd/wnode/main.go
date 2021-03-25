@@ -27,7 +27,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -301,8 +301,8 @@ func startServer() error {
 		fmt.Printf("Failed to start Whisper peer: %s.", err)
 		return err
 	}
-
-	fmt.Printf("my public key: %s \n", hexutil.Encode(crypto.FromEDDSAPub(&asymKey.PublicKey)))
+	pub := eddsa.Ed448DerivePublicKey(*asymKey)
+	fmt.Printf("my public key: %s \n", hexutil.Encode(crypto.FromEDDSAPub(&pub)))
 	fmt.Println(server.NodeInfo().Enode)
 
 	if *bootstrapMode {
@@ -471,7 +471,8 @@ func sendLoop() {
 			// print your own message for convenience,
 			// because in asymmetric mode it is impossible to decrypt it
 			timestamp := time.Now().Unix()
-			from := crypto.PubkeyToAddress(asymKey.PublicKey)
+			pub := eddsa.Ed448DerivePublicKey(*asymKey)
+			from := crypto.PubkeyToAddress(pub)
 			fmt.Printf("\n%d <%x>: %s\n", timestamp, from, s)
 		}
 	}
@@ -493,7 +494,8 @@ func sendFilesLoop() {
 				fmt.Printf(">>> Error: message was not sent \n")
 			} else {
 				timestamp := time.Now().Unix()
-				from := crypto.PubkeyToAddress(asymKey.PublicKey)
+				pub := eddsa.Ed448DerivePublicKey(*asymKey)
+				from := crypto.PubkeyToAddress(pub)
 				fmt.Printf("\n%d <%x>: sent message with hash %x\n", timestamp, from, h)
 			}
 		}
@@ -638,8 +640,8 @@ func printMessageInfo(msg *whisper.ReceivedMessage) {
 	if msg.Src != nil {
 		address = crypto.PubkeyToAddress(*msg.Src)
 	}
-
-	if whisper.IsPubKeyEqual(msg.Src, &asymKey.PublicKey) {
+	pub := eddsa.Ed448DerivePublicKey(*asymKey)
+	if whisper.IsPubKeyEqual(msg.Src, &pub) {
 		fmt.Printf("\n%s <%x>: %s\n", timestamp, address, text) // message from myself
 	} else {
 		fmt.Printf("\n%s [%x]: %s\n", timestamp, address, text) // message from a peer

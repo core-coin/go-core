@@ -128,7 +128,7 @@ func TestWSAttachWelcome(t *testing.T) {
 	}()
 
 	endpoint := "ws://127.0.0.1:" + port
-	waitForEndpoint(t, endpoint, 5*time.Second)
+	waitForEndpoint(t, endpoint, 6*time.Second)
 	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 

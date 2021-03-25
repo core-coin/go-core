@@ -32,6 +32,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
@@ -183,7 +184,7 @@ func EncryptDataV3(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) 
 // EncryptKey encrypts a key using the specified scrypt parameters into a json
 // blob that can be decrypted later on.
 func EncryptKey(key *Key, auth string, scryptN, scryptP int) ([]byte, error) {
-	keyBytes := key.PrivateKey.D
+	keyBytes := key.PrivateKey[:]
 	cryptoStruct, err := EncryptDataV3(keyBytes, []byte(auth), scryptN, scryptP)
 	if err != nil {
 		return nil, err
@@ -227,10 +228,10 @@ func DecryptKey(keyjson []byte, auth string) (*Key, error) {
 		return nil, err
 	}
 	key := crypto.ToEDDSAUnsafe(keyBytes)
-
+	pub := eddsa.Ed448DerivePublicKey(*key)
 	return &Key{
 		Id:         uuid.UUID(keyId),
-		Address:    crypto.PubkeyToAddress(key.PublicKey),
+		Address:    crypto.PubkeyToAddress(pub),
 		PrivateKey: key,
 	}, nil
 }

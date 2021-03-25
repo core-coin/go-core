@@ -17,8 +17,8 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 
 	"github.com/core-coin/go-core/crypto"
@@ -45,7 +45,8 @@ func SignV4(r *enr.Record, privkey *eddsa.PrivateKey) error {
 	// Copy r to avoid modifying it if signing fails.
 	cpy := *r
 	cpy.Set(enr.ID("v4"))
-	cpy.Set(Secp256k1(privkey.PublicKey))
+	pub := eddsa.Ed448DerivePublicKey(*privkey)
+	cpy.Set(Secp256k1(pub))
 
 	h := sha3.New256()
 	rlp.Encode(h, cpy.AppendElements(nil))
@@ -63,7 +64,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 	var entry s256raw
 	if err := r.Load(&entry); err != nil {
 		return err
-	} else if len(entry) != 56 {
+	} else if len(entry) != 57 {
 		return fmt.Errorf("invalid public key")
 	}
 
@@ -81,7 +82,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	if err != nil {
 		return nil
 	}
-	return crypto.SHA3(pubkey.X)
+	return crypto.SHA3(pubkey[:])
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.

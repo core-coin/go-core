@@ -19,6 +19,7 @@ package whisperv6
 import (
 	"bytes"
 	"crypto/rand"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
@@ -84,7 +85,8 @@ func Fuzz(input []byte) int {
 	if len(decrypted.Signature) != 65 {
 		panic("Unexpected signature length")
 	}
-	if !whisperv6.IsPubKeyEqual(decrypted.Src, &params.Src.PublicKey) {
+	pub := eddsa.Ed448DerivePublicKey(*params.Src)
+	if !whisperv6.IsPubKeyEqual(decrypted.Src, &pub) {
 		panic("Unexpected public key")
 	}
 	return 0

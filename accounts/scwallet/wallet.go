@@ -25,6 +25,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"regexp"
@@ -923,7 +924,8 @@ func (s *Session) initialize(seed []byte) error {
 	}
 
 	id := initializeData{}
-	id.PublicKey = crypto.FromEDDSAPub(&key.PublicKey)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	id.PublicKey = crypto.FromEDDSAPub(&pub)
 	id.PrivateKey = seed[:32]
 	id.ChainCode = seed[32:]
 	data, err := asn1.Marshal(id)

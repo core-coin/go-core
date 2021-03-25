@@ -38,7 +38,7 @@ var nodeDBKeyTests = []struct {
 		key:   []byte{0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e}, // field
 	},
 	{
-		id:    MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+		id:    MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 		field: ":discover",
 		key: []byte{0x6e, 0x3a, // prefix
 			0x43, 0xd5, 0xad, 0x55, 0xa2, 0xee, 0x3f, 0x56, // node id
@@ -47,7 +47,7 @@ var nodeDBKeyTests = []struct {
 			0x51, 0x23, 0x2b, 0x8d, 0x78, 0x21, 0x61, 0x7d, //
 			0x2b, 0x29, 0xb5, 0x4b, 0x81, 0xcd, 0xef, 0xb9, //
 			0xb3, 0xe9, 0xc3, 0x7d, 0x7f, 0xd5, 0xf6, 0x32, //
-			0x70, 0xbc, 0xc9, 0xe1, 0xa6, 0xf6, 0xa4, 0x39, //
+			0x70, 0xbc, 0xc9, 0xe1, 0xa6, 0xf6, 0xa4, 0x39, 0xaa, //
 			0x3a, 0x64, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, // field
 		},
 	},
@@ -102,7 +102,7 @@ func TestNodeDBInt64(t *testing.T) {
 
 func TestNodeDBFetchStore(t *testing.T) {
 	node := NewNode(
-		MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+		MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
 		net.IP{192, 168, 0, 1},
 		30300,
 		30300,
@@ -165,7 +165,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// pong time is too far in the past.
 	{
 		node: NewNode(
-			MustHexID("0x84d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x84d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -176,7 +176,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// nodeID is the local node's ID.
 	{
 		node: NewNode(
-			MustHexID("0x57d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x57d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -187,7 +187,7 @@ var nodeDBSeedQueryNodes = []struct {
 	// These should be in the result set.
 	{
 		node: NewNode(
-			MustHexID("0x22d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x22d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 1},
 			30300,
 			30300,
@@ -196,7 +196,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewNode(
-			MustHexID("0x44d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x44d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 2},
 			30300,
 			30300,
@@ -205,7 +205,7 @@ var nodeDBSeedQueryNodes = []struct {
 	},
 	{
 		node: NewNode(
-			MustHexID("0xe2d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0xe2d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 3},
 			30300,
 			30300,
@@ -303,7 +303,7 @@ var nodeDBExpirationNodes = []struct {
 }{
 	{
 		node: NewNode(
-			MustHexID("0x01d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x01d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 1},
 			30300,
 			30300,
@@ -312,7 +312,7 @@ var nodeDBExpirationNodes = []struct {
 		exp:  false,
 	}, {
 		node: NewNode(
-			MustHexID("0x02d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632"),
+			MustHexID("0x02d9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa"),
 			net.IP{127, 0, 0, 2},
 			30300,
 			30300,

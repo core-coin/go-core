@@ -18,7 +18,7 @@ package core
 
 import (
 	"crypto/rand"
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -74,8 +74,9 @@ func BenchmarkInsertChain_ring1000_diskdb(b *testing.B) {
 
 var (
 	// This is the content of the genesis block used by the benchmarks.
-	benchRootKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b99bbeddf50472f9a08908167d9eddce7077f0bf6b3baaab2ebe66a80e0b0466a4")
-	benchRootAddr   = crypto.PubkeyToAddress(benchRootKey.PublicKey)
+	benchRootKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
+	benchRootPub    = eddsa.Ed448DerivePublicKey(*benchRootKey)
+	benchRootAddr   = crypto.PubkeyToAddress(benchRootPub)
 	benchRootFunds  = math.BigPow(2, 100)
 )
 
@@ -102,7 +103,8 @@ func init() {
 	ringAddrs[0] = benchRootAddr
 	for i := 1; i < len(ringKeys); i++ {
 		ringKeys[i], _ = crypto.GenerateKey(rand.Reader)
-		ringAddrs[i] = crypto.PubkeyToAddress(ringKeys[i].PublicKey)
+		pub := eddsa.Ed448DerivePublicKey(*ringKeys[i])
+		ringAddrs[i] = crypto.PubkeyToAddress(pub)
 	}
 }
 

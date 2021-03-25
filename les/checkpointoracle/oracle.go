@@ -120,7 +120,7 @@ func (oracle *CheckpointOracle) VerifySigners(index uint64, hash [32]byte, signa
 		checked = make(map[common.Address]struct{})
 	)
 	for i := 0; i < len(signatures); i++ {
-		if len(signatures[i]) != crypto.SignatureLength {
+		if len(signatures[i]) != crypto.ExtendedSignatureLength {
 			continue
 		}
 		// CIP 191 style signatures

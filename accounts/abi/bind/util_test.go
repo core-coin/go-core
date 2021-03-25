@@ -18,6 +18,7 @@ package bind_test
 
 import (
 	"context"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"testing"
 	"time"
@@ -30,9 +31,9 @@ import (
 	"github.com/core-coin/go-core/crypto"
 )
 
-var testKey, _ = crypto.HexToEDDSA("b2fb76df787478beafecf1f6078ac7aca04f3fca47a72c0c1d6c86dd0b9ee2dae860c95215cf34876b08df18ccf7dea17088509293490d2f5525317c15925fb81176640fab59b644f31b253d97bc6b2a7379f671ac23fb378df28bf7fdcbb2fae277121c294f221f745a993a851ab7d69c6906ddc8f1aa0a2025379650111efe9c4413efe1a738dfd626df3916ff8406")
+var testKey, _ = crypto.HexToEDDSA("c0b711eea422df26d5ffdcaae35fe0527cf647c5ce62d3efb5e09a0e14fc8afe57fac1a5daa330bc10bfa1d3db11e172a822dcfffb86a0b26d")
 
-var addr, addrErr = common.HexToAddress("cb37cfa5ec68a9b5a3334ff025a814b6fbcc743a9cda")
+var addr, addrErr = common.HexToAddress("cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba")
 
 var waitDeployedTests = map[string]struct {
 	code        string
@@ -58,9 +59,10 @@ func TestWaitDeployed(t *testing.T) {
 		t.Error(addrErr)
 	}
 	for name, test := range waitDeployedTests {
+		pub := eddsa.Ed448DerivePublicKey(*testKey)
 		backend := backends.NewSimulatedBackend(
 			core.GenesisAlloc{
-				crypto.PubkeyToAddress(testKey.PublicKey): {Balance: big.NewInt(10000000000)},
+				crypto.PubkeyToAddress(pub): {Balance: big.NewInt(10000000000)},
 			},
 			10000000,
 		)

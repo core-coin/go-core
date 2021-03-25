@@ -17,10 +17,10 @@
 package enode
 
 import (
-	"github.com/core-coin/eddsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"net/url"
 	"regexp"
@@ -158,8 +158,8 @@ func parsePubkey(in string) (*eddsa.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
-	} else if len(b) != 56 {
-		return nil, fmt.Errorf("wrong length, want %d hex chars", 112)
+	} else if len(b) != crypto.PubkeyLength {
+		return nil, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
 	}
 	return crypto.UnmarshalPubkey(b)
 }
@@ -196,6 +196,6 @@ func (n *Node) URLv4() string {
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
 func PubkeyToIDV4(key *eddsa.PublicKey) ID {
-	e := key.X[:]
+	e := key[:]
 	return ID(crypto.SHA3Hash(e))
 }

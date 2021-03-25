@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/eddsa"
+	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 )
@@ -275,7 +275,8 @@ func (s *simulation) launchNode(log bool) *Network {
 	var (
 		num = s.nodectr
 		key = newkey()
-		id  = PubkeyID(&key.PublicKey)
+		pub = eddsa.Ed448DerivePublicKey(*key)
+		id  = PubkeyID(&pub)
 		ip  = make(net.IP, 4)
 	)
 	s.nodectr++
@@ -284,7 +285,7 @@ func (s *simulation) launchNode(log bool) *Network {
 	addr := &net.UDPAddr{IP: ip, Port: 30300}
 
 	transport := &simTransport{joinTime: time.Now(), sender: id, senderAddr: addr, sim: s, priv: key}
-	net, err := newNetwork(transport, key.PublicKey, "<no database>", nil)
+	net, err := newNetwork(transport, pub, "<no database>", nil)
 	if err != nil {
 		panic("cannot launch new node: " + err.Error())
 	}

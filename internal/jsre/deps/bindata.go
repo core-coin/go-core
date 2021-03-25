@@ -9,6 +9,7 @@ package deps
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,7 +22,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %w", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -29,7 +30,10 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %w", name, err)
+	}
+	if clErr != nil {
+		return nil, err
 	}
 	if clErr != nil {
 		return nil, err
@@ -165,6 +169,9 @@ var _bindata = map[string]func() (*asset, error){
 	"web3.js":      web3Js,
 }
 
+// AssetDebug is true if the assets were built with the debug flag enabled.
+const AssetDebug = false
+
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
@@ -174,15 +181,15 @@ var _bindata = map[string]func() (*asset, error){
 //       img/
 //         a.png
 //         b.png
-// then AssetDir("data") would return []string{"foo.txt", "img"}
-// AssetDir("data/img") would return []string{"a.png", "b.png"}
-// AssetDir("foo.txt") and AssetDir("notexist") would return an error
+// then AssetDir("data") would return []string{"foo.txt", "img"},
+// AssetDir("data/img") would return []string{"a.png", "b.png"},
+// AssetDir("foo.txt") and AssetDir("notexist") would return an error, and
 // AssetDir("") will return []string{"data"}.
 func AssetDir(name string) ([]string, error) {
 	node := _bintree
 	if len(name) != 0 {
-		cannonicalName := strings.Replace(name, "\\", "/", -1)
-		pathList := strings.Split(cannonicalName, "/")
+		canonicalName := strings.Replace(name, "\\", "/", -1)
+		pathList := strings.Split(canonicalName, "/")
 		for _, p := range pathList {
 			node = node.Children[p]
 			if node == nil {
