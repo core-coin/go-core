@@ -3054,7 +3054,7 @@ var ContractFactory = function (xcb, abi) {
                 return json.type === 'constructor' && json.inputs.length === args.length;
             })[0] || {};
 
-            if (!constructorAbi.payable) {
+            if (!(constructorAbi.stateMutability !== "payable")) {
                 throw new Error('Cannot send value to non-payable constructor');
             }
         }
