@@ -17,14 +17,21 @@
 package params
 
 import (
+	"os/exec"
+	"log"
 	"regexp"
 )
 
 // Version holds the textual version string.
 var Version = func() string {
-	tag := "#TAG#"
+	out, err := exec.Command("git", "describe", "--tags", "--abbrev=0").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
 	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-	return reg.FindString(tag)
+        ver := reg.FindString(string(out))
+	log.Println("version {}", ver)
+	return ver
 }()
 
 // ArchiveVersion holds the textual version string used for Gocore archives.

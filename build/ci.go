@@ -193,30 +193,6 @@ func main() {
 	}
 }
 
-func resolveVersion() {
-	vspath := filepath.Join("params", "version.go")
-	content, err := ioutil.ReadFile(vspath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if (!strings.Contains(string(content), "#TAG#")) {
-		return
-	}
-
-	out, err := exec.Command("git", "describe", "--tags", "--abbrev=0").Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	version := strings.Trim(string(out), "\r\n")
-
-	newContent := strings.Replace(string(content), "#TAG#", string(version), -1)
-	err = ioutil.WriteFile(vspath, []byte(newContent), 0)
-	if err != nil {
-		log.Fatal("unable to replace version keyword")
-	}
-}
-
 func doInstall(cmdline []string) {
 	var (
 		arch = flag.String("arch", "", "Architecture to cross build for")
@@ -224,7 +200,6 @@ func doInstall(cmdline []string) {
 	)
 	flag.CommandLine.Parse(cmdline)
 	env := build.Env()
-	resolveVersion()
 
 	// Check Go version. People regularly open issues about compilation
 	// failure with outdated Go. This should save them the trouble.
