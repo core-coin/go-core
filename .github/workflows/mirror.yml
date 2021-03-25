@@ -11,6 +11,6 @@ jobs:
       - uses: actions/checkout@v1
       - uses: spyoungtech/mirror-action@master
         with:
-          REMOTE: 'https://git.energy/core-coin/go-core.git'
+          REMOTE: 'https://git.energy/core/go-core.git'
           GIT_USERNAME: ${{ secrets.MIRROR_GIT_USERNAME }}
           GIT_PASSWORD: ${{ secrets.MIRROR_GIT_PASSWORD }}
