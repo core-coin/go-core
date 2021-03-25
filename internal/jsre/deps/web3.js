@@ -2266,6 +2266,10 @@ var toBigNumber = function(number) {
         return new BigNumber(number.replace('0x',''), 16);
     }
 
+    if(isString(number) && (number.indexOf('ce') != -1 || number.indexOf('ab') != -1 || number.indexOf('cb'>0 )!=-1 )){
+        return new BigNumber(number,16)
+    }
+
     return new BigNumber(number.toString(10), 10);
 };
 
@@ -4062,9 +4066,9 @@ var SolidityFunction = function (xcb, json, address) {
         return i.type;
     });
     this._constant = json.constant;
-    this._payable = json.payable;
+    this._payable = json.stateMutability === "payable";
     this._name = utils.transformToFullName(json);
-    this._address = address;
+    this._address = address;    
 };
 
 SolidityFunction.prototype.extractCallback = function (args) {
@@ -4185,6 +4189,9 @@ SolidityFunction.prototype.sendTransaction = function () {
     var args = Array.prototype.slice.call(arguments).filter(function (a) {return a !== undefined; });
     var callback = this.extractCallback(args);
     var payload = this.toPayload(args);
+
+    console.log("this._payable:",this._payable);
+    console.log("this.payable",this.payable);
 
     if (payload.value > 0 && !this._payable) {
         throw new Error('Cannot send value to non-payable function');
