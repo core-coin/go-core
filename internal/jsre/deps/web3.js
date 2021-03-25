@@ -2274,11 +2274,6 @@ var toBigNumber = function(number) {
     if (isString(number) && (number.indexOf('ab') === 0 || number.indexOf('-ab') === 0)) {
         return new BigNumber(number, 16);
     }
-   
-
-    if(isString(number) && (number.indexOf('ce') != -1 || number.indexOf('ab') != -1 || number.indexOf('cb'>0 )!=-1 )){
-        return new BigNumber(number,16)
-    }
 
     return new BigNumber(number.toString(10), 10);
 };
