@@ -29,8 +29,7 @@ var Version = func() string {
 		log.Fatal(err)
 	}
 	reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
-        ver := reg.FindString(string(out))
-	log.Println("version {}", ver)
+	ver := reg.FindString(string(out))
 	return ver
 }()
 
@@ -47,16 +46,16 @@ func ArchiveVersion(gitCommit string) string {
 
 func VersionWithCommit(gitTag, gitBranch, gitCommit, gitDate string) string {
 	version := ""
-	if (gitTag != "") {
+	if gitTag != "" {
 		reg := regexp.MustCompile(`\b?[0-9]+\.[0-9]+\.[0-9]+?\b`)
 		version += reg.FindString(gitTag)
-	} else if (gitBranch != "") {
+	} else if gitBranch != "" {
 		version += "-" + gitBranch
 	}
 	if len(gitCommit) >= 8 {
 		version += "-" + gitCommit[:8]
 	}
-	if (gitDate != "") {
+	if gitDate != "" {
 		version += "-" + gitDate
 	}
 	return version
