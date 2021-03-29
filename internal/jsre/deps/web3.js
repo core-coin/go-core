@@ -2274,7 +2274,6 @@ var toBigNumber = function(number) {
     if (isString(number) && (number.indexOf('ab') === 0 || number.indexOf('-ab') === 0)) {
         return new BigNumber(number, 16);
     }
-   
 
     return new BigNumber(number.toString(10), 10);
 };
@@ -3060,7 +3059,7 @@ var ContractFactory = function (xcb, abi) {
                 return json.type === 'constructor' && json.inputs.length === args.length;
             })[0] || {};
 
-            if (!constructorAbi.payable) {
+            if (!(constructorAbi.stateMutability !== "payable")) {
                 throw new Error('Cannot send value to non-payable constructor');
             }
         }
@@ -4072,7 +4071,7 @@ var SolidityFunction = function (xcb, json, address) {
         return i.type;
     });
     this._constant = json.constant;
-    this._payable = json.payable;
+    this._payable = json.stateMutability === "payable";
     this._name = utils.transformToFullName(json);
     this._address = address;
 };
