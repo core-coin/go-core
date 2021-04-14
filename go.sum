@@ -42,8 +42,8 @@ github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9 h1:J82+/8rub3qSy0HxEnoYD8cs+HDlHWYrqYXe2Vqxluk=
 github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9/go.mod h1:1MxXX1Ux4x6mqPmjkUgTP1CdXIBXKX7T+Jk9Gxrmx+U=
-github.com/core-coin/go-goldilocks v0.0.6 h1:FegNPJCJO0ztumojuVAQNpO23phlhzV8UiI1nOyKty8=
-github.com/core-coin/go-goldilocks v0.0.6/go.mod h1:uXjPZTv3XMF/wmyidKozOb8yQwWmg2ZbO0Amcuiw9mg=
+github.com/core-coin/go-goldilocks v1.0.2 h1:aXm72Q8ryMsqo8g0ZMRdHoLG1YwSyVdof2ilydsNTJI=
+github.com/core-coin/go-goldilocks v1.0.2/go.mod h1:uXjPZTv3XMF/wmyidKozOb8yQwWmg2ZbO0Amcuiw9mg=
 github.com/core-coin/go-randomx v0.3.0 h1:vTIQVnGXxEpTW792mFG/w0eQ+5h9Q75ccYSWjYjMK+0=
 github.com/core-coin/go-randomx v0.3.0/go.mod h1:5aKtKhNAWwMEqvmOM+nweRoFV4Z61ZvRaW+q1C/OF7U=
 github.com/core-coin/go-randomy v0.0.5 h1:sAWJzypYOVe0IJL7G4UhfJAYeS47f7bH7dZmFJZOKtY=
