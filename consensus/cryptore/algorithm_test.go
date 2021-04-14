@@ -22,7 +22,7 @@ import (
 
 	"github.com/core-coin/go-core/common/hexutil"
 
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 )
 
 // Tests whether the randomx lookup works for both light as well as the full

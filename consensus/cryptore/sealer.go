@@ -22,7 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 	"math"
 	"math/big"
 	"math/rand"
