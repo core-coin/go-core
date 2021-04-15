@@ -44,8 +44,6 @@ github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9 h1:J82
 github.com/cloudflare/cloudflare-go v0.10.2-0.20190916151808-a80f83b9add9/go.mod h1:1MxXX1Ux4x6mqPmjkUgTP1CdXIBXKX7T+Jk9Gxrmx+U=
 github.com/core-coin/go-goldilocks v1.0.2 h1:aXm72Q8ryMsqo8g0ZMRdHoLG1YwSyVdof2ilydsNTJI=
 github.com/core-coin/go-goldilocks v1.0.2/go.mod h1:uXjPZTv3XMF/wmyidKozOb8yQwWmg2ZbO0Amcuiw9mg=
-github.com/core-coin/go-randomx v0.3.0 h1:vTIQVnGXxEpTW792mFG/w0eQ+5h9Q75ccYSWjYjMK+0=
-github.com/core-coin/go-randomx v0.3.0/go.mod h1:5aKtKhNAWwMEqvmOM+nweRoFV4Z61ZvRaW+q1C/OF7U=
 github.com/core-coin/go-randomy v0.0.5 h1:sAWJzypYOVe0IJL7G4UhfJAYeS47f7bH7dZmFJZOKtY=
 github.com/core-coin/go-randomy v0.0.5/go.mod h1:EygyK38LKN0+kYYXe5fDDFd+xLlNqKm93JmJz3hT7Jc=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
