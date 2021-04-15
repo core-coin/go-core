@@ -5,7 +5,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        platform: [ubuntu-latest, raspbian-private, macos-private]
+        platform: [ubuntu-latest, raspbian-private]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
