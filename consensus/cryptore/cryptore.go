@@ -22,7 +22,7 @@ import (
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 	"math/big"
 	"math/rand"
 	"sync"

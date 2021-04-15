@@ -19,7 +19,7 @@ package cryptore
 import (
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 	"math/big"
 	"runtime"
 	"time"

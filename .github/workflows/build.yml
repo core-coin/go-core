@@ -1,11 +1,11 @@
 name: go-core build
-on: [push, pull_request]
+on: push
 jobs:
   build:
     name: Build
     strategy:
       matrix:
-        platform: [ubuntu-latest]
+        platform: [ubuntu-latest, macos-private]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
