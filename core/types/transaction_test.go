@@ -52,7 +52,7 @@ var (
 		big.NewInt(10),
 		common.FromHex("1123"),
 	).WithSignature(
-		NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID),
+		NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID),
 		common.Hex2Bytes("b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0"),
 	)
 )
@@ -61,7 +61,7 @@ func TestTransactionSigHash(t *testing.T) {
 	if errAddr != nil {
 		t.Error(errAddr)
 	}
-	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
 	if nucleus.Hash(emptyTx) != common.HexToHash("0x0064d7a2aa08686b4f36a2188352ba162ff2b5bdce72335f4a0e25a6c5f47af7") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
@@ -93,7 +93,7 @@ func TestRecipientEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	from, err := Sender(NewNucleusSigner(params.TestChainConfig.ChainID), tx)
+	from, err := Sender(NewNucleusSigner(params.TestChainConfig.NetworkID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func TestRecipientNormal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NewNucleusSigner(params.TestChainConfig.ChainID), tx)
+	from, err := Sender(NewNucleusSigner(params.TestChainConfig.NetworkID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
 
-	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {

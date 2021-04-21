@@ -61,10 +61,10 @@ func (ec *Client) Close() {
 
 // Blockchain Access
 
-// ChainId retrieves the current chain ID for transaction replay protection.
-func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
+// NetworkId retrieves the current network ID for transaction replay protection.
+func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
-	err := ec.c.CallContext(ctx, &result, "xcb_chainId")
+	err := ec.c.CallContext(ctx, &result, "xcb_networkId")
 	if err != nil {
 		return nil, err
 	}
@@ -321,19 +321,6 @@ func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header)
 }
 
 // State Access
-
-// NetworkID returns the network ID (also known as the chain ID) for this chain.
-func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
-	version := new(big.Int)
-	var ver string
-	if err := ec.c.CallContext(ctx, &ver, "net_version"); err != nil {
-		return nil, err
-	}
-	if _, ok := version.SetString(ver, 10); !ok {
-		return nil, fmt.Errorf("invalid net_version result %q", ver)
-	}
-	return version, nil
-}
 
 // BalanceAt returns the ore balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.

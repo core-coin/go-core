@@ -201,7 +201,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 
 			// Fetch and execute the next block trace tasks
 			for task := range tasks {
-				signer := types.MakeSigner(api.xcb.blockchain.Config().ChainID)
+				signer := types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
 
 				// Trace all the transactions contained within
 				for i, tx := range task.block.Transactions() {
@@ -459,7 +459,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 	}
 	// Execute all the transaction contained within the block concurrently
 	var (
-		signer = types.MakeSigner(api.xcb.blockchain.Config().ChainID)
+		signer = types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
 
 		txs     = block.Transactions()
 		results = make([]*txTraceResult, len(txs))
@@ -559,7 +559,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 
 	// Execute transaction, either tracing all or just the requested one
 	var (
-		signer = types.MakeSigner(api.xcb.blockchain.Config().ChainID)
+		signer = types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
 		dumps  []string
 	)
 	for i, tx := range block.Transactions() {
@@ -798,7 +798,7 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 	}
 
 	// Recompute transactions up to the target index.
-	signer := types.MakeSigner(api.xcb.blockchain.Config().ChainID)
+	signer := types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
 
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset

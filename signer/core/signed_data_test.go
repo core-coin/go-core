@@ -44,7 +44,7 @@ var typesStandard = core.Types{
 			Type: "string",
 		},
 		{
-			Name: "chainId",
+			Name: "networkId",
 			Type: "uint256",
 		},
 		{
@@ -91,7 +91,7 @@ var jsonTypedData = `
             "type": "string"
           },
           {
-            "name": "chainId",
+            "name": "networkId",
             "type": "uint256"
           },
           {
@@ -132,7 +132,7 @@ var jsonTypedData = `
       "domain": {
         "name": "Core Mail",
         "version": "1",
-        "chainId": "1",
+        "networkId": "1",
         "verifyingContract": "cb10cccccccccccccccccccccccccccccccccccccccc"
       },
       "message": {
@@ -230,8 +230,8 @@ func TestSignData(t *testing.T) {
 	}
 }
 
-func TestDomainChainId(t *testing.T) {
-	withoutChainID := core.TypedData{
+func TestDomainNetworkId(t *testing.T) {
+	withoutNetworkID := core.TypedData{
 		Types: core.Types{
 			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
@@ -242,24 +242,24 @@ func TestDomainChainId(t *testing.T) {
 		},
 	}
 
-	if _, ok := withoutChainID.Domain.Map()["chainId"]; ok {
-		t.Errorf("Expected the chainId key to not be present in the domain map")
+	if _, ok := withoutNetworkID.Domain.Map()["networkId"]; ok {
+		t.Errorf("Expected the networkId key to not be present in the domain map")
 	}
-	withChainID := core.TypedData{
+	withNetworkID := core.TypedData{
 		Types: core.Types{
 			"CIP712Domain": []core.Type{
 				{Name: "name", Type: "string"},
-				{Name: "chainId", Type: "uint256"},
+				{Name: "networkId", Type: "uint256"},
 			},
 		},
 		Domain: core.TypedDataDomain{
-			Name:    "test",
-			ChainId: math.NewHexOrDecimal256(1),
+			Name:      "test",
+			NetworkId: math.NewHexOrDecimal256(1),
 		},
 	}
 
-	if _, ok := withChainID.Domain.Map()["chainId"]; !ok {
-		t.Errorf("Expected the chainId key be present in the domain map")
+	if _, ok := withNetworkID.Domain.Map()["networkId"]; !ok {
+		t.Errorf("Expected the networkId key be present in the domain map")
 	}
 }
 
@@ -278,14 +278,14 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0xc3978b7239f01da72c00454df62b8c7583e13456b5e077e60badbd46ab5febca" {
+	if domainHash != "0x82450d3ce36ab620172792e1fc62599eeabbe23c07b1095ff997408b227533c8" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
 
 func TestEncodeType(t *testing.T) {
 	domainTypeEncoding := string(typedData.EncodeType("CIP712Domain"))
-	if domainTypeEncoding != "CIP712Domain(string name,string version,uint256 chainId,address verifyingContract)" {
+	if domainTypeEncoding != "CIP712Domain(string name,string version,uint256 networkId,address verifyingContract)" {
 		t.Errorf("Expected different encodeType result (got %s)", domainTypeEncoding)
 	}
 

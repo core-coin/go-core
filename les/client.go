@@ -19,6 +19,7 @@ package les
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/abi/bind"
@@ -78,6 +79,9 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 	if _, isCompat := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !isCompat {
 		return nil, genesisErr
 	}
+
+	chainConfig.NetworkID = big.NewInt(int64(config.NetworkId))
+
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	peers := newServerPeerSet()

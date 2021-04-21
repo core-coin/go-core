@@ -255,8 +255,8 @@ func (tx *Transaction) GetCost() *BigInt { return &BigInt{tx.tx.Cost()} }
 func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.NewNucleusSigner(nil).Hash(tx.tx)} }
 
 // Deprecated: use CoreClient.TransactionSender
-func (tx *Transaction) GetFrom(chainID *BigInt) (address *Address, _ error) {
-	var signer = types.NewNucleusSigner(chainID.bigint)
+func (tx *Transaction) GetFrom(networkID *BigInt) (address *Address, _ error) {
+	var signer = types.NewNucleusSigner(networkID.bigint)
 	from, err := types.Sender(signer, tx.tx)
 	return &Address{from}, err
 }
@@ -268,8 +268,8 @@ func (tx *Transaction) GetTo() *Address {
 	return nil
 }
 
-func (tx *Transaction) WithSignature(sig []byte, chainID *BigInt) (signedTx *Transaction, _ error) {
-	var signer = types.NewNucleusSigner(chainID.bigint)
+func (tx *Transaction) WithSignature(sig []byte, networkID *BigInt) (signedTx *Transaction, _ error) {
+	var signer = types.NewNucleusSigner(networkID.bigint)
 	rawTx, err := tx.tx.WithSignature(signer, common.CopyBytes(sig))
 	return &Transaction{rawTx}, err
 }

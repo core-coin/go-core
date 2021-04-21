@@ -195,7 +195,7 @@ func newTestBackend(t *testing.T) *testBackend {
 			Config: params.TestChainConfig,
 			Alloc:  core.GenesisAlloc{addr: {Balance: big.NewInt(math.MaxInt64)}},
 		}
-		signer = types.NewNucleusSigner(gspec.Config.ChainID)
+		signer = types.NewNucleusSigner(gspec.Config.NetworkID)
 	)
 	engine := cryptore.NewFaker()
 	db := rawdb.NewMemoryDatabase()
