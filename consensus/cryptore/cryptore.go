@@ -60,7 +60,7 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	randomXVM *randomx.RandxVm
+	randomYVM *randomy.RandxVm
 	vmMutex   *sync.Mutex
 
 	// Mining related fields
@@ -86,12 +86,12 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    config,
 		update:    make(chan struct{}),
 		hashrate:  metrics.NewMeterForced(),
-		randomXVM: vm,
+		randomYVM: vm,
 		vmMutex:   mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
@@ -101,12 +101,12 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
-	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		config:    Config{PowMode: ModeTest, Log: log.Root()},
 		update:    make(chan struct{}),
 		hashrate:  metrics.NewMeterForced(),
-		randomXVM: vm,
+		randomYVM: vm,
 		vmMutex:   mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
