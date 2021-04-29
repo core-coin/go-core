@@ -178,7 +178,7 @@ func (cryptore *Cryptore) Close() error {
 		}
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 25)
 		cryptore.remote.cryptore.vmMutex.Lock()
 		cryptore.remote.cryptore.randomYVM.Close()
 		cryptore.remote.cryptore.vmMutex.Unlock()
