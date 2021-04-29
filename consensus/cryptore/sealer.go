@@ -107,9 +107,6 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		case <-stop:
 			// Outside abort, stop all miner threads
 			close(abort)
-			cryptore.vmMutex.Lock()
-			cryptore.randomYVM.Close()
-			cryptore.vmMutex.Unlock()
 		case result = <-locals:
 			// One of the threads found a block, abort all others
 			select {
