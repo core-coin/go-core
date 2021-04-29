@@ -34,6 +34,7 @@ func TestRandomY(t *testing.T) {
 
 	wantResult := hexutil.MustDecode("0xb620364373923b57353c668dcedcfc636d456e1c0d7da8733586c0e54ada6aa4")
 	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
+	defer vm.Close()
 	result, err := randomy.RandomX(vm, mutex, hash, nonce)
 	if err != nil {
 		t.Error(err)
