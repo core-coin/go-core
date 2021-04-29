@@ -176,6 +176,7 @@ func (cryptore *Cryptore) Close() error {
 		if cryptore.remote == nil {
 			return
 		}
+		cryptore.randomYVM.Close()
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
 	})
