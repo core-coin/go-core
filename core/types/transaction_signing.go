@@ -26,7 +26,7 @@ import (
 	"github.com/core-coin/go-core/crypto"
 )
 
-var ErrInvalidChainId = errors.New("invalid chain id for signer")
+var ErrInvalidNetworkId = errors.New("invalid network id for signer")
 
 // sigCache is used to cache the derived sender and contains
 // the signer used to derive it.
@@ -36,14 +36,14 @@ type sigCache struct {
 }
 
 // MakeSigner returns a Signer based on the given chain config and block number.
-func MakeSigner(chainID *big.Int) Signer {
-	var signer = NewNucleusSigner(chainID)
+func MakeSigner(networkID *big.Int) Signer {
+	var signer = NewNucleusSigner(networkID)
 	return signer
 }
 
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
-	tx.data.ChainID = uint(s.ChainID())
+	tx.data.NetworkID = uint(s.NetworkID())
 	h := s.Hash(tx)
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
@@ -83,40 +83,40 @@ type Signer interface {
 	Hash(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
-	// ChainID returns chain id stored in signer
-	ChainID() int
+	// NetworkID returns network id stored in signer
+	NetworkID() int
 }
 
-// NucleusSigner implements Signer with chain id.
+// NucleusSigner implements Signer with network id.
 type NucleusSigner struct {
-	chainId *big.Int
+	networkId *big.Int
 }
 
-func NewNucleusSigner(chainId *big.Int) NucleusSigner {
-	if chainId == nil {
-		chainId = new(big.Int)
+func NewNucleusSigner(networkId *big.Int) NucleusSigner {
+	if networkId == nil {
+		networkId = new(big.Int)
 	}
 	return NucleusSigner{
-		chainId: chainId,
+		networkId: networkId,
 	}
 }
 
 func (s NucleusSigner) Equal(s2 Signer) bool {
 	nucleus, ok := s2.(NucleusSigner)
-	return ok && nucleus.chainId.Cmp(s.chainId) == 0
+	return ok && nucleus.networkId.Cmp(s.networkId) == 0
 }
 
 func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
-	if tx.data.ChainID != 0 && s.ChainID() != 0 {
-		if tx.data.ChainID != uint(s.chainId.Int64()) {
-			return common.Address{}, ErrInvalidChainId
+	if tx.data.NetworkID != 0 && s.NetworkID() != 0 {
+		if tx.data.NetworkID != uint(s.networkId.Int64()) {
+			return common.Address{}, ErrInvalidNetworkId
 		}
 	}
 	return recoverPlain(s, tx)
 }
 
-func (s NucleusSigner) ChainID() int {
-	return int(s.chainId.Int64())
+func (s NucleusSigner) NetworkID() int {
+	return int(s.networkId.Int64())
 }
 
 // Hash returns the hash to be signed by the sender.
@@ -129,7 +129,7 @@ func (s NucleusSigner) Hash(tx *Transaction) common.Hash {
 		tx.data.Recipient,
 		tx.data.Amount,
 		tx.data.Payload,
-		tx.data.ChainID,
+		tx.data.NetworkID,
 	})
 }
 
@@ -141,7 +141,7 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	if tx.data.ChainID != 0 && signer.ChainID() != 0 {
+	if tx.data.NetworkID != 0 && signer.NetworkID() != 0 {
 		hash := signer.Hash(tx)
 		if !crypto.VerifySignature(pubk[:], hash[:], tx.data.Signature[:]) {
 			return common.Address{}, ErrInvalidSig

@@ -232,7 +232,7 @@ func TestCallTracer(t *testing.T) {
 			if err := rlp.DecodeBytes(common.FromHex(test.Input), tx); err != nil {
 				t.Fatalf("failed to parse testcase input: %v", err)
 			}
-			signer := types.MakeSigner(params.AllCryptoreProtocolChanges.ChainID)
+			signer := types.MakeSigner(params.AllCryptoreProtocolChanges.NetworkID)
 			origin, _ := signer.Sender(tx)
 
 			context := vm.Context{

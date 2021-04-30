@@ -38,7 +38,7 @@
  }, "primaryType": "Mail",
  "domain": {
 "name":"theMail",    "version": "1",
-    "chainId": "1",
+    "networkId": "1",
     "verifyingntract": "0xCcccCCCcCCCCCCCcCCcCCCcCcccccC"
   },
   "message": {   "from": {

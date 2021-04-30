@@ -1,6 +1,6 @@
 {
   "config": {
-    "chainId": 314158,
+    "networkId": 314158,
     "cryptore": {}
   },
   "nonce": "0x0",

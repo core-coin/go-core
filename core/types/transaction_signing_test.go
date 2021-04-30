@@ -34,7 +34,7 @@ func TestNucleusSigning(t *testing.T) {
 	pub := eddsa.Ed448DerivePublicKey(*key)
 	addr := crypto.PubkeyToAddress(pub)
 
-	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
 	tx, err := SignTx(NewTransaction(0, addr, new(big.Int), 0, new(big.Int), nil), signer, key)
 	if err != nil {
 		t.Fatal(err)
@@ -64,7 +64,7 @@ func TestNucleusSigningDecoding(t *testing.T) {
 		{"f8b480808002808080b8ab7278c118edb600e7839377fd54a49411f4edbd93f1ac70dcab877ed16d5b923172fba2ce14bd86738fa9a6a74880e25166f528747b8607e9002293a85b47e914ba84578e8ec546fa59cac7f54db8c9e02a4bef3cfdc9a770d89d58327cf5d32e42d8ec337ac7f7a42d23e69ca6fb8476240086cc46c7d4a48c0c1297f265cd18320c9f347d259d6c6e4d7361d4e40d556a90dc6e176c528ada874f3f2c97c5a67ae058d86f521714e70300", "cb9145a5c8329ff959edbec447423eabf596042f6809"},
 		{"f8b480808002808080b8abe305e6c12e6341bf4ada4ea59250c5e9e62152dd691e8ec80bf21956126ccf2403c3d82f9e0e21e61df86d0d3e19e0a309431fd1b4c2e615807744bcdd444308ec24578a81cf44d55672c6756b0d0b2d11250750f5e800fc6d521cb17129d093500582716e640ef5f56a06af5b5c610b35007382d3be65302784c087d9733b2fe7e600b4cfdc25819e3f1ff09cb693b7f0f40a7af12685c14866eda8eeab33b56404ff590c2c6699913400", "cb329269856d0826f232333f9b4f93ea4283a647894c"},
 	} {
-		signer := NewNucleusSigner(params.TestChainConfig.ChainID)
+		signer := NewNucleusSigner(params.TestChainConfig.NetworkID)
 		var tx *Transaction
 		err := rlp.DecodeBytes(common.Hex2Bytes(test.txRlp), &tx)
 		if err != nil {

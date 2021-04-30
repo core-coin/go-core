@@ -619,7 +619,7 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 		return err
 	}
 	env := &environment{
-		signer:    types.NewNucleusSigner(w.chainConfig.ChainID),
+		signer:    types.NewNucleusSigner(w.chainConfig.NetworkID),
 		state:     state,
 		ancestors: mapset.NewSet(),
 		family:    mapset.NewSet(),

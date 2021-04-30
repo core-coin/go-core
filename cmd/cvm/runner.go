@@ -143,7 +143,7 @@ func runCmd(ctx *cli.Context) error {
 		chainConfig = params.AllCryptoreProtocolChanges
 	}
 
-	common.DefaultNetworkID = common.NetworkID(chainConfig.ChainID.Int64())
+	common.DefaultNetworkID = common.NetworkID(chainConfig.NetworkID.Int64())
 
 	if ctx.GlobalString(SenderFlag.Name) != "" {
 		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))

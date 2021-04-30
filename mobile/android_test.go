@@ -73,7 +73,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			Transaction tx = new Transaction(
 				1, new Address("0x0000000000000000000000000000000000000000"),
 				new BigInt(0), 0, new BigInt(1), null); // Random empty transaction
-			BigInt chain = new BigInt(1); // Chain identifier of the main net
+			BigInt chain = new BigInt(1); // Network identifier of the main net
 
 			// Sign a transaction with a single authorization
 			Transaction signed = ks.signTxPassphrase(signer, "Signer password", tx, chain);
@@ -133,7 +133,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			Transaction postCIP155 = new Transaction(postCIP155RLP);
 
 			preCIP155.getFrom(null);           // Homestead should accept homestead
-			preCIP155.getFrom(new BigInt(4));  // CIP155 should accept homestead (missing chain ID)
+			preCIP155.getFrom(new BigInt(4));  // CIP155 should accept homestead (missing network ID)
 			postCIP155.getFrom(new BigInt(4)); // CIP155 should accept CIP 155
 
 			try {

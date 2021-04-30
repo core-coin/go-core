@@ -180,7 +180,7 @@ func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]by
 	return res, nil
 }
 
-func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
 	res := xcbapi.SignTransactionResult{}
 	data := hexutil.Bytes(tx.Data())
 	var to *common.Address
@@ -207,7 +207,7 @@ func (api *ExternalSigner) SignTextWithPassphrase(account accounts.Account, pass
 	return []byte{}, fmt.Errorf("password-operations not supported on external signers")
 }
 
-func (api *ExternalSigner) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (api *ExternalSigner) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
 	return nil, fmt.Errorf("password-operations not supported on external signers")
 }
 func (api *ExternalSigner) SignDataWithPassphrase(account accounts.Account, passphrase, mimeType string, data []byte) ([]byte, error) {

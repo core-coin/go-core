@@ -51,8 +51,8 @@ var CheckpointOracles = map[common.Hash]*CheckpointOracleConfig{
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
-		ChainID:  big.NewInt(1),
-		Cryptore: new(CryptoreConfig),
+		NetworkID: big.NewInt(1),
+		Cryptore:  new(CryptoreConfig),
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -72,8 +72,8 @@ var (
 
 	// DevinChainConfig contains the chain parameters to run a node on the Devin test network.
 	DevinChainConfig = &ChainConfig{
-		ChainID:  big.NewInt(3),
-		Cryptore: new(CryptoreConfig),
+		NetworkID: big.NewInt(3),
+		Cryptore:  new(CryptoreConfig),
 	}
 
 	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
@@ -93,7 +93,7 @@ var (
 
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
-		ChainID: big.NewInt(4),
+		NetworkID: big.NewInt(4),
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
@@ -181,7 +181,7 @@ type CheckpointOracleConfig struct {
 // that any network, identified by its genesis block, can have its own
 // set of configuration options.
 type ChainConfig struct {
-	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
+	NetworkID *big.Int `json:"networkId"` // networkId identifies the current chain and is used for replay protection
 
 	EWASMBlock *big.Int `json:"ewasmBlock,omitempty"` // EWASM switch block (nil = no fork, 0 = already activated)
 
@@ -220,8 +220,8 @@ func (c *ChainConfig) String() string {
 	default:
 		engine = "unknown"
 	}
-	return fmt.Sprintf("{ChainID: %v, Engine: %v}",
-		c.ChainID,
+	return fmt.Sprintf("{NetworkID: %v, Engine: %v}",
+		c.NetworkID,
 		engine,
 	)
 }
@@ -344,16 +344,16 @@ func (err *ConfigCompatError) Error() string {
 // Rules is a one time interface meaning that it shouldn't be used in between transition
 // phases.
 type Rules struct {
-	ChainID *big.Int
+	NetworkID *big.Int
 }
 
-// Rules ensures c's ChainID is not nil.
+// Rules ensures c's NetworkID is not nil.
 func (c *ChainConfig) Rules(num *big.Int) Rules {
-	chainID := c.ChainID
-	if chainID == nil {
-		chainID = new(big.Int)
+	networkID := c.NetworkID
+	if networkID == nil {
+		networkID = new(big.Int)
 	}
 	return Rules{
-		ChainID: new(big.Int).Set(chainID),
+		NetworkID: new(big.Int).Set(networkID),
 	}
 }

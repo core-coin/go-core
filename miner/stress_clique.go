@@ -118,7 +118,7 @@ func main() {
 			panic(err)
 		}
 		// Create a self transaction and inject into the pool
-		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000), nil), types.NewNucleusSigner(genesis.Config.ChainID), faucets[index])
+		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000), nil), types.NewNucleusSigner(genesis.Config.NetworkID), faucets[index])
 		if err != nil {
 			panic(err)
 		}
@@ -141,7 +141,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core
 	genesis := core.DefaultKolibaGenesisBlock()
 	genesis.EnergyLimit = 25000000
 
-	genesis.Config.ChainID = big.NewInt(18)
+	genesis.Config.NetworkID = big.NewInt(18)
 	genesis.Config.Clique.Period = 1
 	genesis.Config.CIP150Hash = common.Hash{}
 
@@ -194,7 +194,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, error) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		return xcb.New(ctx, &xcb.Config{
 			Genesis:         genesis,
-			NetworkId:       genesis.Config.ChainID.Uint64(),
+			NetworkId:       genesis.Config.NetworkID.Uint64(),
 			SyncMode:        downloader.FullSync,
 			DatabaseCache:   256,
 			DatabaseHandles: 256,

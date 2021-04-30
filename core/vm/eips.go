@@ -22,9 +22,9 @@ func opSelfBalance(pc *uint64, interpreter *CVMInterpreter, contract *Contract, 
 	return nil, nil
 }
 
-// opChainID implements CHAINID opcode
-func opChainID(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	chainId := interpreter.intPool.get().Set(interpreter.cvm.chainConfig.ChainID)
-	stack.push(chainId)
+// opNetworkID implements NETWORKID opcode
+func opNetworkID(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	networkId := interpreter.intPool.get().Set(interpreter.cvm.chainConfig.NetworkID)
+	stack.push(networkId)
 	return nil, nil
 }
