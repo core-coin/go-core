@@ -18,7 +18,6 @@ package cryptore
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -194,5 +193,4 @@ func TestStaleSubmission(t *testing.T) {
 			t.Errorf("case %d fetch cryptore result timeout", id+1)
 		}
 	}
-	fmt.Println("||||||||||")
 }
