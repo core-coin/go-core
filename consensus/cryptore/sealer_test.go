@@ -18,6 +18,7 @@ package cryptore
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -163,15 +164,16 @@ func TestStaleSubmission(t *testing.T) {
 		},
 	}
 	results := make(chan *types.Block, 16)
-
+	stop := make(chan struct{})
 	for id, c := range testcases {
 		for _, h := range c.headers {
-			cryptore.Seal(nil, types.NewBlockWithHeader(h), results, nil)
+			cryptore.Seal(nil, types.NewBlockWithHeader(h), results, stop)
 		}
 		if res := api.SubmitWork(fakeNonce, cryptore.SealHash(c.headers[c.submitIndex])); res != c.submitRes {
 			t.Errorf("case %d submit result mismatch, want %t, get %t", id+1, c.submitRes, res)
 		}
 		if !c.submitRes {
+			close(stop)
 			continue
 		}
 		select {
@@ -192,4 +194,5 @@ func TestStaleSubmission(t *testing.T) {
 			t.Errorf("case %d fetch cryptore result timeout", id+1)
 		}
 	}
+	fmt.Println("||||||||||")
 }
