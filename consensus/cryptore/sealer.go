@@ -95,10 +95,13 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 	)
 	for i := 0; i < threads; i++ {
 		pend.Add(1)
-		go func(id int, nonce uint64) {
+		cryptore.pendingVMs.Add(1)
+		go func(id int, nonce uint64, wg *sync.WaitGroup) {
 			defer pend.Done()
+			defer wg.Done()
+
 			cryptore.mine(block, id, nonce, abort, locals)
-		}(i, uint64(cryptore.rand.Int63()))
+		}(i, uint64(cryptore.rand.Int63()), cryptore.pendingVMs)
 	}
 	// Wait until sealing is terminated or a nonce is found
 	go func() {
@@ -151,7 +154,6 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
-
 			break search
 
 		default:

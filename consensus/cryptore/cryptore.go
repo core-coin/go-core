@@ -60,8 +60,9 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	randomYVM *randomy.RandxVm
-	vmMutex   *sync.Mutex
+	pendingVMs *sync.WaitGroup
+	randomYVM  *randomy.RandxVm
+	vmMutex    *sync.Mutex
 
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
@@ -88,11 +89,12 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	}
 	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:    config,
-		update:    make(chan struct{}),
-		hashrate:  metrics.NewMeterForced(),
-		randomYVM: vm,
-		vmMutex:   mutex,
+		pendingVMs: &sync.WaitGroup{},
+		config:     config,
+		update:     make(chan struct{}),
+		hashrate:   metrics.NewMeterForced(),
+		randomYVM:  vm,
+		vmMutex:    mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -103,11 +105,12 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 func NewTester(notify []string, noverify bool) *Cryptore {
 	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:    Config{PowMode: ModeTest, Log: log.Root()},
-		update:    make(chan struct{}),
-		hashrate:  metrics.NewMeterForced(),
-		randomYVM: vm,
-		vmMutex:   mutex,
+		pendingVMs: &sync.WaitGroup{},
+		config:     Config{PowMode: ModeTest, Log: log.Root()},
+		update:     make(chan struct{}),
+		hashrate:   metrics.NewMeterForced(),
+		randomYVM:  vm,
+		vmMutex:    mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -178,7 +181,7 @@ func (cryptore *Cryptore) Close() error {
 		}
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
-		time.Sleep(time.Second * 25)
+		cryptore.pendingVMs.Wait()
 		cryptore.remote.cryptore.vmMutex.Lock()
 		cryptore.remote.cryptore.randomYVM.Close()
 		cryptore.remote.cryptore.vmMutex.Unlock()
