@@ -128,7 +128,7 @@ func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool)
 		}
 		// Include transactions to the miner to make blocks more interesting.
 		if parent == tc.genesis && i%22 == 0 {
-			signer := types.MakeSigner(params.TestChainConfig.ChainID)
+			signer := types.MakeSigner(params.TestChainConfig.NetworkID)
 			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)

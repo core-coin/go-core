@@ -216,7 +216,7 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain
 }
 
 func testChainGen(i int, block *core.BlockGen) {
-	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.ChainID)
+	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
 	switch i {
 	case 0:
 		// In block 1, the test bank sends account #1 some core.

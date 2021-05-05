@@ -46,7 +46,7 @@ type txdata struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
 	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
-	ChainID      uint            `json:"chain_id" gencodec:"required"`
+	NetworkID    uint            `json:"chain_id" gencodec:"required"`
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
@@ -60,7 +60,7 @@ type txdataMarshaling struct {
 	AccountNonce hexutil.Uint64
 	Price        *hexutil.Big
 	EnergyLimit  hexutil.Uint64
-	ChainID      hexutil.Uint64
+	NetworkID    hexutil.Uint64
 	Signature    hexutil.Bytes
 	Amount       *hexutil.Big
 	Payload      hexutil.Bytes
@@ -86,7 +86,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 		EnergyLimit:  energyLimit,
 		Price:        new(big.Int),
 		Signature:    []byte{},
-		ChainID:      0,
+		NetworkID:    0,
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -132,15 +132,15 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte            { return common.CopyBytes(tx.data.Payload) }
-func (tx *Transaction) Energy() uint64          { return tx.data.EnergyLimit }
-func (tx *Transaction) EnergyPrice() *big.Int   { return new(big.Int).Set(tx.data.Price) }
-func (tx *Transaction) Value() *big.Int         { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Nonce() uint64           { return tx.data.AccountNonce }
-func (tx *Transaction) CheckNonce() bool        { return true }
-func (tx *Transaction) ChainID() uint           { return tx.data.ChainID }
-func (tx *Transaction) Signature() []byte       { return tx.data.Signature }
-func (tx *Transaction) SetChainID(chainID uint) { tx.data.ChainID = chainID }
+func (tx *Transaction) Data() []byte                { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Energy() uint64              { return tx.data.EnergyLimit }
+func (tx *Transaction) EnergyPrice() *big.Int       { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) Value() *big.Int             { return new(big.Int).Set(tx.data.Amount) }
+func (tx *Transaction) Nonce() uint64               { return tx.data.AccountNonce }
+func (tx *Transaction) CheckNonce() bool            { return true }
+func (tx *Transaction) NetworkID() uint             { return tx.data.NetworkID }
+func (tx *Transaction) Signature() []byte           { return tx.data.Signature }
+func (tx *Transaction) SetNetworkID(networkID uint) { tx.data.NetworkID = networkID }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -198,7 +198,7 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 // WithSignature returns a new transaction with the given signature.
 func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, error) {
 	cpy := &Transaction{data: tx.data}
-	cpy.data.ChainID = uint(signer.ChainID())
+	cpy.data.NetworkID = uint(signer.NetworkID())
 	cpy.data.Signature = sig[:]
 	return cpy, nil
 }

@@ -328,18 +328,18 @@ func TestTransactionInBlockInterrupted(t *testing.T) {
 	}
 }
 
-func TestChainID(t *testing.T) {
+func TestNetworkID(t *testing.T) {
 	backend, _ := newTestBackend(t)
 	client, _ := backend.Attach()
 	defer backend.Stop()
 	defer client.Close()
 	ec := NewClient(client)
 
-	id, err := ec.ChainID(context.Background())
+	id, err := ec.NetworkID(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if id == nil || id.Cmp(params.AllCryptoreProtocolChanges.ChainID) != 0 {
-		t.Fatalf("ChainID returned wrong number: %+v", id)
+	if id == nil || id.Cmp(params.AllCryptoreProtocolChanges.NetworkID) != 0 {
+		t.Fatalf("NetworkID returned wrong number: %+v", id)
 	}
 }

@@ -19,7 +19,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  hexutil.Uint64  `json:"energy"      gencodec:"required"`
-		ChainID      hexutil.Uint64  `json:"chain_id" gencodec:"required"`
+		NetworkID    hexutil.Uint64  `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
@@ -30,7 +30,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
 	enc.Price = (*hexutil.Big)(t.Price)
 	enc.EnergyLimit = hexutil.Uint64(t.EnergyLimit)
-	enc.ChainID = hexutil.Uint64(t.ChainID)
+	enc.NetworkID = hexutil.Uint64(t.NetworkID)
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
@@ -45,7 +45,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  *hexutil.Uint64 `json:"energy"      gencodec:"required"`
-		ChainID      *hexutil.Uint64 `json:"chain_id" gencodec:"required"`
+		NetworkID    *hexutil.Uint64 `json:"chain_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
@@ -68,10 +68,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'energy' for txdata")
 	}
 	t.EnergyLimit = uint64(*dec.EnergyLimit)
-	if dec.ChainID == nil {
+	if dec.NetworkID == nil {
 		return errors.New("missing required field 'chain_id' for txdata")
 	}
-	t.ChainID = uint(*dec.ChainID)
+	t.NetworkID = uint(*dec.NetworkID)
 	if dec.Recipient != nil {
 		t.Recipient = dec.Recipient
 	}

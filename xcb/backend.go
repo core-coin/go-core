@@ -140,6 +140,9 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
+
+	chainConfig.NetworkID = big.NewInt(int64(config.NetworkId))
+
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	xcb := &Core{

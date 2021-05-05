@@ -470,8 +470,8 @@ web3._extend({
 	property: 'xcb',
 	methods: [
 		new web3._extend.Method({
-			name: 'chainId',
-			call: 'xcb_chainId',
+			name: 'networkId',
+			call: 'xcb_networkId',
 			params: 0
 		}),
 		new web3._extend.Method({

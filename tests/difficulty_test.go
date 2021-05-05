@@ -25,7 +25,7 @@ import (
 
 var (
 	mainnetChainConfig = params.ChainConfig{
-		ChainID: big.NewInt(1),
+		NetworkID: big.NewInt(1),
 	}
 )
 

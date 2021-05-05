@@ -54,7 +54,7 @@ func NewKeyStoreTransactor(keystore *keystore.KeyStore, account accounts.Account
 			if address != account.Address {
 				return nil, errors.New("not authorized to sign this account")
 			}
-			tx.SetChainID(uint(signer.ChainID()))
+			tx.SetNetworkID(uint(signer.NetworkID()))
 			signature, err := keystore.SignHash(account, signer.Hash(tx).Bytes())
 			if err != nil {
 				return nil, err
@@ -75,7 +75,7 @@ func NewKeyedTransactor(key *eddsa.PrivateKey) *TransactOpts {
 			if address != keyAddr {
 				return nil, errors.New("not authorized to sign this account")
 			}
-			tx.SetChainID(uint(signer.ChainID()))
+			tx.SetNetworkID(uint(signer.NetworkID()))
 			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
 			if err != nil {
 				return nil, err
@@ -94,7 +94,7 @@ func NewClefTransactor(clef *external.ExternalSigner, account accounts.Account) 
 			if address != account.Address {
 				return nil, errors.New("not authorized to sign this account")
 			}
-			return clef.SignTx(account, transaction, nil) // Clef enforces its own chain id
+			return clef.SignTx(account, transaction, nil) // Clef enforces its own network id
 		},
 	}
 }

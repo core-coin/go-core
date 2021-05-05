@@ -54,7 +54,7 @@ func (w *wizard) deployExplorer() {
 	existed := err == nil
 
 	infos.node.genesis, _ = json.MarshalIndent(w.conf.Genesis, "", "  ")
-	infos.node.network = w.conf.Genesis.Config.ChainID.Int64()
+	infos.node.network = w.conf.Genesis.Config.NetworkID.Int64()
 
 	// Figure out which port to listen on
 	fmt.Println()

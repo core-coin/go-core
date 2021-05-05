@@ -350,7 +350,7 @@ func (s *PrivateAccountAPI) signTransaction(ctx context.Context, args *SendTxArg
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 
-	return wallet.SignTxWithPassphrase(account, passwd, tx, s.b.ChainConfig().ChainID)
+	return wallet.SignTxWithPassphrase(account, passwd, tx, s.b.ChainConfig().NetworkID)
 }
 
 // SendTransaction will create a transaction from the given arguments and
@@ -496,9 +496,9 @@ func NewPublicBlockChainAPI(b Backend) *PublicBlockChainAPI {
 	return &PublicBlockChainAPI{b}
 }
 
-// ChainId returns the chainID value for transaction replay protection.
-func (s *PublicBlockChainAPI) ChainId() *hexutil.Big {
-	return (*hexutil.Big)(s.b.ChainConfig().ChainID)
+// NetworkId returns the networkID value for transaction replay protection.
+func (s *PublicBlockChainAPI) NetworkId() *hexutil.Big {
+	return (*hexutil.Big)(s.b.ChainConfig().NetworkID)
 }
 
 // BlockNumber returns the block number of the chain head.
@@ -1077,7 +1077,7 @@ type RPCTransaction struct {
 	Input            hexutil.Bytes   `json:"input"`
 	Nonce            hexutil.Uint64  `json:"nonce"`
 	To               *common.Address `json:"to"`
-	ChainID          hexutil.Uint64  `json:"chain_id"`
+	NetworkID        hexutil.Uint64  `json:"chain_id"`
 	Signature        hexutil.Bytes   `json:"signature"`
 	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
 	Value            *hexutil.Big    `json:"value"`
@@ -1097,7 +1097,7 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		Input:       hexutil.Bytes(tx.Data()),
 		Nonce:       hexutil.Uint64(tx.Nonce()),
 		To:          tx.To(),
-		ChainID:     hexutil.Uint64(tx.ChainID()),
+		NetworkID:   hexutil.Uint64(tx.NetworkID()),
 		Signature:   hexutil.Bytes(tx.Signature()),
 		Value:       (*hexutil.Big)(tx.Value()),
 	}
@@ -1274,7 +1274,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	}
 	receipt := receipts[index]
 
-	var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
+	var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().NetworkID)
 	from, err := types.Sender(signer, tx)
 	if err != nil {
 		return nil, err
@@ -1319,7 +1319,7 @@ func (s *PublicTransactionPoolAPI) sign(addr common.Address, tx *types.Transacti
 		return nil, err
 	}
 	// Request the wallet to sign the transaction
-	return wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)
+	return wallet.SignTx(account, tx, s.b.ChainConfig().NetworkID)
 }
 
 // SendTxArgs represents the arguments to sumbit a new transaction into the transaction pool.
@@ -1415,7 +1415,7 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		return common.Hash{}, err
 	}
 	if tx.To() == nil {
-		signer := types.MakeSigner(b.ChainConfig().ChainID)
+		signer := types.MakeSigner(b.ChainConfig().NetworkID)
 		from, err := types.Sender(signer, tx)
 		if err != nil {
 			return common.Hash{}, err
@@ -1453,7 +1453,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 
-	signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)
+	signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().NetworkID)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1559,7 +1559,7 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	}
 	transactions := make([]*RPCTransaction, 0, len(pending))
 	for _, tx := range pending {
-		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
+		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().NetworkID)
 		from, _ := types.Sender(signer, tx)
 		if _, exists := accounts[from]; exists {
 			transactions = append(transactions, newRPCPendingTransaction(tx))
@@ -1584,7 +1584,7 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	}
 
 	for _, p := range pending {
-		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().ChainID)
+		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().NetworkID)
 		wantSigHash := signer.Hash(matchTx)
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {

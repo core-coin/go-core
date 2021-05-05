@@ -109,7 +109,7 @@ func main() {
 			panic(err)
 		}
 		// Create a self transaction and inject into the pool
-		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000+rand.Int63n(65536)), nil), types.NewNucleusSigner(genesis.Config.ChainID), faucets[index])
+		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000+rand.Int63n(65536)), nil), types.NewNucleusSigner(genesis.Config.NetworkID), faucets[index])
 		if err != nil {
 			panic(err)
 		}
@@ -132,7 +132,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000
 
-	genesis.Config.ChainID = big.NewInt(18)
+	genesis.Config.NetworkID = big.NewInt(18)
 	genesis.Config.CIP150Hash = common.Hash{}
 
 	genesis.Alloc = core.GenesisAlloc{}
@@ -168,7 +168,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		return xcb.New(ctx, &xcb.Config{
 			Genesis:         genesis,
-			NetworkId:       genesis.Config.ChainID.Uint64(),
+			NetworkId:       genesis.Config.NetworkID.Uint64(),
 			SyncMode:        downloader.FullSync,
 			DatabaseCache:   256,
 			DatabaseHandles: 256,

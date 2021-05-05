@@ -10,7 +10,7 @@
         "type": "string"
       },
       {
-        "name": "chainId",
+        "name": "networkId",
         "type": "uint256"
       },
       {
@@ -53,7 +53,7 @@
   "domain": {
     "name": "Core Mail",
     "version": "1",
-    "chainId": "1",
+    "networkId": "1",
     "verifyingContract": "cb10cccccccccccccccccccccccccccccccccccccccc"
   },
   "message": {

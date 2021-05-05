@@ -123,7 +123,7 @@ type ChainParams struct {
 
 type CParamsParams struct {
 	AccountStartNonce       math.HexOrDecimal64   `json:"accountStartNonce"`
-	ChainID                 *math.HexOrDecimal256 `json:"chainID"`
+	NetworkID               *math.HexOrDecimal256 `json:"networkID"`
 	MaximumExtraDataSize    math.HexOrDecimal64   `json:"maximumExtraDataSize"`
 	TieBreakingEnergy       bool                  `json:"tieBreakingEnergy"`
 	MinEnergyLimit          math.HexOrDecimal64   `json:"minEnergyLimit"`
@@ -133,7 +133,6 @@ type CParamsParams struct {
 	DifficultyBoundDivisor  math.HexOrDecimal256  `json:"difficultyBoundDivisor"`
 	DurationLimit           math.HexOrDecimal256  `json:"durationLimit"`
 	BlockReward             math.HexOrDecimal256  `json:"blockReward"`
-	NetworkID               math.HexOrDecimal256  `json:"networkID"`
 }
 
 type CParamsGenesis struct {
@@ -296,14 +295,14 @@ func (api *RetestxcbAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 			}
 		}
 	}
-	chainId := big.NewInt(1)
-	if chainParams.Params.ChainID != nil {
-		chainId.Set((*big.Int)(chainParams.Params.ChainID))
+	networkId := big.NewInt(1)
+	if chainParams.Params.NetworkID != nil {
+		networkId.Set((*big.Int)(chainParams.Params.NetworkID))
 	}
 
 	genesis := &core.Genesis{
 		Config: &params.ChainConfig{
-			ChainID: chainId,
+			NetworkID: networkId,
 		},
 		Nonce:       uint64(chainParams.Genesis.Nonce),
 		Timestamp:   uint64(chainParams.Genesis.Timestamp),
@@ -356,7 +355,7 @@ func (api *RetestxcbAPI) SendRawTransaction(ctx context.Context, rawTx hexutil.B
 		// Return nil is not by mistake - some tests include sending transaction where energyLimit overflows uint64
 		return common.Hash{}, nil
 	}
-	signer := types.MakeSigner(api.blockchain.Config().ChainID)
+	signer := types.MakeSigner(api.blockchain.Config().NetworkID)
 	sender, err := types.Sender(signer, tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -586,7 +585,7 @@ func (api *RetestxcbAPI) AccountRange(ctx context.Context,
 			return AccountRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner(api.blockchain.Config().ChainID)
+		signer := types.MakeSigner(api.blockchain.Config().NetworkID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)
@@ -695,7 +694,7 @@ func (api *RetestxcbAPI) StorageRangeAt(ctx context.Context,
 			return StorageRangeResult{}, err
 		}
 		// Recompute transactions up to the target index.
-		signer := types.MakeSigner(api.blockchain.Config().ChainID)
+		signer := types.MakeSigner(api.blockchain.Config().NetworkID)
 		for idx, tx := range block.Transactions() {
 			// Assemble the transaction call message and return if the requested offset
 			msg, _ := tx.AsMessage(signer)

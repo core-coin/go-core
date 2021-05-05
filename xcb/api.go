@@ -66,12 +66,12 @@ func (api *PublicCoreAPI) Hashrate() hexutil.Uint64 {
 	return hexutil.Uint64(api.e.Miner().HashRate())
 }
 
-// ChainId is the CIP-155 replay-protection chain id for the current core chain config.
-func (api *PublicCoreAPI) ChainId() hexutil.Uint64 {
-	chainID := new(big.Int)
+// NetworkId is the CIP-155 replay-protection network id for the current core chain config.
+func (api *PublicCoreAPI) NetworkId() hexutil.Uint64 {
+	networkID := new(big.Int)
 	config := api.e.blockchain.Config()
-	chainID = config.ChainID
-	return (hexutil.Uint64)(chainID.Uint64())
+	networkID = config.NetworkID
+	return (hexutil.Uint64)(networkID.Uint64())
 }
 
 // PublicMinerAPI provides an API to control the miner.
