@@ -182,9 +182,7 @@ func (cryptore *Cryptore) Close() error {
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
 		cryptore.pendingVMs.Wait()
-		cryptore.remote.cryptore.vmMutex.Lock()
 		cryptore.remote.cryptore.randomYVM.Close()
-		cryptore.remote.cryptore.vmMutex.Unlock()
 	})
 	return err
 }
