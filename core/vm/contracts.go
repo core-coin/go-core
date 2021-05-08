@@ -84,11 +84,11 @@ func (c *ecrecover) RequiredEnergy(input []byte) uint64 {
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = crypto.ExtendedSignatureLength
+	const ecRecoverInputLength = 32 + crypto.ExtendedSignatureLength
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
 
-	pubKey, err := crypto.Ecrecover([]byte{}, input)
+	pubKey, err := crypto.Ecrecover(input[:32], input[32:])
 	// make sure the public key is a valid one
 	if err != nil {
 		return nil, nil
