@@ -661,7 +661,7 @@ var ecRecoverTests = []precompiledTest{
 			"4f73a3aed48bc061fe392a01c00cb3aaad6cd73d2dc0d2ea56e9141d54d1cc6693d" +
 			"bcb979504a8574271b2a4a3f11ec9e6dfa8841eba565c4ccbcb1eb7cba07c5e31b5" +
 			"5179f00",
-		expected: "0000000000000000000000007e5310dab1ff205ee31df9a6c0ad7ac866a1692f",
+		expected: "cb217e5310dab1ff205ee31df9a6c0ad7ac866a1692f",
 		name:     "ValidKey",
 	},
 	{
