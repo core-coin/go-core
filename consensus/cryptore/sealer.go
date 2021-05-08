@@ -90,14 +90,11 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		cryptore.remote.workCh <- &sealTask{block: block, results: results}
 	}
 	var (
-		pend   sync.WaitGroup
 		locals = make(chan *types.Block)
 	)
 	for i := 0; i < threads; i++ {
-		pend.Add(1)
 		cryptore.pendingVMs.Add(1)
 		go func(id int, nonce uint64, wg *sync.WaitGroup) {
-			defer pend.Done()
 			defer wg.Done()
 
 			cryptore.mine(block, id, nonce, abort, locals)
@@ -125,8 +122,6 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 				cryptore.config.Log.Error("Failed to restart sealing after update", "err", err)
 			}
 		}
-		// Wait for all miners to terminate and return the block
-		pend.Wait()
 	}()
 	return nil
 }
