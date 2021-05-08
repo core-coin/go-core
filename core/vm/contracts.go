@@ -20,6 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"github.com/core-coin/go-goldilocks"
 	"math/big"
 
 	"github.com/core-coin/go-core/common"
@@ -92,9 +93,8 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, nil
 	}
-
-	// the first byte of pubkey is bitcoin heritage
-	return common.LeftPadBytes(crypto.SHA3(pubKey)[12:], 32), nil
+	addr := crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey))
+	return addr.Bytes(), nil
 }
 
 // SHA256 implemented as a native contract.
