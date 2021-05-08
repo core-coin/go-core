@@ -159,7 +159,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			result, err := randomy.RandomX(cryptore.randomYVM, cryptore.vmMutex, hash, nonce)
+			result, err := randomy.RandomY(cryptore.randomYVM, cryptore.vmMutex, hash, nonce)
 			if err != nil {
 				logger.Error(err.Error())
 			}

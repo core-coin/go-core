@@ -61,7 +61,7 @@ type Cryptore struct {
 	config Config
 
 	pendingVMs *sync.WaitGroup
-	randomYVM  *randomy.RandxVm
+	randomYVM  *randomy.RandyVm
 	vmMutex    *sync.Mutex
 
 	// Mining related fields
@@ -87,7 +87,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		pendingVMs: &sync.WaitGroup{},
 		config:     config,
@@ -103,7 +103,7 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
-	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
 		pendingVMs: &sync.WaitGroup{},
 		config:     Config{PowMode: ModeTest, Log: log.Root()},
