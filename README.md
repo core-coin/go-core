@@ -143,7 +143,7 @@ First, you'll need to create the genesis state of your networks, which all nodes
 ```json
 {
   "config": {
-    "chainId": "<arbitrary positive integer>"
+    "networkId": "<arbitrary positive integer>"
   },
   "alloc": {},
   "corebase": "ce450000000000000000000000000000000000000000",

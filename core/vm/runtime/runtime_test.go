@@ -174,7 +174,7 @@ func benchmarkCVM_Create(bench *testing.B, code string) {
 		Coinbase:    common.Address{},
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
-			ChainID: big.NewInt(1),
+			NetworkID: big.NewInt(1),
 		},
 		CVMConfig: vm.Config{},
 	}

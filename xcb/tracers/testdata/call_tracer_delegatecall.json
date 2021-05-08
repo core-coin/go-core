@@ -38,7 +38,7 @@
       }
     },
     "config": {
-      "chainId": 3,
+      "networkId": 3,
       "cip155Block": 10,
       "cip158Block": 10,
       "cryptore": {}

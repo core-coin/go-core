@@ -92,10 +92,10 @@ var (
 		Value: DefaultConfigDir(),
 		Usage: "Directory for Clef configuration",
 	}
-	chainIdFlag = cli.Int64Flag{
-		Name:  "chainid",
-		Value: params.MainnetChainConfig.ChainID.Int64(),
-		Usage: "Chain id to use for signing (1=mainnet, 3=Devin, 4=Koliba)",
+	networkIdFlag = cli.Int64Flag{
+		Name:  "networkid",
+		Value: params.MainnetChainConfig.NetworkID.Int64(),
+		Usage: "Network id to use for signing (1=mainnet, 3=Devin, 4=Koliba)",
 	}
 	rpcPortFlag = cli.IntFlag{
 		Name:  "rpcport",
@@ -218,7 +218,7 @@ func init() {
 		logLevelFlag,
 		keystoreFlag,
 		configdirFlag,
-		chainIdFlag,
+		networkIdFlag,
 		utils.LightKDFFlag,
 		utils.NoUSBFlag,
 		utils.SmartCardDaemonPathFlag,
@@ -446,8 +446,8 @@ func initialize(c *cli.Context) error {
 		fmt.Println()
 	}
 
-	chainId := c.GlobalInt64(chainIdFlag.Name)
-	common.DefaultNetworkID = common.NetworkID(chainId)
+	networkId := c.GlobalInt64(networkIdFlag.Name)
+	common.DefaultNetworkID = common.NetworkID(networkId)
 
 	usecolor := (isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
 	output := io.Writer(logOutput)
@@ -482,8 +482,8 @@ func ipcEndpoint(ipcPath, datadir string) string {
 
 func signer(c *cli.Context) error {
 	// If we have some unrecognized command, bail out
-	chainId := c.GlobalInt64(chainIdFlag.Name)
-	common.DefaultNetworkID = common.NetworkID(chainId)
+	networkId := c.GlobalInt64(networkIdFlag.Name)
+	common.DefaultNetworkID = common.NetworkID(networkId)
 
 	if args := c.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
@@ -561,10 +561,10 @@ func signer(c *cli.Context) error {
 		nousb    = c.GlobalBool(utils.NoUSBFlag.Name)
 		scpath   = c.GlobalString(utils.SmartCardDaemonPathFlag.Name)
 	)
-	log.Info("Starting signer", "chainid", chainId, "keystore", ksLoc,
+	log.Info("Starting signer", "networkid", networkId, "keystore", ksLoc,
 		"light-kdf", lightKdf, "advanced", advanced)
 	am := core.StartClefAccountManager(ksLoc, nousb, lightKdf, scpath)
-	apiImpl := core.NewSignerAPI(am, chainId, nousb, ui, db, advanced, pwStorage)
+	apiImpl := core.NewSignerAPI(am, networkId, nousb, ui, db, advanced, pwStorage)
 
 	// Establish the bidirectional communication, by creating a new UI backend and registering
 	// it with the UI.
@@ -847,7 +847,7 @@ func testExternalUI(api *core.SignerAPI) {
 		api.UI.ShowInfo("Please approve the next request for signing CIP-712 typed data")
 		time.Sleep(delay)
 		addr, _ := common.HexToAddress("cb330011223344556677889900112233445566778899")
-		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
+		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"networkId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","networkId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
 		var typedData core.TypedData
 		json.Unmarshal([]byte(data), &typedData)

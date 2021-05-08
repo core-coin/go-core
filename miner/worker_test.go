@@ -85,9 +85,9 @@ func init() {
 		Period: 10,
 		Epoch:  30000,
 	}
-	tx1, _ := types.SignTx(types.NewTransaction(0, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.ChainID), testBankKey)
+	tx1, _ := types.SignTx(types.NewTransaction(0, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.NetworkID), testBankKey)
 	pendingTxs = append(pendingTxs, tx1)
-	tx2, _ := types.SignTx(types.NewTransaction(1, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.ChainID), testBankKey)
+	tx2, _ := types.SignTx(types.NewTransaction(1, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.NetworkID), testBankKey)
 	newTxs = append(newTxs, tx2)
 	rand.Seed(time.Now().UnixNano())
 }
@@ -172,9 +172,9 @@ func (b *testWorkerBackend) newRandomUncle() *types.Block {
 func (b *testWorkerBackend) newRandomTx(creation bool) *types.Transaction {
 	var tx *types.Transaction
 	if creation {
-		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankAddress), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(b.chain.Config().ChainID), testBankKey)
+		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankAddress), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(b.chain.Config().NetworkID), testBankKey)
 	} else {
-		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankAddress), testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(b.chain.Config().ChainID), testBankKey)
+		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankAddress), testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(b.chain.Config().NetworkID), testBankKey)
 	}
 	return tx
 }

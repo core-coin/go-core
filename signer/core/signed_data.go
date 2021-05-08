@@ -115,7 +115,7 @@ type TypedDataMessage = map[string]interface{}
 type TypedDataDomain struct {
 	Name              string                `json:"name"`
 	Version           string                `json:"version"`
-	ChainId           *math.HexOrDecimal256 `json:"chainId"`
+	NetworkId         *math.HexOrDecimal256 `json:"networkId"`
 	VerifyingContract string                `json:"verifyingContract"`
 	Salt              string                `json:"salt"`
 }
@@ -961,8 +961,8 @@ func isPrimitiveTypeValid(primitiveType string) bool {
 // validate checks if the given domain is valid, i.e. contains at least
 // the minimum viable keys and values
 func (domain *TypedDataDomain) validate() error {
-	if domain.ChainId == nil {
-		return errors.New("chainId must be specified according to CIP-155")
+	if domain.NetworkId == nil {
+		return errors.New("networkId must be specified according to CIP-155")
 	}
 
 	if len(domain.Name) == 0 && len(domain.Version) == 0 && len(domain.VerifyingContract) == 0 && len(domain.Salt) == 0 {
@@ -976,8 +976,8 @@ func (domain *TypedDataDomain) validate() error {
 func (domain *TypedDataDomain) Map() map[string]interface{} {
 	dataMap := map[string]interface{}{}
 
-	if domain.ChainId != nil {
-		dataMap["chainId"] = domain.ChainId
+	if domain.NetworkId != nil {
+		dataMap["networkId"] = domain.NetworkId
 	}
 
 	if len(domain.Name) > 0 {

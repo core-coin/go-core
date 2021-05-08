@@ -29,7 +29,7 @@ GLOBAL OPTIONS:
    --loglevel value        log level to emit to the screen (default: 4)
    --keystore value        Directory for the keystore (default: "$HOME/core/keystore")
    --configdir value       Directory for Clef configuration (default: "$HOME/.clef")
-   --chainid value         Chain id to use for signing (1=mainnet, 3=Devin, 4=Koliba) (default: 1)
+   --networkid value         Network id to use for signing (1=mainnet, 3=Devin, 4=Koliba) (default: 1)
    --lightkdf              Reduce key-derivation RAM & CPU usage at some expense of KDF strength
    --nousb                 Disables monitoring for and managing USB hardware wallets
    --pcscdpath value       Path to the smartcard daemon (pcscd) socket file (default: "/run/pcscd/pcscd.comm")
@@ -53,7 +53,7 @@ GLOBAL OPTIONS:
 Example:
 
 ```
-$ clef -keystore /my/keystore -chainid 4
+$ clef -keystore /my/keystore -networkid 4
 ```
 
 ## Security model
@@ -402,7 +402,7 @@ Response
             "type": "string"
           },
           {
-            "name": "chainId",
+            "name": "networkId",
             "type": "uint256"
           },
           {
@@ -439,7 +439,7 @@ Response
       "domain": {
         "name": "Core Mail",
         "version": "1",
-        "chainId": 1,
+        "networkId": 1,
         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
       },
       "message": {

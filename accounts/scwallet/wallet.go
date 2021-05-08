@@ -699,8 +699,8 @@ func (w *Wallet) signHash(account accounts.Account, hash []byte) ([]byte, error)
 // about which fields or actions are needed. The user may retry by providing
 // the needed details via SignTxWithPassphrase, or by other means (e.g. unlock
 // the account in a keystore).
-func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	signer := types.NewNucleusSigner(chainID)
+func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
+	signer := types.NewNucleusSigner(networkID)
 	hash := signer.Hash(tx)
 	sig, err := w.signHash(account, hash[:])
 	if err != nil {
@@ -754,13 +754,13 @@ func (w *Wallet) SignTextWithPassphrase(account accounts.Account, passphrase str
 //
 // It looks up the account specified either solely via its address contained within,
 // or optionally with the aid of any location metadata from the embedded URL field.
-func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (w *Wallet) SignTxWithPassphrase(account accounts.Account, passphrase string, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
 	if !w.session.verified {
 		if err := w.Open(passphrase); err != nil {
 			return nil, err
 		}
 	}
-	return w.SignTx(account, tx, chainID)
+	return w.SignTx(account, tx, networkID)
 }
 
 // findAccountPath returns the derivation path for the provided account.

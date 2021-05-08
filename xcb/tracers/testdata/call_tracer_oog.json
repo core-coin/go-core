@@ -24,7 +24,7 @@
       }
     },
     "config": {
-      "chainId": 3,
+      "networkId": 3,
       "cryptore": {}
     },
     "difficulty": "3699098917",
