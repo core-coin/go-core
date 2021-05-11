@@ -122,6 +122,8 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 				cryptore.config.Log.Error("Failed to restart sealing after update", "err", err)
 			}
 		}
+
+		cryptore.pendingVMs.Wait()
 	}()
 	return nil
 }
