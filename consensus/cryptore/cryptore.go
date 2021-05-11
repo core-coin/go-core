@@ -60,8 +60,9 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	randomYVM *randomy.RandxVm
-	vmMutex   *sync.Mutex
+	pendingVMs *sync.WaitGroup
+	randomYVM  *randomy.RandyVm
+	vmMutex    *sync.Mutex
 
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
@@ -86,13 +87,14 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	if config.Log == nil {
 		config.Log = log.Root()
 	}
-	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:    config,
-		update:    make(chan struct{}),
-		hashrate:  metrics.NewMeterForced(),
-		randomYVM: vm,
-		vmMutex:   mutex,
+		pendingVMs: &sync.WaitGroup{},
+		config:     config,
+		update:     make(chan struct{}),
+		hashrate:   metrics.NewMeterForced(),
+		randomYVM:  vm,
+		vmMutex:    mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -101,13 +103,14 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 // NewTester creates a small sized cryptore PoW scheme useful only for testing
 // purposes.
 func NewTester(notify []string, noverify bool) *Cryptore {
-	vm, mutex := randomy.NewRandomXVMWithKeyAndMutex()
+	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		config:    Config{PowMode: ModeTest, Log: log.Root()},
-		update:    make(chan struct{}),
-		hashrate:  metrics.NewMeterForced(),
-		randomYVM: vm,
-		vmMutex:   mutex,
+		pendingVMs: &sync.WaitGroup{},
+		config:     Config{PowMode: ModeTest, Log: log.Root()},
+		update:     make(chan struct{}),
+		hashrate:   metrics.NewMeterForced(),
+		randomYVM:  vm,
+		vmMutex:    mutex,
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -178,6 +181,8 @@ func (cryptore *Cryptore) Close() error {
 		}
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
+		cryptore.pendingVMs.Wait()
+		cryptore.remote.cryptore.randomYVM.Close()
 	})
 	return err
 }
