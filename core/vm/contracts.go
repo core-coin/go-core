@@ -93,8 +93,10 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, nil
 	}
-
-	return crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), nil
+	if pubKey != nil {
+		return crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), nil
+	}
+	return nil, errors.New("invalid signature")
 }
 
 // SHA256 implemented as a native contract.

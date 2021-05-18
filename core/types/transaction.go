@@ -181,7 +181,10 @@ func (tx *Transaction) Size() common.StorageSize {
 //
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
-	from, _ := recoverPlain(s, tx)
+	from, err := recoverPlain(s, tx)
+	if err != nil {
+		return Message{}, err
+	}
 	msg := Message{
 		nonce:       tx.data.AccountNonce,
 		energyLimit: tx.data.EnergyLimit,
