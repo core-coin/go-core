@@ -297,8 +297,7 @@ var (
 	expDiffPeriod = big.NewInt(100000)
 	big1          = big.NewInt(1)
 	big2          = big.NewInt(2)
-	big9          = big.NewInt(9)
-	big10         = big.NewInt(10)
+	big5          = big.NewInt(5)
 	bigMinus99    = big.NewInt(-99)
 )
 
@@ -324,7 +323,7 @@ func makeDifficultyCalculator() func(time uint64, parent *types.Header) *big.Int
 
 		// (2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9
 		x.Sub(bigTime, bigParentTime)
-		x.Div(x, big9)
+		x.Div(x, big5)
 		if parent.UncleHash == types.EmptyUncleHash {
 			x.Sub(big1, x)
 		} else {
