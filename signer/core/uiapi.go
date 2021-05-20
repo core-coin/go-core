@@ -147,19 +147,19 @@ func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {
 	return wallet.Open(pass)
 }
 
-// ChainId returns the chainid in use for Cip-155 replay protection
+// NetworkId returns the networkid in use for Cip-155 replay protection
 // Example call
-// {"jsonrpc":"2.0","method":"clef_chainId","params":[], "id":8}
-func (s *UIServerAPI) ChainId() math.HexOrDecimal64 {
-	return (math.HexOrDecimal64)(s.extApi.chainID.Uint64())
+// {"jsonrpc":"2.0","method":"clef_networkId","params":[], "id":8}
+func (s *UIServerAPI) NetworkId() math.HexOrDecimal64 {
+	return (math.HexOrDecimal64)(s.extApi.networkID.Uint64())
 }
 
-// SetChainId sets the chain id to use when signing transactions.
+// SetNetworkId sets the network id to use when signing transactions.
 // Example call to set Devin:
-// {"jsonrpc":"2.0","method":"clef_setChainId","params":["3"], "id":8}
-func (s *UIServerAPI) SetChainId(id math.HexOrDecimal64) math.HexOrDecimal64 {
-	s.extApi.chainID = new(big.Int).SetUint64(uint64(id))
-	return s.ChainId()
+// {"jsonrpc":"2.0","method":"clef_setNetworkId","params":["3"], "id":8}
+func (s *UIServerAPI) SetNetworkId(id math.HexOrDecimal64) math.HexOrDecimal64 {
+	s.extApi.networkID = new(big.Int).SetUint64(uint64(id))
+	return s.NetworkId()
 }
 
 // Export returns encrypted private key associated with the given address in web3 keystore format.

@@ -22,7 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 	"math"
 	"math/big"
 	"math/rand"
@@ -90,15 +90,15 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		cryptore.remote.workCh <- &sealTask{block: block, results: results}
 	}
 	var (
-		pend   sync.WaitGroup
 		locals = make(chan *types.Block)
 	)
 	for i := 0; i < threads; i++ {
-		pend.Add(1)
-		go func(id int, nonce uint64) {
-			defer pend.Done()
+		cryptore.pendingVMs.Add(1)
+		go func(id int, nonce uint64, wg *sync.WaitGroup) {
+			defer wg.Done()
+
 			cryptore.mine(block, id, nonce, abort, locals)
-		}(i, uint64(cryptore.rand.Int63()))
+		}(i, uint64(cryptore.rand.Int63()), cryptore.pendingVMs)
 	}
 	// Wait until sealing is terminated or a nonce is found
 	go func() {
@@ -122,8 +122,8 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 				cryptore.config.Log.Error("Failed to restart sealing after update", "err", err)
 			}
 		}
-		// Wait for all miners to terminate and return the block
-		pend.Wait()
+
+		cryptore.pendingVMs.Wait()
 	}()
 	return nil
 }
@@ -151,7 +151,6 @@ search:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
 			cryptore.hashrate.Mark(attempts)
-
 			break search
 
 		default:
@@ -162,7 +161,7 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			result, err := randomx.RandomX(cryptore.randomXVM, cryptore.vmMutex, hash, nonce)
+			result, err := randomy.RandomY(cryptore.randomYVM, cryptore.vmMutex, hash, nonce)
 			if err != nil {
 				logger.Error(err.Error())
 			}

@@ -1094,8 +1094,8 @@ func newInstructionSet() JumpTable {
 			writes:         true,
 			returns:        true,
 		},
-		CHAINID: {
-			execute:        opChainID,
+		NETWORKID: {
+			execute:        opNetworkID,
 			constantEnergy: EnergyQuickStep,
 			minStack:       minStack(0, 1),
 			maxStack:       maxStack(0, 1),

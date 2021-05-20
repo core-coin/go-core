@@ -20,6 +20,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"github.com/core-coin/go-goldilocks"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 
 	"github.com/core-coin/go-core/common"
@@ -83,7 +85,7 @@ func (c *ecrecover) RequiredEnergy(input []byte) uint64 {
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
-	const ecRecoverInputLength = crypto.ExtendedSignatureLength
+	var ecRecoverInputLength = sha3.New256().Size() + crypto.ExtendedSignatureLength // 32 + 171
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
 
@@ -92,9 +94,10 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, nil
 	}
-
-	// the first byte of pubkey is bitcoin heritage
-	return common.LeftPadBytes(crypto.SHA3(pubKey)[12:], 32), nil
+	if pubKey != nil {
+		return crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), nil
+	}
+	return nil, errors.New("invalid signature")
 }
 
 // SHA256 implemented as a native contract.

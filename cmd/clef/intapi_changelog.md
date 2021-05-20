@@ -70,8 +70,8 @@ Changed the namespace format to adhere to the legacy core format: `name_methodNa
   - `clef_deriveAccount`
   - `clef_importRawKey`
   - `clef_openWallet`
-  - `clef_chainId`
-  - `clef_setChainId`
+  - `clef_networkId`
+  - `clef_setNetworkId`
   - `clef_export`
   - `clef_import`
 

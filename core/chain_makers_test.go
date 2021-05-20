@@ -53,7 +53,7 @@ func ExampleGenerateChain() {
 	// This call generates a chain of 5 blocks. The function runs for
 	// each block and adds different features to gen based on the
 	// block index.
-	signer := types.NewNucleusSigner(gspec.Config.ChainID)
+	signer := types.NewNucleusSigner(gspec.Config.NetworkID)
 	chain, _ := GenerateChain(gspec.Config, genesis, cryptore.NewFaker(), db, 5, func(i int, gen *BlockGen) {
 		switch i {
 		case 0:

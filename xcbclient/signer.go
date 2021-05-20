@@ -32,7 +32,7 @@ type senderFromServer struct {
 	blockhash common.Hash
 }
 
-func (s *senderFromServer) ChainID() int {
+func (s *senderFromServer) NetworkID() int {
 	panic("can't sign with senderFromServer")
 }
 

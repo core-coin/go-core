@@ -75,6 +75,7 @@ at block: 0 ({{niltime}})
 func TestIPCAttachWelcome(t *testing.T) {
 	// Configure the instance for IPC attachement
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	timeout := 15 * time.Second
 	var ipc string
 	if runtime.GOOS == "windows" {
 		ipc = `\\.\pipe\gocore` + strconv.Itoa(trulyRandInt(100000, 999999))
@@ -94,13 +95,14 @@ func TestIPCAttachWelcome(t *testing.T) {
 		gocore.ExpectExit()
 	}()
 
-	waitForEndpoint(t, ipc, 5*time.Second)
+	waitForEndpoint(t, ipc, timeout)
 	testAttachWelcome(t, gocore, "ipc:"+ipc, ipcAPIs)
 
 }
 
 func TestHTTPAttachWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	timeout := 15 * time.Second
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
@@ -111,12 +113,13 @@ func TestHTTPAttachWelcome(t *testing.T) {
 	}()
 
 	endpoint := "http://127.0.0.1:" + port
-	waitForEndpoint(t, endpoint, 5*time.Second)
+	waitForEndpoint(t, endpoint, timeout)
 	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 
 func TestWSAttachWelcome(t *testing.T) {
 	coinbase := "cb348605cdbbdb6d264aa742e77020dcbc58fcdce182"
+	timeout := 15 * time.Second
 	port := strconv.Itoa(trulyRandInt(1024, 65536)) // Yeah, sometimes this will fail, sorry :P
 
 	gocore := runGocore(t,
@@ -128,7 +131,7 @@ func TestWSAttachWelcome(t *testing.T) {
 	}()
 
 	endpoint := "ws://127.0.0.1:" + port
-	waitForEndpoint(t, endpoint, 6*time.Second)
+	waitForEndpoint(t, endpoint, timeout)
 	testAttachWelcome(t, gocore, endpoint, httpAPIs)
 }
 

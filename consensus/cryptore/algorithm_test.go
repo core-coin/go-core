@@ -22,23 +22,24 @@ import (
 
 	"github.com/core-coin/go-core/common/hexutil"
 
-	"github.com/core-coin/go-randomx"
+	"github.com/core-coin/go-randomy"
 )
 
-// Tests whether the randomx lookup works for both light as well as the full
+// Tests whether the randomy lookup works for both light as well as the full
 // datasets.
-func TestRandomX(t *testing.T) {
+func TestRandomY(t *testing.T) {
 	// Create a block to verify
 	hash := hexutil.MustDecode("0xc9149cc0386e689d789a1c2f3d5d169a61a6218ed30e74414dc736e442ef3d1f")
 	nonce := uint64(0)
 
 	wantResult := hexutil.MustDecode("0xb620364373923b57353c668dcedcfc636d456e1c0d7da8733586c0e54ada6aa4")
-	vm, mutex := randomx.NewRandomXVMWithKeyAndMutex()
-	result, err := randomx.RandomX(vm, mutex, hash, nonce)
+	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
+	defer vm.Close()
+	result, err := randomy.RandomY(vm, mutex, hash, nonce)
 	if err != nil {
 		t.Error(err)
 	}
 	if !bytes.Equal(result, wantResult) {
-		t.Errorf("randomx result mismatch: have %x, want %x", result, wantResult)
+		t.Errorf("randomy result mismatch: have %x, want %x", result, wantResult)
 	}
 }

@@ -48,10 +48,10 @@ function testTx(){
         var v = parseInt(txdata.tx.v)
         console.log("V value: ", v)
         if (v == 37 || v == 38){
-            console.log("Mainnet 155-protected chainid was used")
+            console.log("Mainnet 155-protected networkid was used")
         }
         if (v == 27 || v == 28){
-            throw new Error("Mainnet chainid was used, but without replay protection!")
+            throw new Error("Mainnet networkid was used, but without replay protection!")
         }
     }
 }

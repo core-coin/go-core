@@ -108,7 +108,7 @@ type Validator interface {
 
 // SignerAPI defines the actual implementation of ExternalAPI
 type SignerAPI struct {
-	chainID     *big.Int
+	networkID   *big.Int
 	am          *accounts.Manager
 	UI          UIClientAPI
 	validator   Validator
@@ -262,11 +262,11 @@ var ErrRequestDenied = errors.New("request denied")
 // key that is generated when a new Account is created.
 // noUSB disables USB support that is required to support hardware device such as
 // ledger.
-func NewSignerAPI(am *accounts.Manager, chainID int64, noUSB bool, ui UIClientAPI, validator Validator, advancedMode bool, credentials storage.Storage) *SignerAPI {
+func NewSignerAPI(am *accounts.Manager, networkID int64, noUSB bool, ui UIClientAPI, validator Validator, advancedMode bool, credentials storage.Storage) *SignerAPI {
 	if advancedMode {
 		log.Info("Clef is in advanced mode: will warn instead of reject")
 	}
-	signer := &SignerAPI{big.NewInt(chainID), am, ui, validator, !advancedMode, credentials}
+	signer := &SignerAPI{big.NewInt(networkID), am, ui, validator, !advancedMode, credentials}
 	if !noUSB {
 		signer.startUSBListener()
 	}
@@ -503,7 +503,7 @@ func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, meth
 		return nil, err
 	}
 	// The one to sign is the one that was returned from the UI
-	signedTx, err := wallet.SignTxWithPassphrase(acc, pw, unsignedTx, api.chainID)
+	signedTx, err := wallet.SignTxWithPassphrase(acc, pw, unsignedTx, api.networkID)
 	if err != nil {
 		api.UI.ShowError(err.Error())
 		return nil, err
