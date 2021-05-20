@@ -267,8 +267,7 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 // staticSharedSecret returns the static shared secret, the result
 // of key agreement between the local and remote static node key.
 func (h *encHandshake) staticSharedSecret(prv *eddsa.PrivateKey) ([]byte, error) {
-	pub := eddsa.Ed448DerivePublicKey(*prv)
-	return crypto.ComputeSecret(prv, &pub), nil
+	return crypto.ComputeSecret(prv, h.remote), nil
 }
 
 // initiatorEncHandshake negotiates a session token on conn.

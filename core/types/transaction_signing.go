@@ -137,15 +137,9 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	if len(tx.data.Signature) != crypto.ExtendedSignatureLength {
 		return common.Address{}, ErrInvalidSig
 	}
-	pubk, err := crypto.SigToPub(nil, tx.data.Signature[:])
+	pubk, err := crypto.SigToPub(signer.Hash(tx).Bytes(), tx.data.Signature[:])
 	if err != nil {
 		return common.Address{}, err
-	}
-	if tx.data.NetworkID != 0 && signer.NetworkID() != 0 {
-		hash := signer.Hash(tx)
-		if !crypto.VerifySignature(pubk[:], hash[:], tx.data.Signature[:]) {
-			return common.Address{}, ErrInvalidSig
-		}
 	}
 	return crypto.PubkeyToAddress(*pubk), nil
 }
