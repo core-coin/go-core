@@ -78,9 +78,9 @@ var (
 
 	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
 	DevinTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 7,
-		SectionHead:  common.HexToHash("0x96aa75dc71a08380362835a8e2ce23155108fa800cef9bfe1c583168f7ef2265"),
-		CHTRoot:      common.HexToHash("0x4897e2583adcaf5ee6ab427f18b1482a0e7e105e479c4c7be97a7d33310cf8a4"),
+		SectionIndex: 6,
+		SectionHead:  common.HexToHash("0x92f4b8b0bbcc7e059f2c1c03a11e8fc57acc53903bf8187f67e326cbc0463cb0"),
+		CHTRoot:      common.HexToHash("0x1ae077cddbc6ca51104c2972945bf3a4646f4d3543d6ca55d17d16a37605bd5d"),
 		BloomRoot:    common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
 	}
 
