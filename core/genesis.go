@@ -325,7 +325,7 @@ func (g *Genesis) MustCommit(db xcbdb.Database) *types.Block {
 func GenesisBlockForTesting(db xcbdb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{
 		Coinbase:    defaultCoinbaseDevin,
-		EnergyLimit: 0x47b76000000000,
+		EnergyLimit: 12500000,
 		Alloc:       GenesisAlloc{addr: {Balance: balance}}}
 	return g.MustCommit(db)
 }
@@ -338,7 +338,7 @@ func DefaultGenesisBlock() *Genesis {
 		Timestamp:   1599475790,
 		Nonce:       66,
 		Difficulty:  big.NewInt(1),
-		EnergyLimit: 0x47b76000000000,
+		EnergyLimit: 12500000,
 	}
 }
 
@@ -349,7 +349,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 		Config:      params.DevinChainConfig,
 		Timestamp:   1599475790,
 		Nonce:       0x000000000002,
-		EnergyLimit: 0x47b76000000000,
+		EnergyLimit: 12500000,
 	}
 }
 
@@ -360,7 +360,7 @@ func DefaultKolibaGenesisBlock() *Genesis {
 		Config:      params.KolibaChainConfig,
 		Timestamp:   1599475790,
 		Nonce:       0x000000000002,
-		EnergyLimit: 0x47b76000000000,
+		EnergyLimit: 12500000,
 		Difficulty:  big.NewInt(1),
 	}
 }
@@ -376,7 +376,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 		Coinbase:    defaultCoinbaseMainnet,
 		Config:      &config,
 		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.ExtendedSignatureLength)...),
-		EnergyLimit: 0x47b76000000000,
+		EnergyLimit: 12500000,
 		Difficulty:  big.NewInt(1),
 		Alloc: map[common.Address]GenesisAccount{
 			common.BytesToAddress([]byte{1}): {Balance: big.NewInt(1)}, // ECRecover
