@@ -78,10 +78,10 @@ var (
 
 	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
 	DevinTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 6,
-		SectionHead:  common.HexToHash("0x92f4b8b0bbcc7e059f2c1c03a11e8fc57acc53903bf8187f67e326cbc0463cb0"),
-		CHTRoot:      common.HexToHash("0x1ae077cddbc6ca51104c2972945bf3a4646f4d3543d6ca55d17d16a37605bd5d"),
-		BloomRoot:    common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
+		SectionIndex: 0,
+		SectionHead:  common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		CHTRoot:      common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		BloomRoot:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 	}
 
 	// DevinCheckpointOracle contains a set of configs for the Devin test network oracle.
