@@ -43,7 +43,7 @@ func TestConsoleWelcome(t *testing.T) {
 	// Start a gocore console, make sure it's cleaned up and terminate the console
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--corebase", coinbase,
+		"--corebase", coinbase, "--shh",
 		"console")
 
 	// Gather all the infos the welcome message needs to contain
@@ -84,11 +84,10 @@ func TestIPCAttachWelcome(t *testing.T) {
 		defer os.RemoveAll(ws)
 		ipc = filepath.Join(ws, "gocore.ipc")
 	}
-	// Note: we need whisper because testAttachWelcome checks for default, and whisper is enabled by default unless setting --shh.disable flag
-	// list of ipc modules and shh is included there.
+	// Note: we need --shh because testAttachWelcome checks for default
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--corebase", coinbase, "--ipcpath", ipc)
+		"--corebase", coinbase, "--shh", "--ipcpath", ipc)
 
 	defer func() {
 		gocore.Interrupt()

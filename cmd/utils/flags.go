@@ -625,9 +625,9 @@ var (
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
 		Value: xcb.DefaultConfig.GPO.Percentile,
 	}
-	WhisperDisabledFlag = cli.BoolFlag{
-		Name:  "shh.disable",
-		Usage: "Disable Whisper (enabled by default)",
+	WhisperEnabledFlag = cli.BoolFlag{
+		Name:  "shh",
+		Usage: "Enable Whisper",
 	}
 	WhisperMaxMessageSizeFlag = cli.IntFlag{
 		Name:  "shh.maxmessagesize",

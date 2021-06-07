@@ -44,8 +44,8 @@ var DefaultConfig = Config{
 	TrieTimeout:        60 * time.Minute,
 	SnapshotCache:      256,
 	Miner: miner.Config{
-		EnergyFloor: 8000000,
-		EnergyCeil:  8000000,
+		EnergyFloor: 12500000,
+		EnergyCeil:  12500000,
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
