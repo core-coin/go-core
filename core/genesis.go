@@ -167,6 +167,16 @@ func SetupGenesisBlock(db xcbdb.Database, genesis *Genesis) (*params.ChainConfig
 		} else {
 			log.Info("Writing custom genesis block")
 		}
+		if genesis.Coinbase.Hex() == "00000000000000000000000000000000000000000000" {
+			switch common.DefaultNetworkID {
+			case common.Mainnet:
+				genesis.Coinbase = defaultCoinbaseMainnet
+			case common.Devin:
+				genesis.Coinbase = defaultCoinbaseDevin
+			case common.Koliba:
+				genesis.Coinbase = defaultCoinbaseKoliba
+			}
+		}
 		block, err := genesis.Commit(db)
 		if err != nil {
 			return genesis.Config, common.Hash{}, err
