@@ -342,7 +342,7 @@ func (d *Downloader) Synchronise(id string, head common.Hash, td *big.Int, mode 
 		return err
 	}
 	log.Warn("Synchronisation failed, retrying", "err", err)
-	
+
 	return err
 }
 

@@ -99,7 +99,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 		finished []*stateReq                  // Completed or failed requests
 		timeout  = make(chan *stateReq)       // Timed out active requests
 	)
-	
+
 	// Run the state sync.
 	log.Trace("State sync starting", "root", s.root)
 	go s.run()
@@ -244,7 +244,6 @@ func (d *Downloader) spindownStateSync(active map[string]*stateReq, finished []*
 	}
 }
 
-
 // stateSync schedules requests for downloading a particular state trie defined
 // by a given state root.
 type stateSync struct {
@@ -264,7 +263,7 @@ type stateSync struct {
 	cancelOnce sync.Once      // Ensures cancel only ever gets called once
 	done       chan struct{}  // Channel to signal termination completion
 	err        error          // Any error hit during sync (set before completion)
-	
+
 	root common.Hash
 }
 
