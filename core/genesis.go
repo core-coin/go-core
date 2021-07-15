@@ -43,9 +43,12 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
-var defaultCoinbaseMainnet, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
-var defaultCoinbaseDevin, _ = common.HexToAddress("ab720000000000000000000000000000000000000000")
-var defaultCoinbaseKoliba, _ = common.HexToAddress("ab720000000000000000000000000000000000000000")
+var (
+	defaultCoinbaseMainnet, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
+	defaultCoinbaseDevin, _   = common.HexToAddress("ab720000000000000000000000000000000000000000")
+	defaultCoinbaseKoliba, _  = common.HexToAddress("ab720000000000000000000000000000000000000000")
+	defaultCoinbasePrivate, _ = common.HexToAddress("ce450000000000000000000000000000000000000000")
+)
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
@@ -175,6 +178,8 @@ func SetupGenesisBlock(db xcbdb.Database, genesis *Genesis) (*params.ChainConfig
 				genesis.Coinbase = defaultCoinbaseDevin
 			case common.Koliba:
 				genesis.Coinbase = defaultCoinbaseKoliba
+			default:
+				genesis.Coinbase = defaultCoinbasePrivate
 			}
 		}
 		block, err := genesis.Commit(db)
