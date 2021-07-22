@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/p2p/enode"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -77,7 +77,7 @@ func genkey(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not generate key: %v", err)
 	}
-	return crypto.SaveECDSA(file, key)
+	return crypto.SaveEDDSA(file, key)
 }
 
 func keyToURL(ctx *cli.Context) error {
@@ -91,7 +91,7 @@ func keyToURL(ctx *cli.Context) error {
 		tcp  = ctx.Int(tcpPortFlag.Name)
 		udp  = ctx.Int(udpPortFlag.Name)
 	)
-	key, err := crypto.LoadECDSA(file)
+	key, err := crypto.LoadEDDSA(file)
 	if err != nil {
 		return err
 	}
