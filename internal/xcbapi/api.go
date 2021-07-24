@@ -732,7 +732,10 @@ func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
 	}
 
 	// Set default gas & gas price if none were set
-	energy := uint64(math.MaxUint64 / 2)
+	energy := globalEnergyCap.Uint64()
+	if energy == 0 {
+		energy = uint64(math.MaxUint64 / 2)
+	}
 	if args.Energy != nil {
 		energy = uint64(*args.Energy)
 	}
