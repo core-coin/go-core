@@ -1501,16 +1501,12 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(DevinFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 3
-		}
+	case ctx.GlobalInt(NetworkIdFlag.Name) == 3, ctx.GlobalBool(DevinFlag.Name):
+		cfg.NetworkId = 3
 		cfg.Genesis = core.DefaultDevinGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
-	case ctx.GlobalBool(KolibaFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 4
-		}
+	case ctx.GlobalInt(NetworkIdFlag.Name) == 4, ctx.GlobalBool(KolibaFlag.Name):
+		cfg.NetworkId = 4
 		cfg.Genesis = core.DefaultKolibaGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.KolibaGenesisHash])
 	case ctx.GlobalBool(DeveloperFlag.Name):
@@ -1540,11 +1536,13 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 			cfg.Miner.EnergyPrice = big.NewInt(1)
 		}
 	default:
+		cfg.Genesis = core.DefaultGenesisBlock()
 		if cfg.NetworkId == 1 {
 			setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.MainnetGenesisHash])
+		} else {
+			cfg.Genesis.Coinbase = core.DefaultCoinbasePrivate
 		}
 	}
-
 	common.DefaultNetworkID = common.NetworkID(cfg.NetworkId)
 }
 
