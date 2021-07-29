@@ -227,7 +227,7 @@ var AppHelpFlagGroups = []flagGroup{
 		Flags: metricsFlags,
 	},
 	{
-		Name:  "WHISPER (EXPERIMENTAL)",
+		Name:  "WHISPER (deprecated)",
 		Flags: whisperFlags,
 	},
 	{
