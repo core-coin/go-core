@@ -17,7 +17,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
+	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 
 	"github.com/core-coin/go-core/crypto"
@@ -73,7 +75,7 @@ func genkey(ctx *cli.Context) error {
 	}
 	file := ctx.Args().Get(0)
 
-	key, err := crypto.GenerateKey()
+	key, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		return fmt.Errorf("could not generate key: %v", err)
 	}
@@ -99,7 +101,8 @@ func keyToURL(ctx *cli.Context) error {
 	if ip == nil {
 		return fmt.Errorf("invalid IP address %q", host)
 	}
-	node := enode.NewV4(&key.PublicKey, ip, tcp, udp)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	node := enode.NewV4(&pub, ip, tcp, udp)
 	fmt.Println(node.URLv4())
 	return nil
 }
