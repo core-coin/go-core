@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -1486,6 +1487,8 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 	}
 	if ctx.GlobalIsSet(RPCGlobalEnergyCap.Name) {
 		cfg.RPCEnergyCap = new(big.Int).SetUint64(ctx.GlobalUint64(RPCGlobalEnergyCap.Name))
+	} else {
+		cfg.RPCEnergyCap = new(big.Int).SetUint64(math.MaxUint64 / 2)
 	}
 	if ctx.GlobalIsSet(DNSDiscoveryFlag.Name) {
 		urls := ctx.GlobalString(DNSDiscoveryFlag.Name)
