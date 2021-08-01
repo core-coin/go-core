@@ -44,6 +44,7 @@ import (
 	"github.com/core-coin/go-core/consensus/clique"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/graphql"
@@ -1537,7 +1538,17 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 		}
 		log.Info("Using developer account", "address", developer.Address)
 
+		// Create a new developer genesis block or reuse existing one
 		cfg.Genesis = core.DeveloperGenesisBlock(uint64(ctx.GlobalInt(DeveloperPeriodFlag.Name)), developer.Address)
+		if ctx.GlobalIsSet(DataDirFlag.Name) {
+			// Check if we have an already initialized chain and fall back to
+			// that if so. Otherwise we need to generate a new genesis spec.
+			chaindb := MakeChainDatabase(ctx, stack)
+			if rawdb.ReadCanonicalHash(chaindb, 0) != (common.Hash{}) {
+				cfg.Genesis = nil // fallback to db content
+			}
+			chaindb.Close()
+		}
 		if !ctx.GlobalIsSet(MinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(LegacyMinerEnergyPriceFlag.Name) {
 			cfg.Miner.EnergyPrice = big.NewInt(1)
 		}
