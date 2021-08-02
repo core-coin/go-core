@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -43,6 +44,7 @@ import (
 	"github.com/core-coin/go-core/consensus/clique"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
+	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/graphql"
@@ -838,12 +840,15 @@ func setNAT(ctx *cli.Context, cfg *p2p.Config) {
 
 // splitAndTrim splits input separated by a comma
 // and trims excessive white space from the substrings.
-func splitAndTrim(input string) []string {
-	result := strings.Split(input, ",")
-	for i, r := range result {
-		result[i] = strings.TrimSpace(r)
+func splitAndTrim(input string) (ret []string) {
+	l := strings.Split(input, ",")
+	for _, r := range l {
+		r = strings.TrimSpace(r)
+		if len(r) > 0 {
+			ret = append(ret, r)
+		}
 	}
-	return result
+	return ret
 }
 
 // setHTTP creates the HTTP RPC listener interface string from the set
@@ -1235,7 +1240,13 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 	}
 }
 
-func setGPO(ctx *cli.Context, cfg *energyprice.Config) {
+func setGPO(ctx *cli.Context, cfg *energyprice.Config, light bool) {
+	// If we are running the light client, apply another group
+	// settings for gas oracle.
+	if light {
+		cfg.Blocks = xcb.DefaultLightGPOConfig.Blocks
+		cfg.Percentile = xcb.DefaultLightGPOConfig.Percentile
+	}
 	if ctx.GlobalIsSet(LegacyGpoBlocksFlag.Name) {
 		cfg.Blocks = ctx.GlobalInt(LegacyGpoBlocksFlag.Name)
 		log.Warn("The flag --gpoblocks is deprecated and will be removed in the future, please use --gpo.blocks")
@@ -1243,7 +1254,6 @@ func setGPO(ctx *cli.Context, cfg *energyprice.Config) {
 	if ctx.GlobalIsSet(GpoBlocksFlag.Name) {
 		cfg.Blocks = ctx.GlobalInt(GpoBlocksFlag.Name)
 	}
-
 	if ctx.GlobalIsSet(LegacyGpoPercentileFlag.Name) {
 		cfg.Percentile = ctx.GlobalInt(LegacyGpoPercentileFlag.Name)
 		log.Warn("The flag --gpopercentile is deprecated and will be removed in the future, please use --gpo.percentile")
@@ -1329,10 +1339,10 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 		cfg.EnergyPrice = GlobalBig(ctx, MinerEnergyPriceFlag.Name)
 	}
 	if ctx.GlobalIsSet(MinerRecommitIntervalFlag.Name) {
-		cfg.Recommit = ctx.Duration(MinerRecommitIntervalFlag.Name)
+		cfg.Recommit = ctx.GlobalDuration(MinerRecommitIntervalFlag.Name)
 	}
 	if ctx.GlobalIsSet(MinerNoVerfiyFlag.Name) {
-		cfg.Noverify = ctx.Bool(MinerNoVerfiyFlag.Name)
+		cfg.Noverify = ctx.GlobalBool(MinerNoVerfiyFlag.Name)
 	}
 }
 
@@ -1425,7 +1435,7 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 		ks = keystores[0].(*keystore.KeyStore)
 	}
 	setCorebase(ctx, ks, cfg)
-	setGPO(ctx, &cfg.GPO)
+	setGPO(ctx, &cfg.GPO, ctx.GlobalString(SyncModeFlag.Name) == "light")
 	setTxPool(ctx, &cfg.TxPool)
 	setMiner(ctx, &cfg.Miner)
 	setWhitelist(ctx, cfg)
@@ -1483,6 +1493,8 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 	}
 	if ctx.GlobalIsSet(RPCGlobalEnergyCap.Name) {
 		cfg.RPCEnergyCap = new(big.Int).SetUint64(ctx.GlobalUint64(RPCGlobalEnergyCap.Name))
+	} else {
+		cfg.RPCEnergyCap = new(big.Int).SetUint64(math.MaxUint64 / 2)
 	}
 	if ctx.GlobalIsSet(DNSDiscoveryFlag.Name) {
 		urls := ctx.GlobalString(DNSDiscoveryFlag.Name)
@@ -1501,16 +1513,12 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(DevinFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 3
-		}
+	case ctx.GlobalInt(NetworkIdFlag.Name) == 3, ctx.GlobalBool(DevinFlag.Name):
+		cfg.NetworkId = 3
 		cfg.Genesis = core.DefaultDevinGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
-	case ctx.GlobalBool(KolibaFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 4
-		}
+	case ctx.GlobalInt(NetworkIdFlag.Name) == 4, ctx.GlobalBool(KolibaFlag.Name):
+		cfg.NetworkId = 4
 		cfg.Genesis = core.DefaultKolibaGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.KolibaGenesisHash])
 	case ctx.GlobalBool(DeveloperFlag.Name):
@@ -1535,16 +1543,28 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 		}
 		log.Info("Using developer account", "address", developer.Address)
 
+		// Create a new developer genesis block or reuse existing one
 		cfg.Genesis = core.DeveloperGenesisBlock(uint64(ctx.GlobalInt(DeveloperPeriodFlag.Name)), developer.Address)
+		if ctx.GlobalIsSet(DataDirFlag.Name) {
+			// Check if we have an already initialized chain and fall back to
+			// that if so. Otherwise we need to generate a new genesis spec.
+			chaindb := MakeChainDatabase(ctx, stack)
+			if rawdb.ReadCanonicalHash(chaindb, 0) != (common.Hash{}) {
+				cfg.Genesis = nil // fallback to db content
+			}
+			chaindb.Close()
+		}
 		if !ctx.GlobalIsSet(MinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(LegacyMinerEnergyPriceFlag.Name) {
 			cfg.Miner.EnergyPrice = big.NewInt(1)
 		}
 	default:
+		cfg.Genesis = core.DefaultGenesisBlock()
 		if cfg.NetworkId == 1 {
 			setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.MainnetGenesisHash])
+		} else {
+			cfg.Genesis.Coinbase = core.DefaultCoinbasePrivate
 		}
 	}
-
 	common.DefaultNetworkID = common.NetworkID(cfg.NetworkId)
 }
 

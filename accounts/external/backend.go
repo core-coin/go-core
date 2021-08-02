@@ -27,7 +27,6 @@ import (
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/signer/core"
@@ -180,8 +179,13 @@ func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]by
 	return res, nil
 }
 
+// signTransactionResult represents the signinig result returned by clef.
+type signTransactionResult struct {
+	Raw hexutil.Bytes      `json:"raw"`
+	Tx  *types.Transaction `json:"tx"`
+}
+
 func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
-	res := xcbapi.SignTransactionResult{}
 	data := hexutil.Bytes(tx.Data())
 	var to *common.Address
 	if tx.To() != nil {
@@ -197,6 +201,7 @@ func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transactio
 		To:          to,
 		From:        account.Address,
 	}
+	var res signTransactionResult
 	if err := api.client.Call(&res, "account_signTransaction", args); err != nil {
 		return nil, err
 	}
