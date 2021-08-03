@@ -33,7 +33,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/hpcloud/tail v1.0.0
 	github.com/huin/goupnp v1.0.1-0.20210626160114-33cdcbb30dda
-	github.com/influxdata/influxdb v1.8.3
+	github.com/influxdata/influxdb v1.8.3 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/julienschmidt/httprouter v1.2.0
