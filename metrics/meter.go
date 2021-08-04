@@ -107,7 +107,6 @@ type MeterSnapshot struct {
 	// see https://golang.org/pkg/sync/atomic/#pkg-note-BUG.
 	temp                           int64
 	count                          int64
-	temp                           int64
 	rate1, rate5, rate15, rateMean float64
 }
 
