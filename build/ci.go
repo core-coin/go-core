@@ -79,7 +79,6 @@ var (
 		executablePath("gocore"),
 		executablePath("puppeth"),
 		executablePath("rlpdump"),
-		executablePath("wnode"),
 		executablePath("clef"),
 	}
 
@@ -108,10 +107,6 @@ var (
 		{
 			BinaryName:  "rlpdump",
 			Description: "Developer utility tool that prints RLP structures.",
-		},
-		{
-			BinaryName:  "wnode",
-			Description: "Core Whisper diagnostic tool",
 		},
 		{
 			BinaryName:  "clef",
