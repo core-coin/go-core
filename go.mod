@@ -27,10 +27,10 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.2+incompatible // indirect
 	github.com/go-stack/stack v1.8.0
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/golang/snappy v0.0.3
-	github.com/gorilla/websocket v1.4.2
-	github.com/graph-gophers/graphql-go v0.0.0-20201113091052-beb923fada29
-	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
+	github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf
+	github.com/gorilla/websocket v1.4.1-0.20190629185528-ae1634f6a989
+	github.com/graph-gophers/graphql-go v0.0.0-20191115155744-f33e81362277
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/hpcloud/tail v1.0.0
 	github.com/huin/goupnp v1.0.1-0.20210626160114-33cdcbb30dda
 	github.com/influxdata/influxdb v1.8.3
