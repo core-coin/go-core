@@ -31,6 +31,18 @@ import (
 	"github.com/core-coin/go-core/xcb/energyprice"
 )
 
+// DefaultFullGPOConfig contains default gasprice oracle settings for full node.
+var DefaultFullGPOConfig = energyprice.Config{
+	Blocks:     20,
+	Percentile: 60,
+}
+
+// DefaultLightGPOConfig contains default gasprice oracle settings for light client.
+var DefaultLightGPOConfig = energyprice.Config{
+	Blocks:     2,
+	Percentile: 60,
+}
+
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
 	SyncMode:           downloader.FastSync,
@@ -49,11 +61,8 @@ var DefaultConfig = Config{
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
-	TxPool: core.DefaultTxPoolConfig,
-	GPO: energyprice.Config{
-		Blocks:     20,
-		Percentile: 60,
-	},
+	TxPool:				core.DefaultTxPoolConfig,
+	GPO:				DefaultFullGPOConfig,
 }
 
 func init() {
