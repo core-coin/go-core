@@ -61,7 +61,6 @@ import (
 	"github.com/core-coin/go-core/p2p/netutil"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
 	"github.com/core-coin/go-core/xcb"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcb/energyprice"
@@ -634,12 +633,12 @@ var (
 	WhisperMaxMessageSizeFlag = cli.IntFlag{
 		Name:  "shh.maxmessagesize",
 		Usage: "Max message size accepted",
-		Value: int(whisper.DefaultMaxMessageSize),
+		Value: 1024 * 1024,
 	}
 	WhisperMinPOWFlag = cli.Float64Flag{
 		Name:  "shh.pow",
 		Usage: "Minimum POW accepted",
-		Value: whisper.DefaultMinimumPoW,
+		Value: 0.2,
 	}
 	WhisperRestrictConnectionBetweenLightClientsFlag = cli.BoolFlag{
 		Name:  "shh.restrict-light",
@@ -1411,15 +1410,12 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 }
 
 // SetShhConfig applies shh-related command line flags to the config.
-func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
-	if ctx.GlobalIsSet(WhisperMaxMessageSizeFlag.Name) {
-		cfg.MaxMessageSize = uint32(ctx.GlobalUint(WhisperMaxMessageSizeFlag.Name))
-	}
-	if ctx.GlobalIsSet(WhisperMinPOWFlag.Name) {
-		cfg.MinimumAcceptedPOW = ctx.GlobalFloat64(WhisperMinPOWFlag.Name)
-	}
-	if ctx.GlobalIsSet(WhisperRestrictConnectionBetweenLightClientsFlag.Name) {
-		cfg.RestrictConnectionBetweenLightClients = true
+func SetShhConfig(ctx *cli.Context, stack *node.Node) {
+	if ctx.GlobalIsSet(WhisperEnabledFlag.Name) ||
+		ctx.GlobalIsSet(WhisperMaxMessageSizeFlag.Name) ||
+		ctx.GlobalIsSet(WhisperMinPOWFlag.Name) ||
+		ctx.GlobalIsSet(WhisperRestrictConnectionBetweenLightClientsFlag.Name) {
+		log.Warn("Whisper support has been deprecated and the code has been moved to github.com/ethereum/whisper")
 	}
 }
 
@@ -1601,14 +1597,6 @@ func RegisterXcbService(stack *node.Node, cfg *xcb.Config) {
 	}
 }
 
-// RegisterShhService configures Whisper and adds it to the given node.
-func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
-	if err := stack.Register(func(n *node.ServiceContext) (node.Service, error) {
-		return whisper.New(cfg), nil
-	}); err != nil {
-		Fatalf("Failed to register the Whisper service: %v", err)
-	}
-}
 
 // RegisterXcbStatsService configures the Core Stats daemon and adds it to
 // the given node.
