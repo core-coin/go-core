@@ -51,10 +51,10 @@ var DefaultConfig = Config{
 	LightPeers:         100,
 	UltraLightFraction: 75,
 	DatabaseCache:      512,
-	TrieCleanCache:     256,
+	TrieCleanCache:     154,
 	TrieDirtyCache:     256,
 	TrieTimeout:        60 * time.Minute,
-	SnapshotCache:      256,
+	SnapshotCache:      102,
 	Miner: miner.Config{
 		EnergyFloor: 12500000,
 		EnergyCeil:  12500000,
