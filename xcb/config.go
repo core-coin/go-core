@@ -47,14 +47,16 @@ var DefaultLightGPOConfig = energyprice.Config{
 var DefaultConfig = Config{
 	SyncMode:           downloader.FastSync,
 	Cryptore:           cryptore.Config{},
-	NetworkId:          1,
-	LightPeers:         100,
-	UltraLightFraction: 75,
-	DatabaseCache:      512,
-	TrieCleanCache:     154,
-	TrieDirtyCache:     256,
-	TrieTimeout:        60 * time.Minute,
-	SnapshotCache:      102,
+	NetworkId:               1,
+	LightPeers:              100,
+	UltraLightFraction:      75,
+	DatabaseCache:           512,
+	TrieCleanCache:          154,
+	TrieCleanCacheJournal:   "triecache",
+	TrieCleanCacheRejournal: 60 * time.Minute,
+	TrieDirtyCache:          256,
+	TrieTimeout:             60 * time.Minute,
+	SnapshotCache:           102,
 	Miner: miner.Config{
 		EnergyFloor: 12500000,
 		EnergyCeil:  12500000,
@@ -113,10 +115,12 @@ type Config struct {
 	DatabaseCache      int
 	DatabaseFreezer    string
 
-	TrieCleanCache int
-	TrieDirtyCache int
-	TrieTimeout    time.Duration
-	SnapshotCache  int
+	TrieCleanCache          int
+	TrieCleanCacheJournal   string        `toml:",omitempty"` // Disk journal directory for trie cache to survive node restarts
+	TrieCleanCacheRejournal time.Duration `toml:",omitempty"` // Time interval to regenerate the journal for clean cache
+	TrieDirtyCache          int
+	TrieTimeout             time.Duration
+	SnapshotCache           int
 
 	// Mining options
 	Miner miner.Config
