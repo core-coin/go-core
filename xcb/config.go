@@ -31,29 +31,40 @@ import (
 	"github.com/core-coin/go-core/xcb/energyprice"
 )
 
+// DefaultFullGPOConfig contains default gasprice oracle settings for full node.
+var DefaultFullGPOConfig = energyprice.Config{
+	Blocks:     20,
+	Percentile: 60,
+}
+
+// DefaultLightGPOConfig contains default gasprice oracle settings for light client.
+var DefaultLightGPOConfig = energyprice.Config{
+	Blocks:     2,
+	Percentile: 60,
+}
+
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
 	SyncMode:           downloader.FastSync,
 	Cryptore:           cryptore.Config{},
-	NetworkId:          1,
-	LightPeers:         100,
-	UltraLightFraction: 75,
-	DatabaseCache:      512,
-	TrieCleanCache:     256,
-	TrieDirtyCache:     256,
-	TrieTimeout:        60 * time.Minute,
-	SnapshotCache:      256,
+	NetworkId:               1,
+	LightPeers:              100,
+	UltraLightFraction:      75,
+	DatabaseCache:           512,
+	TrieCleanCache:          154,
+	TrieCleanCacheJournal:   "triecache",
+	TrieCleanCacheRejournal: 60 * time.Minute,
+	TrieDirtyCache:          256,
+	TrieTimeout:             60 * time.Minute,
+	SnapshotCache:           102,
 	Miner: miner.Config{
-		EnergyFloor: 8000000,
-		EnergyCeil:  8000000,
+		EnergyFloor: 12500000,
+		EnergyCeil:  12500000,
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
-	TxPool: core.DefaultTxPoolConfig,
-	GPO: energyprice.Config{
-		Blocks:     20,
-		Percentile: 60,
-	},
+	TxPool:				core.DefaultTxPoolConfig,
+	GPO:				DefaultFullGPOConfig,
 }
 
 func init() {
@@ -104,10 +115,12 @@ type Config struct {
 	DatabaseCache      int
 	DatabaseFreezer    string
 
-	TrieCleanCache int
-	TrieDirtyCache int
-	TrieTimeout    time.Duration
-	SnapshotCache  int
+	TrieCleanCache          int
+	TrieCleanCacheJournal   string        `toml:",omitempty"` // Disk journal directory for trie cache to survive node restarts
+	TrieCleanCacheRejournal time.Duration `toml:",omitempty"` // Time interval to regenerate the journal for clean cache
+	TrieDirtyCache          int
+	TrieTimeout             time.Duration
+	SnapshotCache           int
 
 	// Mining options
 	Miner miner.Config

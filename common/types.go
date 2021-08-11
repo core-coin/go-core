@@ -360,7 +360,7 @@ type NetworkID uint64
 
 const (
 	Mainnet NetworkID = iota + 1
-	Devin             = iota + 1
+	Devin             = iota + 2
 	Koliba
 )
 

@@ -31,19 +31,20 @@ import (
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
+
 	block := DefaultGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", block.Hash(), params.MainnetGenesisHash)
 	}
-	block = DefaultDevinGenesisBlock().ToBlock(nil)
 
+	block = DefaultDevinGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.DevinGenesisHash {
 		t.Errorf("wrong devin genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
 	}
-	block = DefaultKolibaGenesisBlock().ToBlock(nil)
 
+	block = DefaultKolibaGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.KolibaGenesisHash {
-		t.Errorf("wrong koliba genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
+		t.Errorf("wrong koliba genesis hash, got %v, want %v", block.Hash(), params.KolibaGenesisHash)
 	}
 }
 

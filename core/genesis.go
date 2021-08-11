@@ -4,7 +4,7 @@
 // The go-core library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// (at your option) any later  version.
 //
 // The go-core library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,9 +43,12 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
-var defaultCoinbaseMainnet, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
-var defaultCoinbaseDevin, _ = common.HexToAddress("ab720000000000000000000000000000000000000000")
-var defaultCoinbaseKoliba, _ = common.HexToAddress("ab720000000000000000000000000000000000000000")
+var (
+	DefaultCoinbaseMainnet, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
+	DefaultCoinbaseDevin, _   = common.HexToAddress("ab720000000000000000000000000000000000000000")
+	DefaultCoinbaseKoliba, _  = common.HexToAddress("ab720000000000000000000000000000000000000000")
+	DefaultCoinbasePrivate, _ = common.HexToAddress("ce450000000000000000000000000000000000000000")
+)
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
@@ -167,6 +170,7 @@ func SetupGenesisBlock(db xcbdb.Database, genesis *Genesis) (*params.ChainConfig
 		} else {
 			log.Info("Writing custom genesis block")
 		}
+		setGenesisCoinbase(genesis)
 		block, err := genesis.Commit(db)
 		if err != nil {
 			return genesis.Config, common.Hash{}, err
@@ -177,7 +181,7 @@ func SetupGenesisBlock(db xcbdb.Database, genesis *Genesis) (*params.ChainConfig
 	// We have the genesis block in database(perhaps in ancient database)
 	// but the corresponding state is missing.
 	header := rawdb.ReadHeader(db, stored, 0)
-	if _, err := state.New(header.Root, state.NewDatabaseWithCache(db, 0), nil); err != nil {
+	if _, err := state.New(header.Root, state.NewDatabaseWithCache(db, 0, ""), nil); err != nil {
 		if genesis == nil {
 			genesis = DefaultGenesisBlock()
 		}
@@ -186,6 +190,7 @@ func SetupGenesisBlock(db xcbdb.Database, genesis *Genesis) (*params.ChainConfig
 		if hash != stored {
 			return genesis.Config, hash, &GenesisMismatchError{stored, hash}
 		}
+		setGenesisCoinbase(genesis)
 		block, err := genesis.Commit(db)
 		if err != nil {
 			return genesis.Config, hash, err
@@ -241,6 +246,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.MainnetChainConfig
 	case ghash == params.DevinGenesisHash:
 		return params.DevinChainConfig
+	case ghash == params.KolibaGenesisHash:
+		return params.KolibaChainConfig
 	default:
 		return params.AllCryptoreProtocolChanges
 	}
@@ -324,41 +331,43 @@ func (g *Genesis) MustCommit(db xcbdb.Database) *types.Block {
 // GenesisBlockForTesting creates and writes a block in which addr has the given ore balance.
 func GenesisBlockForTesting(db xcbdb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{
-		Coinbase: defaultCoinbaseDevin,
-		Alloc:    GenesisAlloc{addr: {Balance: balance}}}
+		Coinbase:    DefaultCoinbaseDevin,
+		EnergyLimit: 12500000,
+		Alloc:       GenesisAlloc{addr: {Balance: balance}}}
 	return g.MustCommit(db)
 }
 
 // DefaultGenesisBlock returns the Core main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:   defaultCoinbaseMainnet,
-		Config:     params.MainnetChainConfig,
-		Timestamp:  1599475790,
-		Nonce:      66,
-		Difficulty: big.NewInt(1),
+		Coinbase:    DefaultCoinbaseMainnet,
+		Config:      params.MainnetChainConfig,
+		Timestamp:   1599475790,
+		Nonce:       66,
+		Difficulty:  big.NewInt(1),
+		EnergyLimit: 12500000,
 	}
 }
 
 // DefaultDevinGenesisBlock returns the Devin network genesis block.
 func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:    defaultCoinbaseDevin,
+		Coinbase:    DefaultCoinbaseDevin,
 		Config:      params.DevinChainConfig,
 		Timestamp:   1599475790,
 		Nonce:       0x000000000002,
-		EnergyLimit: 0x2fefd8,
+		EnergyLimit: 12500000,
 	}
 }
 
 // DefaultKolibaGenesisBlock returns the Koliba network genesis block.
 func DefaultKolibaGenesisBlock() *Genesis {
 	return &Genesis{
-		Coinbase:    defaultCoinbaseKoliba,
+		Coinbase:    DefaultCoinbaseKoliba,
 		Config:      params.KolibaChainConfig,
 		Timestamp:   1599475790,
 		Nonce:       0x000000000002,
-		EnergyLimit: 10485760,
+		EnergyLimit: 12500000,
 		Difficulty:  big.NewInt(1),
 	}
 }
@@ -371,10 +380,10 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{
-		Coinbase:    defaultCoinbaseMainnet,
+		Coinbase:    DefaultCoinbaseMainnet,
 		Config:      &config,
 		ExtraData:   append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.ExtendedSignatureLength)...),
-		EnergyLimit: 6283185,
+		EnergyLimit: 12500000,
 		Difficulty:  big.NewInt(1),
 		Alloc: map[common.Address]GenesisAccount{
 			common.BytesToAddress([]byte{1}): {Balance: big.NewInt(1)}, // ECRecover
@@ -400,4 +409,19 @@ func decodePrealloc(data string) GenesisAlloc {
 		ga[common.BigToAddress(account.Addr)] = GenesisAccount{Balance: account.Balance}
 	}
 	return ga
+}
+
+func setGenesisCoinbase(genesis *Genesis) {
+	if (genesis.Coinbase == common.Address{}) {
+		switch common.DefaultNetworkID {
+		case common.Mainnet:
+			genesis.Coinbase = DefaultCoinbaseMainnet
+		case common.Devin:
+			genesis.Coinbase = DefaultCoinbaseDevin
+		case common.Koliba:
+			genesis.Coinbase = DefaultCoinbaseKoliba
+		default:
+			genesis.Coinbase = DefaultCoinbasePrivate
+		}
+	}
 }
