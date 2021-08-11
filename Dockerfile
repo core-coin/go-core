@@ -1,3 +1,4 @@
+# Build Gocore in a stock Go builder container
 FROM golang:1.15-buster as builder
 ARG ALLTOOLS
 
