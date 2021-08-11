@@ -749,7 +749,7 @@ func (api *RetestxcbAPI) StorageRangeAt(ctx context.Context,
 }
 
 func (api *RetestxcbAPI) ClientVersion(ctx context.Context) (string, error) {
-	return "Gocore-" + params.VersionWithCommit(gitTag, gitBranch, gitCommit, gitDate), nil
+	return "Gocore-" + params.VersionWithCommit(gitCommit, gitDate), nil
 }
 
 // splitAndTrim splits input separated by a comma

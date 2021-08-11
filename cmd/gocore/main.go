@@ -50,12 +50,11 @@ const (
 )
 
 var (
-	gitTag = ""
-	gitBranch = ""
+	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
 	gitDate   = ""
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitTag, gitBranch, gitCommit, gitDate, "the go-core command line interface")
+	app = utils.NewApp(gitCommit, gitDate, "the go-core command line interface")
 	// flags that configure the node
 	nodeFlags = []cli.Flag{
 		utils.IdentityFlag,
@@ -97,6 +96,8 @@ var (
 		utils.CacheFlag,
 		utils.CacheDatabaseFlag,
 		utils.CacheTrieFlag,
+		utils.CacheTrieJournalFlag,
+		utils.CacheTrieRejournalFlag,
 		utils.CacheGCFlag,
 		utils.CacheSnapshotFlag,
 		utils.CacheNoPrefetchFlag,
@@ -180,7 +181,7 @@ var (
 	}
 
 	whisperFlags = []cli.Flag{
-		utils.WhisperDisabledFlag,
+		utils.WhisperEnabledFlag,
 		utils.WhisperMaxMessageSizeFlag,
 		utils.WhisperMinPOWFlag,
 		utils.WhisperRestrictConnectionBetweenLightClientsFlag,

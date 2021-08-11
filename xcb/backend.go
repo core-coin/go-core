@@ -168,7 +168,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 
 	if !config.SkipBcVersionCheck {
 		if bcVersion != nil && *bcVersion > core.BlockChainVersion {
-			return nil, fmt.Errorf("database version is v%d, Gocore %s only supports v%d", *bcVersion, params.Version, core.BlockChainVersion)
+			return nil, fmt.Errorf("database version is v%d, Gocore %s only supports v%d", *bcVersion, params.VersionWithMeta, core.BlockChainVersion)
 		} else if bcVersion == nil || *bcVersion < core.BlockChainVersion {
 			log.Warn("Upgrade blockchain database version", "from", dbVer, "to", core.BlockChainVersion)
 			rawdb.WriteDatabaseVersion(chainDb, core.BlockChainVersion)
@@ -182,6 +182,8 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 		}
 		cacheConfig = &core.CacheConfig{
 			TrieCleanLimit:      config.TrieCleanCache,
+			TrieCleanJournal:    ctx.ResolvePath(config.TrieCleanCacheJournal),
+			TrieCleanRejournal:  config.TrieCleanCacheRejournal,
 			TrieCleanNoPrefetch: config.NoPrefetch,
 			TrieDirtyLimit:      config.TrieDirtyCache,
 			TrieDirtyDisabled:   config.NoPruning,
@@ -237,7 +239,7 @@ func makeExtraData(extra []byte) []byte {
 	if len(extra) == 0 {
 		// create default extradata
 		extra, _ = rlp.EncodeToBytes([]interface{}{
-			params.Version,
+			uint(params.VersionMajor<<16 | params.VersionMinor<<8 | params.VersionPatch),
 			"gocore",
 			runtime.Version(),
 			runtime.GOOS,

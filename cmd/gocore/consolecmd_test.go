@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	ipcAPIs  = "admin:1.0 cryptore:1.0 debug:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 shh:1.0 txpool:1.0 web3:1.0 xcb:1.0"
+	ipcAPIs  = "admin:1.0 cryptore:1.0 debug:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0 xcb:1.0"
 	httpAPIs = "net:1.0 rpc:1.0 web3:1.0 xcb:1.0"
 )
 
@@ -50,7 +50,7 @@ func TestConsoleWelcome(t *testing.T) {
 	gocore.SetTemplateFunc("goos", func() string { return runtime.GOOS })
 	gocore.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	gocore.SetTemplateFunc("gover", runtime.Version)
-	gocore.SetTemplateFunc("gocorever", func() string { return params.Version })
+	gocore.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
 	gocore.SetTemplateFunc("niltime", func() string {
 		return time.Unix(1599475790, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
@@ -84,8 +84,7 @@ func TestIPCAttachWelcome(t *testing.T) {
 		defer os.RemoveAll(ws)
 		ipc = filepath.Join(ws, "gocore.ipc")
 	}
-	// Note: we need whisper because testAttachWelcome checks for default, and whisper is enabled by default unless setting --shh.disable flag
-	// list of ipc modules and shh is included there.
+	// Note: we need --shh because testAttachWelcome checks for default
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--ipcpath", ipc)
@@ -145,7 +144,7 @@ func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) 
 	attach.SetTemplateFunc("goos", func() string { return runtime.GOOS })
 	attach.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	attach.SetTemplateFunc("gover", runtime.Version)
-	attach.SetTemplateFunc("gocorever", func() string { return params.Version })
+	attach.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
 	attach.SetTemplateFunc("corebase", func() string { return gocore.Corebase })
 	attach.SetTemplateFunc("niltime", func() string {
 		return time.Unix(1599475790, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")

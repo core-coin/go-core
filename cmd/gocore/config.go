@@ -27,9 +27,9 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
+	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
 	"github.com/core-coin/go-core/xcb"
 	"github.com/naoina/toml"
 )
@@ -74,7 +74,6 @@ type xcbstatsConfig struct {
 
 type gocoreConfig struct {
 	Xcb      xcb.Config
-	Shh      whisper.Config
 	Node     node.Config
 	Xcbstats xcbstatsConfig
 }
@@ -97,7 +96,7 @@ func loadConfig(file string, cfg *gocoreConfig) error {
 func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
-	cfg.Version = params.VersionWithCommit(gitTag, gitBranch, gitCommit, gitDate)
+	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
 	cfg.HTTPModules = append(cfg.HTTPModules, "xcb")
 	cfg.WSModules = append(cfg.WSModules, "xcb")
 	cfg.IPCPath = "gocore.ipc"
@@ -108,7 +107,6 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	// Load defaults.
 	cfg := gocoreConfig{
 		Xcb:  xcb.DefaultConfig,
-		Shh:  whisper.DefaultConfig,
 		Node: defaultNodeConfig(),
 	}
 
@@ -133,39 +131,26 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	if ctx.GlobalIsSet(utils.XcbStatsURLFlag.Name) {
 		cfg.Xcbstats.URL = ctx.GlobalString(utils.XcbStatsURLFlag.Name)
 	}
-	utils.SetShhConfig(ctx, stack, &cfg.Shh)
+	utils.SetShhConfig(ctx, stack)
 
 	return stack, cfg
 }
 
-// enableWhisper returns false in case --shh.disable flag is set.
-func enableWhisper(ctx *cli.Context) bool {
-	if ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name) {
-		return false
+// enableWhisper returns true in case one of the whisper flags is set.
+func checkWhisper(ctx *cli.Context) {
+	for _, flag := range whisperFlags {
+		if ctx.GlobalIsSet(flag.GetName()) {
+			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/ethereum/whisper")
+		}
 	}
-
-	return true
 }
 
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 	utils.RegisterXcbService(stack, &cfg.Xcb)
 
-	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
-	shhEnabled := enableWhisper(ctx)
-	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperDisabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
-	if shhEnabled || shhAutoEnabled {
-		if ctx.GlobalIsSet(utils.WhisperMaxMessageSizeFlag.Name) {
-			cfg.Shh.MaxMessageSize = uint32(ctx.Int(utils.WhisperMaxMessageSizeFlag.Name))
-		}
-		if ctx.GlobalIsSet(utils.WhisperMinPOWFlag.Name) {
-			cfg.Shh.MinimumAcceptedPOW = ctx.Float64(utils.WhisperMinPOWFlag.Name)
-		}
-		if ctx.GlobalIsSet(utils.WhisperRestrictConnectionBetweenLightClientsFlag.Name) {
-			cfg.Shh.RestrictConnectionBetweenLightClients = true
-		}
-		utils.RegisterShhService(stack, &cfg.Shh)
-	}
+
+	checkWhisper(ctx)
 	// Configure GraphQL if requested
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
 		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
