@@ -39,6 +39,7 @@ type stateReq struct {
 	timeout  time.Duration              // Maximum round trip time for this to complete
 	timer    *time.Timer                // Timer to fire when the RTT timeout expires
 	peer     *peerConnection            // Peer that we're requesting from
+	delivered time.Time                 // Time when the packet was delivered (independent when we process it)
 	response [][]byte                   // Response data of the peer (nil for timeouts)
 	dropped  bool                       // Flag whether the peer dropped off early
 }
@@ -149,6 +150,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 			// Finalize the request and queue up for processing
 			req.timer.Stop()
 			req.response = pack.(*statePack).states
+			req.delivered = time.Now()
 
 			finished = append(finished, req)
 			delete(active, pack.PeerId())
@@ -175,6 +177,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 			if active[req.peer.id] != req {
 				continue
 			}
+			req.delivered = time.Now()
 			// Move the timed out data back into the download queue
 			finished = append(finished, req)
 			delete(active, req.peer.id)
@@ -193,6 +196,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 				// Move the previous request to the finished set
 				old.timer.Stop()
 				old.dropped = true
+				old.delivered = time.Now()
 				finished = append(finished, old)
 			}
 			// Start a timer to notify the sync loop if the peer stalled.
