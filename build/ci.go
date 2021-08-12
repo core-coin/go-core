@@ -115,9 +115,8 @@ var (
 	}
 
 	// A debian package is created for all executables listed here.
-
 	debCore = debPackage{
-		Name:        "core",
+		Name:        "go-core",
 		Version:     params.Version,
 		Executables: debExecutables,
 	}
@@ -135,17 +134,13 @@ var (
 	// Note: artful is unsupported because it was officially deprecated on Launchpad.
 	// Note: cosmic is unsupported because it was officially deprecated on Launchpad.
 	debDistroGoBoots = map[string]string{
-		"trusty": "golang-1.11",
 		"xenial": "golang-go",
 		"bionic": "golang-go",
-		"disco":  "golang-go",
-		"eoan":   "golang-go",
 		"focal":  "golang-go",
 	}
 
 	debGoBootPaths = map[string]string{
-		"golang-1.11": "/usr/lib/go-1.11",
-		"golang-go":   "/usr/lib/go",
+		"golang-go": "/usr/local/go",
 	}
 )
 
@@ -192,8 +187,6 @@ func main() {
 		log.Fatal("unknown command ", os.Args[1])
 	}
 }
-
-// Compiling
 
 func doInstall(cmdline []string) {
 	var (
@@ -459,10 +452,6 @@ func maybeSkipArchive(env build.Environment) {
 		log.Printf("skipping because this is a cron job")
 		os.Exit(0)
 	}
-	if env.Branch != "master" && !strings.HasPrefix(env.Tag, "v1.") {
-		log.Printf("skipping because branch %q, tag %q is not on the whitelist", env.Branch, env.Tag)
-		os.Exit(0)
-	}
 }
 
 // Debian Packaging
@@ -525,16 +514,17 @@ func doDebianSource(cmdline []string) {
 			build.MustRun(debuild)
 
 			var (
-				basename = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
-				source   = filepath.Join(*workdir, basename+".tar.xz")
-				dsc      = filepath.Join(*workdir, basename+".dsc")
-				changes  = filepath.Join(*workdir, basename+"_source.changes")
+				basename  = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
+				source    = filepath.Join(*workdir, basename+".tar.xz")
+				dsc       = filepath.Join(*workdir, basename+".dsc")
+				changes   = filepath.Join(*workdir, basename+"_source.changes")
+				buildinfo = filepath.Join(*workdir, basename+"_source.buildinfo")
 			)
 			if *signer != "" {
 				build.MustRunCommand("debsign", changes)
 			}
 			if *upload != "" {
-				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes})
+				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes, buildinfo})
 			}
 		}
 	}
