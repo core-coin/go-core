@@ -271,6 +271,10 @@ var (
 		Name:  "ulc.onlyannounce",
 		Usage: "Ultra light server sends announcements only",
 	}
+	LightNoPruneFlag = cli.BoolFlag{
+		Name:  "light.nopruning",
+		Usage: "Disable ancient light chain data pruning",
+	}
 	// Transaction pool settings
 	TxPoolLocalsFlag = cli.StringFlag{
 		Name:  "txpool.locals",
@@ -1010,6 +1014,9 @@ func setLes(ctx *cli.Context, cfg *xcb.Config) {
 	if ctx.GlobalIsSet(UltraLightOnlyAnnounceFlag.Name) {
 		cfg.UltraLightOnlyAnnounce = ctx.GlobalBool(UltraLightOnlyAnnounceFlag.Name)
 	}
+	if ctx.GlobalIsSet(LightNoPruneFlag.Name) {
+		cfg.LightNoPrune = ctx.GlobalBool(LightNoPruneFlag.Name)
+	}
 }
 
 // makeDatabaseHandles raises out the number of allowed file handles per process
@@ -1706,12 +1713,17 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) xcbdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
+
+		err     error
+		chainDb xcbdb.Database
 	)
-	name := "chaindata"
 	if ctx.GlobalString(SyncModeFlag.Name) == "light" {
-		name = "lightchaindata"
+		name := "lightchaindata"
+		chainDb, err = stack.OpenDatabase(name, cache, handles, "")
+	} else {
+		name := "chaindata"
+		chainDb, err = stack.OpenDatabaseWithFreezer(name, cache, handles, ctx.GlobalString(AncientFlag.Name), "")
 	}
-	chainDb, err := stack.OpenDatabaseWithFreezer(name, cache, handles, ctx.GlobalString(AncientFlag.Name), "")
 	if err != nil {
 		Fatalf("Could not open database: %v", err)
 	}
