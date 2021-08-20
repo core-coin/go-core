@@ -18,7 +18,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,8 +30,6 @@ import (
 	"text/tabwriter"
 	"text/template"
 	"time"
-
-	"github.com/core-coin/go-core/p2p/discover"
 
 	eddsa "github.com/core-coin/go-goldilocks"
 
@@ -48,6 +45,7 @@ import (
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/graphql"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/les"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
@@ -55,12 +53,12 @@ import (
 	"github.com/core-coin/go-core/miner"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/p2p/discover"
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/p2p/netutil"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/xcb"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcb/energyprice"
@@ -491,6 +489,20 @@ var (
 		Usage: "API's offered over the HTTP-RPC interface",
 		Value: "",
 	}
+	GraphQLEnabledFlag = cli.BoolFlag{
+		Name:  "graphql",
+		Usage: "Enable GraphQL on the HTTP-RPC server. Note that GraphQL can only be started if an HTTP server is started as well.",
+	}
+	GraphQLCORSDomainFlag = cli.StringFlag{
+		Name:  "graphql.corsdomain",
+		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
+		Value: "",
+	}
+	GraphQLVirtualHostsFlag = cli.StringFlag{
+		Name:  "graphql.vhosts",
+		Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
+		Value: strings.Join(node.DefaultConfig.GraphQLVirtualHosts, ","),
+	}
 	WSEnabledFlag = cli.BoolFlag{
 		Name:  "ws",
 		Usage: "Enable the WS-RPC server",
@@ -514,30 +526,6 @@ var (
 		Name:  "ws.origins",
 		Usage: "Origins from which to accept websockets requests",
 		Value: "",
-	}
-	GraphQLEnabledFlag = cli.BoolFlag{
-		Name:  "graphql",
-		Usage: "Enable the GraphQL server",
-	}
-	GraphQLListenAddrFlag = cli.StringFlag{
-		Name:  "graphql.addr",
-		Usage: "GraphQL server listening interface",
-		Value: node.DefaultGraphQLHost,
-	}
-	GraphQLPortFlag = cli.IntFlag{
-		Name:  "graphql.port",
-		Usage: "GraphQL server listening port",
-		Value: node.DefaultGraphQLPort,
-	}
-	GraphQLCORSDomainFlag = cli.StringFlag{
-		Name:  "graphql.corsdomain",
-		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
-		Value: "",
-	}
-	GraphQLVirtualHostsFlag = cli.StringFlag{
-		Name:  "graphql.vhosts",
-		Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
-		Value: strings.Join(node.DefaultConfig.GraphQLVirtualHosts, ","),
 	}
 	ExecFlag = cli.StringFlag{
 		Name:  "exec",
@@ -914,13 +902,6 @@ func setHTTP(ctx *cli.Context, cfg *node.Config) {
 // setGraphQL creates the GraphQL listener interface string from the set
 // command line flags, returning empty if the GraphQL endpoint is disabled.
 func setGraphQL(ctx *cli.Context, cfg *node.Config) {
-	if ctx.GlobalBool(GraphQLEnabledFlag.Name) && cfg.GraphQLHost == "" {
-		cfg.GraphQLHost = "127.0.0.1"
-		if ctx.GlobalIsSet(GraphQLListenAddrFlag.Name) {
-			cfg.GraphQLHost = ctx.GlobalString(GraphQLListenAddrFlag.Name)
-		}
-	}
-	cfg.GraphQLPort = ctx.GlobalInt(GraphQLPortFlag.Name)
 	if ctx.GlobalIsSet(GraphQLCORSDomainFlag.Name) {
 		cfg.GraphQLCors = splitAndTrim(ctx.GlobalString(GraphQLCORSDomainFlag.Name))
 	}
@@ -1425,7 +1406,7 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node) {
 		ctx.GlobalIsSet(WhisperMaxMessageSizeFlag.Name) ||
 		ctx.GlobalIsSet(WhisperMinPOWFlag.Name) ||
 		ctx.GlobalIsSet(WhisperRestrictConnectionBetweenLightClientsFlag.Name) {
-		log.Warn("Whisper support has been deprecated and the code has been moved to github.com/ethereum/whisper")
+		log.Warn("Whisper support has been deprecated and the code has been moved to github.com/core-coin/whisper")
 	}
 }
 
@@ -1603,62 +1584,40 @@ func setDNSDiscoveryDefaults(cfg *xcb.Config, url string) {
 }
 
 // RegisterXcbService adds an Core client to the stack.
-func RegisterXcbService(stack *node.Node, cfg *xcb.Config) {
-	var err error
+func RegisterXcbService(stack *node.Node, cfg *xcb.Config) xcbapi.Backend {
 	if cfg.SyncMode == downloader.LightSync {
-		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, cfg)
-		})
+		backend, err := les.New(stack, cfg)
+		if err != nil {
+			Fatalf("Failed to register the Core service: %v", err)
+		}
+		return backend.ApiBackend
 	} else {
-		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := xcb.New(ctx, cfg)
-			if fullNode != nil && cfg.LightServ > 0 {
-				ls, _ := les.NewLesServer(fullNode, cfg)
-				fullNode.AddLesServer(ls)
+		backend, err := xcb.New(stack, cfg)
+		if err != nil {
+			Fatalf("Failed to register the Core service: %v", err)
+		}
+		if cfg.LightServ > 0 {
+			_, err := les.NewLesServer(stack, backend, cfg)
+			if err != nil {
+				Fatalf("Failed to create the LES server: %v", err)
 			}
-			return fullNode, err
-		})
-	}
-	if err != nil {
-		Fatalf("Failed to register the Core service: %v", err)
+		}
+		return backend.APIBackend
 	}
 }
 
 
 // RegisterXcbStatsService configures the Core Stats daemon and adds it to
 // the given node.
-func RegisterXcbStatsService(stack *node.Node, url string) {
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both xcb and les services
-		var xcbServ *xcb.Core
-		ctx.Service(&xcbServ)
-
-		var lesServ *les.LightCore
-		ctx.Service(&lesServ)
-
-		// Let xcbstats use whichever is not nil
-		return xcbstats.New(url, xcbServ, lesServ)
-	}); err != nil {
+func RegisterXcbStatsService(stack *node.Node, backend xcbapi.Backend, url string) {
+	if err := xcbstats.New(stack, backend, backend.Engine(), url); err != nil {
 		Fatalf("Failed to register the Core Stats service: %v", err)
 	}
 }
 
 // RegisterGraphQLService is a utility function to construct a new service and register it against a node.
-func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Try to construct the GraphQL service backed by a full node
-		var xcbServ *xcb.Core
-		if err := ctx.Service(&xcbServ); err == nil {
-			return graphql.New(xcbServ.APIBackend, endpoint, cors, vhosts, timeouts)
-		}
-		// Try to construct the GraphQL service backed by a light node
-		var lesServ *les.LightCore
-		if err := ctx.Service(&lesServ); err == nil {
-			return graphql.New(lesServ.ApiBackend, endpoint, cors, vhosts, timeouts)
-		}
-		// Well, this should not have happened, bail out
-		return nil, errors.New("no Core service")
-	}); err != nil {
+func RegisterGraphQLService(stack *node.Node, backend xcbapi.Backend, cfg node.Config) {
+	if err := graphql.New(stack, backend, cfg.GraphQLCors, cfg.GraphQLVirtualHosts); err != nil {
 		Fatalf("Failed to register the GraphQL service: %v", err)
 	}
 }

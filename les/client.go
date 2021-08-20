@@ -22,7 +22,6 @@ import (
 	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/mclock"
@@ -33,7 +32,6 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -68,10 +66,13 @@ type LightCore struct {
 	engine         consensus.Engine
 	accountManager *accounts.Manager
 	netRPCService  *xcbapi.PublicNetAPI
+
+	p2pServer *p2p.Server
 }
 
-func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
-	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xcb/db/chaindata/")
+// New creates an instance of the light client.
+func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
+	chainDb, err := stack.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xcb/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -95,13 +96,14 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 			closeCh:     make(chan struct{}),
 		},
 		peers:          peers,
-		eventMux:       ctx.EventMux,
+		eventMux:       stack.EventMux(),
 		reqDist:        newRequestDistributor(peers, &mclock.System{}),
-		accountManager: ctx.AccountManager,
-		engine:         xcb.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
+		accountManager: stack.AccountManager(),
+		engine:         xcb.CreateConsensusEngine(stack, chainConfig, &config.Cryptore, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   xcb.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		serverPool:     newServerPool(chainDb, config.UltraLightServers),
+		p2pServer:      stack.Server(),
 	}
 	lxcb.retriever = newRetrieveManager(peers, lxcb.reqDist, lxcb.serverPool)
 	lxcb.relay = newLesTxRelay(peers, lxcb.retriever)
@@ -124,11 +126,7 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 	lxcb.txPool = light.NewTxPool(lxcb.chainConfig, lxcb.blockchain, lxcb.relay)
 
 	// Set up checkpoint oracle.
-	oracle := config.CheckpointOracle
-	if oracle == nil {
-		oracle = params.CheckpointOracles[genesisHash]
-	}
-	lxcb.oracle = checkpointoracle.New(oracle, lxcb.localCheckpoint)
+	lxcb.oracle = lxcb.setupOracle(stack, genesisHash, config)
 
 	// Note: AddChildIndexer starts the update process for the child
 	lxcb.bloomIndexer.AddChildIndexer(lxcb.bloomTrieIndexer)
@@ -147,12 +145,19 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	lxcb.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), lxcb, nil}
+	lxcb.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), lxcb, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
 	lxcb.ApiBackend.gpo = energyprice.NewOracle(lxcb.ApiBackend, gpoParams)
+
+	lxcb.netRPCService = xcbapi.NewPublicNetAPI(lxcb.p2pServer, lxcb.config.NetworkId)
+
+	// Register the backend on the node
+	stack.RegisterAPIs(lxcb.APIs())
+	stack.RegisterProtocols(lxcb.Protocols())
+	stack.RegisterLifecycle(lxcb)
 
 	return lxcb, nil
 }
@@ -225,8 +230,7 @@ func (s *LightCore) LesVersion() int                    { return int(ClientProto
 func (s *LightCore) Downloader() *downloader.Downloader { return s.handler.downloader }
 func (s *LightCore) EventMux() *event.TypeMux           { return s.eventMux }
 
-// Protocols implements node.Service, returning all the currently configured
-// network protocols to start.
+// Protocols returns all the currently configured network protocols to start.
 func (s *LightCore) Protocols() []p2p.Protocol {
 	return s.makeProtocols(ClientProtocolVersions, s.handler.runPeer, func(id enode.ID) interface{} {
 		if p := s.peers.peer(peerIdToString(id)); p != nil {
@@ -236,16 +240,14 @@ func (s *LightCore) Protocols() []p2p.Protocol {
 	})
 }
 
-// Start implements node.Service, starting all internal goroutines needed by the
+// Start implements node.Lifecycle, starting all internal goroutines needed by the
 // light core protocol implementation.
-func (s *LightCore) Start(srvr *p2p.Server) error {
+func (s *LightCore) Start() error {
 	log.Warn("Light client mode is an experimental feature")
 
 	// Start bloom request workers.
 	s.wg.Add(bloomServiceThreads)
 	s.startBloomHandlers(params.BloomBitsBlocksClient)
-
-	s.netRPCService = xcbapi.NewPublicNetAPI(srvr, s.config.NetworkId)
 
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]
@@ -253,7 +255,7 @@ func (s *LightCore) Start(srvr *p2p.Server) error {
 	return nil
 }
 
-// Stop implements node.Service, terminating all internal goroutines used by the
+// Stop implements node.Lifecycle, terminating all internal goroutines used by the
 // Core protocol.
 func (s *LightCore) Stop() error {
 	close(s.closeCh)
@@ -273,12 +275,4 @@ func (s *LightCore) Stop() error {
 	s.wg.Wait()
 	log.Info("Light core stopped")
 	return nil
-}
-
-// SetClient sets the rpc client and binds the registrar contract.
-func (s *LightCore) SetContractBackend(backend bind.ContractBackend) {
-	if s.oracle == nil {
-		return
-	}
-	s.oracle.Start(backend)
 }

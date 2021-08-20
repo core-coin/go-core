@@ -27,6 +27,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
@@ -140,26 +141,26 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 func checkWhisper(ctx *cli.Context) {
 	for _, flag := range whisperFlags {
 		if ctx.GlobalIsSet(flag.GetName()) {
-			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/ethereum/whisper")
+			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/core-coin/whisper")
 		}
 	}
 }
 
-func makeFullNode(ctx *cli.Context) *node.Node {
+func makeFullNode(ctx *cli.Context) (*node.Node, xcbapi.Backend) {
 	stack, cfg := makeConfigNode(ctx)
-	utils.RegisterXcbService(stack, &cfg.Xcb)
 
+	backend := utils.RegisterXcbService(stack, &cfg.Xcb)
 
 	checkWhisper(ctx)
 	// Configure GraphQL if requested
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
-		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
+		utils.RegisterGraphQLService(stack, backend, cfg.Node)
 	}
 	// Add the Core Stats daemon if requested.
 	if cfg.Xcbstats.URL != "" {
-		utils.RegisterXcbStatsService(stack, cfg.Xcbstats.URL)
+		utils.RegisterXcbStatsService(stack, backend, cfg.Xcbstats.URL)
 	}
-	return stack
+	return stack, backend
 }
 
 // dumpConfig is the dumpconfig command.

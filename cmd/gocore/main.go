@@ -34,7 +34,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/console"
 	"github.com/core-coin/go-core/internal/debug"
-	"github.com/core-coin/go-core/les"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/metrics"
 	"github.com/core-coin/go-core/node"
@@ -159,8 +159,6 @@ var (
 		utils.LegacyRPCCORSDomainFlag,
 		utils.LegacyRPCVirtualHostsFlag,
 		utils.GraphQLEnabledFlag,
-		utils.GraphQLListenAddrFlag,
-		utils.GraphQLPortFlag,
 		utils.GraphQLCORSDomainFlag,
 		utils.GraphQLVirtualHostsFlag,
 		utils.HTTPApiFlag,
@@ -309,17 +307,18 @@ func gocore(ctx *cli.Context) error {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
 	prepare(ctx)
-	node := makeFullNode(ctx)
-	defer node.Close()
-	startNode(ctx, node)
-	node.Wait()
+	stack, backend := makeFullNode(ctx)
+	defer stack.Close()
+
+	startNode(ctx, stack, backend)
+	stack.Wait()
 	return nil
 }
 
 // startNode boots up the system node and all registered protocols, after which
 // it unlocks any requested accounts, and starts the RPC/IPC interfaces and the
 // miner.
-func startNode(ctx *cli.Context, stack *node.Node) {
+func startNode(ctx *cli.Context, stack *node.Node, backend xcbapi.Backend) {
 	debug.Memsize.Add("node", stack)
 
 	// Start up the node itself
@@ -338,25 +337,6 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		utils.Fatalf("Failed to attach to self: %v", err)
 	}
 	xcbClient := xcbclient.NewClient(rpcClient)
-
-	// Set contract backend for core service if local node
-	// is serving LES requests.
-	if ctx.GlobalInt(utils.LightServeFlag.Name) > 0 {
-		var xcbService *xcb.Core
-		if err := stack.Service(&xcbService); err != nil {
-			utils.Fatalf("Failed to retrieve core service: %v", err)
-		}
-		xcbService.SetContractBackend(xcbClient)
-	}
-	// Set contract backend for les service if local node is
-	// running as a light client.
-	if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
-		var lesService *les.LightCore
-		if err := stack.Service(&lesService); err != nil {
-			utils.Fatalf("Failed to retrieve light core service: %v", err)
-		}
-		lesService.SetContractBackend(xcbClient)
-	}
 
 	go func() {
 		// Open any wallets already attached
@@ -409,7 +389,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 				if timestamp := time.Unix(int64(done.Latest.Time), 0); time.Since(timestamp) < 10*time.Minute {
 					log.Info("Synchronisation completed", "latestnum", done.Latest.Number, "latesthash", done.Latest.Hash(),
 						"age", common.PrettyAge(timestamp))
-					stack.Stop()
+					stack.Close()
 				}
 			}
 		}()
@@ -421,24 +401,25 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var core *xcb.Core
-		if err := stack.Service(&core); err != nil {
+		xcbBackend, ok := backend.(*xcb.XcbAPIBackend)
+		if !ok {
 			utils.Fatalf("Core service not running: %v", err)
 		}
+
 		// Set the energy price to the limits from the CLI and start mining
 		energyprice := utils.GlobalBig(ctx, utils.MinerEnergyPriceFlag.Name)
 		if ctx.GlobalIsSet(utils.LegacyMinerEnergyPriceFlag.Name) && !ctx.GlobalIsSet(utils.MinerEnergyPriceFlag.Name) {
 			energyprice = utils.GlobalBig(ctx, utils.LegacyMinerEnergyPriceFlag.Name)
 		}
-		core.TxPool().SetEnergyPrice(energyprice)
-
+		xcbBackend.TxPool().SetEnergyPrice(energyprice)
+		// start mining
 		threads := ctx.GlobalInt(utils.MinerThreadsFlag.Name)
 		if ctx.GlobalIsSet(utils.LegacyMinerThreadsFlag.Name) && !ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) {
 			threads = ctx.GlobalInt(utils.LegacyMinerThreadsFlag.Name)
 			log.Warn("The flag --minerthreads is deprecated and will be removed in the future, please use --miner.threads")
 		}
 
-		if err := core.StartMining(threads); err != nil {
+		if err := xcbBackend.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
 	}

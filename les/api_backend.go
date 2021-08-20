@@ -23,6 +23,7 @@ import (
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/consensus"
 	"github.com/core-coin/go-core/core"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -274,4 +275,13 @@ func (b *LesApiBackend) ServiceFilter(ctx context.Context, session *bloombits.Ma
 	for i := 0; i < bloomFilterThreads; i++ {
 		go session.Multiplex(bloomRetrievalBatch, bloomRetrievalWait, b.xcb.bloomRequests)
 	}
+}
+
+
+func (b *LesApiBackend) Engine() consensus.Engine {
+	return b.xcb.engine
+}
+
+func (b *LesApiBackend) CurrentHeader() *types.Header {
+	return b.xcb.blockchain.CurrentHeader()
 }

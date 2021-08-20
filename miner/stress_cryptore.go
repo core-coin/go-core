@@ -56,43 +56,38 @@ func main() {
 	genesis := makeGenesis(faucets)
 
 	var (
-		nodes  []*node.Node
+		nodes  []*xcb.Core
 		enodes []*enode.Node
 	)
 	for i := 0; i < 4; i++ {
 		// Start the node and wait until it's up
-		node, err := makeMiner(genesis)
+		stack, xcbBackend, err := makeMiner(genesis)
 		if err != nil {
 			panic(err)
 		}
-		defer node.Close()
+		defer stack.Close()
 
-		for node.Server().NodeInfo().Ports.Listener == 0 {
+		for stack.Server().NodeInfo().Ports.Listener == 0 {
 			time.Sleep(250 * time.Millisecond)
 		}
-		// Connect the node to al the previous ones
+		// Connect the node to all the previous ones
 		for _, n := range enodes {
-			node.Server().AddPeer(n)
+			stack.Server().AddPeer(n)
 		}
 		// Start tracking the node and it's enode
-		nodes = append(nodes, node)
-		enodes = append(enodes, node.Server().Self())
+		nodes = append(nodes, xcbBackend)
+		enodes = append(enodes, stack.Server().Self())
 
 		// Inject the signer key and start sealing with it
-		store := node.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
+		store := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 		if _, err := store.NewAccount(""); err != nil {
 			panic(err)
 		}
 	}
-	// Iterate over all the nodes and start signing with them
+	// Iterate over all the nodes and start mining
 	time.Sleep(3 * time.Second)
-
 	for _, node := range nodes {
-		var core *xcb.Core
-		if err := node.Service(&core); err != nil {
-			panic(err)
-		}
-		if err := core.StartMining(1); err != nil {
+		if err := node.StartMining(1); err != nil {
 			panic(err)
 		}
 	}
@@ -101,25 +96,22 @@ func main() {
 	// Start injecting transactions from the faucets like crazy
 	nonces := make([]uint64, len(faucets))
 	for {
+		// Pick a random mining node
 		index := rand.Intn(len(faucets))
+		backend := nodes[index%len(nodes)]
 
-		// Fetch the accessor for the relevant signer
-		var core *xcb.Core
-		if err := nodes[index%len(nodes)].Service(&core); err != nil {
-			panic(err)
-		}
 		// Create a self transaction and inject into the pool
 		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000+rand.Int63n(65536)), nil), types.NewNucleusSigner(genesis.Config.NetworkID), faucets[index])
 		if err != nil {
 			panic(err)
 		}
-		if err := core.TxPool().AddLocal(tx); err != nil {
+		if err := backend.TxPool().AddLocal(tx); err != nil {
 			panic(err)
 		}
 		nonces[index]++
 
 		// Wait if we're too saturated
-		if pend, _ := core.TxPool().Stats(); pend > 2048 {
+		if pend, _ := backend.TxPool().Stats(); pend > 2048 {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
@@ -144,7 +136,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
 	return genesis
 }
 
-func makeMiner(genesis *core.Genesis) (*node.Node, error) {
+func makeMiner(genesis *core.Genesis) (*node.Node, *xcb.Core, error) {
 	// Define the basic configurations for the Core node
 	datadir, _ := ioutil.TempDir("", "")
 
@@ -160,31 +152,31 @@ func makeMiner(genesis *core.Genesis) (*node.Node, error) {
 		NoUSB:             true,
 		UseLightweightKDF: true,
 	}
-	// Start the node and configure a full Core node on it
+	// Create the node and configure a full Core node on it
 	stack, err := node.New(config)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return xcb.New(ctx, &xcb.Config{
-			Genesis:         genesis,
-			NetworkId:       genesis.Config.NetworkID.Uint64(),
-			SyncMode:        downloader.FullSync,
-			DatabaseCache:   256,
-			DatabaseHandles: 256,
-			TxPool:          core.DefaultTxPoolConfig,
-			GPO:             xcb.DefaultConfig.GPO,
-			Cryptore:        xcb.DefaultConfig.Cryptore,
-			Miner: miner.Config{
-				EnergyFloor: genesis.EnergyLimit * 9 / 10,
-				EnergyCeil:  genesis.EnergyLimit * 11 / 10,
-				EnergyPrice: big.NewInt(1),
-				Recommit:    time.Second,
-			},
-		})
-	}); err != nil {
-		return nil, err
+	xcbBackend, err := xcb.New(stack, &xcb.Config{
+		Genesis:         genesis,
+		NetworkId:       genesis.Config.ChainID.Uint64(),
+		SyncMode:        downloader.FullSync,
+		DatabaseCache:   256,
+		DatabaseHandles: 256,
+		TxPool:          core.DefaultTxPoolConfig,
+		GPO:             xcb.DefaultConfig.GPO,
+		Cryptore:          xcb.DefaultConfig.Cryptore,
+		Miner: miner.Config{
+			EnergyFloor: genesis.EnergyLimit * 9 / 10,
+			EnergyCeil:  genesis.EnergyLimit * 11 / 10,
+			EnergyPrice: big.NewInt(1),
+			Recommit: time.Second,
+		},
+	})
+	if err != nil {
+		return nil, nil, err
 	}
-	// Start the node and return if successful
-	return stack, stack.Start()
+
+	err = stack.Start()
+	return stack, xcbBackend, err
 }

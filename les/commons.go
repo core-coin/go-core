@@ -27,11 +27,14 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/discv5"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/xcbclient"
 	"github.com/core-coin/go-core/xcbdb"
 )
 
@@ -143,4 +146,27 @@ func (c *lesCommons) localCheckpoint(index uint64) params.TrustedCheckpoint {
 		CHTRoot:      light.GetChtRoot(c.chainDb, index, sectionHead),
 		BloomRoot:    light.GetBloomTrieRoot(c.chainDb, index, sectionHead),
 	}
+}
+
+// setupOracle sets up the checkpoint oracle contract client.
+func (c *lesCommons) setupOracle(node *node.Node, genesis common.Hash, xcbconfig *xcb.Config) *checkpointoracle.CheckpointOracle {
+	config := xcbconfig.CheckpointOracle
+	if config == nil {
+		// Try loading default config.
+		config = params.CheckpointOracles[genesis]
+	}
+	if config == nil {
+		log.Info("Checkpoint registrar is not enabled")
+		return nil
+	}
+	if config.Address == (common.Address{}) || uint64(len(config.Signers)) < config.Threshold {
+		log.Warn("Invalid checkpoint registrar config")
+		return nil
+	}
+	oracle := checkpointoracle.New(config, c.localCheckpoint)
+	rpcClient, _ := node.Attach()
+	client := xcbclient.NewClient(rpcClient)
+	oracle.Start(client)
+	log.Info("Configured checkpoint registrar", "address", config.Address, "signers", len(config.Signers), "threshold", config.Threshold)
+	return oracle
 }

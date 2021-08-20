@@ -157,19 +157,13 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 		xcbConf.SyncMode = downloader.LightSync
 		xcbConf.NetworkId = uint64(config.CoreNetworkID)
 		xcbConf.DatabaseCache = config.CoreDatabaseCache
-		if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, &xcbConf)
-		}); err != nil {
+		lesBackend, err := les.New(rawStack, &xcbConf)
+		if err != nil {
 			return nil, fmt.Errorf("core init: %v", err)
 		}
 		// If netstats reporting is requested, do it
 		if config.CoreNetStats != "" {
-			if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-				var lesServ *les.LightCore
-				ctx.Service(&lesServ)
-
-				return xcbstats.New(config.CoreNetStats, nil, lesServ)
-			}); err != nil {
+			if err := xcbstats.New(rawStack, lesBackend.ApiBackend, lesBackend.Engine(), config.CoreNetStats); err != nil {
 				return nil, fmt.Errorf("netstats init: %v", err)
 			}
 		}
@@ -178,21 +172,24 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	return &Node{rawStack}, nil
 }
 
-// Close terminates a running node along with all it's services, tearing internal
-// state doen too. It's not possible to restart a closed node.
+// Close terminates a running node along with all it's services, tearing internal state
+// down. It is not possible to restart a closed node.
 func (n *Node) Close() error {
 	return n.node.Close()
 }
 
 // Start creates a live P2P node and starts running it.
 func (n *Node) Start() error {
+	// TODO: recreate the node so it can be started multiple times
 	return n.node.Start()
 }
 
-// Stop terminates a running node along with all it's services. If the node was
-// not started, an error is returned.
+// Stop terminates a running node along with all its services. If the node was not started,
+// an error is returned. It is not possible to restart a stopped node.
+//
+// Deprecated: use Close()
 func (n *Node) Stop() error {
-	return n.node.Stop()
+	return n.node.Close()
 }
 
 // GetCoreClient retrieves a client to access the Core subsystem.
