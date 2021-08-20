@@ -30,6 +30,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/trie"
 	mapset "github.com/deckarep/golang-set"
 	"golang.org/x/crypto/sha3"
 )
@@ -415,7 +416,7 @@ func (cryptore *Cryptore) FinalizeAndAssemble(chain consensus.ChainReader, heade
 	header.Root = state.IntermediateRoot(true)
 
 	// Header seems complete, assemble into a block and return
-	return types.NewBlock(header, txs, uncles, receipts), nil
+	return types.NewBlock(header, txs, uncles, receipts, new(trie.Trie)), nil
 }
 
 // SealHash returns the hash of a block prior to it being sealed.

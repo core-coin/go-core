@@ -19,6 +19,7 @@ package types
 import (
 	"bytes"
 	eddsa "github.com/core-coin/go-goldilocks"
+	"hash"
 	"math/big"
 	"reflect"
 	"testing"
@@ -28,6 +29,7 @@ import (
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/rlp"
+	"golang.org/x/crypto/sha3"
 )
 
 // from bcValidBlockTest.json, "SimpleTx"
@@ -86,3 +88,28 @@ func BenchmarkUncleHash(b *testing.B) {
 		CalcUncleHash(uncles)
 	}
 }
+
+// testHasher is the helper tool for transaction/receipt list hashing.
+// The original hasher is trie, in order to get rid of import cycle,
+// use the testing hasher instead.
+type testHasher struct {
+	hasher hash.Hash
+}
+
+func newHasher() *testHasher {
+	return &testHasher{hasher: sha3.NewLegacyKeccak256()}
+}
+
+func (h *testHasher) Reset() {
+	h.hasher.Reset()
+}
+
+func (h *testHasher) Update(key, val []byte) {
+	h.hasher.Write(key)
+	h.hasher.Write(val)
+}
+
+func (h *testHasher) Hash() common.Hash {
+	return common.BytesToHash(h.hasher.Sum(nil))
+}
+
