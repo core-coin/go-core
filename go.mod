@@ -33,7 +33,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/hpcloud/tail v1.0.0
 	github.com/huin/goupnp v1.0.1-0.20210626160114-33cdcbb30dda
-	github.com/influxdata/influxdb v1.8.3 // indirect
+	github.com/influxdata/influxdb v1.8.3
 	github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/julienschmidt/httprouter v1.2.0
@@ -57,8 +57,9 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210420205809-ac73e9fd8988
+	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
 	golang.org/x/text v0.3.4
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
