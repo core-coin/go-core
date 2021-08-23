@@ -900,6 +900,9 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 		if err != nil {
 			return 0, err
 		}
+		if block == nil {
+			return 0, errors.New("block not found")
+		}
 		hi = block.EnergyLimit()
 	}
 	if energyCap != nil && hi > energyCap.Uint64() {
@@ -942,9 +945,12 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 
 // EstimateEnergy returns an estimate of the amount of energy needed to execute the
 // given transaction against the current pending block.
-func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
-	blockNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return DoEstimateEnergy(ctx, s.b, args, blockNrOrHash, s.b.RPCEnergyCap())
+func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
+	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
+	if blockNrOrHash != nil {
+		bNrOrHash = *blockNrOrHash
+	}
+	return DoEstimateEnergy(ctx, s.b, args, bNrOrHash, s.b.RPCEnergyCap())
 }
 
 // ExecutionResult groups all structured logs emitted by the CVM
