@@ -103,7 +103,7 @@ type CodeRequest struct {
 
 // StoreResult stores the retrieved data in local database
 func (req *CodeRequest) StoreResult(db xcbdb.Database) {
-	db.Put(req.Hash[:], req.Data)
+	rawdb.WriteCode(db, req.Hash, req.Data)
 }
 
 // BlockRequest is the ODR request type for retrieving block bodies

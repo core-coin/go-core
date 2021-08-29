@@ -610,7 +610,14 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				// Only lookup the trie node if there's chance that we actually have it
 				continue
 			}
-			if entry, err := pm.blockchain.TrieNode(hash); err == nil {
+			// todo now the code and trienode is mixed in the protocol level,
+			// separate these two types.
+			entry, err := pm.blockchain.TrieNode(hash)
+			if len(entry) == 0 || err != nil {
+				// Read the contract code with prefix only to save unnecessary lookups.
+				entry, err = pm.blockchain.ContractCodeWithPrefix(hash)
+			}
+			if err == nil && len(entry) > 0 {
 				data = append(data, entry)
 				bytes += len(entry)
 			}
@@ -705,7 +712,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			log.Warn("Propagated block has invalid uncles", "have", hash, "exp", request.Block.UncleHash())
 			break // TODO(raisty): return error eventually, but wait a few releases
 		}
-		if hash := types.DeriveSha(request.Block.Transactions()); hash != request.Block.TxHash() {
+		if hash := types.DeriveSha(request.Block.Transactions(), new(trie.Trie)); hash != request.Block.TxHash() {
 			log.Warn("Propagated block has invalid body", "have", hash, "exp", request.Block.TxHash())
 			break // TODO(raisty): return error eventually, but wait a few releases
 		}
