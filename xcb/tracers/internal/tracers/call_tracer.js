@@ -139,13 +139,12 @@
 				// If the call was a contract call, retrieve the energy usage and output
 				if (call.energy !== undefined) {
 					call.energyUsed = '0x' + bigInt(call.energyIn - call.energyCost + call.energy - log.getEnergy()).toString(16);
-
-					var ret = log.stack.peek(0);
-					if (!ret.equals(0)) {
-						call.output = toHex(log.memory.slice(call.outOff, call.outOff + call.outLen));
-					} else if (call.error === undefined) {
-						call.error = "internal failure"; // TODO(raisty): surface these faults somehow
-					}
+				}
+				var ret = log.stack.peek(0);
+				if (!ret.equals(0)) {
+					call.output = toHex(log.memory.slice(call.outOff, call.outOff + call.outLen));
+				} else if (call.error === undefined) {
+					call.error = "internal failure"; // TODO(raisty): surface these faults somehow
 				}
 				delete call.energyIn; delete call.energyCost;
 				delete call.outOff; delete call.outLen;
@@ -215,7 +214,7 @@
 		} else if (ctx.error !== undefined) {
 			result.error = ctx.error;
 		}
-		if (result.error !== undefined) {
+		if (result.error !== undefined && (result.error !== "execution reverted" || result.output ==="0x")) {
 			delete result.output;
 		}
 		return this.finalize(result);

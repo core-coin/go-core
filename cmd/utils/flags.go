@@ -636,6 +636,11 @@ var (
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices",
 		Value: xcb.DefaultConfig.GPO.Percentile,
 	}
+	GpoMaxEnergyPriceFlag = cli.Int64Flag{
+		Name:  "gpo.maxprice",
+		Usage: "Maximum energy price will be recommended by gpo",
+		Value: xcb.DefaultConfig.GPO.MaxPrice.Int64(),
+	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
 		Usage: "Enable Whisper",
@@ -1270,6 +1275,9 @@ func setGPO(ctx *cli.Context, cfg *energyprice.Config, light bool) {
 	if ctx.GlobalIsSet(GpoPercentileFlag.Name) {
 		cfg.Percentile = ctx.GlobalInt(GpoPercentileFlag.Name)
 	}
+	if ctx.GlobalIsSet(GpoMaxEnergyPriceFlag.Name) {
+		cfg.MaxPrice = big.NewInt(ctx.GlobalInt64(GpoMaxEnergyPriceFlag.Name))
+	}
 }
 
 func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
@@ -1623,7 +1631,6 @@ func RegisterXcbService(stack *node.Node, cfg *xcb.Config) {
 		Fatalf("Failed to register the Core service: %v", err)
 	}
 }
-
 
 // RegisterXcbStatsService configures the Core Stats daemon and adds it to
 // the given node.
