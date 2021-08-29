@@ -35,12 +35,14 @@ import (
 var DefaultFullGPOConfig = energyprice.Config{
 	Blocks:     20,
 	Percentile: 60,
+	MaxPrice:   energyprice.DefaultMaxPrice,
 }
 
 // DefaultLightGPOConfig contains default gasprice oracle settings for light client.
 var DefaultLightGPOConfig = energyprice.Config{
 	Blocks:     2,
 	Percentile: 60,
+	MaxPrice:   energyprice.DefaultMaxPrice,
 }
 
 // DefaultConfig contains default settings for use on the Core main net.
