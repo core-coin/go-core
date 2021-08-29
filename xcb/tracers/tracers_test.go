@@ -284,7 +284,6 @@ func TestCallTracer(t *testing.T) {
 	}
 }
 
-
 // jsonEqual is similar to reflect.DeepEqual, but does a 'bounce' via json prior to
 // comparison
 func jsonEqual(x, y interface{}) bool {

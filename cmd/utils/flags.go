@@ -1632,7 +1632,6 @@ func RegisterXcbService(stack *node.Node, cfg *xcb.Config) {
 	}
 }
 
-
 // RegisterXcbStatsService configures the Core Stats daemon and adds it to
 // the given node.
 func RegisterXcbStatsService(stack *node.Node, url string) {

@@ -47,8 +47,8 @@ var DefaultLightGPOConfig = energyprice.Config{
 
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
-	SyncMode:           downloader.FastSync,
-	Cryptore:           cryptore.Config{},
+	SyncMode:                downloader.FastSync,
+	Cryptore:                cryptore.Config{},
 	NetworkId:               1,
 	LightPeers:              100,
 	UltraLightFraction:      75,
@@ -65,8 +65,8 @@ var DefaultConfig = Config{
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
-	TxPool:				core.DefaultTxPoolConfig,
-	GPO:				DefaultFullGPOConfig,
+	TxPool: core.DefaultTxPoolConfig,
+	GPO:    DefaultFullGPOConfig,
 }
 
 func init() {
