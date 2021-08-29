@@ -37,8 +37,8 @@ import (
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/xcbdb"
 )
 
 // So we can deterministically seed different blockchains

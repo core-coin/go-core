@@ -37,7 +37,7 @@ type testHasher struct {
 }
 
 func newHasher() *testHasher {
-	return &testHasher{hasher: sha3.NewLegacyKeccak256()}
+	return &testHasher{hasher: sha3.New256()}
 }
 
 func (h *testHasher) Reset() {

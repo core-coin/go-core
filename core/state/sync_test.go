@@ -255,10 +255,8 @@ func testIterativeRandomStateSync(t *testing.T, count int) {
 			}
 		}
 		batch := dstDb.NewBatch()
-		for _, result := range results {
-			if err := sched.Process(result); err != nil {
-				t.Fatalf("failed to process result %v", err)
-			}
+		if err := sched.Commit(batch); err != nil {
+			t.Fatalf("failed to commit data: %v", err)
 		}
 		batch.Write()
 		queue = make(map[common.Hash]struct{})
@@ -331,7 +329,7 @@ func TestIncompleteStateSync(t *testing.T) { // TODO: TEST
 	// isCode reports whether the hash is contract code hash.
 	isCode := func(hash common.Hash) bool {
 		for _, acc := range srcAccounts {
-			if hash == crypto.Keccak256Hash(acc.code) {
+			if hash == crypto.SHA3Hash(acc.code) {
 				return true
 			}
 		}

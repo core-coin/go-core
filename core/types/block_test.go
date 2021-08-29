@@ -97,7 +97,7 @@ type testHasher struct {
 }
 
 func newHasher() *testHasher {
-	return &testHasher{hasher: sha3.NewLegacyKeccak256()}
+	return &testHasher{hasher: sha3.New256()}
 }
 
 func (h *testHasher) Reset() {
@@ -112,4 +112,3 @@ func (h *testHasher) Update(key, val []byte) {
 func (h *testHasher) Hash() common.Hash {
 	return common.BytesToHash(h.hasher.Sum(nil))
 }
-
