@@ -20,7 +20,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"strconv"
 	"strings"
@@ -248,7 +248,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid private key: %v", err)
 		}
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		from = crypto.PubkeyToAddress(pub)
 	}
 	// Parse recipient if present.

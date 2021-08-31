@@ -18,13 +18,13 @@ package energyprice
 
 import (
 	"context"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcbdb"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math"
 	"math/big"
 	"testing"
@@ -205,7 +205,7 @@ func (b *testBackend) ChainConfig() *params.ChainConfig {
 func newTestBackend(t *testing.T) *testBackend {
 	var (
 		key, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub    = eddsa.Ed448DerivePublicKey(*key)
+		pub    = ed448.Ed448DerivePublicKey(key)
 		addr   = crypto.PubkeyToAddress(pub)
 		gspec  = &core.Genesis{
 			Config: params.TestChainConfig,

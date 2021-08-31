@@ -17,7 +17,7 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"time"
 
@@ -35,12 +35,12 @@ type node struct {
 
 type encPubkey [57]byte
 
-func encodePubkey(pub *eddsa.PublicKey) (key encPubkey) {
+func encodePubkey(pub ed448.PublicKey) (key encPubkey) {
 	copy(key[:], pub[:])
 	return key
 }
 
-func decodePubkey(e encPubkey) (*eddsa.PublicKey, error) {
+func decodePubkey(e encPubkey) (ed448.PublicKey, error) {
 	return crypto.UnmarshalPubkey(e[:])
 }
 

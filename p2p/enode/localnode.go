@@ -18,7 +18,7 @@ package enode
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"reflect"
 	"strconv"
@@ -44,7 +44,7 @@ const (
 type LocalNode struct {
 	cur atomic.Value // holds a non-nil node pointer while the record is up-to-date.
 	id  ID
-	key *eddsa.PrivateKey
+	key ed448.PrivateKey
 	db  *DB
 
 	// everything below is protected by a lock
@@ -62,10 +62,10 @@ type lnEndpoint struct {
 }
 
 // NewLocalNode creates a local node.
-func NewLocalNode(db *DB, key *eddsa.PrivateKey) *LocalNode {
-	pub := eddsa.Ed448DerivePublicKey(*key)
+func NewLocalNode(db *DB, key ed448.PrivateKey) *LocalNode {
+	pub := ed448.Ed448DerivePublicKey(key)
 	ln := &LocalNode{
-		id:      PubkeyToIDV4(&pub),
+		id:      PubkeyToIDV4(pub),
 		db:      db,
 		key:     key,
 		entries: make(map[string]enr.Entry),

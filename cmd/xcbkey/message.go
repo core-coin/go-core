@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 
 	"github.com/core-coin/go-core/accounts/keystore"
@@ -74,7 +75,7 @@ To sign a message contained in a file, use the --msgfile flag.
 		if err != nil {
 			utils.Fatalf("Failed to sign message: %v", err)
 		}
-		out := outputSign{Signature: hex.EncodeToString(signature)}
+		out := outputSign{Signature: hex.EncodeToString(signature[:])}
 		if ctx.Bool(jsonFlag.Name) {
 			mustPrintJSON(out)
 		} else {
@@ -124,11 +125,11 @@ It is possible to refer to a file containing the message.`,
 		}
 
 		recoveredPubkey, err := crypto.SigToPub(signHash(message), signature)
-		if err != nil || recoveredPubkey == nil {
+		if err != nil || (recoveredPubkey == ed448.PublicKey{}) {
 			utils.Fatalf("Signature verification failed: %v", err)
 		}
 		recoveredPubkeyBytes := crypto.FromEDDSAPub(recoveredPubkey)
-		recoveredAddress := crypto.PubkeyToAddress(*recoveredPubkey)
+		recoveredAddress := crypto.PubkeyToAddress(recoveredPubkey)
 		success := address == recoveredAddress
 
 		out := outputVerify{

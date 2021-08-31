@@ -24,6 +24,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"hash"
 	"net"
 	"time"
@@ -33,7 +34,6 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -157,7 +157,7 @@ var (
 type wireCodec struct {
 	sha256           hash.Hash
 	localnode        *enode.LocalNode
-	privkey          *eddsa.PrivateKey
+	privkey          ed448.PrivateKey
 	myChtagHash      enode.ID
 	myWhoareyouMagic []byte
 
@@ -200,7 +200,7 @@ func (h *authHeader) DecodeRLP(r *rlp.Stream) error {
 }
 
 // ephemeralKey decodes the ephemeral public key in the header.
-func (h *authHeaderList) ephemeralKey() *eddsa.PublicKey {
+func (h *authHeaderList) ephemeralKey() ed448.PublicKey {
 	var key encPubkey
 	copy(key[:], h.EphemeralKey)
 	pubkey, _ := decodePubkey(key)
@@ -208,7 +208,7 @@ func (h *authHeaderList) ephemeralKey() *eddsa.PublicKey {
 }
 
 // newWireCodec creates a wire codec.
-func newWireCodec(ln *enode.LocalNode, key *eddsa.PrivateKey, clock mclock.Clock) *wireCodec {
+func newWireCodec(ln *enode.LocalNode, key ed448.PrivateKey, clock mclock.Clock) *wireCodec {
 	c := &wireCodec{
 		sha256:    sha256.New(),
 		localnode: ln,
@@ -329,16 +329,16 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 
 	// Create the ephemeral key. This needs to be first because the
 	// key is part of the ID nonce signature.
-	var remotePubkey = new(eddsa.PublicKey)
-	if err := challenge.node.Load((*enode.Secp256k1)(remotePubkey)); err != nil {
+	var remotePubkey = ed448.PublicKey{}
+	if err := challenge.node.Load((*enode.Secp256k1)(&remotePubkey)); err != nil {
 		return nil, nil, fmt.Errorf("can't find secp256k1 key for recipient")
 	}
 	ephkey, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't generate ephemeral key")
 	}
-	pub := eddsa.Ed448DerivePublicKey(*ephkey)
-	ephpubkey := encodePubkey(&pub)
+	pub := ed448.Ed448DerivePublicKey(ephkey)
+	ephpubkey := encodePubkey(pub)
 
 	// Add ID nonce signature to response.
 	idsig, err := c.signIDNonce(challenge.IDNonce[:], ephpubkey[:])
@@ -373,7 +373,7 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 }
 
 // deriveKeys generates session keys using elliptic-curve Diffie-Hellman key agreement.
-func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv *eddsa.PrivateKey, pub *eddsa.PublicKey, challenge *whoareyouV5) *handshakeSecrets {
+func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv ed448.PrivateKey, pub ed448.PublicKey, challenge *whoareyouV5) *handshakeSecrets {
 	eph := ecdh(priv, pub)
 	if eph == nil {
 		return nil
@@ -506,7 +506,7 @@ func (c *wireCodec) decodeAuthResp(fromID enode.ID, fromAddr string, head *authH
 		return nil, nil, errUnknownAuthScheme
 	}
 	ephkey := head.ephemeralKey()
-	if ephkey == nil {
+	if (ephkey == ed448.PublicKey{}) {
 		return nil, nil, errInvalidAuthKey
 	}
 	sec := c.deriveKeys(fromID, c.localnode.ID(), c.privkey, ephkey, challenge)
@@ -550,9 +550,9 @@ func (c *wireCodec) decodeAuthResp(fromID enode.ID, fromAddr string, head *authH
 func (c *wireCodec) verifyIDSignature(nonce, ephkey, sig []byte, n *enode.Node) error {
 	switch idscheme := n.Record().IdentityScheme(); idscheme {
 	case "v4":
-		var pk eddsa.PublicKey
+		var pk ed448.PublicKey
 		n.Load((*enode.Secp256k1)(&pk)) // cannot fail because record is valid
-		if !crypto.VerifySignature(crypto.FromEDDSAPub(&pk), c.idNonceHash(nonce, ephkey), sig) {
+		if !crypto.VerifySignature(crypto.FromEDDSAPub(pk), c.idNonceHash(nonce, ephkey), sig) {
 			return errInvalidNonceSig
 		}
 		return nil
@@ -616,7 +616,7 @@ func xorTag(a []byte, b enode.ID) enode.ID {
 }
 
 // ecdh creates a shared secret.
-func ecdh(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
+func ecdh(privkey ed448.PrivateKey, pubkey ed448.PublicKey) []byte {
 	return crypto.ComputeSecret(privkey, pubkey)
 }
 

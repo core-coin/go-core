@@ -40,7 +40,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io"
 	"os"
 	"strings"
@@ -286,8 +286,8 @@ func createNode(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		pub := eddsa.Ed448DerivePublicKey(*privKey)
-		config.ID = enode.PubkeyToIDV4(&pub)
+		pub := ed448.Ed448DerivePublicKey(privKey)
+		config.ID = enode.PubkeyToIDV4(pub)
 		config.PrivateKey = privKey
 	}
 	if services := ctx.String("services"); services != "" {

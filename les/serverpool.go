@@ -18,6 +18,7 @@ package les
 
 import (
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io"
 	"math"
 	"math/rand"
@@ -25,8 +26,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
@@ -748,11 +747,11 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-func encodePubkey64(pub *eddsa.PublicKey) []byte {
+func encodePubkey64(pub ed448.PublicKey) []byte {
 	return crypto.FromEDDSAPub(pub)
 }
 
-func decodePubkey64(b []byte) (*eddsa.PublicKey, error) {
+func decodePubkey64(b []byte) (ed448.PublicKey, error) {
 	return crypto.UnmarshalPubkey(b)
 }
 

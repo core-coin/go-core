@@ -17,10 +17,9 @@
 // +build none
 
 // This file contains a miner stress test based on the Cryptore consensus engine.
-package main
+package miner
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -48,7 +47,7 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*eddsa.PrivateKey, 128)
+	faucets := make([]ed448.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -127,7 +126,7 @@ func main() {
 
 // makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
-func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
+func makeGenesis(faucets []ed448.PrivateKey) *core.Genesis {
 	genesis := core.DefaultDevinGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000

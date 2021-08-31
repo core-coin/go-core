@@ -20,7 +20,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -175,7 +175,7 @@ type benchmarkTxSend struct {
 
 func (b *benchmarkTxSend) init(h *serverHandler, count int) error {
 	key, _ := crypto.GenerateKey(crand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	signer := types.NewNucleusSigner(big.NewInt(18))
 	b.txs = make(types.Transactions, count)

@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"math/rand"
 	"net"
 	"reflect"
@@ -31,7 +32,6 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
 )
 
 // Real sockets, real crypto: this test checks end-to-end connectivity for UDPv5.
@@ -453,7 +453,7 @@ type udpV5Test struct {
 	table               *Table
 	db                  *enode.DB
 	udp                 *UDPv5
-	localkey, remotekey *eddsa.PrivateKey
+	localkey, remotekey ed448.PrivateKey
 	remoteaddr          *net.UDPAddr
 	nodesByID           map[enode.ID]*enode.LocalNode
 	nodesByIP           map[string]*enode.LocalNode
@@ -545,7 +545,7 @@ func (test *udpV5Test) packetIn(packet packetV5) {
 }
 
 // handles a packet as if it had been sent to the transport by the key/endpoint.
-func (test *udpV5Test) packetInFrom(key *eddsa.PrivateKey, addr *net.UDPAddr, packet packetV5) {
+func (test *udpV5Test) packetInFrom(key ed448.PrivateKey, addr *net.UDPAddr, packet packetV5) {
 	test.t.Helper()
 
 	ln := test.getNode(key, addr)
@@ -560,9 +560,9 @@ func (test *udpV5Test) packetInFrom(key *eddsa.PrivateKey, addr *net.UDPAddr, pa
 }
 
 // getNode ensures the test knows about a node at the given endpoint.
-func (test *udpV5Test) getNode(key *eddsa.PrivateKey, addr *net.UDPAddr) *enode.LocalNode {
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	id := encodePubkey(&pub).id()
+func (test *udpV5Test) getNode(key ed448.PrivateKey, addr *net.UDPAddr) *enode.LocalNode {
+	pub := ed448.Ed448DerivePublicKey(key)
+	id := encodePubkey(pub).id()
 	ln := test.nodesByID[id]
 	if ln == nil {
 		db, _ := enode.OpenDB("")

@@ -18,7 +18,7 @@ package downloader
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"sync"
 
@@ -34,7 +34,7 @@ import (
 // Test chain parameters.
 var (
 	testKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub         = eddsa.Ed448DerivePublicKey(*testKey)
+	pub         = ed448.Ed448DerivePublicKey(testKey)
 	testAddress = crypto.PubkeyToAddress(pub)
 	testDB      = rawdb.NewMemoryDatabase()
 	testGenesis = core.GenesisBlockForTesting(testDB, testAddress, big.NewInt(1000000000))

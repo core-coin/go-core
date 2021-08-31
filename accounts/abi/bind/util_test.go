@@ -18,7 +18,7 @@ package bind_test
 
 import (
 	"context"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"testing"
 	"time"
@@ -59,7 +59,7 @@ func TestWaitDeployed(t *testing.T) {
 		t.Error(addrErr)
 	}
 	for name, test := range waitDeployedTests {
-		pub := eddsa.Ed448DerivePublicKey(*testKey)
+		pub := ed448.Ed448DerivePublicKey(testKey)
 		backend := backends.NewSimulatedBackend(
 			core.GenesisAlloc{
 				crypto.PubkeyToAddress(pub): {Balance: big.NewInt(10000000000)},

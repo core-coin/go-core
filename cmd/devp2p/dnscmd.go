@@ -19,12 +19,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
@@ -222,7 +221,7 @@ func dnsToRoute53(ctx *cli.Context) error {
 }
 
 // loadSigningKey loads a private key in Core keystore format.
-func loadSigningKey(keyfile string) *eddsa.PrivateKey {
+func loadSigningKey(keyfile string) ed448.PrivateKey {
 	keyjson, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		exit(fmt.Errorf("failed to read the keyfile at '%s': %v", keyfile, err))
@@ -332,7 +331,7 @@ func loadTreeDefinitionForExport(dir string) (domain string, t *dnsdisc.Tree, er
 
 // ensureValidTreeSignature checks that sig is valid for tree and assigns it as the
 // tree's signature if valid.
-func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey *eddsa.PublicKey, sig string) error {
+func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey ed448.PublicKey, sig string) error {
 	if sig == "" {
 		return fmt.Errorf("missing signature, run 'devp2p dns sign' first")
 	}

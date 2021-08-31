@@ -1432,14 +1432,14 @@ var bindTests = []struct {
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	eddsa "github.com/core-coin/go-goldilocks"
+		"github.com/core-coin/ed448"
 		"github.com/core-coin/go-core/crypto"
 		"github.com/core-coin/go-core/core"
 		`,
 		`
 		// Initialize test accounts
 		key, _ := crypto.GenerateKey(rand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 
 		// Deploy registrar contract
@@ -1496,7 +1496,7 @@ var bindTests = []struct {
 		"math/big"		
 		"crypto/rand"
 
-		eddsa "github.com/core-coin/go-goldilocks"
+		"github.com/core-coin/ed448"
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
 		"github.com/core-coin/go-core/crypto"
@@ -1504,7 +1504,7 @@ var bindTests = []struct {
         `,
 		`
 		key, _ := crypto.GenerateKey(rand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 
 		// Deploy registrar contract

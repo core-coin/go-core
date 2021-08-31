@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"strings"
 	"testing"
@@ -111,7 +111,7 @@ func TestNewSimulatedBackend(t *testing.T) {
 	if failure != nil {
 		t.Error(failure)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 	expectedBal := big.NewInt(10000000000)
 	sim := NewSimulatedBackend(
@@ -155,7 +155,7 @@ func TestSimulatedBackend_AdjustTime(t *testing.T) {
 }
 
 func TestSimulatedBackend_BalanceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 	expectedBal := big.NewInt(10000000000)
 	sim := NewSimulatedBackend(
@@ -233,7 +233,7 @@ func TestSimulatedBackend_BlockByNumber(t *testing.T) {
 }
 
 func TestSimulatedBackend_NonceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -278,7 +278,7 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 }
 
 func TestSimulatedBackend_SendTransaction(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -314,7 +314,7 @@ func TestSimulatedBackend_SendTransaction(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionByHash(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -371,7 +371,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	)
 	defer sim.Close()
 	bgCtx := context.Background()
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	energy, err := sim.EstimateEnergy(bgCtx, gocore.CallMsg{
@@ -390,7 +390,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 }
 
 func TestSimulatedBackend_HeaderByHash(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -416,7 +416,7 @@ func TestSimulatedBackend_HeaderByHash(t *testing.T) {
 }
 
 func TestSimulatedBackend_HeaderByNumber(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -468,7 +468,7 @@ func TestSimulatedBackend_HeaderByNumber(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionCount(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -523,7 +523,7 @@ func TestSimulatedBackend_TransactionCount(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -591,7 +591,7 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 }
 
 func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -658,7 +658,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 
 	sim := NewSimulatedBackend(
@@ -710,7 +710,7 @@ func TestSimulatedBackend_SuggestEnergyPrice(t *testing.T) {
 }
 
 func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{
@@ -752,7 +752,7 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 }
 
 func TestSimulatedBackend_CodeAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{
@@ -797,7 +797,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 // When receive("X") is called with sender 0x00... and value 1, it produces this tx receipt:
 //   receipt{status=1 cenergy=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
 func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
+	pub := ed448.Ed448DerivePublicKey(testKey)
 	testAddr := crypto.PubkeyToAddress(pub)
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{

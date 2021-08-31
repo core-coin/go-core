@@ -18,7 +18,7 @@ package enode
 
 import (
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"reflect"
 	"strings"
@@ -157,7 +157,7 @@ var parseNodeTests = []struct {
 	},
 }
 
-func hexPubkey(h string) *eddsa.PublicKey {
+func hexPubkey(h string) ed448.PublicKey {
 	k, err := parsePubkey(h)
 	if err != nil {
 		panic(err)

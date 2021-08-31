@@ -22,6 +22,7 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io"
 	"math"
 	"net"
@@ -33,7 +34,6 @@ import (
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/p2p/netutil"
-	eddsa "github.com/core-coin/go-goldilocks"
 )
 
 const (
@@ -76,7 +76,7 @@ type UDPv5 struct {
 	conn         UDPConn
 	tab          *Table
 	netrestrict  *netutil.Netlist
-	priv         *eddsa.PrivateKey
+	priv         ed448.PrivateKey
 	localNode    *enode.LocalNode
 	db           *enode.DB
 	log          log.Logger

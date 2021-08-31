@@ -21,7 +21,7 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io"
 	"sort"
 	"strings"
@@ -40,22 +40,22 @@ type Tree struct {
 }
 
 // Sign signs the tree with the given private key and sets the sequence number.
-func (t *Tree) Sign(key *eddsa.PrivateKey, domain string) (url string, err error) {
+func (t *Tree) Sign(key ed448.PrivateKey, domain string) (url string, err error) {
 	root := *t.root
 	sig, err := crypto.Sign(root.sigHash(), key)
 	if err != nil {
 		return "", err
 	}
-	root.sig = sig
+	root.sig = sig[:]
 	t.root = &root
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	link := newLinkEntry(domain, &pub)
+	pub := ed448.Ed448DerivePublicKey(key)
+	link := newLinkEntry(domain, pub)
 	return link.String(), nil
 }
 
 // SetSignature verifies the given signature and assigns it as the tree's current
 // signature if valid.
-func (t *Tree) SetSignature(pubkey *eddsa.PublicKey, signature string) error {
+func (t *Tree) SetSignature(pubkey ed448.PublicKey, signature string) error {
 	sig, err := b64format.DecodeString(signature)
 	if err != nil || len(sig) != crypto.ExtendedSignatureLength {
 		return errInvalidSig
@@ -212,7 +212,7 @@ type (
 	linkEntry struct {
 		str    string
 		domain string
-		pubkey *eddsa.PublicKey
+		pubkey ed448.PublicKey
 	}
 )
 
@@ -246,7 +246,7 @@ func (e *rootEntry) sigHash() []byte {
 	return h.Sum(nil)
 }
 
-func (e *rootEntry) verifySignature(pubkey *eddsa.PublicKey) bool {
+func (e *rootEntry) verifySignature(pubkey ed448.PublicKey) bool {
 	enckey := crypto.FromEDDSAPub(pubkey)
 	return crypto.VerifySignature(enckey, e.sigHash(), e.sig)
 }
@@ -263,7 +263,7 @@ func (e *linkEntry) String() string {
 	return linkPrefix + e.str
 }
 
-func newLinkEntry(domain string, pubkey *eddsa.PublicKey) *linkEntry {
+func newLinkEntry(domain string, pubkey ed448.PublicKey) *linkEntry {
 	key := b32format.EncodeToString(crypto.CompressPubkey(pubkey))
 	str := key + "@" + domain
 	return &linkEntry{str, domain, pubkey}
@@ -383,10 +383,10 @@ func truncateHash(hash string) string {
 // URL encoding
 
 // ParseURL parses an enrtree:// URL and returns its components.
-func ParseURL(url string) (domain string, pubkey *eddsa.PublicKey, err error) {
+func ParseURL(url string) (domain string, pubkey ed448.PublicKey, err error) {
 	le, err := parseLink(url)
 	if err != nil {
-		return "", nil, err
+		return "", ed448.PublicKey{}, err
 	}
 	return le.domain, le.pubkey, nil
 }

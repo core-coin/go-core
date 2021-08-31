@@ -18,7 +18,7 @@ package filters
 
 import (
 	"context"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -53,7 +53,7 @@ func BenchmarkFilters(b *testing.B) {
 		db, _   = rawdb.NewLevelDBDatabase(dir, 0, 0, "")
 		backend = &testBackend{db: db}
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key1)
+		pub     = ed448.Ed448DerivePublicKey(key1)
 		addr1   = crypto.PubkeyToAddress(pub)
 		addr2   = common.BytesToAddress([]byte("jeff"))
 		addr3   = common.BytesToAddress([]byte("core"))
@@ -108,7 +108,7 @@ func TestFilters(t *testing.T) {
 		db, _   = rawdb.NewLevelDBDatabase(dir, 0, 0, "")
 		backend = &testBackend{db: db}
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key1)
+		pub     = ed448.Ed448DerivePublicKey(key1)
 		addr    = crypto.PubkeyToAddress(pub)
 
 		hash1 = common.BytesToHash([]byte("topic1"))

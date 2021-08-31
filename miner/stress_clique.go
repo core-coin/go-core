@@ -17,17 +17,17 @@
 // +build none
 
 // This file contains a miner stress test based on the Clique consensus engine.
-package main
+package miner
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
 	"time"
 
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/accounts/keystore"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/fdlimit"
@@ -49,11 +49,11 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*eddsa.PrivateKey, 128)
+	faucets := make([]ed448.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey(rand.Reader)
 	}
-	sealers := make([]*eddsa.PrivateKey, 4)
+	sealers := make([]ed448.PrivateKey, 4)
 	for i := 0; i < len(sealers); i++ {
 		sealers[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -136,7 +136,7 @@ func main() {
 
 // makeGenesis creates a custom Clique genesis block based on some pre-defined
 // signer and faucet accounts.
-func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core.Genesis {
+func makeGenesis(faucets []ed448.PrivateKey, sealers []ed448.PrivateKey) *core.Genesis {
 	// Create a Clique network based off of the config
 	genesis := core.DefaultKolibaGenesisBlock()
 	genesis.EnergyLimit = 25000000

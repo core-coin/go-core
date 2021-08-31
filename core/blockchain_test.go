@@ -18,7 +18,7 @@ package core
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -595,7 +595,7 @@ func TestFastVsFullChains(t *testing.T) {
 	var (
 		gendb   = rawdb.NewMemoryDatabase()
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{
@@ -713,7 +713,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	var (
 		gendb   = rawdb.NewMemoryDatabase()
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{address: {Balance: funds}}}
@@ -825,9 +825,9 @@ func TestChainTxReorgs(t *testing.T) {
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
 		key2, _ = crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
 		key3, _ = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-		pub1    = eddsa.Ed448DerivePublicKey(*key1)
-		pub2    = eddsa.Ed448DerivePublicKey(*key2)
-		pub3    = eddsa.Ed448DerivePublicKey(*key3)
+		pub1    = ed448.Ed448DerivePublicKey(key1)
+		pub2    = ed448.Ed448DerivePublicKey(key2)
+		pub3    = ed448.Ed448DerivePublicKey(key3)
 		addr1   = crypto.PubkeyToAddress(pub1)
 		addr2   = crypto.PubkeyToAddress(pub2)
 		addr3   = crypto.PubkeyToAddress(pub3)
@@ -941,7 +941,7 @@ func TestChainTxReorgs(t *testing.T) {
 func TestLogReorgs(t *testing.T) {
 	var (
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub1    = eddsa.Ed448DerivePublicKey(*key1)
+		pub1    = ed448.Ed448DerivePublicKey(key1)
 		addr1   = crypto.PubkeyToAddress(pub1)
 		db      = rawdb.NewMemoryDatabase()
 		// this code generates a log
@@ -993,7 +993,7 @@ func TestLogReorgs(t *testing.T) {
 func TestLogRebirth(t *testing.T) {
 	var (
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub1    = eddsa.Ed448DerivePublicKey(*key1)
+		pub1    = ed448.Ed448DerivePublicKey(key1)
 		addr1   = crypto.PubkeyToAddress(pub1)
 		db      = rawdb.NewMemoryDatabase()
 
@@ -1115,7 +1115,7 @@ func TestLogRebirth(t *testing.T) {
 func TestSideLogRebirth(t *testing.T) {
 	var (
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub1    = eddsa.Ed448DerivePublicKey(*key1)
+		pub1    = ed448.Ed448DerivePublicKey(key1)
 		addr1   = crypto.PubkeyToAddress(pub1)
 		db      = rawdb.NewMemoryDatabase()
 
@@ -1201,7 +1201,7 @@ func TestReorgSideEvent(t *testing.T) {
 	var (
 		db      = rawdb.NewMemoryDatabase()
 		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key1)
+		pub     = ed448.Ed448DerivePublicKey(key1)
 		addr1   = crypto.PubkeyToAddress(pub)
 		gspec   = &Genesis{
 			Config: params.TestChainConfig,
@@ -1333,7 +1333,7 @@ func TestCIP155Transition(t *testing.T) {
 	var (
 		db         = rawdb.NewMemoryDatabase()
 		key, _     = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub        = eddsa.Ed448DerivePublicKey(*key)
+		pub        = ed448.Ed448DerivePublicKey(key)
 		address    = crypto.PubkeyToAddress(pub)
 		funds      = big.NewInt(1000000000)
 		deleteAddr = common.Address{1}
@@ -1425,7 +1425,7 @@ func TestCIP161AccountRemoval(t *testing.T) {
 	var (
 		db      = rawdb.NewMemoryDatabase()
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		theAddr = common.Address{1}
@@ -1633,7 +1633,7 @@ func TestBlockchainRecovery(t *testing.T) {
 	var (
 		gendb   = rawdb.NewMemoryDatabase()
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{address: {Balance: funds}}}
@@ -1690,7 +1690,7 @@ func TestIncompleteAncientReceiptChainInsertion(t *testing.T) {
 	var (
 		gendb   = rawdb.NewMemoryDatabase()
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{Config: params.TestChainConfig, Alloc: GenesisAlloc{address: {Balance: funds}}}
@@ -2140,7 +2140,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 	}
 	var (
 		testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		testBankPubKey  = eddsa.Ed448DerivePublicKey(*testBankKey)
+		testBankPubKey  = ed448.Ed448DerivePublicKey(testBankKey)
 		testBankAddress = crypto.PubkeyToAddress(testBankPubKey)
 		bankFunds       = big.NewInt(100000000000000000)
 		gspec           = Genesis{
@@ -2310,7 +2310,7 @@ func TestDeleteCreateRevert(t *testing.T) {
 
 		// A sender who makes transactions, has some funds
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{
@@ -2387,7 +2387,7 @@ func TestDeleteRecreateSlots(t *testing.T) {
 		db     = rawdb.NewMemoryDatabase()
 		// A sender who makes transactions, has some funds
 		key, _    = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub       = eddsa.Ed448DerivePublicKey(*key)
+		pub       = ed448.Ed448DerivePublicKey(key)
 		address   = crypto.PubkeyToAddress(pub)
 		funds     = big.NewInt(1000000000)
 		bb, _     = common.HexToAddress("53000000000000000000000000000000000000bbbb")
@@ -2515,7 +2515,7 @@ func TestDeleteRecreateAccount(t *testing.T) {
 		db     = rawdb.NewMemoryDatabase()
 		// A sender who makes transactions, has some funds
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 
@@ -2593,7 +2593,7 @@ func TestDeleteRecreateSlotsAcrossManyBlocks(t *testing.T) {
 		db     = rawdb.NewMemoryDatabase()
 		// A sender who makes transactions, has some funds
 		key, _    = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub       = eddsa.Ed448DerivePublicKey(*key)
+		pub       = ed448.Ed448DerivePublicKey(key)
 		address   = crypto.PubkeyToAddress(pub)
 		funds     = big.NewInt(1000000000)
 		bb, _     = common.HexToAddress("53000000000000000000000000000000000000bbbb")
@@ -2797,7 +2797,7 @@ func TestInitThenFailCreateContract(t *testing.T) {
 		db     = rawdb.NewMemoryDatabase()
 		// A sender who makes transactions, has some funds
 		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
+		pub     = ed448.Ed448DerivePublicKey(key)
 		address = crypto.PubkeyToAddress(pub)
 		funds   = big.NewInt(1000000000)
 		bb, _   = common.HexToAddress("53000000000000000000000000000000000000bbbb")

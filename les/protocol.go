@@ -19,7 +19,7 @@ package les
 import (
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io"
 	"math/big"
 
@@ -158,7 +158,7 @@ func (a *announceData) sanityCheck() error {
 }
 
 // sign adds a signature to the block announcement by the given privKey
-func (a *announceData) sign(privKey *eddsa.PrivateKey) {
+func (a *announceData) sign(privKey ed448.PrivateKey) {
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
 	sig, _ := crypto.Sign(crypto.SHA3(rlp), privKey)
 	a.Update = a.Update.add("sign", sig)

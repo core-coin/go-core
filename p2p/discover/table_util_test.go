@@ -21,7 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/rand"
 	"net"
 	"sort"
@@ -227,7 +227,7 @@ func sortedByDistanceTo(distbase enode.ID, slice []*node) bool {
 	})
 }
 
-func hexEncPrivkey(h string) *eddsa.PrivateKey {
+func hexEncPrivkey(h string) ed448.PrivateKey {
 	b, err := hex.DecodeString(h)
 	if err != nil {
 		panic(err)

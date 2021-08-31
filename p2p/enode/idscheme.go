@@ -18,7 +18,7 @@ package enode
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io"
 
 	"github.com/core-coin/go-core/crypto"
@@ -41,11 +41,11 @@ var ValidSchemesForTesting = enr.SchemeMap{
 type V4ID struct{}
 
 // SignV4 signs a record using the v4 scheme.
-func SignV4(r *enr.Record, privkey *eddsa.PrivateKey) error {
+func SignV4(r *enr.Record, privkey ed448.PrivateKey) error {
 	// Copy r to avoid modifying it if signing fails.
 	cpy := *r
 	cpy.Set(enr.ID("v4"))
-	pub := eddsa.Ed448DerivePublicKey(*privkey)
+	pub := ed448.Ed448DerivePublicKey(privkey)
 	cpy.Set(Secp256k1(pub))
 
 	h := sha3.New256()
@@ -54,7 +54,7 @@ func SignV4(r *enr.Record, privkey *eddsa.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	if err = cpy.SetSig(V4ID{}, sig); err == nil {
+	if err = cpy.SetSig(V4ID{}, sig[:]); err == nil {
 		*r = cpy
 	}
 	return err
@@ -86,13 +86,13 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.
-type Secp256k1 eddsa.PublicKey
+type Secp256k1 ed448.PublicKey
 
 func (v Secp256k1) ENRKey() string { return "secp256k1" }
 
 // EncodeRLP implements rlp.Encoder.
 func (v Secp256k1) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, crypto.CompressPubkey((*eddsa.PublicKey)(&v)))
+	return rlp.Encode(w, crypto.CompressPubkey((ed448.PublicKey)(v)))
 }
 
 // DecodeRLP implements rlp.Decoder.
@@ -105,7 +105,7 @@ func (v *Secp256k1) DecodeRLP(s *rlp.Stream) error {
 	if err != nil {
 		return err
 	}
-	*v = (Secp256k1)(*pk)
+	*v = (Secp256k1)(pk)
 	return nil
 }
 
@@ -125,7 +125,7 @@ func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
 	return r.Load(&pubkey)
 }
 
-func signV4Compat(r *enr.Record, pubkey *eddsa.PublicKey) {
+func signV4Compat(r *enr.Record, pubkey *ed448.PublicKey) {
 	//r.Set(enr.ID("v4"))
 	r.Set((*Secp256k1)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {

@@ -19,7 +19,7 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 
 	"github.com/core-coin/go-core/crypto"
@@ -101,8 +101,8 @@ func keyToURL(ctx *cli.Context) error {
 	if ip == nil {
 		return fmt.Errorf("invalid IP address %q", host)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	node := enode.NewV4(&pub, ip, tcp, udp)
+	pub := ed448.Ed448DerivePublicKey(key)
+	node := enode.NewV4(pub, ip, tcp, udp)
 	fmt.Println(node.URLv4())
 	return nil
 }

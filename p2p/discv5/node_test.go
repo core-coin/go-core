@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"fmt"
-	eddsa2 "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"math/rand"
 	"net"
@@ -200,9 +200,9 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Fatalf("signing error: %v", err)
 	}
-	p := eddsa2.Ed448DerivePublicKey(*prv)
-	pub := PubkeyID(&p)
-	recpub, err := recoverNodeID(hash, sig)
+	p := ed448.Ed448DerivePublicKey(prv)
+	pub := PubkeyID(p)
+	recpub, err := recoverNodeID(hash, sig[:])
 	if err != nil {
 		t.Fatalf("recovery error: %v", err)
 	}
@@ -214,8 +214,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Errorf("Pubkey error: %v", err)
 	}
-	if !reflect.DeepEqual(eddsa, &p) {
-		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, &p)
+	if !reflect.DeepEqual(eddsa, p) {
+		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, p)
 	}
 }
 
@@ -224,7 +224,7 @@ func TestNodeID_pubkeyBad(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for zero ID")
 	}
-	if eddsa != nil {
+	if (eddsa != ed448.PublicKey{}) {
 		t.Error("expected nil result")
 	}
 }

@@ -19,14 +19,13 @@ package core
 import (
 	crand "crypto/rand"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/rawdb"
@@ -71,16 +70,16 @@ func (bc *testBlockChain) SubscribeChainHeadEvent(ch chan<- ChainHeadEvent) even
 	return bc.chainHeadFeed.Subscribe(ch)
 }
 
-func transaction(nonce uint64, energylimit uint64, key *eddsa.PrivateKey) *types.Transaction {
+func transaction(nonce uint64, energylimit uint64, key ed448.PrivateKey) *types.Transaction {
 	return pricedTransaction(nonce, energylimit, big.NewInt(1), key)
 }
 
-func pricedTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *eddsa.PrivateKey) *types.Transaction {
+func pricedTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key ed448.PrivateKey) *types.Transaction {
 	tx, _ := types.SignTx(types.NewTransaction(nonce, common.Address{}, big.NewInt(100), energylimit, energyprice, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), key)
 	return tx
 }
 
-func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key *eddsa.PrivateKey, bytes uint64) *types.Transaction {
+func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.Int, key ed448.PrivateKey, bytes uint64) *types.Transaction {
 	data := make([]byte, bytes)
 	rand.Read(data)
 
@@ -88,7 +87,7 @@ func pricedDataTransaction(nonce uint64, energylimit uint64, energyprice *big.In
 	return tx
 }
 
-func setupTxPool() (*TxPool, *eddsa.PrivateKey) {
+func setupTxPool() (*TxPool, ed448.PrivateKey) {
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
 	blockchain := &testBlockChain{statedb, 10000000, new(event.Feed)}
 
@@ -192,7 +191,7 @@ func TestStateChangeDuringTransactionPoolReset(t *testing.T) {
 
 	var (
 		key, _     = crypto.GenerateKey(crand.Reader)
-		pub        = eddsa.Ed448DerivePublicKey(*key)
+		pub        = ed448.Ed448DerivePublicKey(key)
 		address    = crypto.PubkeyToAddress(pub)
 		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
 		trigger    = false
@@ -348,7 +347,7 @@ func TestTransactionChainFork(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	resetState := func() {
 		statedb, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
@@ -378,7 +377,7 @@ func TestTransactionDoubleNonce(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	resetState := func() {
 		statedb, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
@@ -430,7 +429,7 @@ func TestTransactionMissingNonce(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(addr, big.NewInt(100000000000000))
 	tx := transaction(1, 100000, key)
@@ -455,7 +454,7 @@ func TestTransactionNonceRecovery(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	pool.currentState.SetNonce(addr, n)
 	pool.currentState.AddBalance(addr, big.NewInt(100000000000000))
@@ -482,7 +481,7 @@ func TestTransactionDropping(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000))
 
@@ -582,12 +581,12 @@ func TestTransactionPostponing(t *testing.T) {
 	defer pool.Stop()
 
 	// Create two test accounts to produce different gap profiles with
-	keys := make([]*eddsa.PrivateKey, 2)
+	keys := make([]ed448.PrivateKey, 2)
 	accs := make([]common.Address, len(keys))
 
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		accs[i] = crypto.PubkeyToAddress(pub)
 
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(50100))
@@ -693,7 +692,7 @@ func TestTransactionGapFilling(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 
@@ -748,7 +747,7 @@ func TestTransactionQueueAccountLimiting(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 
@@ -802,10 +801,10 @@ func testTransactionQueueGlobalLimiting(t *testing.T, nolocals bool) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them (last one will be the local)
-	keys := make([]*eddsa.PrivateKey, 5)
+	keys := make([]ed448.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	local := keys[len(keys)-1]
@@ -816,7 +815,7 @@ func testTransactionQueueGlobalLimiting(t *testing.T, nolocals bool) {
 	txs := make(types.Transactions, 0, 3*config.GlobalQueue)
 	for len(txs) < cap(txs) {
 		key := keys[rand.Intn(len(keys)-1)] // skip adding transactions with the local account
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 
 		txs = append(txs, transaction(nonces[addr]+1, 100000, key))
@@ -860,7 +859,7 @@ func testTransactionQueueGlobalLimiting(t *testing.T, nolocals bool) {
 			t.Errorf("multiple accounts in queue: have %v, want %v", len(pool.queue), 1)
 		}
 		// Also ensure no local transactions are ever dropped, even if above global limits
-		pub := eddsa.Ed448DerivePublicKey(*local)
+		pub := ed448.Ed448DerivePublicKey(local)
 		if queued := pool.queue[crypto.PubkeyToAddress(pub)].Len(); uint64(queued) != 3*config.GlobalQueue {
 			t.Fatalf("local account queued transaction count mismatch: have %v, want %v", queued, 3*config.GlobalQueue)
 		}
@@ -899,8 +898,8 @@ func testTransactionQueueTimeLimiting(t *testing.T, nolocals bool) {
 	// Create two test accounts to ensure remotes expire but locals do not
 	local, _ := crypto.GenerateKey(crand.Reader)
 	remote, _ := crypto.GenerateKey(crand.Reader)
-	localPub := eddsa.Ed448DerivePublicKey(*local)
-	remotePub := eddsa.Ed448DerivePublicKey(*remote)
+	localPub := ed448.Ed448DerivePublicKey(local)
+	remotePub := ed448.Ed448DerivePublicKey(remote)
 
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(localPub), big.NewInt(1000000000))
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(remotePub), big.NewInt(1000000000))
@@ -1035,7 +1034,7 @@ func TestTransactionPendingLimiting(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 
@@ -1084,10 +1083,10 @@ func TestTransactionPendingGlobalLimiting(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 5)
+	keys := make([]ed448.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Generate and queue a batch of transactions
@@ -1095,7 +1094,7 @@ func TestTransactionPendingGlobalLimiting(t *testing.T) {
 
 	txs := types.Transactions{}
 	for _, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 		for j := 0; j < int(config.GlobalSlots)/len(keys)*2; j++ {
 			txs = append(txs, transaction(nonces[addr], 100000, key))
@@ -1127,7 +1126,7 @@ func TestTransactionAllowedTxSize(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000000))
 
@@ -1192,7 +1191,7 @@ func TestTransactionCapClearsFromAll(t *testing.T) {
 
 	// Create a number of test accounts and fund them
 	key, _ := crypto.GenerateKey(crand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(addr, big.NewInt(1000000))
 
@@ -1224,10 +1223,10 @@ func TestTransactionPendingMinimumAllowance(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 5)
+	keys := make([]ed448.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Generate and queue a batch of transactions
@@ -1235,7 +1234,7 @@ func TestTransactionPendingMinimumAllowance(t *testing.T) {
 
 	txs := types.Transactions{}
 	for _, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 		for j := 0; j < int(config.AccountSlots)*2; j++ {
 			txs = append(txs, transaction(nonces[addr], 100000, key))
@@ -1276,10 +1275,10 @@ func TestTransactionPoolRepricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 4)
+	keys := make([]ed448.PrivateKey, 4)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Generate and queue a batch of transactions, both pending and queued
@@ -1393,10 +1392,10 @@ func TestTransactionPoolRepricingKeepsLocals(t *testing.T) {
 	defer pool.Stop()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 3)
+	keys := make([]ed448.PrivateKey, 3)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000*1000000))
 	}
 	// Create transaction (both pending and queued) with a linearly growing energyprice
@@ -1465,10 +1464,10 @@ func TestTransactionPoolUnderpricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 4)
+	keys := make([]ed448.PrivateKey, 4)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Generate and queue a batch of transactions, both pending and queued
@@ -1572,10 +1571,10 @@ func TestTransactionPoolStableUnderpricing(t *testing.T) {
 	defer sub.Unsubscribe()
 
 	// Create a number of test accounts and fund them
-	keys := make([]*eddsa.PrivateKey, 2)
+	keys := make([]ed448.PrivateKey, 2)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Fill up the entire queue with the same transaction price points
@@ -1630,7 +1629,7 @@ func TestTransactionDeduplication(t *testing.T) {
 
 	// Create a test account to add transactions with
 	key, _ := crypto.GenerateKey(crand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000000))
 
 	// Create a batch of transactions and add a few of them
@@ -1702,7 +1701,7 @@ func TestTransactionReplacement(t *testing.T) {
 
 	// Create a test account to add transactions with
 	key, _ := crypto.GenerateKey(crand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000000))
 
 	// Add pending transactions, ensuring the minimum price bump is enforced for replacement (for ultra low prices too)
@@ -1798,8 +1797,8 @@ func testTransactionJournaling(t *testing.T, nolocals bool) {
 	// Create two test accounts to ensure remotes expire but locals do not
 	local, _ := crypto.GenerateKey(crand.Reader)
 	remote, _ := crypto.GenerateKey(crand.Reader)
-	localPub := eddsa.Ed448DerivePublicKey(*local)
-	remotePub := eddsa.Ed448DerivePublicKey(*remote)
+	localPub := ed448.Ed448DerivePublicKey(local)
+	remotePub := ed448.Ed448DerivePublicKey(remote)
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(localPub), big.NewInt(1000000000))
 	pool.currentState.AddBalance(crypto.PubkeyToAddress(remotePub), big.NewInt(1000000000))
 
@@ -1891,10 +1890,10 @@ func TestTransactionStatusCheck(t *testing.T) {
 	defer pool.Stop()
 
 	// Create the test accounts to check various transaction statuses with
-	keys := make([]*eddsa.PrivateKey, 3)
+	keys := make([]ed448.PrivateKey, 3)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(crand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*keys[i])
+		pub := ed448.Ed448DerivePublicKey(keys[i])
 		pool.currentState.AddBalance(crypto.PubkeyToAddress(pub), big.NewInt(1000000))
 	}
 	// Generate and queue a batch of transactions, both pending and queued
@@ -1963,7 +1962,7 @@ func benchmarkPendingDemotion(b *testing.B, size int) {
 	// Add a batch of transactions to a pool one by one
 	pool, key := setupTxPool()
 	defer pool.Stop()
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 
@@ -1989,7 +1988,7 @@ func benchmarkFuturePromotion(b *testing.B, size int) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 
@@ -2018,7 +2017,7 @@ func benchmarkPoolBatchInsert(b *testing.B, size int, local bool) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	account := crypto.PubkeyToAddress(pub)
 	pool.currentState.AddBalance(account, big.NewInt(1000000))
 

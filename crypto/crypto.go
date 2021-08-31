@@ -19,11 +19,10 @@ package crypto
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/core-coin/ed448"
 	"io"
 	"io/ioutil"
 	"os"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
@@ -116,14 +115,14 @@ func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Add
 }
 
 // ToEDDSA creates a private key with the given D value.
-func ToEDDSA(d []byte) (*eddsa.PrivateKey, error) {
+func ToEDDSA(d []byte) (ed448.PrivateKey, error) {
 	return toEDDSA(d, true)
 }
 
 // ToEDDSAUnsafe blindly converts a binary blob to a private key. It should almost
 // never be used unless you are sure the input is valid and want to avoid hitting
 // errors due to bad origin encoding (0 prefixes cut off).
-func ToEDDSAUnsafe(d []byte) *eddsa.PrivateKey {
+func ToEDDSAUnsafe(d []byte) ed448.PrivateKey {
 	priv, err := toEDDSA(d, false)
 	if err != nil {
 		panic(err)
@@ -134,94 +133,88 @@ func ToEDDSAUnsafe(d []byte) *eddsa.PrivateKey {
 // toEDDSA creates a private key with the given D value. The strict parameter
 // controls whether the key's length should be enforced at the curve size or
 // it can also accept legacy encodings (0 prefixes).
-func toEDDSA(d []byte, strict bool) (*eddsa.PrivateKey, error) {
+func toEDDSA(d []byte, strict bool) (ed448.PrivateKey, error) {
 	_ = strict
 	if len(d) != PrivkeyLength {
-		return nil, errInvalidPrivkey
+		return ed448.PrivateKey{}, errInvalidPrivkey
 	}
-	p := eddsa.PrivateKey{}
+	p := ed448.PrivateKey{}
 	copy(p[:], d[:])
-	return &p, nil
+	return p, nil
 }
 
 // FromEDDSA exports a private key into a binary dump.
-func FromEDDSA(priv *eddsa.PrivateKey) []byte {
-	if priv == nil {
+func FromEDDSA(priv ed448.PrivateKey) []byte {
+	if (priv == ed448.PrivateKey{}) {
 		return nil
 	}
 	return priv[:]
 }
 
 // UnmarshalPubkey converts bytes to a secp256k1 public key.
-func UnmarshalPubkey(pub []byte) (*eddsa.PublicKey, error) {
+func UnmarshalPubkey(pub []byte) (ed448.PublicKey, error) {
 	if len(pub) != PubkeyLength {
-		return nil, errInvalidPubkey
+		return ed448.PublicKey{}, errInvalidPubkey
 	}
-	p := eddsa.PublicKey{}
+	p := ed448.PublicKey{}
 	copy(p[:], pub[:])
-	return &p, nil
+	return p, nil
 }
 
-func FromEDDSAPub(pub *eddsa.PublicKey) []byte {
-	if pub == nil {
+func FromEDDSAPub(pub ed448.PublicKey) []byte {
+	if (pub == ed448.PublicKey{}) {
 		return nil
 	}
 	return pub[:]
 }
 
 // HexToEDDSA parses a secp256k1 private key.
-func HexToEDDSA(hexkey string) (*eddsa.PrivateKey, error) {
+func HexToEDDSA(hexkey string) (ed448.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
-		return nil, errors.New("invalid hex string")
+		return ed448.PrivateKey{}, errors.New("invalid hex string")
 	}
 	return ToEDDSA(b)
 }
 
 // LoadEDDSA loads a secp256k1 private key from the given file.
-func LoadEDDSA(file string) (*eddsa.PrivateKey, error) {
+func LoadEDDSA(file string) (ed448.PrivateKey, error) {
 	buf := make([]byte, PrivkeyLength*2)
 	fd, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		return ed448.PrivateKey{}, err
 	}
 
 	defer fd.Close()
 	if _, err := io.ReadFull(fd, buf); err != nil {
-		return nil, err
+		return ed448.PrivateKey{}, err
 	}
 	key, err := hex.DecodeString(string(buf))
 	if err != nil {
-		return nil, err
+		return ed448.PrivateKey{}, err
 	}
 	return toEDDSA(key, true)
 }
 
 // SaveEDDSA saves a secp256k1 private key to the given file with
 // restrictive permissions. The key data is saved hex-encoded.
-func SaveEDDSA(file string, key *eddsa.PrivateKey) error {
+func SaveEDDSA(file string, key ed448.PrivateKey) error {
 	k := hex.EncodeToString(key[:])
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
 
-func GenerateKey(read io.Reader) (*eddsa.PrivateKey, error) {
-	key, err := eddsa.Ed448GenerateKey(read)
-	return &key, err
+func GenerateKey(read io.Reader) (ed448.PrivateKey, error) {
+	key, err := ed448.Ed448GenerateKey(read)
+	return key, err
 }
 
-// ValidateSignatureValues verifies whether the signature values are valid with
-// the given chain rules. The v value is assumed to be either 0 or 1.
-func ValidateSignatureValues(v byte) bool {
-	return v == 0 || v == 1
-}
-
-func ComputeSecret(privkey *eddsa.PrivateKey, pubkey *eddsa.PublicKey) []byte {
-	secret := eddsa.Ed448DeriveSecret(*pubkey, *privkey)
+func ComputeSecret(privkey ed448.PrivateKey, pubkey ed448.PublicKey) []byte {
+	secret := ed448.Ed448DeriveSecret(pubkey, privkey)
 	return secret[:]
 }
 
-func PubkeyToAddress(p eddsa.PublicKey) common.Address {
-	pubBytes := FromEDDSAPub(&p)
+func PubkeyToAddress(p ed448.PublicKey) common.Address {
+	pubBytes := FromEDDSAPub(p)
 	if pubBytes == nil {
 		return common.Address{}
 	}

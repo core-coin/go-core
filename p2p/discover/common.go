@@ -17,7 +17,7 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 
 	"github.com/core-coin/go-core/common/mclock"
@@ -38,7 +38,7 @@ type UDPConn interface {
 // Config holds settings for the discovery listener.
 type Config struct {
 	// These settings are required and configure the UDP listener:
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey ed448.PrivateKey
 
 	// These settings are optional:
 	NetRestrict  *netutil.Netlist   // network whitelist

@@ -19,7 +19,7 @@ package node
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -357,9 +357,9 @@ func (c *Config) instanceDir() string {
 // NodeKey retrieves the currently configured private key of the node, checking
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
-func (c *Config) NodeKey() *eddsa.PrivateKey {
+func (c *Config) NodeKey() ed448.PrivateKey {
 	// Use any specifically configured key.
-	if c.P2P.PrivateKey != nil {
+	if (c.P2P.PrivateKey != ed448.PrivateKey{}) {
 		return c.P2P.PrivateKey
 	}
 	// Generate ephemeral key if no datadir is being used.

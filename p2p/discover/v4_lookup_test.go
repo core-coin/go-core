@@ -18,8 +18,8 @@ package discover
 
 import (
 	"fmt"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"sort"
 	"testing"
@@ -56,7 +56,8 @@ func TestUDPv4_Lookup(t *testing.T) {
 	results := <-resultC
 	t.Logf("results:")
 	for _, e := range results {
-		t.Logf("  ld=%d, %x, %v", enode.LogDist(lookupDevin.target.id(), e.ID()), e.ID().Bytes(), common.Bytes2Hex(e.Pubkey()[:]))
+		pubkey := e.Pubkey()
+		t.Logf("  ld=%d, %x, %v", enode.LogDist(lookupDevin.target.id(), e.ID()), e.ID().Bytes(), common.Bytes2Hex(pubkey[:]))
 	}
 	if len(results) != bucketSize {
 		t.Errorf("wrong number of results: got %d, want %d", len(results), bucketSize)
@@ -174,7 +175,7 @@ func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) 
 // The nodes were obtained by running lookupDevin.mine with a random NodeID as target.
 var lookupDevin = &preminedDevin{
 	target: hexEncPubkey("8e3646849ec3232a7a73aef657f05ae9437c0b7960919e9d2c41760ba1fb8fa81970339ef20ffded54da1c7c1a48698d56ea6cda5fa4535f60"),
-	dists: [257][]*eddsa.PrivateKey{
+	dists: [257][]ed448.PrivateKey{
 		250: {
 			hexEncPrivkey("4e0fa28ffcc38dde53d62cae67296a409dbac36abc5b77242a1e36f9569cf5073fc4dbb8cbf656b2219e173071bc46eb52c3788b92635430ab"),
 			hexEncPrivkey("e8ddff19e703d8fc127f84804368f3206d07cbeb9b52329e12facafc57b33c45806513d1200976749955d460d4ffcaf1e89932f54fd08929a9"),
@@ -232,7 +233,7 @@ var lookupDevin = &preminedDevin{
 
 type preminedDevin struct {
 	target encPubkey
-	dists  [hashBits + 1][]*eddsa.PrivateKey
+	dists  [hashBits + 1][]ed448.PrivateKey
 }
 
 func (tn *preminedDevin) len() int {
@@ -264,7 +265,7 @@ func (tn *preminedDevin) node(dist, index int) *enode.Node {
 	return n
 }
 
-func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.PrivateKey) {
+func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, ed448.PrivateKey) {
 	dist := int(addr.IP[1])<<8 + int(addr.IP[2])
 	index := int(addr.IP[3])
 	key := tn.dists[dist][index]
@@ -318,8 +319,8 @@ func (tn *preminedDevin) mine() {
 	found, need := 0, 40
 	for found < need {
 		k := newkey()
-		pub := eddsa.Ed448DerivePublicKey(*k)
-		ld := enode.LogDist(targetSha, encodePubkey(&pub).id())
+		pub := ed448.Ed448DerivePublicKey(k)
+		ld := enode.LogDist(targetSha, encodePubkey(pub).id())
 		if len(tn.dists[ld]) < 8 {
 			tn.dists[ld] = append(tn.dists[ld], k)
 			found++

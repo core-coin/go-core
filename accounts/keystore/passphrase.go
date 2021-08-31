@@ -32,7 +32,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
@@ -228,7 +228,7 @@ func DecryptKey(keyjson []byte, auth string) (*Key, error) {
 		return nil, err
 	}
 	key := crypto.ToEDDSAUnsafe(keyBytes)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	return &Key{
 		Id:         uuid.UUID(keyId),
 		Address:    crypto.PubkeyToAddress(pub),

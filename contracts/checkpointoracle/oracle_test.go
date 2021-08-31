@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"reflect"
 	"sort"
@@ -122,7 +122,7 @@ func validateEvents(target int, sink interface{}) (bool, []reflect.Value) {
 	return chose == 1, recv
 }
 
-func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uint64, hash common.Hash) []byte {
+func signCheckpoint(addr common.Address, privateKey ed448.PrivateKey, index uint64, hash common.Hash) []byte {
 	// CIP 191 style signatures
 	//
 	// Arguments when calculating hash to validate
@@ -138,7 +138,7 @@ func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uin
 	data := append([]byte{0x19, 0x00}, append(addr.Bytes(), append(buf, hash.Bytes()...)...)...)
 	sig, _ := crypto.Sign(crypto.SHA3(data), privateKey)
 	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-	return sig
+	return sig[:]
 }
 
 // assertSignature verifies whether the recovered signers are equal with expected.
@@ -151,12 +151,12 @@ func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]
 		return false
 	}
 	var signer common.Address
-	copy(signer[:], crypto.SHA3(pubkey)[12:])
+	copy(signer[:], crypto.SHA3(pubkey[:])[12:])
 	return bytes.Equal(signer.Bytes(), expect.Bytes())
 }
 
 type Account struct {
-	key  *eddsa.PrivateKey
+	key  ed448.PrivateKey
 	addr common.Address
 }
 type Accounts []Account
@@ -171,7 +171,7 @@ func TestCheckpointRegister(t *testing.T) {
 	var accounts Accounts
 	for i := 0; i < 3; i++ {
 		key, _ := crypto.GenerateKey(rand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 		accounts = append(accounts, Account{key: key, addr: addr})
 	}
@@ -197,10 +197,10 @@ func TestCheckpointRegister(t *testing.T) {
 		return parentNumber, parentHash
 	}
 	// collectSig generates specified number signatures.
-	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *eddsa.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
+	collectSig := func(index uint64, hash common.Hash, n int, unauthorized ed448.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
 		for i := 0; i < n; i++ {
 			_ = signCheckpoint(contractAddr, accounts[i].key, index, hash)
-			if unauthorized != nil {
+			if (unauthorized != ed448.PrivateKey{}) {
 				_ = signCheckpoint(contractAddr, unauthorized, index, hash)
 			}
 			//r = append(r, common.BytesToHash(sig[:32]))
@@ -237,7 +237,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test future checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(0, checkpoint0.Hash(), 2, nil)
+		v, r, s := collectSig(0, checkpoint0.Hash(), 2, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint0.Hash(), 0, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		return assert(0, emptyHash, big.NewInt(0))
@@ -248,7 +248,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test transaction replay protection
 	validateOperation(t, c, contractBackend, func() {
 		number, _ := getRecent()
-		v, r, s := collectSig(0, checkpoint0.Hash(), 2, nil)
+		v, r, s := collectSig(0, checkpoint0.Hash(), 2, ed448.PrivateKey{})
 		hash := common.HexToHash("deadbeef")
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint0.Hash(), 0, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
@@ -268,7 +268,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test un-multi-signature checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(0, checkpoint0.Hash(), 1, nil)
+		v, r, s := collectSig(0, checkpoint0.Hash(), 1, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint0.Hash(), 0, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		return assert(0, emptyHash, big.NewInt(0))
@@ -277,7 +277,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test valid checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(0, checkpoint0.Hash(), 2, nil)
+		v, r, s := collectSig(0, checkpoint0.Hash(), 2, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint0.Hash(), 0, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		if valid, recv := validateEvents(2, events); !valid {
@@ -300,7 +300,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test uncontinuous checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(2, checkpoint2.Hash(), 2, nil)
+		v, r, s := collectSig(2, checkpoint2.Hash(), 2, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint2.Hash(), 2, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		if valid, recv := validateEvents(2, events); !valid {
@@ -320,7 +320,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test old checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(1, checkpoint1.Hash(), 2, nil)
+		v, r, s := collectSig(1, checkpoint1.Hash(), 2, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint1.Hash(), 1, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		number, _ := getRecent()
@@ -330,7 +330,7 @@ func TestCheckpointRegister(t *testing.T) {
 	// Test stale checkpoint registration
 	validateOperation(t, c, contractBackend, func() {
 		number, hash := getRecent()
-		v, r, s := collectSig(2, checkpoint2.Hash(), 2, nil)
+		v, r, s := collectSig(2, checkpoint2.Hash(), 2, ed448.PrivateKey{})
 		c.SetCheckpoint(transactOpts, number, hash, checkpoint2.Hash(), 2, v, r, s)
 	}, func(events <-chan *contract.CheckpointOracleNewCheckpointVote) error {
 		number, _ := getRecent()

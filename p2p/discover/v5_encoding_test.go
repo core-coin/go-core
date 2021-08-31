@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"net"
 	"reflect"
 	"testing"
@@ -27,7 +28,6 @@ import (
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -50,10 +50,10 @@ func TestDeriveKeysV5(t *testing.T) {
 	)
 	defer db.Close()
 
-	pubA := eddsa.Ed448DerivePublicKey(*testKeyA)
-	pubB := eddsa.Ed448DerivePublicKey(*testKeyB)
-	sec1 := c.deriveKeys(n1, n2, testKeyA, &pubB, challenge)
-	sec2 := c.deriveKeys(n1, n2, testKeyB, &pubA, challenge)
+	pubA := ed448.Ed448DerivePublicKey(testKeyA)
+	pubB := ed448.Ed448DerivePublicKey(testKeyB)
+	sec1 := c.deriveKeys(n1, n2, testKeyA, pubB, challenge)
+	sec2 := c.deriveKeys(n1, n2, testKeyB, pubA, challenge)
 	if sec1 == nil || sec2 == nil {
 		t.Fatal("key agreement failed")
 	}
@@ -307,7 +307,7 @@ func (t *handshakeTest) close() {
 	t.nodeB.ln.Database().Close()
 }
 
-func (n *handshakeTestNode) init(key *eddsa.PrivateKey, ip net.IP, clock mclock.Clock) {
+func (n *handshakeTestNode) init(key ed448.PrivateKey, ip net.IP, clock mclock.Clock) {
 	db, _ := enode.OpenDB("")
 	n.ln = enode.NewLocalNode(db, key)
 	n.ln.SetStaticIP(ip)

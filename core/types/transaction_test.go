@@ -20,15 +20,14 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/params"
-	eddsa "github.com/core-coin/go-goldilocks"
-
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 )
 
@@ -44,7 +43,7 @@ var (
 		big.NewInt(0), 0, big.NewInt(0),
 		nil,
 	)
-	pub           = eddsa.Ed448DerivePublicKey(*key)
+	pub           = ed448.Ed448DerivePublicKey(key)
 	rightvrsTx, _ = NewTransaction(
 		0,
 		crypto.PubkeyToAddress(pub),
@@ -131,7 +130,7 @@ func TestRecipientNormal(t *testing.T) {
 // the same account.
 func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*eddsa.PrivateKey, 25)
+	keys := make([]ed448.PrivateKey, 25)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -140,7 +139,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 		for i := 0; i < 25; i++ {
 			tx, _ := SignTx(NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), 100, big.NewInt(int64(start+i)), nil), signer, key)
@@ -183,7 +182,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 // are prioritized to avoid network spam attacks aiming for a specific ordering.
 func TestTransactionTimeSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*eddsa.PrivateKey, 5)
+	keys := make([]ed448.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
 		keys[i], _ = crypto.GenerateKey(rand.Reader)
 	}
@@ -192,7 +191,7 @@ func TestTransactionTimeSort(t *testing.T) {
 	// Generate a batch of transactions with overlapping prices, but different creation times
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
+		pub := ed448.Ed448DerivePublicKey(key)
 		addr := crypto.PubkeyToAddress(pub)
 
 		tx, _ := SignTx(NewTransaction(0, common.Address{}, big.NewInt(100), 100, big.NewInt(1), nil), signer, key)

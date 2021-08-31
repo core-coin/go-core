@@ -36,8 +36,8 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/sha3"
 	"hash"
 	"io"
@@ -135,7 +135,7 @@ func symDecrypt(key, ct []byte) (m []byte, err error) {
 // s1 and s2 contain shared information that is not part of the resulting
 // ciphertext. s1 is fed into key derivation, s2 is fed into the MAC. If the
 // shared information parameters aren't being used, they should be nil.
-func Encrypt(rand io.Reader, pub *goldilocks.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
+func Encrypt(rand io.Reader, pub ed448.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	R, err := crypto.GenerateKey(rand)
 	if err != nil {
 		return nil, err
@@ -143,8 +143,8 @@ func Encrypt(rand io.Reader, pub *goldilocks.PublicKey, m, s1, s2 []byte) (ct []
 
 	z := crypto.ComputeSecret(R, pub)
 
-	hash := sha3.New256()
-	Ke, Km := deriveKeys(hash, z, s1, 16)
+	Hash := sha3.New256()
+	Ke, Km := deriveKeys(Hash, z, s1, 16)
 
 	em, err := symEncrypt(rand, Ke, m)
 	if err != nil || len(em) <= aes.BlockSize {
@@ -153,7 +153,7 @@ func Encrypt(rand io.Reader, pub *goldilocks.PublicKey, m, s1, s2 []byte) (ct []
 
 	d := messageTag(sha3.New256, Km, em, s2)
 
-	Rb := goldilocks.Ed448DerivePublicKey(*R)
+	Rb := ed448.Ed448DerivePublicKey(R)
 	ct = make([]byte, len(Rb)+len(em)+len(d))
 	copy(ct, Rb[:])
 	copy(ct[len(Rb):], em)
@@ -162,8 +162,8 @@ func Encrypt(rand io.Reader, pub *goldilocks.PublicKey, m, s1, s2 []byte) (ct []
 }
 
 // Decrypt decrypts an ECIES ciphertext.
-func Decrypt(prv *goldilocks.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
-	pub := goldilocks.Ed448DerivePublicKey(*prv)
+func Decrypt(prv ed448.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
+	pub := ed448.Ed448DerivePublicKey(prv)
 
 	if len(c) == 0 {
 		return nil, ErrInvalidMessage
@@ -178,12 +178,12 @@ func Decrypt(prv *goldilocks.PrivateKey, c, s1, s2 []byte) (m []byte, err error)
 		mEnd   int = len(c) - hLen
 	)
 
-	R := goldilocks.BytesToPublicKey(c[:rLen])
-	if len(R) == 0 {
+	R := ed448.BytesToPublicKey(c[:rLen])
+	if (R == ed448.PublicKey{}) {
 		return nil, ErrInvalidPublicKey
 	}
 
-	z := crypto.ComputeSecret(prv, &R)
+	z := crypto.ComputeSecret(prv, R)
 
 	Ke, Km := deriveKeys(hash, z, s1, 16)
 

@@ -22,12 +22,11 @@ package xcb
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"sort"
 	"sync"
 	"testing"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
@@ -47,7 +46,7 @@ import (
 
 var (
 	testBankKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub            = eddsa.Ed448DerivePublicKey(*testBankKey)
+	pub            = ed448.Ed448DerivePublicKey(testBankKey)
 	testBank       = crypto.PubkeyToAddress(pub)
 )
 
@@ -157,7 +156,7 @@ func (p *testTxPool) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subs
 }
 
 // newTestTransaction create a new dummy transaction.
-func newTestTransaction(from *eddsa.PrivateKey, nonce uint64, datasize int) *types.Transaction {
+func newTestTransaction(from ed448.PrivateKey, nonce uint64, datasize int) *types.Transaction {
 	tx := types.NewTransaction(nonce, common.Address{}, big.NewInt(0), 100000, big.NewInt(0), make([]byte, datasize))
 	tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), from)
 	return tx

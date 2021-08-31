@@ -18,9 +18,9 @@ package types
 
 import (
 	"crypto/rand"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"testing"
 
@@ -31,7 +31,7 @@ import (
 
 func TestNucleusSigning(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	addr := crypto.PubkeyToAddress(pub)
 
 	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)

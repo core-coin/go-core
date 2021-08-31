@@ -20,7 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
-	"github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 
@@ -94,8 +94,8 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, nil
 	}
-	if pubKey != nil {
-		return crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), nil
+	if (pubKey != ed448.PublicKey{}) {
+		return crypto.PubkeyToAddress(pubKey).Bytes(), nil
 	}
 	return nil, errors.New("invalid signature")
 }

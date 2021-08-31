@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"sort"
 	"testing"
 
@@ -36,12 +36,12 @@ import (
 // mapped from textual names used in the tests below to actual Core private
 // keys capable of signing transactions.
 type testerAccountPool struct {
-	accounts map[string]*eddsa.PrivateKey
+	accounts map[string]ed448.PrivateKey
 }
 
 func newTesterAccountPool() *testerAccountPool {
 	return &testerAccountPool{
-		accounts: make(map[string]*eddsa.PrivateKey),
+		accounts: make(map[string]ed448.PrivateKey),
 	}
 }
 
@@ -66,11 +66,11 @@ func (ap *testerAccountPool) address(account string) common.Address {
 		return common.Address{}
 	}
 	// Ensure we have a persistent key for the account
-	if ap.accounts[account] == nil {
+	if (ap.accounts[account] == ed448.PrivateKey{}) {
 		ap.accounts[account], _ = crypto.GenerateKey(rand.Reader)
 	}
 	// Resolve and return the Core address
-	pub := eddsa.Ed448DerivePublicKey(*ap.accounts[account])
+	pub := ed448.Ed448DerivePublicKey(ap.accounts[account])
 	return crypto.PubkeyToAddress(pub)
 }
 
@@ -78,12 +78,12 @@ func (ap *testerAccountPool) address(account string) common.Address {
 // back into the header.
 func (ap *testerAccountPool) sign(header *types.Header, signer string) {
 	// Ensure we have a persistent key for the signer
-	if ap.accounts[signer] == nil {
+	if (ap.accounts[signer] == ed448.PrivateKey{}) {
 		ap.accounts[signer], _ = crypto.GenerateKey(rand.Reader)
 	}
 	// Sign the header and embed the signature in extra data
 	sig, _ := crypto.Sign(SealHash(header).Bytes(), ap.accounts[signer])
-	copy(header.Extra[len(header.Extra)-extraSeal:], sig)
+	copy(header.Extra[len(header.Extra)-extraSeal:], sig[:])
 }
 
 // testerVote represents a single block signed by a parcitular account, where

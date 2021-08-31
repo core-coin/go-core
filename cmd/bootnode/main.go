@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"os"
 
@@ -48,7 +48,7 @@ func main() {
 		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
 
-		nodeKey *eddsa.PrivateKey
+		nodeKey ed448.PrivateKey
 		err     error
 	)
 	flag.Parse()
@@ -87,8 +87,8 @@ func main() {
 
 	if *genKey != "" || *writeAddr {
 		fmt.Printf("%x\n", crypto.FromEDDSA(nodeKey))
-		pub := eddsa.Ed448DerivePublicKey(*nodeKey)
-		fmt.Printf("%x\n", crypto.FromEDDSAPub(&pub))
+		pub := ed448.Ed448DerivePublicKey(nodeKey)
+		fmt.Printf("%x\n", crypto.FromEDDSAPub(pub))
 		return
 	}
 
@@ -118,8 +118,8 @@ func main() {
 			realaddr = &net.UDPAddr{IP: ext, Port: realaddr.Port}
 		}
 	}
-	pub := eddsa.Ed448DerivePublicKey(*nodeKey)
-	printNotice(&pub, *realaddr)
+	pub := ed448.Ed448DerivePublicKey(nodeKey)
+	printNotice(pub, *realaddr)
 
 	if *runv5 {
 		if _, err := discv5.ListenUDP(nodeKey, conn, "", restrictList); err != nil {
@@ -140,7 +140,7 @@ func main() {
 	select {}
 }
 
-func printNotice(nodeKey *eddsa.PublicKey, addr net.UDPAddr) {
+func printNotice(nodeKey ed448.PublicKey, addr net.UDPAddr) {
 	if addr.IP.IsUnspecified() {
 		addr.IP = net.IP{127, 0, 0, 1}
 	}

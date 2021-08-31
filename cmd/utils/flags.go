@@ -20,6 +20,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io"
 	"io/ioutil"
 	"math"
@@ -33,8 +34,6 @@ import (
 	"time"
 
 	"github.com/core-coin/go-core/p2p/discover"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/accounts/keystore"
@@ -739,7 +738,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
-		key  *eddsa.PrivateKey
+		key  ed448.PrivateKey
 		err  error
 	)
 	switch {

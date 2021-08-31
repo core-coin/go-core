@@ -20,10 +20,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"net"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"
@@ -124,8 +123,8 @@ type timeoutEvent struct {
 	node *Node
 }
 
-func newNetwork(conn transport, ourPubkey eddsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
-	ourID := PubkeyID(&ourPubkey)
+func newNetwork(conn transport, ourPubkey ed448.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
+	ourID := PubkeyID(ourPubkey)
 
 	var db *nodeDB
 	if dbPath != "<no database>" {

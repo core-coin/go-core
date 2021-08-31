@@ -19,27 +19,27 @@
 package crypto
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.
-func Ecrecover(hash, sig []byte) ([]byte, error) {
+func Ecrecover(hash, sig []byte) (ed448.PublicKey, error) {
 	pubkey, err := SigToPub(hash, sig)
 	if err != nil {
-		return nil, err
+		return ed448.PublicKey{}, err
 	}
-	return pubkey[:], nil
+	return pubkey, nil
 }
 
 // SigToPub returns the public key that created the given signature.
-func SigToPub(hash, sig []byte) (*eddsa.PublicKey, error) {
+func SigToPub(hash, sig []byte) (ed448.PublicKey, error) {
 	if len(sig) != ExtendedSignatureLength {
-		return nil, errInvalidSignature
+		return ed448.PublicKey{}, errInvalidSignature
 	}
 	pub := sig[SignatureLength:]
 	ok := VerifySignature(pub, hash, sig)
 	if !ok {
-		return nil, errInvalidSignature
+		return ed448.PublicKey{}, errInvalidSignature
 	}
 	return UnmarshalPubkey(pub)
 }
@@ -52,17 +52,18 @@ func SigToPub(hash, sig []byte) (*eddsa.PublicKey, error) {
 // solution is to hash any input before calculating the signature.
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
-func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
-	if prv == nil || len(prv) == 0 {
-		return []byte{}, errInvalidPrivkey
+func Sign(hash []byte, prv ed448.PrivateKey) ([171]byte, error) {
+	if (prv == ed448.PrivateKey{}) {
+		return [171]byte{}, errInvalidPrivkey
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prv)
+	pub := ed448.Ed448DerivePublicKey(prv)
 
-	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
-	if len(sig) == ExtendedSignatureLength {
-		return sig[:], nil
-	}
-	return append(sig[:], pub[:]...), nil
+	sig := ed448.Ed448Sign(prv, pub, hash, []byte{}, false)
+
+	var sigWithPub [171]byte
+	copy(sigWithPub[:], append(sig[:], pub[:]...))
+
+	return sigWithPub, nil
 }
 
 // VerifySignature checks that the given public key created signature over hash.
@@ -74,15 +75,15 @@ func VerifySignature(pub, hash, signature []byte) bool {
 	if err != nil {
 		return false
 	}
-	return eddsa.Ed448Verify(*pubkey, signature[:SignatureLength], hash, []byte{}, false)
+	return ed448.Ed448Verify(pubkey, signature[:SignatureLength], hash, []byte{}, false)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
-func DecompressPubkey(pubkey []byte) (*eddsa.PublicKey, error) {
+func DecompressPubkey(pubkey []byte) (ed448.PublicKey, error) {
 	return UnmarshalPubkey(pubkey)
 }
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
-func CompressPubkey(pubkey *eddsa.PublicKey) []byte {
+func CompressPubkey(pubkey ed448.PublicKey) []byte {
 	return pubkey[:]
 }

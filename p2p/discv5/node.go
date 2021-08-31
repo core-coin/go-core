@@ -20,7 +20,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/rand"
 	"net"
 	"net/url"
@@ -284,7 +284,7 @@ func MustHexID(in string) NodeID {
 }
 
 // PubkeyID returns a marshaled representation of the given public key.
-func PubkeyID(pub *eddsa.PublicKey) NodeID {
+func PubkeyID(pub ed448.PublicKey) NodeID {
 	var id NodeID
 	if len(pub) != len(id) {
 		panic("id len != pub len")
@@ -295,9 +295,9 @@ func PubkeyID(pub *eddsa.PublicKey) NodeID {
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
-func (n NodeID) Pubkey() (*eddsa.PublicKey, error) {
+func (n NodeID) Pubkey() (ed448.PublicKey, error) {
 	if n.String() == "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
-		return nil, errors.New("invalid node id")
+		return ed448.PublicKey{}, errors.New("invalid node id")
 	}
 	return crypto.UnmarshalPubkey(n[:])
 }

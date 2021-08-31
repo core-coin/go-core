@@ -23,13 +23,12 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
 	"io"
 	"net"
 	"sync"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
@@ -81,7 +80,7 @@ const (
 // RPC request structures
 type (
 	pingV4 struct {
-		senderKey *eddsa.PublicKey // filled in by preverify
+		senderKey ed448.PublicKey // filled in by preverify
 
 		Version    uint
 		From, To   rpcEndpoint
@@ -189,10 +188,10 @@ func (t *UDPv4) nodeFromRPC(sender *net.UDPAddr, rn rpcNode) (*node, error) {
 }
 
 func nodeToRPC(n *node) rpcNode {
-	var key eddsa.PublicKey
+	var key ed448.PublicKey
 	var ekey encPubkey
 	if err := n.Load((*enode.Secp256k1)(&key)); err == nil {
-		ekey = encodePubkey(&key)
+		ekey = encodePubkey(key)
 	}
 	return rpcNode{ID: ekey, IP: n.IP(), UDP: uint16(n.UDP()), TCP: uint16(n.TCP())}
 }
@@ -202,7 +201,7 @@ type UDPv4 struct {
 	conn        UDPConn
 	log         log.Logger
 	netrestrict *netutil.Netlist
-	priv        *eddsa.PrivateKey
+	priv        ed448.PrivateKey
 	localNode   *enode.LocalNode
 	db          *enode.DB
 	tab         *Table
@@ -323,7 +322,7 @@ func (t *UDPv4) Resolve(n *enode.Node) *enode.Node {
 	if n.Load(&key) != nil {
 		return n // no secp256k1 key
 	}
-	result := t.LookupPubkey((*eddsa.PublicKey)(&key))
+	result := t.LookupPubkey((ed448.PublicKey)(key))
 	for _, rn := range result {
 		if rn.ID() == n.ID() {
 			if rn, err := t.RequestENR(rn); err == nil {
@@ -392,7 +391,7 @@ func (t *UDPv4) makePing(toaddr *net.UDPAddr) *pingV4 {
 }
 
 // LookupPubkey finds the closest nodes to the given public key.
-func (t *UDPv4) LookupPubkey(key *eddsa.PublicKey) []*enode.Node {
+func (t *UDPv4) LookupPubkey(key ed448.PublicKey) []*enode.Node {
 	if t.tab.len() == 0 {
 		// All nodes were dropped, refresh. The very first query will hit this
 		// case and run the bootstrapping logic.
@@ -413,8 +412,8 @@ func (t *UDPv4) lookupRandom() []*enode.Node {
 
 // lookupSelf implements transport.
 func (t *UDPv4) lookupSelf() []*enode.Node {
-	pub := eddsa.Ed448DerivePublicKey(*t.priv)
-	return t.newLookup(t.closeCtx, encodePubkey(&pub)).run()
+	pub := ed448.Ed448DerivePublicKey(t.priv)
+	return t.newLookup(t.closeCtx, encodePubkey(pub)).run()
 }
 
 func (t *UDPv4) newRandomLookup(ctx context.Context) *lookup {
@@ -676,7 +675,7 @@ func (t *UDPv4) write(toaddr *net.UDPAddr, toid enode.ID, what string, packet []
 	return err
 }
 
-func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byte, err error) {
+func (t *UDPv4) encode(priv ed448.PrivateKey, req packetV4) (packet, hash []byte, err error) {
 	name := req.name()
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
@@ -691,7 +690,7 @@ func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 		t.log.Error(fmt.Sprintf("Can't sign %s packet", name), "err", err)
 		return nil, nil, err
 	}
-	copy(packet[macSize:], sig)
+	copy(packet[macSize:], sig[:])
 	// add the hash to the front. Note: this doesn't protect the
 	// packet in any way. Our public key will be part of this hash in
 	// The future.
@@ -699,7 +698,7 @@ func (t *UDPv4) encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 	copy(packet, hash)
 	return packet, hash, nil
 }
-func (t *UDPv4) Encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byte, err error) {
+func (t *UDPv4) Encode(priv ed448.PrivateKey, req packetV4) (packet, hash []byte, err error) {
 	name := req.name()
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
@@ -714,7 +713,7 @@ func (t *UDPv4) Encode(priv *eddsa.PrivateKey, req packetV4) (packet, hash []byt
 		t.log.Error(fmt.Sprintf("Can't sign %s packet", name), "err", err)
 		return nil, nil, err
 	}
-	copy(packet[macSize:], sig)
+	copy(packet[macSize:], sig[:])
 	// add the hash to the front. Note: this doesn't protect the
 	// packet in any way. Our public key will be part of this hash in
 	// The future.

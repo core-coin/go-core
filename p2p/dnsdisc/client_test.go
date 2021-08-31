@@ -19,7 +19,7 @@ package dnsdisc
 import (
 	"context"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -332,9 +332,9 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 }
 
 // testKeys creates deterministic private keys for testing.
-func testKeys(seed int64, n int) []*eddsa.PrivateKey {
+func testKeys(seed int64, n int) []ed448.PrivateKey {
 	randSeed := rand.New(rand.NewSource(seed))
-	keys := make([]*eddsa.PrivateKey, n)
+	keys := make([]ed448.PrivateKey, n)
 	for i := 0; i < n; i++ {
 		key, err := crypto.GenerateKey(randSeed)
 		if err != nil {
@@ -345,7 +345,7 @@ func testKeys(seed int64, n int) []*eddsa.PrivateKey {
 	return keys
 }
 
-func testKey(seed int64) *eddsa.PrivateKey {
+func testKey(seed int64) ed448.PrivateKey {
 	return testKeys(seed, 1)[0]
 }
 

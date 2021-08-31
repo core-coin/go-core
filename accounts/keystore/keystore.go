@@ -24,6 +24,7 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -31,8 +32,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -239,7 +238,7 @@ func (ks *KeyStore) Delete(a accounts.Account, passphrase string) error {
 	// immediately afterwards.
 	a, key, err := ks.getDecryptedKey(a, passphrase)
 	if key != nil {
-		zeroKey(key.PrivateKey)
+		zeroKey(&key.PrivateKey)
 	}
 	if err != nil {
 		return err
@@ -267,7 +266,8 @@ func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 		return nil, ErrLocked
 	}
 	// Sign the hash using plain EDDSA operations
-	return crypto.Sign(hash, unlockedKey.PrivateKey)
+	sig, err := crypto.Sign(hash, unlockedKey.PrivateKey)
+	return sig[:], err
 }
 
 // SignTx signs the given transaction with the requested account.
@@ -292,8 +292,9 @@ func (ks *KeyStore) SignHashWithPassphrase(a accounts.Account, passphrase string
 	if err != nil {
 		return nil, err
 	}
-	defer zeroKey(key.PrivateKey)
-	return crypto.Sign(hash, key.PrivateKey)
+	defer zeroKey(&key.PrivateKey)
+	sig, err := crypto.Sign(hash, key.PrivateKey)
+	return sig[:], err
 }
 
 // SignTxWithPassphrase signs the transaction if the private key matching the
@@ -303,7 +304,7 @@ func (ks *KeyStore) SignTxWithPassphrase(a accounts.Account, passphrase string, 
 	if err != nil {
 		return nil, err
 	}
-	defer zeroKey(key.PrivateKey)
+	defer zeroKey(&key.PrivateKey)
 
 	return types.SignTx(tx, types.NewNucleusSigner(networkID), key.PrivateKey)
 }
@@ -345,7 +346,7 @@ func (ks *KeyStore) TimedUnlock(a accounts.Account, passphrase string, timeout t
 		if u.abort == nil {
 			// The address was unlocked indefinitely, so unlocking
 			// it with a timeout would be confusing.
-			zeroKey(key.PrivateKey)
+			zeroKey(&key.PrivateKey)
 			return nil
 		}
 		// Terminate the expire goroutine and replace it below.
@@ -392,7 +393,7 @@ func (ks *KeyStore) expire(addr common.Address, u *unlocked, timeout time.Durati
 		// because the map stores a new pointer every time the key is
 		// unlocked.
 		if ks.unlocked[addr] == u {
-			zeroKey(u.PrivateKey)
+			zeroKey(&u.PrivateKey)
 			delete(ks.unlocked, addr)
 		}
 		ks.mu.Unlock()
@@ -431,8 +432,8 @@ func (ks *KeyStore) Export(a accounts.Account, passphrase, newPassphrase string)
 // Import stores the given encrypted JSON key into the key directory.
 func (ks *KeyStore) Import(keyJSON []byte, passphrase, newPassphrase string) (accounts.Account, error) {
 	key, err := DecryptKey(keyJSON, passphrase)
-	if key != nil && key.PrivateKey != nil {
-		defer zeroKey(key.PrivateKey)
+	if key != nil && (key.PrivateKey != ed448.PrivateKey{}) {
+		defer zeroKey(&key.PrivateKey)
 	}
 	if err != nil {
 		return accounts.Account{}, err
@@ -441,7 +442,7 @@ func (ks *KeyStore) Import(keyJSON []byte, passphrase, newPassphrase string) (ac
 }
 
 // ImportEDDSA stores the given key into the key directory, encrypting it with the passphrase.
-func (ks *KeyStore) ImportEDDSA(priv *eddsa.PrivateKey, passphrase string) (accounts.Account, error) {
+func (ks *KeyStore) ImportEDDSA(priv ed448.PrivateKey, passphrase string) (accounts.Account, error) {
 	key := newKeyFromEDDSA(priv)
 	if ks.cache.hasAddress(key.Address) {
 		return accounts.Account{}, fmt.Errorf("account already exists")
@@ -481,6 +482,6 @@ func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (account
 }
 
 // zeroKey zeroes a private key in memory.
-func zeroKey(k *eddsa.PrivateKey) {
-	k = new(eddsa.PrivateKey)
+func zeroKey(k *ed448.PrivateKey) {
+	k = new(ed448.PrivateKey)
 }

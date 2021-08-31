@@ -20,7 +20,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"net/url"
 	"regexp"
@@ -81,7 +81,7 @@ func ParseV4(rawurl string) (*Node, error) {
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey *eddsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey ed448.PublicKey, ip net.IP, tcp, udp int) *Node {
 	var r enr.Record
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
@@ -92,7 +92,7 @@ func NewV4(pubkey *eddsa.PublicKey, ip net.IP, tcp, udp int) *Node {
 	if tcp != 0 {
 		r.Set(enr.TCP(tcp))
 	}
-	signV4Compat(&r, pubkey)
+	signV4Compat(&r, &pubkey)
 	n, err := New(v4CompatID{}, &r)
 	if err != nil {
 		panic(err)
@@ -108,7 +108,7 @@ func isNewV4(n *Node) bool {
 
 func parseComplete(rawurl string) (*Node, error) {
 	var (
-		id               *eddsa.PublicKey
+		id               ed448.PublicKey
 		tcpPort, udpPort uint64
 	)
 	u, err := url.Parse(rawurl)
@@ -154,12 +154,12 @@ func parseComplete(rawurl string) (*Node, error) {
 }
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
-func parsePubkey(in string) (*eddsa.PublicKey, error) {
+func parsePubkey(in string) (ed448.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
-		return nil, err
+		return ed448.PublicKey{}, err
 	} else if len(b) != crypto.PubkeyLength {
-		return nil, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
+		return ed448.PublicKey{}, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
 	}
 	return crypto.UnmarshalPubkey(b)
 }
@@ -168,15 +168,15 @@ func (n *Node) URLv4() string {
 	var (
 		scheme enr.ID
 		nodeid string
-		key    eddsa.PublicKey
+		key    ed448.PublicKey
 	)
 	n.Load(&scheme)
 	n.Load((*Secp256k1)(&key))
 	switch {
 	case scheme == "v4":
-		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key)[:])
+		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(key))
 	case scheme == "":
-		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key))
+		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(key))
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
@@ -195,7 +195,7 @@ func (n *Node) URLv4() string {
 }
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
-func PubkeyToIDV4(key *eddsa.PublicKey) ID {
+func PubkeyToIDV4(key ed448.PublicKey) ID {
 	e := key[:]
 	return ID(crypto.SHA3Hash(e))
 }

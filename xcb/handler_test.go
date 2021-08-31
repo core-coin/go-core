@@ -18,7 +18,7 @@ package xcb
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math"
 	"math/big"
 	"math/rand"
@@ -278,8 +278,8 @@ func testGetNodeData(t *testing.T, protocol int) { // TODO: TEST
 	// Define three accounts to simulate transactions with
 	acc1Key, _ := crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
 	acc2Key, _ := crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-	acc1Pub := eddsa.Ed448DerivePublicKey(*acc1Key)
-	acc2Pub := eddsa.Ed448DerivePublicKey(*acc2Key)
+	acc1Pub := ed448.Ed448DerivePublicKey(acc1Key)
+	acc2Pub := ed448.Ed448DerivePublicKey(acc2Key)
 	acc1Addr := crypto.PubkeyToAddress(acc1Pub)
 	acc2Addr := crypto.PubkeyToAddress(acc2Pub)
 
@@ -377,8 +377,8 @@ func testGetReceipt(t *testing.T, protocol int) {
 	// Define three accounts to simulate transactions with
 	acc1Key, _ := crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
 	acc2Key, _ := crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-	acc1Pub := eddsa.Ed448DerivePublicKey(*acc1Key)
-	acc2Pub := eddsa.Ed448DerivePublicKey(*acc2Key)
+	acc1Pub := ed448.Ed448DerivePublicKey(acc1Key)
+	acc2Pub := ed448.Ed448DerivePublicKey(acc2Key)
 	acc1Addr := crypto.PubkeyToAddress(acc1Pub)
 	acc2Addr := crypto.PubkeyToAddress(acc2Pub)
 

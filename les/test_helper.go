@@ -23,7 +23,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"sync/atomic"
 	"testing"
@@ -52,14 +52,14 @@ import (
 
 var (
 	bankKey, _ = crypto.GenerateKey(rand.Reader)
-	bankPubKey = eddsa.Ed448DerivePublicKey(*bankKey)
+	bankPubKey = ed448.Ed448DerivePublicKey(bankKey)
 	bankAddr   = crypto.PubkeyToAddress(bankPubKey)
 	bankFunds  = big.NewInt(1000000000000000000)
 
 	userKey1, _ = crypto.GenerateKey(rand.Reader)
 	userKey2, _ = crypto.GenerateKey(rand.Reader)
-	userPubKey1 = eddsa.Ed448DerivePublicKey(*userKey1)
-	userPubKey2 = eddsa.Ed448DerivePublicKey(*userKey2)
+	userPubKey1 = ed448.Ed448DerivePublicKey(userKey1)
+	userPubKey2 = ed448.Ed448DerivePublicKey(userKey2)
 	userAddr1   = crypto.PubkeyToAddress(userPubKey1)
 	userAddr2   = crypto.PubkeyToAddress(userPubKey2)
 
@@ -73,7 +73,7 @@ var (
 	// Checkpoint registrar relative
 	registrarAddr common.Address
 	signerKey, _  = crypto.GenerateKey(rand.Reader)
-	signerPubKey  = eddsa.Ed448DerivePublicKey(*signerKey)
+	signerPubKey  = ed448.Ed448DerivePublicKey(signerKey)
 	signerAddr    = crypto.PubkeyToAddress(signerPubKey)
 )
 

@@ -21,11 +21,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"net"
 	"os"
 	"strconv"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
@@ -87,7 +86,7 @@ type NodeConfig struct {
 
 	// PrivateKey is the node's private key which is used by the devp2p
 	// stack to encrypt communications
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey ed448.PrivateKey
 
 	// Enable peer events for Msgs
 	EnableMsgEvents bool
@@ -144,7 +143,7 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 		Port:            n.Port,
 		EnableMsgEvents: n.EnableMsgEvents,
 	}
-	if n.PrivateKey != nil {
+	if (n.PrivateKey != ed448.PrivateKey{}) {
 		confJSON.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(n.PrivateKey))
 	}
 	return json.Marshal(confJSON)
@@ -202,8 +201,8 @@ func RandomNodeConfig() *NodeConfig {
 	if err != nil {
 		panic("unable to assign tcp port")
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prvkey)
-	enodId := enode.PubkeyToIDV4(&pub)
+	pub := ed448.Ed448DerivePublicKey(prvkey)
+	enodId := enode.PubkeyToIDV4(pub)
 	return &NodeConfig{
 		PrivateKey:      prvkey,
 		ID:              enodId,

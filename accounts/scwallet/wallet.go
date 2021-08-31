@@ -25,7 +25,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"regexp"
@@ -924,8 +924,8 @@ func (s *Session) initialize(seed []byte) error {
 	}
 
 	id := initializeData{}
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	id.PublicKey = crypto.FromEDDSAPub(&pub)
+	pub := ed448.Ed448DerivePublicKey(key)
+	id.PublicKey = crypto.FromEDDSAPub(pub)
 	id.PrivateKey = seed[:32]
 	id.ChainCode = seed[32:]
 	data, err := asn1.Marshal(id)
@@ -992,7 +992,7 @@ func (s *Session) derive(path accounts.DerivationPath) (accounts.Account, error)
 	if err != nil {
 		return accounts.Account{}, err
 	}
-	return s.Wallet.makeAccount(crypto.PubkeyToAddress(*pub), path), nil
+	return s.Wallet.makeAccount(crypto.PubkeyToAddress(pub), path), nil
 }
 
 // keyExport contains information on an exported keypair.
@@ -1073,7 +1073,7 @@ func makeRecoverableSignature(hash, sig, expectedPubkey []byte) ([]byte, error) 
 	for v := 0; v < 2; v++ {
 		sig[64] = byte(v)
 		if pubkey, err := crypto.Ecrecover(hash, sig); err == nil {
-			if bytes.Equal(pubkey, expectedPubkey) {
+			if bytes.Equal(pubkey[:], expectedPubkey) {
 				return sig, nil
 			}
 		} else {

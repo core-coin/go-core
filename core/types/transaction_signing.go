@@ -18,9 +18,8 @@ package types
 
 import (
 	"errors"
+	"github.com/core-coin/ed448"
 	"math/big"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"
@@ -42,14 +41,14 @@ func MakeSigner(networkID *big.Int) Signer {
 }
 
 // SignTx signs the transaction using the given signer and private key
-func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
+func SignTx(tx *Transaction, s Signer, prv ed448.PrivateKey) (*Transaction, error) {
 	tx.data.NetworkID = uint(s.NetworkID())
 	h := s.Hash(tx)
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
-	return tx.WithSignature(s, sig)
+	return tx.WithSignature(s, sig[:])
 }
 
 // Sender may cache the address, allowing it to be used regardless of
@@ -141,5 +140,5 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*pubk), nil
+	return crypto.PubkeyToAddress(pubk), nil
 }

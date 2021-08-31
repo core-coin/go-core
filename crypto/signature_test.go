@@ -19,8 +19,8 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
+	"github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 
@@ -38,7 +38,7 @@ func TestEcrecover(t *testing.T) {
 	if err != nil {
 		t.Fatalf("recover error: %s", err)
 	}
-	if !bytes.Equal(pubkey, testpubkey) {
+	if !bytes.Equal(pubkey[:], testpubkey) {
 		t.Errorf("pubkey mismatch: want: %x have: %x", testpubkey, pubkey)
 	}
 }
@@ -89,12 +89,12 @@ func TestPubkeyRandom(t *testing.T) {
 		if err != nil {
 			t.Fatalf("iteration %d: %v", i, err)
 		}
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		pubkey2, err := DecompressPubkey(CompressPubkey(&pub))
+		pub := ed448.Ed448DerivePublicKey(key)
+		pubkey2, err := DecompressPubkey(CompressPubkey(pub))
 		if err != nil {
 			t.Fatalf("iteration %d: %v", i, err)
 		}
-		if !reflect.DeepEqual(pub, *pubkey2) {
+		if !reflect.DeepEqual(pub, pubkey2) {
 			t.Fatalf("iteration %d: keys not equal", i)
 		}
 	}

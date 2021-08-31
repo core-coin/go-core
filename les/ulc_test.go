@@ -19,7 +19,7 @@ package les
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"testing"
 	"time"
@@ -133,8 +133,8 @@ func newTestServerPeer(t *testing.T, blocks int, protocol int) (*testServer, *en
 		t.Fatal("generate key err:", err)
 	}
 	s.handler.server.privateKey = key
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	n := enode.NewV4(&pub, net.ParseIP("127.0.0.1"), 35000, 35000)
+	pub := ed448.Ed448DerivePublicKey(key)
+	n := enode.NewV4(pub, net.ParseIP("127.0.0.1"), 35000, 35000)
 	return s, n, teardown
 }
 

@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io"
 	"io/ioutil"
 	"net"
@@ -40,12 +40,12 @@ import (
 
 func TestSharedSecret(t *testing.T) {
 	prv0, _ := crypto.GenerateKey(rand.Reader) // = eddsa.GenerateKey(crypto.S256(), rand.Reader)
-	pub0 := eddsa.Ed448DerivePublicKey(*prv0)
+	pub0 := ed448.Ed448DerivePublicKey(prv0)
 	prv1, _ := crypto.GenerateKey(rand.Reader)
-	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
+	pub1 := ed448.Ed448DerivePublicKey(prv1)
 
-	ss0 := crypto.ComputeSecret(prv0, &pub1)
-	ss1 := crypto.ComputeSecret(prv1, &pub0)
+	ss0 := crypto.ComputeSecret(prv0, pub1)
+	ss1 := crypto.ComputeSecret(prv1, pub0)
 	t.Logf("Secret:\n%v %x\n%v %x", len(ss0), ss0, len(ss0), ss1)
 	if !bytes.Equal(ss0, ss1) {
 		t.Errorf("dont match :(")
@@ -74,7 +74,7 @@ func TestEncHandshake(t *testing.T) {
 func testEncHandshake(token []byte) error {
 	type result struct {
 		side   string
-		pubkey *eddsa.PublicKey
+		pubkey ed448.PublicKey
 		err    error
 	}
 	var (
@@ -90,12 +90,12 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd0.Close()
 
-		pub := eddsa.Ed448DerivePublicKey(*prv1)
-		r.pubkey, r.err = c0.doEncHandshake(prv0, &pub)
+		pub := ed448.Ed448DerivePublicKey(prv1)
+		r.pubkey, r.err = c0.doEncHandshake(prv0, pub)
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &pub) {
+		if !reflect.DeepEqual(r.pubkey, pub) {
 			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
@@ -104,12 +104,12 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd1.Close()
 
-		r.pubkey, r.err = c1.doEncHandshake(prv1, nil)
+		r.pubkey, r.err = c1.doEncHandshake(prv1, ed448.PublicKey{})
 		if r.err != nil {
 			return
 		}
-		pub := eddsa.Ed448DerivePublicKey(*prv0)
-		if !reflect.DeepEqual(r.pubkey, &pub) {
+		pub := ed448.Ed448DerivePublicKey(prv0)
+		if !reflect.DeepEqual(r.pubkey, pub) {
 			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
@@ -142,13 +142,13 @@ func testEncHandshake(token []byte) error {
 func TestProtocolHandshake(t *testing.T) {
 	var (
 		prv0, _ = crypto.GenerateKey(rand.Reader)
-		pubb0   = eddsa.Ed448DerivePublicKey(*prv0)
-		pub0    = crypto.FromEDDSAPub(&pubb0)
+		pubb0   = ed448.Ed448DerivePublicKey(prv0)
+		pub0    = crypto.FromEDDSAPub(pubb0)
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
 		prv1, _ = crypto.GenerateKey(rand.Reader)
-		pubb1   = eddsa.Ed448DerivePublicKey(*prv1)
-		pub1    = crypto.FromEDDSAPub(&pubb1)
+		pubb1   = ed448.Ed448DerivePublicKey(prv1)
+		pub1    = crypto.FromEDDSAPub(pubb1)
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
@@ -164,12 +164,12 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd0.Close()
 		rlpx := newRLPX(fd0)
-		rpubkey, err := rlpx.doEncHandshake(prv0, &pubb1)
+		rpubkey, err := rlpx.doEncHandshake(prv0, pubb1)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &pubb1) {
+		if !reflect.DeepEqual(rpubkey, pubb1) {
 			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb1)
 			return
 		}
@@ -190,12 +190,12 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd1.Close()
 		rlpx := newRLPX(fd1)
-		rpubkey, err := rlpx.doEncHandshake(prv1, nil)
+		rpubkey, err := rlpx.doEncHandshake(prv1, ed448.PublicKey{})
 		if err != nil {
 			t.Errorf("listen side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &pubb0) {
+		if !reflect.DeepEqual(rpubkey, pubb0) {
 			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb0)
 			return
 		}
@@ -431,16 +431,16 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 	var (
 		keyA, _       = crypto.HexToEDDSA("f2cdd78003bf733b7badb5001ea1fe9248346f5b7943a87b3c40528a8f10941eb29313c1abf703aaab4a46a94a0b2302ec89bf1998332d7c60")
 		keyB, _       = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pubbA         = eddsa.Ed448DerivePublicKey(*keyA)
-		pubbB         = eddsa.Ed448DerivePublicKey(*keyB)
-		pubA          = crypto.FromEDDSAPub(&pubbA)
-		pubB          = crypto.FromEDDSAPub(&pubbB)
+		pubbA         = ed448.Ed448DerivePublicKey(keyA)
+		pubbB         = ed448.Ed448DerivePublicKey(keyB)
+		pubA          = crypto.FromEDDSAPub(pubbA)
+		pubB          = crypto.FromEDDSAPub(pubbB)
 		ephA, _       = crypto.HexToEDDSA("45516f2d6e60098e547e9b50d386e75f530805fb468c132bead2ce7b205208d895cb086fff390eff73c349a7e5caf1c8c8d8278ae31a6b175a")
 		ephB, _       = crypto.HexToEDDSA("96b3c4485ef83aae585776685bed5d7d6373befb7b661f43592ac703b94ed543526a23d4de35af35c30690998993f140ed1fd9389bc99506b9")
-		pubbEpthA     = eddsa.Ed448DerivePublicKey(*ephA)
-		pubbEpthB     = eddsa.Ed448DerivePublicKey(*ephB)
-		ephPubA       = crypto.FromEDDSAPub(&pubbEpthA)
-		ephPubB       = crypto.FromEDDSAPub(&pubbEpthB)
+		pubbEpthA     = ed448.Ed448DerivePublicKey(ephA)
+		pubbEpthB     = ed448.Ed448DerivePublicKey(ephB)
+		ephPubA       = crypto.FromEDDSAPub(pubbEpthA)
+		ephPubB       = crypto.FromEDDSAPub(pubbEpthB)
 		nonceA        = unhex("7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6")
 		nonceB        = unhex("559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd")
 		_, _, _, _    = pubA, pubB, ephPubA, ephPubB

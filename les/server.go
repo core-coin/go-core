@@ -17,7 +17,7 @@
 package les
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/abi/bind"
@@ -44,7 +44,7 @@ type LesServer struct {
 	serverset   *serverSet
 	handler     *serverHandler
 	lesTopics   []discv5.Topic
-	privateKey  *eddsa.PrivateKey
+	privateKey  ed448.PrivateKey
 
 	// Flow control and capacity management
 	fcManager    *flowcontrol.ClientManager

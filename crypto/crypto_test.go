@@ -19,7 +19,7 @@ package crypto
 import (
 	"bytes"
 	"encoding/hex"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -57,11 +57,11 @@ func BenchmarkSha3(b *testing.B) { //TODO: TEST
 
 func TestUnmarshalPubkey(t *testing.T) {
 	key, err := UnmarshalPubkey(nil)
-	if err != errInvalidPubkey || key != nil {
+	if err != errInvalidPubkey || (key != ed448.PublicKey{}) {
 		t.Fatalf("expected error, got %v, %v", err, key)
 	}
 	key, err = UnmarshalPubkey([]byte{1, 2, 3})
-	if err != errInvalidPubkey || key != nil {
+	if err != errInvalidPubkey || (key != ed448.PublicKey{}) {
 		t.Fatalf("expected error, got %v, %v", err, key)
 	}
 
@@ -85,32 +85,32 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Errorf("Sign error: %s", err)
 	}
-	recoveredPub, err := Ecrecover(msg, sig)
+	recoveredPub, err := Ecrecover(msg, sig[:])
 	if err != nil {
 		t.Errorf("ECRecover error: %s", err)
 	}
-	pubKey, _ := UnmarshalPubkey(recoveredPub)
-	recoveredAddr := PubkeyToAddress(*pubKey)
+	pubKey, _ := UnmarshalPubkey(recoveredPub[:])
+	recoveredAddr := PubkeyToAddress(pubKey)
 	if addr != recoveredAddr {
 		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr)
 	}
 
 	// should be equal to SigToPub
-	recoveredPub2, err := SigToPub(msg, sig)
+	recoveredPub2, err := SigToPub(msg, sig[:])
 	if err != nil {
 		t.Errorf("ECRecover error: %s", err)
 	}
-	recoveredAddr2 := PubkeyToAddress(*recoveredPub2)
+	recoveredAddr2 := PubkeyToAddress(recoveredPub2)
 	if addr != recoveredAddr2 {
 		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr2)
 	}
 }
 
 func TestInvalidSign(t *testing.T) {
-	if _, err := Sign(make([]byte, 1), nil); err == nil {
+	if _, err := Sign(make([]byte, 1), ed448.PrivateKey{}); err == nil {
 		t.Errorf("expected sign with hash 1 byte to error")
 	}
-	if _, err := Sign(make([]byte, 33), nil); err == nil {
+	if _, err := Sign(make([]byte, 33), ed448.PrivateKey{}); err == nil {
 		t.Errorf("expected sign with hash 33 byte to error")
 	}
 }
@@ -121,7 +121,7 @@ func TestNewContractAddress(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	genAddr := PubkeyToAddress(pub)
 	// sanity check before using addr to create contract address
 	checkAddr(t, genAddr, addr)
@@ -151,8 +151,8 @@ func TestLoadEDDSAFile(t *testing.T) {
 	fileName0 := "test_key0"
 	fileName1 := "test_key1"
 	addr, _ := common.HexToAddress(testAddrHex)
-	checkKey := func(k *eddsa.PrivateKey) {
-		pub := eddsa.Ed448DerivePublicKey(*k)
+	checkKey := func(k ed448.PrivateKey) {
+		pub := ed448.Ed448DerivePublicKey(k)
 		checkAddr(t, PubkeyToAddress(pub), addr)
 		loadedKeyBytes := FromEDDSA(k)
 		if !bytes.Equal(loadedKeyBytes, keyBytes) {

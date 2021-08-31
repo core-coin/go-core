@@ -20,13 +20,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/core-coin/ed448"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
-
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/common"
@@ -44,7 +43,7 @@ type Key struct {
 	Address common.Address
 	// we only store privkey as pubkey/address can be derived from it
 	// privkey in this struct is always in plaintext
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey ed448.PrivateKey
 }
 
 type keyStore interface {
@@ -126,9 +125,9 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	return nil
 }
 
-func newKeyFromEDDSA(privateKeyEDDSA *eddsa.PrivateKey) *Key {
+func newKeyFromEDDSA(privateKeyEDDSA ed448.PrivateKey) *Key {
 	id := uuid.NewRandom()
-	pub := eddsa.Ed448DerivePublicKey(*privateKeyEDDSA)
+	pub := ed448.Ed448DerivePublicKey(privateKeyEDDSA)
 	key := &Key{
 		Id:         id,
 		Address:    crypto.PubkeyToAddress(pub),
@@ -155,7 +154,7 @@ func storeNewKey(ks keyStore, rand io.Reader, auth string) (*Key, accounts.Accou
 		URL:     accounts.URL{Scheme: KeyStoreScheme, Path: ks.JoinPath(keyFileName(key.Address))},
 	}
 	if err := ks.StoreKey(a.URL.Path, key, auth); err != nil {
-		zeroKey(key.PrivateKey)
+		zeroKey(&key.PrivateKey)
 		return nil, a, err
 	}
 	return key, a, err

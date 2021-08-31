@@ -17,7 +17,7 @@
 package clique
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"math/big"
 	"testing"
 
@@ -42,7 +42,7 @@ func TestReimportMirroredState(t *testing.T) {
 	var (
 		db     = rawdb.NewMemoryDatabase()
 		key, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub    = eddsa.Ed448DerivePublicKey(*key)
+		pub    = ed448.Ed448DerivePublicKey(key)
 		addr   = crypto.PubkeyToAddress(pub)
 		engine = New(params.AllCliqueProtocolChanges.Clique, db)
 		signer = types.NewNucleusSigner(params.AllCliqueProtocolChanges.NetworkID)
@@ -84,7 +84,7 @@ func TestReimportMirroredState(t *testing.T) {
 		header.Difficulty = diffInTurn
 
 		sig, _ := crypto.Sign(SealHash(header).Bytes(), key)
-		copy(header.Extra[len(header.Extra)-extraSeal:], sig)
+		copy(header.Extra[len(header.Extra)-extraSeal:], sig[:])
 		blocks[i] = block.WithSeal(header)
 	}
 	// Insert the first two blocks and make sure the chain is valid

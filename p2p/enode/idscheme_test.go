@@ -18,7 +18,7 @@ package enode
 
 import (
 	"encoding/hex"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"
@@ -29,7 +29,7 @@ import (
 
 var (
 	privkey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub        = eddsa.Ed448DerivePublicKey(*privkey)
+	pub        = ed448.Ed448DerivePublicKey(privkey)
 	pubkey     = Secp256k1(pub)
 )
 

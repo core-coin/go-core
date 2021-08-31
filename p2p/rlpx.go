@@ -25,7 +25,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -174,18 +174,18 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 // messages. the protocol handshake is the first authenticated message
 // and also verifies whether the encryption handshake 'worked' and the
 // remote side actually provided the right public key.
-func (t *rlpx) doEncHandshake(prv *eddsa.PrivateKey, dial *eddsa.PublicKey) (*eddsa.PublicKey, error) {
+func (t *rlpx) doEncHandshake(prv ed448.PrivateKey, dial ed448.PublicKey) (ed448.PublicKey, error) {
 	var (
 		sec secrets
 		err error
 	)
-	if dial == nil {
+	if (dial == ed448.PublicKey{}) {
 		sec, err = receiverEncHandshake(t.fd, prv)
 	} else {
 		sec, err = initiatorEncHandshake(t.fd, prv, dial)
 	}
 	if err != nil {
-		return nil, err
+		return ed448.PublicKey{}, err
 	}
 	t.wmu.Lock()
 	t.rw = newRLPXFrameRW(t.fd, sec)
@@ -196,16 +196,16 @@ func (t *rlpx) doEncHandshake(prv *eddsa.PrivateKey, dial *eddsa.PublicKey) (*ed
 // encHandshake contains the state of the encryption handshake.
 type encHandshake struct {
 	initiator            bool
-	remote               *eddsa.PublicKey  // remote-pubk
-	initNonce, respNonce []byte            // nonce
-	randomPrivKey        *eddsa.PrivateKey // ecdhe-random
-	remoteRandomPub      *eddsa.PublicKey  // ecdhe-random-pubk
+	remote               ed448.PublicKey  // remote-pubk
+	initNonce, respNonce []byte           // nonce
+	randomPrivKey        ed448.PrivateKey // ecdhe-random
+	remoteRandomPub      ed448.PublicKey  // ecdhe-random-pubk
 }
 
 // secrets represents the connection secrets
 // which are negotiated during the encryption handshake.
 type secrets struct {
-	Remote                *eddsa.PublicKey
+	Remote                ed448.PublicKey
 	AES, MAC              []byte
 	EgressMAC, IngressMAC hash.Hash
 	Token                 []byte
@@ -266,7 +266,7 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 
 // staticSharedSecret returns the static shared secret, the result
 // of key agreement between the local and remote static node key.
-func (h *encHandshake) staticSharedSecret(prv *eddsa.PrivateKey) ([]byte, error) {
+func (h *encHandshake) staticSharedSecret(prv ed448.PrivateKey) ([]byte, error) {
 	return crypto.ComputeSecret(prv, h.remote), nil
 }
 
@@ -274,7 +274,7 @@ func (h *encHandshake) staticSharedSecret(prv *eddsa.PrivateKey) ([]byte, error)
 // it should be called on the dialing side of the connection.
 //
 // prv is the local client's private key.
-func initiatorEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey, remote *eddsa.PublicKey) (s secrets, err error) {
+func initiatorEncHandshake(conn io.ReadWriter, prv ed448.PrivateKey, remote ed448.PublicKey) (s secrets, err error) {
 	h := &encHandshake{initiator: true, remote: remote}
 	authMsg, err := h.makeAuthMsg(prv)
 	if err != nil {
@@ -300,7 +300,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey, remote *ed
 }
 
 // makeAuthMsg creates the initiator handshake message.
-func (h *encHandshake) makeAuthMsg(prv *eddsa.PrivateKey) (*authMsgV4, error) {
+func (h *encHandshake) makeAuthMsg(prv ed448.PrivateKey) (*authMsgV4, error) {
 	// Generate random initiator nonce.
 	h.initNonce = make([]byte, shaLen)
 	_, err := rand.Read(h.initNonce)
@@ -325,9 +325,9 @@ func (h *encHandshake) makeAuthMsg(prv *eddsa.PrivateKey) (*authMsgV4, error) {
 	}
 
 	msg := new(authMsgV4)
-	copy(msg.Signature[:], signature)
-	pub := eddsa.Ed448DerivePublicKey(*prv)
-	copy(msg.InitiatorPubkey[:], crypto.FromEDDSAPub(&pub)[:])
+	copy(msg.Signature[:], signature[:])
+	pub := ed448.Ed448DerivePublicKey(prv)
+	copy(msg.InitiatorPubkey[:], crypto.FromEDDSAPub(pub)[:])
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = 4
 	return msg, nil
@@ -343,7 +343,7 @@ func (h *encHandshake) handleAuthResp(msg *authRespV4) (err error) {
 // it should be called on the listening side of the connection.
 //
 // prv is the local client's private key.
-func receiverEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey) (s secrets, err error) {
+func receiverEncHandshake(conn io.ReadWriter, prv ed448.PrivateKey) (s secrets, err error) {
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
 	if err != nil {
@@ -373,7 +373,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *eddsa.PrivateKey) (s secrets,
 	return h.secrets(authPacket, authRespPacket)
 }
 
-func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *eddsa.PrivateKey) error {
+func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv ed448.PrivateKey) error {
 	// Import the remote identity.
 	rpub, err := importPublicKey(msg.InitiatorPubkey[:])
 	if err != nil {
@@ -384,7 +384,7 @@ func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *eddsa.PrivateKey) erro
 
 	// Generate random keypair for ECDH.
 	// If a private key is already set, use it instead of generating one (for testing).
-	if h.randomPrivKey == nil {
+	if (h.randomPrivKey == ed448.PrivateKey{}) {
 		h.randomPrivKey, err = crypto.GenerateKey(rand.Reader)
 		if err != nil {
 			return err
@@ -401,7 +401,7 @@ func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *eddsa.PrivateKey) erro
 	if err != nil {
 		return err
 	}
-	h.remoteRandomPub, _ = importPublicKey(remoteRandomPub)
+	h.remoteRandomPub, _ = importPublicKey(remoteRandomPub[:])
 	return nil
 }
 
@@ -413,9 +413,9 @@ func (h *encHandshake) makeAuthResp() (msg *authRespV4, err error) {
 	}
 
 	msg = new(authRespV4)
-	pub := eddsa.Ed448DerivePublicKey(*h.randomPrivKey)
+	pub := ed448.Ed448DerivePublicKey(h.randomPrivKey)
 	copy(msg.Nonce[:], h.respNonce)
-	copy(msg.RandomPubkey[:], exportPubkey(&pub))
+	copy(msg.RandomPubkey[:], exportPubkey(pub))
 	msg.Version = 4
 	return msg, nil
 }
@@ -464,7 +464,7 @@ type plainDecoder interface {
 	decodePlain([]byte)
 }
 
-func readHandshakeMsg(msg plainDecoder, plainSize int, prv *eddsa.PrivateKey, r io.Reader) ([]byte, error) {
+func readHandshakeMsg(msg plainDecoder, plainSize int, prv ed448.PrivateKey, r io.Reader) ([]byte, error) {
 	buf := make([]byte, plainSize)
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return buf, err
@@ -496,16 +496,16 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *eddsa.PrivateKey, r 
 }
 
 // importPublicKey unmarshals 512 bit public keys.
-func importPublicKey(pubKey []byte) (*eddsa.PublicKey, error) {
+func importPublicKey(pubKey []byte) (ed448.PublicKey, error) {
 	pub, err := crypto.UnmarshalPubkey(pubKey)
 	if err != nil {
-		return nil, err
+		return ed448.PublicKey{}, err
 	}
 	return pub, nil
 }
 
-func exportPubkey(pub *eddsa.PublicKey) []byte {
-	if pub == nil {
+func exportPubkey(pub ed448.PublicKey) []byte {
+	if (pub == ed448.PublicKey{}) {
 		panic("nil pubkey")
 	}
 	return pub[:]

@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/ed448"
 	"net"
 	"testing"
 	"time"
@@ -29,7 +29,7 @@ import (
 
 func TestNetwork_Lookup(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := ed448.Ed448DerivePublicKey(key)
 	network, err := newNetwork(lookupDevin, pub, "", nil)
 	if err != nil {
 		t.Fatal(err)
