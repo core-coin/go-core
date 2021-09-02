@@ -40,22 +40,22 @@ type Tree struct {
 }
 
 // Sign signs the tree with the given private key and sets the sequence number.
-func (t *Tree) Sign(key ed448.PrivateKey, domain string) (url string, err error) {
+func (t *Tree) Sign(key *ed448.PrivateKey, domain string) (url string, err error) {
 	root := *t.root
-	sig, err := crypto.Sign(root.sigHash(), key)
+	sig, err := crypto.Sign(root.sigHash(), *key)
 	if err != nil {
 		return "", err
 	}
 	root.sig = sig[:]
 	t.root = &root
-	pub := ed448.Ed448DerivePublicKey(key)
-	link := newLinkEntry(domain, pub)
+	pub := ed448.Ed448DerivePublicKey(*key)
+	link := newLinkEntry(domain, &pub)
 	return link.String(), nil
 }
 
 // SetSignature verifies the given signature and assigns it as the tree's current
 // signature if valid.
-func (t *Tree) SetSignature(pubkey ed448.PublicKey, signature string) error {
+func (t *Tree) SetSignature(pubkey *ed448.PublicKey, signature string) error {
 	sig, err := b64format.DecodeString(signature)
 	if err != nil || len(sig) != crypto.ExtendedSignatureLength {
 		return errInvalidSig
@@ -212,7 +212,7 @@ type (
 	linkEntry struct {
 		str    string
 		domain string
-		pubkey ed448.PublicKey
+		pubkey *ed448.PublicKey
 	}
 )
 
@@ -246,8 +246,8 @@ func (e *rootEntry) sigHash() []byte {
 	return h.Sum(nil)
 }
 
-func (e *rootEntry) verifySignature(pubkey ed448.PublicKey) bool {
-	enckey := crypto.FromEDDSAPub(pubkey)
+func (e *rootEntry) verifySignature(pubkey *ed448.PublicKey) bool {
+	enckey := crypto.FromEDDSAPub(*pubkey)
 	return crypto.VerifySignature(enckey, e.sigHash(), e.sig)
 }
 
@@ -263,8 +263,8 @@ func (e *linkEntry) String() string {
 	return linkPrefix + e.str
 }
 
-func newLinkEntry(domain string, pubkey ed448.PublicKey) *linkEntry {
-	key := b32format.EncodeToString(crypto.CompressPubkey(pubkey))
+func newLinkEntry(domain string, pubkey *ed448.PublicKey) *linkEntry {
+	key := b32format.EncodeToString(crypto.CompressPubkey(*pubkey))
 	str := key + "@" + domain
 	return &linkEntry{str, domain, pubkey}
 }
@@ -326,7 +326,7 @@ func parseLink(e string) (*linkEntry, error) {
 	if err != nil {
 		return nil, entryError{"link", errBadPubkey}
 	}
-	return &linkEntry{e, domain, key}, nil
+	return &linkEntry{e, domain, &key}, nil
 }
 
 func parseBranch(e string) (entry, error) {
@@ -383,10 +383,10 @@ func truncateHash(hash string) string {
 // URL encoding
 
 // ParseURL parses an enrtree:// URL and returns its components.
-func ParseURL(url string) (domain string, pubkey ed448.PublicKey, err error) {
+func ParseURL(url string) (domain string, pubkey *ed448.PublicKey, err error) {
 	le, err := parseLink(url)
 	if err != nil {
-		return "", ed448.PublicKey{}, err
+		return "", nil, err
 	}
 	return le.domain, le.pubkey, nil
 }

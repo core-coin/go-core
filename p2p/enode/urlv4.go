@@ -81,7 +81,7 @@ func ParseV4(rawurl string) (*Node, error) {
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey ed448.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey *ed448.PublicKey, ip net.IP, tcp, udp int) *Node {
 	var r enr.Record
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
@@ -92,7 +92,7 @@ func NewV4(pubkey ed448.PublicKey, ip net.IP, tcp, udp int) *Node {
 	if tcp != 0 {
 		r.Set(enr.TCP(tcp))
 	}
-	signV4Compat(&r, &pubkey)
+	signV4Compat(&r, pubkey)
 	n, err := New(v4CompatID{}, &r)
 	if err != nil {
 		panic(err)
@@ -108,7 +108,7 @@ func isNewV4(n *Node) bool {
 
 func parseComplete(rawurl string) (*Node, error) {
 	var (
-		id               ed448.PublicKey
+		id               *ed448.PublicKey
 		tcpPort, udpPort uint64
 	)
 	u, err := url.Parse(rawurl)
@@ -154,14 +154,15 @@ func parseComplete(rawurl string) (*Node, error) {
 }
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
-func parsePubkey(in string) (ed448.PublicKey, error) {
+func parsePubkey(in string) (*ed448.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
-		return ed448.PublicKey{}, err
+		return nil, err
 	} else if len(b) != crypto.PubkeyLength {
-		return ed448.PublicKey{}, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
+		return nil, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
 	}
-	return crypto.UnmarshalPubkey(b)
+	key, err := crypto.UnmarshalPubkey(b)
+	return &key, err
 }
 
 func (n *Node) URLv4() string {
@@ -195,7 +196,7 @@ func (n *Node) URLv4() string {
 }
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
-func PubkeyToIDV4(key ed448.PublicKey) ID {
+func PubkeyToIDV4(key *ed448.PublicKey) ID {
 	e := key[:]
 	return ID(crypto.SHA3Hash(e))
 }

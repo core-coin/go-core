@@ -74,7 +74,7 @@ func TestEncHandshake(t *testing.T) {
 func testEncHandshake(token []byte) error {
 	type result struct {
 		side   string
-		pubkey ed448.PublicKey
+		pubkey *ed448.PublicKey
 		err    error
 	}
 	var (
@@ -91,11 +91,11 @@ func testEncHandshake(token []byte) error {
 		defer fd0.Close()
 
 		pub := ed448.Ed448DerivePublicKey(prv1)
-		r.pubkey, r.err = c0.doEncHandshake(prv0, pub)
+		r.pubkey, r.err = c0.doEncHandshake(&prv0, &pub)
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, pub) {
+		if !reflect.DeepEqual(r.pubkey, &pub) {
 			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
@@ -104,12 +104,12 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd1.Close()
 
-		r.pubkey, r.err = c1.doEncHandshake(prv1, ed448.PublicKey{})
+		r.pubkey, r.err = c1.doEncHandshake(&prv1, nil)
 		if r.err != nil {
 			return
 		}
 		pub := ed448.Ed448DerivePublicKey(prv0)
-		if !reflect.DeepEqual(r.pubkey, pub) {
+		if !reflect.DeepEqual(r.pubkey, &pub) {
 			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &pub)
 		}
 	}()
@@ -164,12 +164,12 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd0.Close()
 		rlpx := newRLPX(fd0)
-		rpubkey, err := rlpx.doEncHandshake(prv0, pubb1)
+		rpubkey, err := rlpx.doEncHandshake(&prv0, &pubb1)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, pubb1) {
+		if !reflect.DeepEqual(rpubkey, &pubb1) {
 			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb1)
 			return
 		}
@@ -190,12 +190,12 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd1.Close()
 		rlpx := newRLPX(fd1)
-		rpubkey, err := rlpx.doEncHandshake(prv1, ed448.PublicKey{})
+		rpubkey, err := rlpx.doEncHandshake(&prv1, nil)
 		if err != nil {
 			t.Errorf("listen side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, pubb0) {
+		if !reflect.DeepEqual(rpubkey, &pubb0) {
 			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &pubb0)
 			return
 		}
@@ -466,7 +466,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 	for _, test := range cip8HandshakeAuthTests {
 		r := bytes.NewReader(unhex(test.input))
 		msg := new(authMsgV4)
-		ciphertext, err := readHandshakeMsg(msg, encAuthMsgLen, keyB, r)
+		ciphertext, err := readHandshakeMsg(msg, encAuthMsgLen, &keyB, r)
 		if err != nil {
 			t.Errorf("error for input %x:\n  %v", unhex(test.input), err)
 			continue
@@ -485,7 +485,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		input := unhex(test.input)
 		r := bytes.NewReader(input)
 		msg := new(authRespV4)
-		ciphertext, err := readHandshakeMsg(msg, encAuthRespLen, keyA, r)
+		ciphertext, err := readHandshakeMsg(msg, encAuthRespLen, &keyA, r)
 		if err != nil {
 			t.Errorf("error for input %x:\n  %v", input, err)
 			continue
@@ -504,7 +504,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		hs = &encHandshake{
 			initiator:     false,
 			respNonce:     nonceB,
-			randomPrivKey: ephB,
+			randomPrivKey: &ephB,
 		}
 		authCiphertext     = unhex(cip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(cip8HandshakeRespTests[1].input)
@@ -513,7 +513,7 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 		wantMAC            = unhex("7e6e60c3bb303290a274b07f82269c8af55a5ae89891900ac42ad42064083866")
 		wantFooIngressHash = unhex("38ae8889d5072cbaf71481c19f6ef5a3cafe4b48998c72d5ab8f24c8a754c87f")
 	)
-	if err := hs.handleAuthMsg(authMsg, keyB); err != nil {
+	if err := hs.handleAuthMsg(authMsg, &keyB); err != nil {
 		t.Fatalf("handleAuthMsg: %v", err)
 	}
 	derived, err := hs.secrets(authCiphertext, authRespCiphertext)

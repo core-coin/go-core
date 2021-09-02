@@ -58,7 +58,7 @@ type udpTest struct {
 	db                  *enode.DB
 	udp                 *UDPv4
 	sent                [][]byte
-	localkey, remotekey ed448.PrivateKey
+	localkey, remotekey *ed448.PrivateKey
 	remoteaddr          *net.UDPAddr
 }
 
@@ -96,7 +96,7 @@ func (test *udpTest) packetIn(wantError error, data packetV4) {
 }
 
 // handles a packet as if it had been sent to the transport by the key/endpoint.
-func (test *udpTest) packetInFrom(wantError error, key ed448.PrivateKey, addr *net.UDPAddr, data packetV4) {
+func (test *udpTest) packetInFrom(wantError error, key *ed448.PrivateKey, addr *net.UDPAddr, data packetV4) {
 	test.t.Helper()
 
 	enc, _, err := test.udp.encode(key, data)
@@ -153,8 +153,8 @@ func TestUDPv4_pingTimeout(t *testing.T) {
 
 	key := newkey()
 	toaddr := &net.UDPAddr{IP: net.ParseIP("1.2.3.4"), Port: 2222}
-	pub := ed448.Ed448DerivePublicKey(key)
-	node := enode.NewV4(pub, toaddr.IP, 0, toaddr.Port)
+	pub := ed448.Ed448DerivePublicKey(*key)
+	node := enode.NewV4(&pub, toaddr.IP, 0, toaddr.Port)
 	if _, err := test.udp.ping(node); err != errTimeout {
 		t.Error("expected timeout error, got", err)
 	}
@@ -272,8 +272,8 @@ func TestUDPv4_findnode(t *testing.T) {
 	for i := 0; i < numCandidates; i++ {
 		key := newkey()
 		ip := net.IP{10, 13, 0, byte(i)}
-		pub := ed448.Ed448DerivePublicKey(key)
-		n := wrapNode(enode.NewV4(pub, ip, 0, 2000))
+		pub := ed448.Ed448DerivePublicKey(*key)
+		n := wrapNode(enode.NewV4(&pub, ip, 0, 2000))
 		// Ensure half of table content isn't verified live yet.
 		if i > numCandidates/2 {
 			n.livenessChecks = 1
@@ -285,8 +285,8 @@ func TestUDPv4_findnode(t *testing.T) {
 
 	// ensure there's a bond with the test node,
 	// findnode won't be accepted otherwise.
-	pub := ed448.Ed448DerivePublicKey(test.remotekey)
-	remoteID := encodePubkey(pub).id()
+	pub := ed448.Ed448DerivePublicKey(*test.remotekey)
+	remoteID := encodePubkey(&pub).id()
 	test.table.db.UpdateLastPongReceived(remoteID, test.remoteaddr.IP, time.Now())
 
 	// check that closest neighbors are returned.
@@ -319,14 +319,14 @@ func TestUDPv4_findnode(t *testing.T) {
 func TestUDPv4_findnodeMultiReply(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
-	pub := ed448.Ed448DerivePublicKey(test.remotekey)
-	rid := enode.PubkeyToIDV4(pub)
+	pub := ed448.Ed448DerivePublicKey(*test.remotekey)
+	rid := enode.PubkeyToIDV4(&pub)
 	test.table.db.UpdateLastPingReceived(rid, test.remoteaddr.IP, time.Now())
 
 	// queue a pending findnode request
 	resultc, errc := make(chan []*node), make(chan error)
 	go func() {
-		rid := encodePubkey(pub).id()
+		rid := encodePubkey(&pub).id()
 		ns, err := test.udp.findnode(rid, test.remoteaddr, testTarget)
 		if err != nil && len(ns) == 0 {
 			errc <- err
@@ -450,8 +450,8 @@ func TestUDPv4_successfulPing(t *testing.T) {
 	// pong packet.
 	select {
 	case n := <-added:
-		pub := ed448.Ed448DerivePublicKey(test.remotekey)
-		rid := encodePubkey(pub).id()
+		pub := ed448.Ed448DerivePublicKey(*test.remotekey)
+		rid := encodePubkey(&pub).id()
 		if n.ID() != rid {
 			t.Errorf("node has wrong ID: got %v, want %v", n.ID(), rid)
 		}
@@ -597,7 +597,7 @@ var testPackets = []struct {
 func TestUDPv4_forwardCompatibility(t *testing.T) {
 	testkey, _ := crypto.HexToEDDSA("835bbff17efac2c97895784041c507959cdb9e45c599cc205e453a962c11c09ac8834f6524d0842cc469db2afcc0424ca4afc42968d3441846")
 	pub := ed448.Ed448DerivePublicKey(testkey)
-	wantNodeKey := encodePubkey(pub)
+	wantNodeKey := encodePubkey(&pub)
 	for _, test := range testPackets {
 		input, err := hex.DecodeString(test.input)
 		if err != nil {

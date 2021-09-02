@@ -35,13 +35,14 @@ type node struct {
 
 type encPubkey [57]byte
 
-func encodePubkey(pub ed448.PublicKey) (key encPubkey) {
+func encodePubkey(pub *ed448.PublicKey) (key encPubkey) {
 	copy(key[:], pub[:])
 	return key
 }
 
-func decodePubkey(e encPubkey) (ed448.PublicKey, error) {
-	return crypto.UnmarshalPubkey(e[:])
+func decodePubkey(e encPubkey) (*ed448.PublicKey, error) {
+	key, err := crypto.UnmarshalPubkey(e[:])
+	return &key, err
 }
 
 func (e encPubkey) id() enode.ID {

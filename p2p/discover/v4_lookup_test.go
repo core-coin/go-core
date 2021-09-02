@@ -175,15 +175,15 @@ func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) 
 // The nodes were obtained by running lookupDevin.mine with a random NodeID as target.
 var lookupDevin = &preminedDevin{
 	target: hexEncPubkey("8e3646849ec3232a7a73aef657f05ae9437c0b7960919e9d2c41760ba1fb8fa81970339ef20ffded54da1c7c1a48698d56ea6cda5fa4535f60"),
-	dists: [257][]ed448.PrivateKey{
-		250: {
+	dists: [257][]*ed448.PrivateKey{
+		251: {
 			hexEncPrivkey("4e0fa28ffcc38dde53d62cae67296a409dbac36abc5b77242a1e36f9569cf5073fc4dbb8cbf656b2219e173071bc46eb52c3788b92635430ab"),
 			hexEncPrivkey("e8ddff19e703d8fc127f84804368f3206d07cbeb9b52329e12facafc57b33c45806513d1200976749955d460d4ffcaf1e89932f54fd08929a9"),
 			hexEncPrivkey("c9ac39684fa2a736a3a2d3dcecf381e49d051fe1af2491324790474d0968d7e8d17d85cc7ddb99443e67b8bca53447851c047340407d2705c6"),
 			hexEncPrivkey("b3e39098d5b41d7d9d306068213e7312540335ef1cfd3bbaab5457790c093739aa488185129892f315a5b998700f5c87b3b43fcee00c111881"),
 			hexEncPrivkey("01f201e25338f6527680b108383719167522e2f47c327e024fd4fc07d297160540ab6f390729dc344ddb439fb089d4a144a9abc2c047fb128a"),
 		},
-		251: {
+		252: {
 			hexEncPrivkey("4ec11de85d5eae2185956f08e214dad13b77643cc68fdc78cd91d6f7a641ab8f4e3ec37d0a58aaafb77fd37723e021b2303b45f42f848b17e8"),
 			hexEncPrivkey("8572729f472bd32f4e4cfdca7d8d9c1d1869cd24c4bfee25f3d80033aba409bfddc37a2a7d41b5df7af7acbf8efe64bbbbd320f268faf929f6"),
 			hexEncPrivkey("02476279c874e251a436da90658741aab2abc70c13dce1fb1f760fc15a33134c6632dec8b3efaf7d104fbed699cd0a6c0b4c18a6cbb509148a"),
@@ -233,7 +233,7 @@ var lookupDevin = &preminedDevin{
 
 type preminedDevin struct {
 	target encPubkey
-	dists  [hashBits + 1][]ed448.PrivateKey
+	dists  [hashBits + 1][]*ed448.PrivateKey
 }
 
 func (tn *preminedDevin) len() int {
@@ -265,7 +265,7 @@ func (tn *preminedDevin) node(dist, index int) *enode.Node {
 	return n
 }
 
-func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, ed448.PrivateKey) {
+func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *ed448.PrivateKey) {
 	dist := int(addr.IP[1])<<8 + int(addr.IP[2])
 	index := int(addr.IP[3])
 	key := tn.dists[dist][index]
@@ -319,8 +319,8 @@ func (tn *preminedDevin) mine() {
 	found, need := 0, 40
 	for found < need {
 		k := newkey()
-		pub := ed448.Ed448DerivePublicKey(k)
-		ld := enode.LogDist(targetSha, encodePubkey(pub).id())
+		pub := ed448.Ed448DerivePublicKey(*k)
+		ld := enode.LogDist(targetSha, encodePubkey(&pub).id())
 		if len(tn.dists[ld]) < 8 {
 			tn.dists[ld] = append(tn.dists[ld], k)
 			found++
@@ -336,7 +336,7 @@ func (tn *preminedDevin) mine() {
 		}
 		fmt.Printf("		%d: {\n", ld)
 		for _, key := range ns {
-			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", crypto.FromEDDSA(key))
+			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", crypto.FromEDDSA(*key))
 		}
 		fmt.Printf("		},\n")
 	}

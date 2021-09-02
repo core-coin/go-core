@@ -196,12 +196,12 @@ func TestHexID(t *testing.T) {
 func TestNodeID_recover(t *testing.T) {
 	prv := newkey()
 	hash := make([]byte, 32)
-	sig, err := crypto.Sign(hash, prv)
+	sig, err := crypto.Sign(hash, *prv)
 	if err != nil {
 		t.Fatalf("signing error: %v", err)
 	}
-	p := ed448.Ed448DerivePublicKey(prv)
-	pub := PubkeyID(p)
+	p := ed448.Ed448DerivePublicKey(*prv)
+	pub := PubkeyID(&p)
 	recpub, err := recoverNodeID(hash, sig[:])
 	if err != nil {
 		t.Fatalf("recovery error: %v", err)
@@ -214,8 +214,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Errorf("Pubkey error: %v", err)
 	}
-	if !reflect.DeepEqual(eddsa, p) {
-		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, p)
+	if !reflect.DeepEqual(eddsa, &p) {
+		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, &p)
 	}
 }
 
@@ -224,7 +224,7 @@ func TestNodeID_pubkeyBad(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for zero ID")
 	}
-	if (eddsa != ed448.PublicKey{}) {
+	if eddsa != nil {
 		t.Error("expected nil result")
 	}
 }

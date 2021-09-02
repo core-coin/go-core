@@ -86,7 +86,7 @@ type NodeConfig struct {
 
 	// PrivateKey is the node's private key which is used by the devp2p
 	// stack to encrypt communications
-	PrivateKey ed448.PrivateKey
+	PrivateKey *ed448.PrivateKey
 
 	// Enable peer events for Msgs
 	EnableMsgEvents bool
@@ -143,8 +143,8 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 		Port:            n.Port,
 		EnableMsgEvents: n.EnableMsgEvents,
 	}
-	if (n.PrivateKey != ed448.PrivateKey{}) {
-		confJSON.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(n.PrivateKey))
+	if n.PrivateKey != nil {
+		confJSON.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(*n.PrivateKey))
 	}
 	return json.Marshal(confJSON)
 }
@@ -172,7 +172,7 @@ func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		n.PrivateKey = privKey
+		n.PrivateKey = &privKey
 	}
 
 	n.Name = confJSON.Name
@@ -202,9 +202,9 @@ func RandomNodeConfig() *NodeConfig {
 		panic("unable to assign tcp port")
 	}
 	pub := ed448.Ed448DerivePublicKey(prvkey)
-	enodId := enode.PubkeyToIDV4(pub)
+	enodId := enode.PubkeyToIDV4(&pub)
 	return &NodeConfig{
-		PrivateKey:      prvkey,
+		PrivateKey:      &prvkey,
 		ID:              enodId,
 		Name:            fmt.Sprintf("node_%s", enodId.String()),
 		Port:            port,

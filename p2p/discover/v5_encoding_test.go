@@ -45,15 +45,15 @@ func TestDeriveKeysV5(t *testing.T) {
 		n2        = enode.ID{2}
 		challenge = &whoareyouV5{}
 		db, _     = enode.OpenDB("")
-		ln        = enode.NewLocalNode(db, testKeyA)
-		c         = newWireCodec(ln, testKeyA, mclock.System{})
+		ln        = enode.NewLocalNode(db, &testKeyA)
+		c         = newWireCodec(ln, &testKeyA, mclock.System{})
 	)
 	defer db.Close()
 
 	pubA := ed448.Ed448DerivePublicKey(testKeyA)
 	pubB := ed448.Ed448DerivePublicKey(testKeyB)
-	sec1 := c.deriveKeys(n1, n2, testKeyA, pubB, challenge)
-	sec2 := c.deriveKeys(n1, n2, testKeyB, pubA, challenge)
+	sec1 := c.deriveKeys(n1, n2, &testKeyA, &pubB, challenge)
+	sec2 := c.deriveKeys(n1, n2, &testKeyB, &pubA, challenge)
 	if sec1 == nil || sec2 == nil {
 		t.Fatal("key agreement failed")
 	}
@@ -297,8 +297,8 @@ type handshakeTestNode struct {
 
 func newHandshakeTest() *handshakeTest {
 	t := new(handshakeTest)
-	t.nodeA.init(testKeyA, net.IP{127, 0, 0, 1}, &t.clock)
-	t.nodeB.init(testKeyB, net.IP{127, 0, 0, 1}, &t.clock)
+	t.nodeA.init(&testKeyA, net.IP{127, 0, 0, 1}, &t.clock)
+	t.nodeB.init(&testKeyB, net.IP{127, 0, 0, 1}, &t.clock)
 	return t
 }
 
@@ -307,7 +307,7 @@ func (t *handshakeTest) close() {
 	t.nodeB.ln.Database().Close()
 }
 
-func (n *handshakeTestNode) init(key ed448.PrivateKey, ip net.IP, clock mclock.Clock) {
+func (n *handshakeTestNode) init(key *ed448.PrivateKey, ip net.IP, clock mclock.Clock) {
 	db, _ := enode.OpenDB("")
 	n.ln = enode.NewLocalNode(db, key)
 	n.ln.SetStaticIP(ip)

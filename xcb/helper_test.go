@@ -156,9 +156,9 @@ func (p *testTxPool) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subs
 }
 
 // newTestTransaction create a new dummy transaction.
-func newTestTransaction(from ed448.PrivateKey, nonce uint64, datasize int) *types.Transaction {
+func newTestTransaction(from *ed448.PrivateKey, nonce uint64, datasize int) *types.Transaction {
 	tx := types.NewTransaction(nonce, common.Address{}, big.NewInt(0), 100000, big.NewInt(0), make([]byte, datasize))
-	tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), from)
+	tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), *from)
 	return tx
 }
 

@@ -51,7 +51,7 @@ var parseNodeTests = []struct {
 			r.Set(enr.IP{127, 0, 0, 1})
 			r.Set(enr.UDP(30300))
 			r.SetSeq(99)
-			SignV4(&r, testKey)
+			SignV4(&r, &testKey)
 			n, _ := New(ValidSchemes, &r)
 			return n
 		}(),
@@ -157,7 +157,7 @@ var parseNodeTests = []struct {
 	},
 }
 
-func hexPubkey(h string) ed448.PublicKey {
+func hexPubkey(h string) *ed448.PublicKey {
 	k, err := parsePubkey(h)
 	if err != nil {
 		panic(err)

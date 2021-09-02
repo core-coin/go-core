@@ -215,19 +215,19 @@ type conn interface {
 // udp implements the RPC protocol.
 type udp struct {
 	conn        conn
-	priv        ed448.PrivateKey
+	priv        *ed448.PrivateKey
 	ourEndpoint rpcEndpoint
 	net         *Network
 }
 
 // ListenUDP returns a new table that listens for UDP packets on laddr.
-func ListenUDP(priv ed448.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func ListenUDP(priv *ed448.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	transport, err := listenUDP(priv, conn, realaddr)
 	if err != nil {
 		return nil, err
 	}
-	pub := ed448.Ed448DerivePublicKey(priv)
+	pub := ed448.Ed448DerivePublicKey(*priv)
 	net, err := newNetwork(transport, pub, nodeDBPath, netrestrict)
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func ListenUDP(priv ed448.PrivateKey, conn conn, nodeDBPath string, netrestrict 
 	return net, nil
 }
 
-func listenUDP(priv ed448.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
+func listenUDP(priv *ed448.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
 	return &udp{conn: conn, priv: priv, ourEndpoint: makeEndpoint(realaddr, uint16(realaddr.Port))}, nil
 }
 
@@ -332,7 +332,7 @@ func (t *udp) sendPacket(toid NodeID, toaddr *net.UDPAddr, ptype byte, req inter
 // zeroed padding space for encodePacket.
 var headSpace = make([]byte, headSize)
 
-func encodePacket(priv ed448.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
+func encodePacket(priv *ed448.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
@@ -341,7 +341,7 @@ func encodePacket(priv ed448.PrivateKey, ptype byte, req interface{}) (p, hash [
 		return nil, nil, err
 	}
 	packet := b.Bytes()
-	sig, err := crypto.Sign(crypto.SHA3(packet[headSize:]), priv)
+	sig, err := crypto.Sign(crypto.SHA3(packet[headSize:]), *priv)
 	if err != nil {
 		log.Error(fmt.Sprint("could not sign packet:", err))
 		return nil, nil, err

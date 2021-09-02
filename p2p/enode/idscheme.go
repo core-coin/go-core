@@ -41,16 +41,16 @@ var ValidSchemesForTesting = enr.SchemeMap{
 type V4ID struct{}
 
 // SignV4 signs a record using the v4 scheme.
-func SignV4(r *enr.Record, privkey ed448.PrivateKey) error {
+func SignV4(r *enr.Record, privkey *ed448.PrivateKey) error {
 	// Copy r to avoid modifying it if signing fails.
 	cpy := *r
 	cpy.Set(enr.ID("v4"))
-	pub := ed448.Ed448DerivePublicKey(privkey)
+	pub := ed448.Ed448DerivePublicKey(*privkey)
 	cpy.Set(Secp256k1(pub))
 
 	h := sha3.New256()
 	rlp.Encode(h, cpy.AppendElements(nil))
-	sig, err := crypto.Sign(h.Sum(nil), privkey)
+	sig, err := crypto.Sign(h.Sum(nil), *privkey)
 	if err != nil {
 		return err
 	}

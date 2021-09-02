@@ -227,7 +227,7 @@ func sortedByDistanceTo(distbase enode.ID, slice []*node) bool {
 	})
 }
 
-func hexEncPrivkey(h string) ed448.PrivateKey {
+func hexEncPrivkey(h string) *ed448.PrivateKey {
 	b, err := hex.DecodeString(h)
 	if err != nil {
 		panic(err)
@@ -236,7 +236,7 @@ func hexEncPrivkey(h string) ed448.PrivateKey {
 	if err != nil {
 		panic(err)
 	}
-	return key
+	return &key
 }
 
 func hexEncPubkey(h string) (ret encPubkey) {

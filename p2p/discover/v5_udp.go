@@ -42,7 +42,7 @@ const (
 	totalNodesResponseLimit = 5  // applies in waitForNodes
 	nodesResponseItemLimit  = 3  // applies in sendNodes
 
-	respTimeoutV5 = 700 * time.Millisecond
+	respTimeoutV5 = 2000 * time.Millisecond
 )
 
 // codecV5 is implemented by wireCodec (and testCodec).
@@ -76,7 +76,7 @@ type UDPv5 struct {
 	conn         UDPConn
 	tab          *Table
 	netrestrict  *netutil.Netlist
-	priv         ed448.PrivateKey
+	priv         *ed448.PrivateKey
 	localNode    *enode.LocalNode
 	db           *enode.DB
 	log          log.Logger

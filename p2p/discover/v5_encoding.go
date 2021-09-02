@@ -157,7 +157,7 @@ var (
 type wireCodec struct {
 	sha256           hash.Hash
 	localnode        *enode.LocalNode
-	privkey          ed448.PrivateKey
+	privkey          *ed448.PrivateKey
 	myChtagHash      enode.ID
 	myWhoareyouMagic []byte
 
@@ -200,7 +200,7 @@ func (h *authHeader) DecodeRLP(r *rlp.Stream) error {
 }
 
 // ephemeralKey decodes the ephemeral public key in the header.
-func (h *authHeaderList) ephemeralKey() ed448.PublicKey {
+func (h *authHeaderList) ephemeralKey() *ed448.PublicKey {
 	var key encPubkey
 	copy(key[:], h.EphemeralKey)
 	pubkey, _ := decodePubkey(key)
@@ -208,7 +208,7 @@ func (h *authHeaderList) ephemeralKey() ed448.PublicKey {
 }
 
 // newWireCodec creates a wire codec.
-func newWireCodec(ln *enode.LocalNode, key ed448.PrivateKey, clock mclock.Clock) *wireCodec {
+func newWireCodec(ln *enode.LocalNode, key *ed448.PrivateKey, clock mclock.Clock) *wireCodec {
 	c := &wireCodec{
 		sha256:    sha256.New(),
 		localnode: ln,
@@ -329,8 +329,8 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 
 	// Create the ephemeral key. This needs to be first because the
 	// key is part of the ID nonce signature.
-	var remotePubkey = ed448.PublicKey{}
-	if err := challenge.node.Load((*enode.Secp256k1)(&remotePubkey)); err != nil {
+	var remotePubkey = new(ed448.PublicKey)
+	if err := challenge.node.Load((*enode.Secp256k1)(remotePubkey)); err != nil {
 		return nil, nil, fmt.Errorf("can't find secp256k1 key for recipient")
 	}
 	ephkey, err := crypto.GenerateKey(crand.Reader)
@@ -338,7 +338,7 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 		return nil, nil, fmt.Errorf("can't generate ephemeral key")
 	}
 	pub := ed448.Ed448DerivePublicKey(ephkey)
-	ephpubkey := encodePubkey(pub)
+	ephpubkey := encodePubkey(&pub)
 
 	// Add ID nonce signature to response.
 	idsig, err := c.signIDNonce(challenge.IDNonce[:], ephpubkey[:])
@@ -348,7 +348,7 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 	resp.Signature = idsig
 
 	// Create session keys.
-	sec := c.deriveKeys(c.localnode.ID(), challenge.node.ID(), ephkey, remotePubkey, challenge)
+	sec := c.deriveKeys(c.localnode.ID(), challenge.node.ID(), &ephkey, remotePubkey, challenge)
 	if sec == nil {
 		return nil, nil, fmt.Errorf("key derivation failed")
 	}
@@ -373,7 +373,7 @@ func (c *wireCodec) makeAuthHeader(nonce []byte, challenge *whoareyouV5) (*authH
 }
 
 // deriveKeys generates session keys using elliptic-curve Diffie-Hellman key agreement.
-func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv ed448.PrivateKey, pub ed448.PublicKey, challenge *whoareyouV5) *handshakeSecrets {
+func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv *ed448.PrivateKey, pub *ed448.PublicKey, challenge *whoareyouV5) *handshakeSecrets {
 	eph := ecdh(priv, pub)
 	if eph == nil {
 		return nil
@@ -399,7 +399,7 @@ func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv ed448.PrivateKey, pub ed448
 
 // signIDNonce creates the ID nonce signature.
 func (c *wireCodec) signIDNonce(nonce, ephkey []byte) ([]byte, error) {
-	idsig, err := crypto.Sign(c.idNonceHash(nonce, ephkey), c.privkey)
+	idsig, err := crypto.Sign(c.idNonceHash(nonce, ephkey), *c.privkey)
 	if err != nil {
 		return nil, fmt.Errorf("can't sign: %v", err)
 	}
@@ -506,7 +506,7 @@ func (c *wireCodec) decodeAuthResp(fromID enode.ID, fromAddr string, head *authH
 		return nil, nil, errUnknownAuthScheme
 	}
 	ephkey := head.ephemeralKey()
-	if (ephkey == ed448.PublicKey{}) {
+	if ephkey == nil {
 		return nil, nil, errInvalidAuthKey
 	}
 	sec := c.deriveKeys(fromID, c.localnode.ID(), c.privkey, ephkey, challenge)
@@ -616,8 +616,8 @@ func xorTag(a []byte, b enode.ID) enode.ID {
 }
 
 // ecdh creates a shared secret.
-func ecdh(privkey ed448.PrivateKey, pubkey ed448.PublicKey) []byte {
-	return crypto.ComputeSecret(privkey, pubkey)
+func ecdh(privkey *ed448.PrivateKey, pubkey *ed448.PublicKey) []byte {
+	return crypto.ComputeSecret(*privkey, *pubkey)
 }
 
 // encryptGCM encrypts pt using AES-GCM with the given key and nonce.

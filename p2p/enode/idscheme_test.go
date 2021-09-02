@@ -39,7 +39,7 @@ func TestEmptyNodeID(t *testing.T) {
 		t.Errorf("wrong address on empty record: got %v, want %v", addr, nil)
 	}
 
-	require.NoError(t, SignV4(&r, privkey))
+	require.NoError(t, SignV4(&r, &privkey))
 	expected := "22384f8cdc73aa2005df6581c0b7afce8c1aa50eb259d87fdf72f6220f173ab6"
 	assert.Equal(t, expected, hex.EncodeToString(ValidSchemes.NodeAddr(&r)))
 }
@@ -47,7 +47,7 @@ func TestEmptyNodeID(t *testing.T) {
 // TestGetSetSecp256k1 tests encoding/decoding and setting/getting of the Secp256k1 key.
 func TestGetSetSecp256k1(t *testing.T) {
 	var r enr.Record
-	if err := SignV4(&r, privkey); err != nil {
+	if err := SignV4(&r, &privkey); err != nil {
 		t.Fatal(err)
 	}
 

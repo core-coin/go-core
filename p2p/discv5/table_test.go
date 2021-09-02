@@ -230,10 +230,10 @@ func gen(typ interface{}, rand *rand.Rand) interface{} {
 	return v.Interface()
 }
 
-func newkey() ed448.PrivateKey {
+func newkey() *ed448.PrivateKey {
 	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}
-	return key
+	return &key
 }

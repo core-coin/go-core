@@ -70,7 +70,7 @@ var errServerStopped = errors.New("server stopped")
 // Config holds Server options.
 type Config struct {
 	// This field must be set to a valid secp256k1 private key.
-	PrivateKey ed448.PrivateKey `toml:"-"`
+	PrivateKey *ed448.PrivateKey `toml:"-"`
 
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.
@@ -231,7 +231,7 @@ type conn struct {
 
 type transport interface {
 	// The two handshakes.
-	doEncHandshake(prv ed448.PrivateKey, dialDest ed448.PublicKey) (ed448.PublicKey, error)
+	doEncHandshake(prv *ed448.PrivateKey, dialDest *ed448.PublicKey) (*ed448.PublicKey, error)
 	doProtoHandshake(our *protoHandshake) (*protoHandshake, error)
 	// The MsgReadWriter can only be used after the encryption
 	// handshake has completed. The code uses conn.id to track this
@@ -383,8 +383,8 @@ func (srv *Server) Self() *enode.Node {
 	srv.lock.Unlock()
 
 	if ln == nil {
-		pub := ed448.Ed448DerivePublicKey(srv.PrivateKey)
-		return enode.NewV4(pub, net.ParseIP("0.0.0.0"), 0, 0)
+		pub := ed448.Ed448DerivePublicKey(*srv.PrivateKey)
+		return enode.NewV4(&pub, net.ParseIP("0.0.0.0"), 0, 0)
 	}
 	return ln.Node()
 }
@@ -454,7 +454,7 @@ func (srv *Server) Start() (err error) {
 	}
 
 	// static fields
-	if (srv.PrivateKey == ed448.PrivateKey{}) {
+	if srv.PrivateKey == nil {
 		return errors.New("Server.PrivateKey must be set to a non-nil key")
 	}
 	if srv.newTransport == nil {
@@ -492,7 +492,7 @@ func (srv *Server) Start() (err error) {
 
 func (srv *Server) setupLocalNode() error {
 	// Create the devp2p handshake.
-	pub := ed448.Ed448DerivePublicKey(srv.PrivateKey)
+	pub := ed448.Ed448DerivePublicKey(*srv.PrivateKey)
 	pubkey := crypto.FromEDDSAPub(pub)
 	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey}
 	for _, p := range srv.Protocols {
@@ -934,10 +934,10 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	}
 
 	// If dialing, figure out the remote public key.
-	var dialPubkey ed448.PublicKey
+	var dialPubkey *ed448.PublicKey
 	if dialDest != nil {
-		dialPubkey = ed448.PublicKey{}
-		if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey)); err != nil {
+		dialPubkey = new(ed448.PublicKey)
+		if err := dialDest.Load((*enode.Secp256k1)(dialPubkey)); err != nil {
 			err = errors.New("dial destination doesn't have a secp256k1 public key")
 			srv.log.Trace("Setting up connection failed", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 			return err
@@ -986,7 +986,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	return nil
 }
 
-func nodeFromConn(pubkey ed448.PublicKey, conn net.Conn) *enode.Node {
+func nodeFromConn(pubkey *ed448.PublicKey, conn net.Conn) *enode.Node {
 	var ip net.IP
 	var port int
 	if tcp, ok := conn.RemoteAddr().(*net.TCPAddr); ok {

@@ -284,7 +284,7 @@ func MustHexID(in string) NodeID {
 }
 
 // PubkeyID returns a marshaled representation of the given public key.
-func PubkeyID(pub ed448.PublicKey) NodeID {
+func PubkeyID(pub *ed448.PublicKey) NodeID {
 	var id NodeID
 	if len(pub) != len(id) {
 		panic("id len != pub len")
@@ -295,11 +295,12 @@ func PubkeyID(pub ed448.PublicKey) NodeID {
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
-func (n NodeID) Pubkey() (ed448.PublicKey, error) {
+func (n NodeID) Pubkey() (*ed448.PublicKey, error) {
 	if n.String() == "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
-		return ed448.PublicKey{}, errors.New("invalid node id")
+		return nil, errors.New("invalid node id")
 	}
-	return crypto.UnmarshalPubkey(n[:])
+	key, err := crypto.UnmarshalPubkey(n[:])
+	return &key, err
 }
 
 // recoverNodeID computes the public key used to sign the

@@ -332,20 +332,20 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 }
 
 // testKeys creates deterministic private keys for testing.
-func testKeys(seed int64, n int) []ed448.PrivateKey {
+func testKeys(seed int64, n int) []*ed448.PrivateKey {
 	randSeed := rand.New(rand.NewSource(seed))
-	keys := make([]ed448.PrivateKey, n)
+	keys := make([]*ed448.PrivateKey, n)
 	for i := 0; i < n; i++ {
 		key, err := crypto.GenerateKey(randSeed)
 		if err != nil {
 			panic("can't generate key: " + err.Error())
 		}
-		keys[i] = key
+		keys[i] = &key
 	}
 	return keys
 }
 
-func testKey(seed int64) ed448.PrivateKey {
+func testKey(seed int64) *ed448.PrivateKey {
 	return testKeys(seed, 1)[0]
 }
 

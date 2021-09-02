@@ -130,12 +130,12 @@ func (n *Node) TCP() int {
 }
 
 // Pubkey returns the secp256k1 public key of the node, if present.
-func (n *Node) Pubkey() ed448.PublicKey {
+func (n *Node) Pubkey() *ed448.PublicKey {
 	var key ed448.PublicKey
 	if n.Load((*Secp256k1)(&key)) != nil {
-		return ed448.PublicKey{}
+		return nil
 	}
-	return key
+	return &key
 }
 
 // Record returns the node's record. The return value is a copy and may

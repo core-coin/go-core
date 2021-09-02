@@ -124,7 +124,7 @@ type timeoutEvent struct {
 }
 
 func newNetwork(conn transport, ourPubkey ed448.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
-	ourID := PubkeyID(ourPubkey)
+	ourID := PubkeyID(&ourPubkey)
 
 	var db *nodeDB
 	if dbPath != "<no database>" {

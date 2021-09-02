@@ -38,7 +38,7 @@ type UDPConn interface {
 // Config holds settings for the discovery listener.
 type Config struct {
 	// These settings are required and configure the UDP listener:
-	PrivateKey ed448.PrivateKey
+	PrivateKey *ed448.PrivateKey
 
 	// These settings are optional:
 	NetRestrict  *netutil.Netlist   // network whitelist

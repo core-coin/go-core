@@ -274,8 +274,8 @@ func (s *simulation) launchNode(log bool) *Network {
 	var (
 		num = s.nodectr
 		key = newkey()
-		pub = ed448.Ed448DerivePublicKey(key)
-		id  = PubkeyID(pub)
+		pub = ed448.Ed448DerivePublicKey(*key)
+		id  = PubkeyID(&pub)
 		ip  = make(net.IP, 4)
 	)
 	s.nodectr++
@@ -302,7 +302,7 @@ type simTransport struct {
 	senderAddr *net.UDPAddr
 	sim        *simulation
 	hashctr    uint64
-	priv       ed448.PrivateKey
+	priv       *ed448.PrivateKey
 }
 
 func (st *simTransport) localAddr() *net.UDPAddr {

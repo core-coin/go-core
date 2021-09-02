@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/core-coin/ed448"
 	"math"
 	"net"
 	"sync"
@@ -76,7 +75,7 @@ func (s *SimAdapter) NewNode(config *NodeConfig) (Node, error) {
 
 	id := config.ID
 	// verify that the node has a private key in the config
-	if (config.PrivateKey == ed448.PrivateKey{}) {
+	if config.PrivateKey == nil {
 		return nil, fmt.Errorf("node is missing private key: %s", id)
 	}
 

@@ -60,7 +60,7 @@ func testPingReplace(t *testing.T, newNodeIsResponding, lastInBucketIsResponding
 	// Fill up the sender's bucket.
 	pingKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
 	pub := ed448.Ed448DerivePublicKey(pingKey)
-	pingSender := wrapNode(enode.NewV4(pub, net.IP{}, 99, 99))
+	pingSender := wrapNode(enode.NewV4(&pub, net.IP{}, 99, 99))
 	last := fillBucket(tab, pingSender)
 
 	// Add the sender as if it just pinged us. Revalidate should replace the last node in
@@ -421,10 +421,10 @@ func quickcfg() *quick.Config {
 	}
 }
 
-func newkey() ed448.PrivateKey {
+func newkey() *ed448.PrivateKey {
 	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}
-	return key
+	return &key
 }
