@@ -169,7 +169,7 @@ func (s *LesServer) Protocols() []p2p.Protocol {
 
 // Start starts the LES server
 func (s *LesServer) Start(srvr *p2p.Server) {
-	s.privateKey = srvr.PrivateKey
+	s.privateKey = *srvr.PrivateKey
 	s.handler.start()
 
 	s.wg.Add(1)

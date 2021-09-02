@@ -204,9 +204,10 @@ func makeDiscoveryConfig(ctx *cli.Context) (*enode.LocalNode, discover.Config) {
 		if err != nil {
 			exit(fmt.Errorf("-%s: %v", nodekeyFlag.Name, err))
 		}
-		cfg.PrivateKey = key
+		cfg.PrivateKey = &key
 	} else {
-		cfg.PrivateKey, _ = crypto.GenerateKey(rand.Reader)
+		key, _ := crypto.GenerateKey(rand.Reader)
+		cfg.PrivateKey = &key
 	}
 
 	if commandHasFlag(ctx, bootnodesFlag) {

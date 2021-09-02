@@ -359,8 +359,8 @@ func (c *Config) instanceDir() string {
 // data folder. If no key can be found, a new one is generated.
 func (c *Config) NodeKey() ed448.PrivateKey {
 	// Use any specifically configured key.
-	if (c.P2P.PrivateKey != ed448.PrivateKey{}) {
-		return c.P2P.PrivateKey
+	if c.P2P.PrivateKey != nil {
+		return *c.P2P.PrivateKey
 	}
 	// Generate ephemeral key if no datadir is being used.
 	if c.DataDir == "" {

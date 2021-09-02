@@ -175,7 +175,7 @@ func (a *announceData) checkSignature(id enode.ID, update keyValueMap) error {
 	if err != nil {
 		return err
 	}
-	if id == enode.PubkeyToIDV4(recPubkey) {
+	if id == enode.PubkeyToIDV4(&recPubkey) {
 		return nil
 	}
 	return errors.New("wrong signature")

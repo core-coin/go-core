@@ -102,7 +102,7 @@ func keyToURL(ctx *cli.Context) error {
 		return fmt.Errorf("invalid IP address %q", host)
 	}
 	pub := ed448.Ed448DerivePublicKey(key)
-	node := enode.NewV4(pub, ip, tcp, udp)
+	node := enode.NewV4(&pub, ip, tcp, udp)
 	fmt.Println(node.URLv4())
 	return nil
 }

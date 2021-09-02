@@ -748,12 +748,12 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 		if key, err = crypto.LoadEDDSA(file); err != nil {
 			Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
 		}
-		cfg.PrivateKey = key
+		cfg.PrivateKey = &key
 	case hex != "":
 		if key, err = crypto.HexToEDDSA(hex); err != nil {
 			Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
 		}
-		cfg.PrivateKey = key
+		cfg.PrivateKey = &key
 	}
 }
 

@@ -251,7 +251,7 @@ func testRecvTransactions(t *testing.T, protocol int) {
 	defer pm.Stop()
 	defer p.close()
 
-	tx := newTestTransaction(testAccount, 0, 0)
+	tx := newTestTransaction(&testAccount, 0, 0)
 	if err := p2p.Send(p.app, TransactionMsg, []interface{}{tx}); err != nil {
 		t.Fatalf("send error: %v", err)
 	}
@@ -282,7 +282,7 @@ func testSendTransactions(t *testing.T, protocol int) {
 	const txsize = txsyncPackSize / 10
 	alltxs := make([]*types.Transaction, 100)
 	for nonce := range alltxs {
-		alltxs[nonce] = newTestTransaction(testAccount, uint64(nonce), txsize)
+		alltxs[nonce] = newTestTransaction(&testAccount, uint64(nonce), txsize)
 	}
 	pm.txpool.AddRemotes(alltxs)
 	time.Sleep(100 * time.Millisecond) // Wait until new tx even gets out of the system (lame)
@@ -389,7 +389,7 @@ func testSyncTransaction(t *testing.T, propagtion bool) {
 	// Fill the pool with new transactions
 	alltxs := make([]*types.Transaction, 1024)
 	for nonce := range alltxs {
-		alltxs[nonce] = newTestTransaction(testAccount, uint64(nonce), 0)
+		alltxs[nonce] = newTestTransaction(&testAccount, uint64(nonce), 0)
 	}
 	pmSender.txpool.AddRemotes(alltxs)
 

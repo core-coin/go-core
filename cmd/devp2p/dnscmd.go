@@ -158,7 +158,7 @@ func dnsSign(ctx *cli.Context) error {
 	}
 
 	key := loadSigningKey(keyfile)
-	url, err := t.Sign(key, domain)
+	url, err := t.Sign(&key, domain)
 	if err != nil {
 		return fmt.Errorf("can't sign: %v", err)
 	}
@@ -323,7 +323,7 @@ func loadTreeDefinitionForExport(dir string) (domain string, t *dnsdisc.Tree, er
 	if t, err = dnsdisc.MakeTree(def.Meta.Seq, def.Nodes, def.Meta.Links); err != nil {
 		return "", nil, err
 	}
-	if err := ensureValidTreeSignature(t, pubkey, def.Meta.Sig); err != nil {
+	if err := ensureValidTreeSignature(t, *pubkey, def.Meta.Sig); err != nil {
 		return "", nil, err
 	}
 	return domain, t, nil
@@ -335,7 +335,7 @@ func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey ed448.PublicKey, sig strin
 	if sig == "" {
 		return fmt.Errorf("missing signature, run 'devp2p dns sign' first")
 	}
-	if err := t.SetSignature(pubkey, sig); err != nil {
+	if err := t.SetSignature(&pubkey, sig); err != nil {
 		return fmt.Errorf("invalid signature on tree, run 'devp2p dns sign' to update it")
 	}
 	return nil

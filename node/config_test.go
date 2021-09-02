@@ -123,7 +123,7 @@ func TestNodeKeyPersistency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate one-shot node key: %v", err)
 	}
-	config := &Config{Name: "unit-test", DataDir: dir, P2P: p2p.Config{PrivateKey: key}}
+	config := &Config{Name: "unit-test", DataDir: dir, P2P: p2p.Config{PrivateKey: &key}}
 	config.NodeKey()
 	if _, err := os.Stat(filepath.Join(keyfile)); err == nil {
 		t.Fatalf("one-shot node key persisted to data directory")

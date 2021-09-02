@@ -287,8 +287,8 @@ func createNode(ctx *cli.Context) error {
 			return err
 		}
 		pub := ed448.Ed448DerivePublicKey(privKey)
-		config.ID = enode.PubkeyToIDV4(pub)
-		config.PrivateKey = privKey
+		config.ID = enode.PubkeyToIDV4(&pub)
+		config.PrivateKey = &privKey
 	}
 	if services := ctx.String("services"); services != "" {
 		config.Services = strings.Split(services, ",")

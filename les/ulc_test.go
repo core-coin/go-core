@@ -134,7 +134,7 @@ func newTestServerPeer(t *testing.T, blocks int, protocol int) (*testServer, *en
 	}
 	s.handler.server.privateKey = key
 	pub := ed448.Ed448DerivePublicKey(key)
-	n := enode.NewV4(pub, net.ParseIP("127.0.0.1"), 35000, 35000)
+	n := enode.NewV4(&pub, net.ParseIP("127.0.0.1"), 35000, 35000)
 	return s, n, teardown
 }
 

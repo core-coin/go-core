@@ -122,14 +122,14 @@ func main() {
 	printNotice(pub, *realaddr)
 
 	if *runv5 {
-		if _, err := discv5.ListenUDP(nodeKey, conn, "", restrictList); err != nil {
+		if _, err := discv5.ListenUDP(&nodeKey, conn, "", restrictList); err != nil {
 			utils.Fatalf("%v", err)
 		}
 	} else {
 		db, _ := enode.OpenDB("")
-		ln := enode.NewLocalNode(db, nodeKey)
+		ln := enode.NewLocalNode(db, &nodeKey)
 		cfg := discover.Config{
-			PrivateKey:  nodeKey,
+			PrivateKey:  &nodeKey,
 			NetRestrict: restrictList,
 		}
 		if _, err := discover.ListenUDP(conn, ln, cfg); err != nil {
@@ -144,7 +144,7 @@ func printNotice(nodeKey ed448.PublicKey, addr net.UDPAddr) {
 	if addr.IP.IsUnspecified() {
 		addr.IP = net.IP{127, 0, 0, 1}
 	}
-	n := enode.NewV4(nodeKey, addr.IP, addr.Port, addr.Port)
+	n := enode.NewV4(&nodeKey, addr.IP, addr.Port, addr.Port)
 	fmt.Println(n.URLv4())
 	fmt.Println("Note: you're using cmd/bootnode, a developer tool.")
 	fmt.Println("We recommend using a regular node as bootstrap node for production deployments.")
