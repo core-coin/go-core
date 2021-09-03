@@ -42,7 +42,7 @@ const (
 	totalNodesResponseLimit = 5  // applies in waitForNodes
 	nodesResponseItemLimit  = 3  // applies in sendNodes
 
-	respTimeoutV5 = 3000 * time.Millisecond
+	respTimeoutV5 = 5000 * time.Millisecond
 )
 
 // codecV5 is implemented by wireCodec (and testCodec).
