@@ -35,6 +35,7 @@ import (
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/trie"
 )
 
 // testTxPoolConfig is a transaction pool configuration without stateful disk
@@ -55,7 +56,7 @@ type testBlockChain struct {
 func (bc *testBlockChain) CurrentBlock() *types.Block {
 	return types.NewBlock(&types.Header{
 		EnergyLimit: bc.energyLimit,
-	}, nil, nil, nil)
+	}, nil, nil, nil, new(trie.Trie))
 }
 
 func (bc *testBlockChain) GetBlock(hash common.Hash, number uint64) *types.Block {

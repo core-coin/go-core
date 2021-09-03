@@ -32,6 +32,7 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/trie"
 )
 
 var (
@@ -40,7 +41,7 @@ var (
 	pub          = eddsa.Ed448DerivePublicKey(*testKey)
 	testAddress  = crypto.PubkeyToAddress(pub)
 	genesis      = core.GenesisBlockForTesting(testdb, testAddress, big.NewInt(1000000000))
-	unknownBlock = types.NewBlock(&types.Header{EnergyLimit: params.GenesisEnergyLimit}, nil, nil, nil)
+	unknownBlock = types.NewBlock(&types.Header{EnergyLimit: params.GenesisEnergyLimit}, nil, nil, nil, new(trie.Trie))
 )
 
 // makeChain creates a chain of n blocks starting at and including parent.

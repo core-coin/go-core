@@ -276,11 +276,11 @@ func InspectDatabase(db xcbdb.Database) error {
 		cliqueSnaps     stat
 
 		// Ancient store statistics
-		ancientHeadersSize  common.StorageSize
-		ancientBodiesSize   common.StorageSize
-		ancientReceiptsSize common.StorageSize
-		ancientTdsSize      common.StorageSize
-		ancientHashesSize   common.StorageSize
+		ancientHeaders  common.StorageSize
+		ancientBodies   common.StorageSize
+		ancientReceipts common.StorageSize
+		ancientHashes   common.StorageSize
+		ancientTds      common.StorageSize
 
 		// Les statistic
 		chtTrieNodes   stat
@@ -353,7 +353,7 @@ func InspectDatabase(db xcbdb.Database) error {
 		}
 	}
 	// Inspect append-only file store then.
-	ancientSizes := []*common.StorageSize{&ancientHeadersSize, &ancientBodiesSize, &ancientReceiptsSize, &ancientHashesSize, &ancientTdsSize}
+	ancientSizes := []*common.StorageSize{&ancientHeaders, &ancientBodies, &ancientReceipts, &ancientHashes, &ancientTds}
 	for i, category := range []string{freezerHeaderTable, freezerBodiesTable, freezerReceiptTable, freezerHashTable, freezerDifficultyTable} {
 		if size, err := db.AncientSize(category); err == nil {
 			*ancientSizes[i] += common.StorageSize(size)
@@ -382,11 +382,11 @@ func InspectDatabase(db xcbdb.Database) error {
 		{"Key-Value store", "Storage snapshot", storageSnaps.Size(), storageSnaps.Count()},
 		{"Key-Value store", "Clique snapshots", cliqueSnaps.Size(), cliqueSnaps.Count()},
 		{"Key-Value store", "Singleton metadata", metadata.Size(), metadata.Count()},
-		{"Ancient store", "Headers", ancientHeadersSize.String(), ancients.String()},
-		{"Ancient store", "Bodies", ancientBodiesSize.String(), ancients.String()},
-		{"Ancient store", "Receipt lists", ancientReceiptsSize.String(), ancients.String()},
-		{"Ancient store", "Difficulties", ancientTdsSize.String(), ancients.String()},
-		{"Ancient store", "Block number->hash", ancientHashesSize.String(), ancients.String()},
+		{"Ancient store", "Headers", ancientHeaders.String(), ancients.String()},
+		{"Ancient store", "Bodies", ancientBodies.String(), ancients.String()},
+		{"Ancient store", "Receipt lists", ancientReceipts.String(), ancients.String()},
+		{"Ancient store", "Difficulties", ancientTds.String(), ancients.String()},
+		{"Ancient store", "Block number->hash", ancientHashes.String(), ancients.String()},
 		{"Light client", "CHT trie nodes", chtTrieNodes.Size(), chtTrieNodes.Count()},
 		{"Light client", "Bloom trie nodes", bloomTrieNodes.Size(), bloomTrieNodes.Count()},
 	}

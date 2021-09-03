@@ -34,14 +34,14 @@ import (
 // stateReq represents a batch of state fetch requests grouped together into
 // a single data retrieval network packet.
 type stateReq struct {
-	items    []common.Hash              // Hashes of the state items to download
-	tasks    map[common.Hash]*stateTask // Download tasks to track previous attempts
-	timeout  time.Duration              // Maximum round trip time for this to complete
-	timer    *time.Timer                // Timer to fire when the RTT timeout expires
-	peer     *peerConnection            // Peer that we're requesting from
-	delivered time.Time                 // Time when the packet was delivered (independent when we process it)
-	response [][]byte                   // Response data of the peer (nil for timeouts)
-	dropped  bool                       // Flag whether the peer dropped off early
+	items     []common.Hash              // Hashes of the state items to download
+	tasks     map[common.Hash]*stateTask // Download tasks to track previous attempts
+	timeout   time.Duration              // Maximum round trip time for this to complete
+	timer     *time.Timer                // Timer to fire when the RTT timeout expires
+	peer      *peerConnection            // Peer that we're requesting from
+	delivered time.Time                  // Time when the packet was delivered (independent when we process it)
+	response  [][]byte                   // Response data of the peer (nil for timeouts)
+	dropped   bool                       // Flag whether the peer dropped off early
 }
 
 // timedOut returns if this request timed out.
@@ -474,7 +474,7 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 
 	// Iterate over all the delivered data and inject one-by-one into the trie
 	for _, blob := range req.response {
-		_, hash, err := s.processNodeData(blob)
+		hash, err := s.processNodeData(blob)
 		switch err {
 		case nil:
 			s.numUncommitted++
@@ -512,13 +512,13 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 // processNodeData tries to inject a trie node data blob delivered from a remote
 // peer into the state trie, returning whether anything useful was written or any
 // error occurred.
-func (s *stateSync) processNodeData(blob []byte) (bool, common.Hash, error) {
+func (s *stateSync) processNodeData(blob []byte) (common.Hash, error) {
 	res := trie.SyncResult{Data: blob}
 	s.keccak.Reset()
 	s.keccak.Write(blob)
 	s.keccak.Sum(res.Hash[:0])
-	committed, _, err := s.sched.Process([]trie.SyncResult{res})
-	return committed, res.Hash, err
+	err := s.sched.Process(res)
+	return res.Hash, err
 }
 
 // updateStats bumps the various state sync progress counters and displays a log
