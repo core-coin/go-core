@@ -31,6 +31,7 @@ import (
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/trie"
 	mapset "github.com/deckarep/golang-set"
 )
 
@@ -689,6 +690,7 @@ func (w *worker) updateSnapshot() {
 		w.current.txs,
 		uncles,
 		w.current.receipts,
+		new(trie.Trie),
 	)
 
 	w.snapshotState = w.current.state.Copy()

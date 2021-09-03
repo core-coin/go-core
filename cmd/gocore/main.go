@@ -143,6 +143,7 @@ var (
 		utils.LegacyGpoBlocksFlag,
 		utils.GpoPercentileFlag,
 		utils.LegacyGpoPercentileFlag,
+		utils.GpoMaxEnergyPriceFlag,
 		utils.EWASMInterpreterFlag,
 		utils.CVMInterpreterFlag,
 		configFileFlag,
