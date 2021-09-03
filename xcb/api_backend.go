@@ -185,8 +185,8 @@ func (b *XcbAPIBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*typ
 	return logs, nil
 }
 
-func (b *XcbAPIBackend) GetTd(blockHash common.Hash) *big.Int {
-	return b.xcb.blockchain.GetTdByHash(blockHash)
+func (b *XcbAPIBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
+	return b.xcb.blockchain.GetTdByHash(hash)
 }
 
 func (b *XcbAPIBackend) GetCVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header) (*vm.CVM, func() error, error) {

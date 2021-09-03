@@ -34,14 +34,14 @@ import (
 // stateReq represents a batch of state fetch requests grouped together into
 // a single data retrieval network packet.
 type stateReq struct {
-	items    []common.Hash              // Hashes of the state items to download
-	tasks    map[common.Hash]*stateTask // Download tasks to track previous attempts
-	timeout  time.Duration              // Maximum round trip time for this to complete
-	timer    *time.Timer                // Timer to fire when the RTT timeout expires
-	peer     *peerConnection            // Peer that we're requesting from
-	delivered time.Time                 // Time when the packet was delivered (independent when we process it)
-	response [][]byte                   // Response data of the peer (nil for timeouts)
-	dropped  bool                       // Flag whether the peer dropped off early
+	items     []common.Hash              // Hashes of the state items to download
+	tasks     map[common.Hash]*stateTask // Download tasks to track previous attempts
+	timeout   time.Duration              // Maximum round trip time for this to complete
+	timer     *time.Timer                // Timer to fire when the RTT timeout expires
+	peer      *peerConnection            // Peer that we're requesting from
+	delivered time.Time                  // Time when the packet was delivered (independent when we process it)
+	response  [][]byte                   // Response data of the peer (nil for timeouts)
+	dropped   bool                       // Flag whether the peer dropped off early
 }
 
 // timedOut returns if this request timed out.
