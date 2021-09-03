@@ -59,7 +59,7 @@ type LightCore struct {
 	txPool     *light.TxPool
 	blockchain *light.LightChain
 	serverPool *serverPool
-	pruner         *pruner
+	pruner     *pruner
 
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
