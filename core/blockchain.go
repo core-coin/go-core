@@ -906,7 +906,7 @@ func (bc *BlockChain) Stop() {
 				recent := bc.GetBlockByNumber(number - offset)
 
 				log.Info("Writing cached state to disk", "block", recent.Number(), "hash", recent.Hash(), "root", recent.Root())
-				if err := triedb.Commit(snapBase, true, nil); err != nil {
+				if err := triedb.Commit(recent.Root(), true, nil); err != nil {
 					log.Error("Failed to commit recent state trie", "err", err)
 				}
 			}
