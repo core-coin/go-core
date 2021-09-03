@@ -59,6 +59,7 @@ type LightCore struct {
 	txPool     *light.TxPool
 	blockchain *light.LightChain
 	serverPool *serverPool
+	pruner     *pruner
 
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
@@ -107,8 +108,8 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 	lxcb.relay = newLesTxRelay(peers, lxcb.retriever)
 
 	lxcb.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lxcb.retriever)
-	lxcb.chtIndexer = light.NewChtIndexer(chainDb, lxcb.odr, params.CHTFrequency, params.HelperTrieConfirmations)
-	lxcb.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lxcb.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency)
+	lxcb.chtIndexer = light.NewChtIndexer(chainDb, lxcb.odr, params.CHTFrequency, params.HelperTrieConfirmations, config.LightNoPrune)
+	lxcb.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lxcb.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency, config.LightNoPrune)
 	lxcb.odr.SetIndexers(lxcb.chtIndexer, lxcb.bloomTrieIndexer, lxcb.bloomIndexer)
 
 	checkpoint := config.Checkpoint
@@ -140,6 +141,10 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcb.handler.ulc.keys), "minTrustedFraction", lxcb.handler.ulc.fraction)
 		lxcb.blockchain.DisableCheckFreq()
 	}
+
+	// Start a light chain pruner to delete useless historical data.
+	lxcb.pruner = newPruner(chainDb, lxcb.chtIndexer, lxcb.bloomTrieIndexer)
+
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
@@ -267,6 +272,7 @@ func (s *LightCore) Stop() error {
 	s.handler.stop()
 	s.txPool.Stop()
 	s.engine.Close()
+	s.pruner.close()
 	s.eventMux.Stop()
 	s.serverPool.stop()
 	s.chainDb.Close()

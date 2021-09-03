@@ -142,7 +142,7 @@ func testIterativeStateSync(t *testing.T, count int, commit bool) {
 	// Create a random state to copy
 	srcDb, srcRoot, srcAccounts := makeTestState()
 	if commit {
-		srcDb.TrieDB().Commit(srcRoot, false)
+		srcDb.TrieDB().Commit(srcRoot, false, nil)
 	}
 	// Create a destination state and sync with the scheduler
 	dstDb := rawdb.NewMemoryDatabase()
