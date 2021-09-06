@@ -43,29 +43,16 @@ type PrecompiledContract interface {
 	Run(input []byte) ([]byte, error)   // Run runs the precompiled contract
 }
 
-// PrecompiledContracts contains the default set of pre-compiled Core
-// contracts used in the release.
-var (
-	addr1, _ = common.HexToAddress("cb270000000000000000000000000000000000000001")
-	addr2, _ = common.HexToAddress("cb970000000000000000000000000000000000000002")
-	addr3, _ = common.HexToAddress("cb700000000000000000000000000000000000000003")
-	addr4, _ = common.HexToAddress("cb430000000000000000000000000000000000000004")
-	addr5, _ = common.HexToAddress("cb160000000000000000000000000000000000000005")
-	addr6, _ = common.HexToAddress("cb860000000000000000000000000000000000000006")
-	addr7, _ = common.HexToAddress("cb590000000000000000000000000000000000000007")
-	addr8, _ = common.HexToAddress("cb320000000000000000000000000000000000000008")
-	addr9, _ = common.HexToAddress("cb050000000000000000000000000000000000000009")
-)
 var PrecompiledContracts = map[common.Address]PrecompiledContract{
-	addr1: &ecrecover{},
-	addr2: &sha256hash{},
-	addr3: &ripemd160hash{},
-	addr4: &dataCopy{},
-	addr5: &bigModExp{},
-	addr6: &bn256Add{},
-	addr7: &bn256ScalarMul{},
-	addr8: &bn256Pairing{},
-	addr9: &blake2F{},
+	common.Addr1: &ecrecover{},
+	common.Addr2: &sha256hash{},
+	common.Addr3: &ripemd160hash{},
+	common.Addr4: &dataCopy{},
+	common.Addr5: &bigModExp{},
+	common.Addr6: &bn256Add{},
+	common.Addr7: &bn256ScalarMul{},
+	common.Addr8: &bn256Pairing{},
+	common.Addr9: &blake2F{},
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
