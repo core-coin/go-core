@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hpcloud/tail/util"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -31,6 +30,7 @@ import (
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"
+	"github.com/hpcloud/tail/util"
 	duktape "gopkg.in/olebedev/go-duktape.v3"
 )
 
@@ -112,15 +112,15 @@ func (mw *memoryWrapper) slice(begin, end int64) []byte {
 	return mw.memory.GetCopy(begin, end-begin)
 }
 
-// getUint returns the 32 bytes at the specified address interpreted as a uint.
+// getUint returns the 44 bytes at the specified address interpreted as a uint.
 func (mw *memoryWrapper) getUint(addr int64) *big.Int {
-	if mw.memory.Len() < int(addr)+32 || addr < 0 {
+	if mw.memory.Len() < int(addr)+44 || addr < 0 {
 		// TODO(raisty): We can't js-throw from Go inside duktape inside Go. The Go
 		// runtime goes belly up https://github.com/golang/go/issues/15639.
 		log.Warn("Tracer accessed out of bound memory", "available", mw.memory.Len(), "offset", addr, "size", 32)
 		return new(big.Int)
 	}
-	return new(big.Int).SetBytes(mw.memory.GetPtr(addr, 32))
+	return new(big.Int).SetBytes(mw.memory.GetPtr(addr, 44))
 }
 
 // pushObject assembles a JSVM object wrapping a swappable memory and pushes it
@@ -252,16 +252,16 @@ func (cw *contractWrapper) pushObject(vm *duktape.Context) {
 
 	// Push the wrapper for contract.Caller
 	vm.PushGoFunction(func(ctx *duktape.Context) int {
-		ptr := ctx.PushFixedBuffer(20)
-		copy(makeSlice(ptr, 20), cw.contract.Caller().Bytes())
+		ptr := ctx.PushFixedBuffer(22)
+		copy(makeSlice(ptr, 22), cw.contract.Caller().Bytes())
 		return 1
 	})
 	vm.PutPropString(obj, "getCaller")
 
 	// Push the wrapper for contract.Address
 	vm.PushGoFunction(func(ctx *duktape.Context) int {
-		ptr := ctx.PushFixedBuffer(20)
-		copy(makeSlice(ptr, 20), cw.contract.Address().Bytes())
+		ptr := ctx.PushFixedBuffer(22)
+		copy(makeSlice(ptr, 22), cw.contract.Address().Bytes())
 		return 1
 	})
 	vm.PutPropString(obj, "getAddress")
@@ -364,7 +364,7 @@ func New(code string) (*Tracer, error) {
 			addr = address
 		}
 		ctx.Pop()
-		copy(makeSlice(ctx.PushFixedBuffer(20), 20), addr[:])
+		copy(makeSlice(ctx.PushFixedBuffer(22), 22), addr[:])
 		return 1
 	})
 	tracer.vm.PushGlobalGoFunction("toContract", func(ctx *duktape.Context) int {
@@ -382,7 +382,7 @@ func New(code string) (*Tracer, error) {
 		ctx.Pop2()
 
 		contract := crypto.CreateAddress(from, nonce)
-		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])
+		copy(makeSlice(ctx.PushFixedBuffer(22), 22), contract[:])
 		return 1
 	})
 	tracer.vm.PushGlobalGoFunction("toContract2", func(ctx *duktape.Context) int {
@@ -408,7 +408,7 @@ func New(code string) (*Tracer, error) {
 		codeHash := crypto.SHA3(code)
 		ctx.Pop3()
 		contract := crypto.CreateAddress2(from, salt, codeHash)
-		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])
+		copy(makeSlice(ctx.PushFixedBuffer(22), 22), contract[:])
 		return 1
 	})
 	tracer.vm.PushGlobalGoFunction("isPrecompiled", func(ctx *duktape.Context) int {
@@ -637,8 +637,8 @@ func (jst *Tracer) GetResult() (json.RawMessage, error) {
 			copy(makeSlice(ptr, uint(len(val))), val)
 
 		case common.Address:
-			ptr := jst.vm.PushFixedBuffer(20)
-			copy(makeSlice(ptr, 20), val[:])
+			ptr := jst.vm.PushFixedBuffer(22)
+			copy(makeSlice(ptr, 22), val[:])
 
 		case *big.Int:
 			pushBigInt(val, jst.vm)
