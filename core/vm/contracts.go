@@ -95,7 +95,7 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 		return nil, nil
 	}
 	if pubKey != nil {
-		return crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), nil
+		return common.LeftPadBytes(crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), 32), nil
 	}
 	return nil, errors.New("invalid signature")
 }
