@@ -84,7 +84,6 @@ func TestIPCAttachWelcome(t *testing.T) {
 		defer os.RemoveAll(ws)
 		ipc = filepath.Join(ws, "gocore.ipc")
 	}
-	// Note: we need --shh because testAttachWelcome checks for default
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
 		"--corebase", coinbase, "--ipcpath", ipc)

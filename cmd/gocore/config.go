@@ -27,7 +27,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/xcb"
@@ -40,7 +39,7 @@ var (
 		Name:        "dumpconfig",
 		Usage:       "Show configuration values",
 		ArgsUsage:   "",
-		Flags:       append(append(nodeFlags, rpcFlags...), whisperFlags...),
+		Flags:       append(nodeFlags, rpcFlags...),
 		Category:    "MISCELLANEOUS COMMANDS",
 		Description: `The dumpconfig command shows configuration values.`,
 	}
@@ -72,19 +71,8 @@ type xcbstatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
-// whisper has been deprecated, but clients out there might still have [Shh]
-// in their config, which will crash. Cut them some slack by keeping the
-// config, and displaying a message that those config switches are ineffectual.
-// To be removed circa Q1 2021 -- @gballet.
-type whisperDeprecatedConfig struct {
-	MaxMessageSize                        uint32  `toml:",omitempty"`
-	MinimumAcceptedPOW                    float64 `toml:",omitempty"`
-	RestrictConnectionBetweenLightClients bool    `toml:",omitempty"`
-}
-
 type gocoreConfig struct {
 	Xcb      xcb.Config
-	Shh      whisperDeprecatedConfig
 	Node     node.Config
 	Xcbstats xcbstatsConfig
 }
@@ -126,10 +114,6 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 		if err := loadConfig(file, &cfg); err != nil {
 			utils.Fatalf("%v", err)
 		}
-
-		if cfg.Shh != (whisperDeprecatedConfig{}) {
-			log.Warn("Deprecated whisper config detected. Whisper has been moved to github.com/ethereum/whisper")
-		}
 	}
 
 	// Apply flags.
@@ -146,25 +130,14 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	if ctx.GlobalIsSet(utils.XcbStatsURLFlag.Name) {
 		cfg.Xcbstats.URL = ctx.GlobalString(utils.XcbStatsURLFlag.Name)
 	}
-	utils.SetShhConfig(ctx, stack)
 
 	return stack, cfg
-}
-
-// enableWhisper returns true in case one of the whisper flags is set.
-func checkWhisper(ctx *cli.Context) {
-	for _, flag := range whisperFlags {
-		if ctx.GlobalIsSet(flag.GetName()) {
-			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/ethereum/whisper")
-		}
-	}
 }
 
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 	utils.RegisterXcbService(stack, &cfg.Xcb)
 
-	checkWhisper(ctx)
 	// Configure GraphQL if requested
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
 		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
