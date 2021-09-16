@@ -1,13 +1,11 @@
-# Build Gocore in a stock Go builder container
-FROM golang:1.15-buster as builder
-ARG ALLTOOLS
+FROM golang:alpine as builder
+RUN apk add make gcc g++ musl-dev linux-headers
 
 ADD . /go-core
-RUN if [ -n "$ALLTOOLS" ] ; then cd /go-core && make all ; else cd /go-core && make gocore ; fi
+RUN cd /go-core && make all
 
-# Pull Gocore into a second stage deploy alpine container
-FROM buildpack-deps:buster-scm
+FROM alpine:3
+RUN apk add gcc g++
 
 COPY --from=builder /go-core/build/bin/* /usr/local/bin/
-
 EXPOSE 30300 30300/udp
