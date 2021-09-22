@@ -81,11 +81,8 @@ func TestUDPv4_LookupIterator(t *testing.T) {
 	iter := test.udp.RandomNodes()
 	seen := make(map[enode.ID]*enode.Node)
 	for limit := lookupDevin.len(); iter.Next() && len(seen) < limit; {
-		fmt.Println(len(seen))
 		seen[iter.Node().ID()] = iter.Node()
 	}
-	iter.Close()
-	panic(1)
 	// Check that all nodes in lookupDevin were seen by the iterator.
 	results := make([]*enode.Node, 0, len(seen))
 	for _, n := range seen {
