@@ -62,7 +62,7 @@ func TestParseRoot(t *testing.T) {
 }
 
 func TestParseEntry(t *testing.T) {
-	testkey := testKey(signingKeySeed)
+	testkey := testKey(nodesSeed1)
 	pub := eddsa.Ed448DerivePublicKey(*testkey)
 	tests := []struct {
 		input string
@@ -92,8 +92,8 @@ func TestParseEntry(t *testing.T) {
 		},
 		// Links
 		{
-			input: "enrtree://JJ5QVSTC2YDAIZSUEKUDYBBZHADEQTEWDG4TNQTIWUJGMOT52SWKKRUYMIE4KVJMTJYKRA4G4SW7QZTXNKEPAL3HIQAA@nodes.example.org",
-			e:     &linkEntry{"JJ5QVSTC2YDAIZSUEKUDYBBZHADEQTEWDG4TNQTIWUJGMOT52SWKKRUYMIE4KVJMTJYKRA4G4SW7QZTXNKEPAL3HIQAA@nodes.example.org", "nodes.example.org", &pub},
+			input: "enrtree://SALGRL5CVC6ZXZSAJ5HJWZ5X5I2MURYEE7MRPZFFS3FRN4OJJDC2ISGFNZOKZPAUC3B2SOWTTAX4F3GD6VOR777KM2AA@nodes.example.org",
+			e:     &linkEntry{"SALGRL5CVC6ZXZSAJ5HJWZ5X5I2MURYEE7MRPZFFS3FRN4OJJDC2ISGFNZOKZPAUC3B2SOWTTAX4F3GD6VOR777KM2AA@nodes.example.org", "nodes.example.org", &pub},
 		},
 		{
 			input: "enrtree://nodes.example.org",
