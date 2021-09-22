@@ -17,9 +17,6 @@
 package keystore
 
 import (
-	"crypto/rand"
-	"fmt"
-	"github.com/core-coin/go-core/crypto"
 	"io/ioutil"
 	"testing"
 
@@ -33,11 +30,6 @@ const (
 
 // Tests that a json key file can be decrypted and encrypted in multiple rounds.
 func TestKeyEncryptDecrypt(t *testing.T) {
-	Key, _ := crypto.GenerateKey(rand.Reader)
-	a := newKeyFromEDDSA(Key)
-	keyjson2, err := EncryptKey(a, "foobar", veryLightScryptN, veryLightScryptP)
-	fmt.Println(string(keyjson2), err)
-
 	keyjson, err := ioutil.ReadFile("testdata/very-light-scrypt.json")
 	if err != nil {
 		t.Fatal(err)
