@@ -47,7 +47,7 @@ var DefaultLightGPOConfig = energyprice.Config{
 
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
-	SyncMode:                downloader.FastSync,
+	SyncMode:                downloader.FullSync,
 	Cryptore:                cryptore.Config{},
 	NetworkId:               1,
 	LightPeers:              100,
