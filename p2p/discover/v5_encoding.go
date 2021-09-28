@@ -24,6 +24,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"hash"
 	"net"
 	"time"
@@ -382,7 +383,7 @@ func (c *wireCodec) deriveKeys(n1, n2 enode.ID, priv *eddsa.PrivateKey, pub *edd
 	info := []byte("discovery v5 key agreement")
 	info = append(info, n1[:]...)
 	info = append(info, n2[:]...)
-	kdf := hkdf.New(c.sha256reset, eph, challenge.IDNonce[:], info)
+	kdf := hkdf.New(sha3.New256, eph, challenge.IDNonce[:], info)
 	sec := handshakeSecrets{
 		writeKey:    make([]byte, aesKeySize),
 		readKey:     make([]byte, aesKeySize),
