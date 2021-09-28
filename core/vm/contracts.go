@@ -76,7 +76,7 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
 
-	pubKey, err := crypto.Ecrecover(input[:32], input[32:])
+	pubKey, err := crypto.Ecrecover(input[:32], input[96:267])
 	// make sure the public key is a valid one
 	if err != nil {
 		return nil, nil
