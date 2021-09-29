@@ -12,8 +12,8 @@ require (
 	github.com/aws/aws-sdk-go v1.25.48
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.14.0
-	github.com/core-coin/go-goldilocks v1.0.4
-	github.com/core-coin/go-randomy v0.0.11
+	github.com/core-coin/go-goldilocks v1.0.6
+	github.com/core-coin/go-randomy v0.0.12
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
 	github.com/dlclark/regexp2 v1.2.0 // indirect
