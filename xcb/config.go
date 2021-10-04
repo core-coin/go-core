@@ -31,18 +31,34 @@ import (
 	"github.com/core-coin/go-core/xcb/energyprice"
 )
 
+// DefaultFullGPOConfig contains default gasprice oracle settings for full node.
+var DefaultFullGPOConfig = energyprice.Config{
+	Blocks:     20,
+	Percentile: 60,
+	MaxPrice:   energyprice.DefaultMaxPrice,
+}
+
+// DefaultLightGPOConfig contains default gasprice oracle settings for light client.
+var DefaultLightGPOConfig = energyprice.Config{
+	Blocks:     2,
+	Percentile: 60,
+	MaxPrice:   energyprice.DefaultMaxPrice,
+}
+
 // DefaultConfig contains default settings for use on the Core main net.
 var DefaultConfig = Config{
-	SyncMode:           downloader.FastSync,
-	Cryptore:           cryptore.Config{},
-	NetworkId:          1,
-	LightPeers:         100,
-	UltraLightFraction: 75,
-	DatabaseCache:      512,
-	TrieCleanCache:     256,
-	TrieDirtyCache:     256,
-	TrieTimeout:        60 * time.Minute,
-	SnapshotCache:      256,
+	SyncMode:                downloader.FullSync,
+	Cryptore:                cryptore.Config{},
+	NetworkId:               1,
+	LightPeers:              100,
+	UltraLightFraction:      75,
+	DatabaseCache:           512,
+	TrieCleanCache:          154,
+	TrieCleanCacheJournal:   "triecache",
+	TrieCleanCacheRejournal: 60 * time.Minute,
+	TrieDirtyCache:          256,
+	TrieTimeout:             60 * time.Minute,
+	SnapshotCache:           102,
 	Miner: miner.Config{
 		EnergyFloor: 12500000,
 		EnergyCeil:  12500000,
@@ -50,10 +66,7 @@ var DefaultConfig = Config{
 		Recommit:    3 * time.Second,
 	},
 	TxPool: core.DefaultTxPoolConfig,
-	GPO: energyprice.Config{
-		Blocks:     20,
-		Percentile: 60,
-	},
+	GPO:    DefaultFullGPOConfig,
 }
 
 func init() {
@@ -88,10 +101,11 @@ type Config struct {
 	Whitelist map[uint64]common.Hash `toml:"-"`
 
 	// Light client options
-	LightServ    int `toml:",omitempty"` // Maximum percentage of time allowed for serving LES requests
-	LightIngress int `toml:",omitempty"` // Incoming bandwidth limit for light servers
-	LightEgress  int `toml:",omitempty"` // Outgoing bandwidth limit for light servers
-	LightPeers   int `toml:",omitempty"` // Maximum number of LES client peers
+	LightServ    int  `toml:",omitempty"` // Maximum percentage of time allowed for serving LES requests
+	LightIngress int  `toml:",omitempty"` // Incoming bandwidth limit for light servers
+	LightEgress  int  `toml:",omitempty"` // Outgoing bandwidth limit for light servers
+	LightPeers   int  `toml:",omitempty"` // Maximum number of LES client peers
+	LightNoPrune bool `toml:",omitempty"` // Whether to disable light chain pruning
 
 	// Ultra Light client options
 	UltraLightServers      []string `toml:",omitempty"` // List of trusted ultra light servers
@@ -104,10 +118,12 @@ type Config struct {
 	DatabaseCache      int
 	DatabaseFreezer    string
 
-	TrieCleanCache int
-	TrieDirtyCache int
-	TrieTimeout    time.Duration
-	SnapshotCache  int
+	TrieCleanCache          int
+	TrieCleanCacheJournal   string        `toml:",omitempty"` // Disk journal directory for trie cache to survive node restarts
+	TrieCleanCacheRejournal time.Duration `toml:",omitempty"` // Time interval to regenerate the journal for clean cache
+	TrieDirtyCache          int
+	TrieTimeout             time.Duration
+	SnapshotCache           int
 
 	// Mining options
 	Miner miner.Config

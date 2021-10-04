@@ -14,7 +14,6 @@ p2p/simulations                 @error2215 @rasty @SashaZezulinsky
 p2p/protocols                   @error2215 @rasty @SashaZezulinsky
 p2p/testing                     @error2215 @rasty @SashaZezulinsky
 signer/                         @error2215 @rasty @SashaZezulinsky
-whisper/                        @error2215 @rasty @SashaZezulinsky
 
 [Command]
 cmd/clef                        @error2215 @rasty @SashaZezulinsky

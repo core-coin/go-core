@@ -78,7 +78,6 @@ var (
 		executablePath("cvm"),
 		executablePath("gocore"),
 		executablePath("rlpdump"),
-		executablePath("wnode"),
 		executablePath("clef"),
 	}
 
@@ -105,19 +104,14 @@ var (
 			Description: "Developer utility tool that prints RLP structures.",
 		},
 		{
-			BinaryName:  "wnode",
-			Description: "Core Whisper diagnostic tool",
-		},
-		{
 			BinaryName:  "clef",
 			Description: "Core account management tool.",
 		},
 	}
 
 	// A debian package is created for all executables listed here.
-
 	debCore = debPackage{
-		Name:        "core",
+		Name:        "go-core",
 		Version:     params.Version,
 		Executables: debExecutables,
 	}
@@ -135,17 +129,13 @@ var (
 	// Note: artful is unsupported because it was officially deprecated on Launchpad.
 	// Note: cosmic is unsupported because it was officially deprecated on Launchpad.
 	debDistroGoBoots = map[string]string{
-		"trusty": "golang-1.11",
 		"xenial": "golang-go",
 		"bionic": "golang-go",
-		"disco":  "golang-go",
-		"eoan":   "golang-go",
 		"focal":  "golang-go",
 	}
 
 	debGoBootPaths = map[string]string{
-		"golang-1.11": "/usr/lib/go-1.11",
-		"golang-go":   "/usr/lib/go",
+		"golang-go": "/usr/local/go",
 	}
 )
 
@@ -193,8 +183,6 @@ func main() {
 	}
 }
 
-// Compiling
-
 func doInstall(cmdline []string) {
 	var (
 		arch = flag.String("arch", "", "Architecture to cross build for")
@@ -210,9 +198,9 @@ func doInstall(cmdline []string) {
 		var minor int
 		fmt.Sscanf(strings.TrimPrefix(runtime.Version(), "go1."), "%d", &minor)
 
-		if minor < 11 {
+		if minor < 13 {
 			log.Println("You have Go version", runtime.Version())
-			log.Println("go-core requires at least Go version 1.11 and cannot")
+			log.Println("go-core requires at least Go version 1.13 and cannot")
 			log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 			os.Exit(1)
 		}
@@ -228,6 +216,7 @@ func doInstall(cmdline []string) {
 		if runtime.GOARCH == "arm64" {
 			goinstall.Args = append(goinstall.Args, "-p", "1")
 		}
+		goinstall.Args = append(goinstall.Args, "-trimpath")
 		goinstall.Args = append(goinstall.Args, "-v")
 		goinstall.Args = append(goinstall.Args, packages...)
 		build.MustRun(goinstall)
@@ -236,6 +225,7 @@ func doInstall(cmdline []string) {
 
 	// Seems we are cross compiling, work around forbidden GOBIN
 	goinstall := goToolArch(*arch, *cc, "install", buildFlags(env)...)
+	goinstall.Args = append(goinstall.Args, "-trimpath")
 	goinstall.Args = append(goinstall.Args, "-v")
 	goinstall.Args = append(goinstall.Args, []string{"-buildmode", "archive"}...)
 	goinstall.Args = append(goinstall.Args, packages...)
@@ -457,10 +447,6 @@ func maybeSkipArchive(env build.Environment) {
 		log.Printf("skipping because this is a cron job")
 		os.Exit(0)
 	}
-	if env.Branch != "master" && !strings.HasPrefix(env.Tag, "v1.") {
-		log.Printf("skipping because branch %q, tag %q is not on the whitelist", env.Branch, env.Tag)
-		os.Exit(0)
-	}
 }
 
 // Debian Packaging
@@ -523,16 +509,17 @@ func doDebianSource(cmdline []string) {
 			build.MustRun(debuild)
 
 			var (
-				basename = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
-				source   = filepath.Join(*workdir, basename+".tar.xz")
-				dsc      = filepath.Join(*workdir, basename+".dsc")
-				changes  = filepath.Join(*workdir, basename+"_source.changes")
+				basename  = fmt.Sprintf("%s_%s", meta.Name(), meta.VersionString())
+				source    = filepath.Join(*workdir, basename+".tar.xz")
+				dsc       = filepath.Join(*workdir, basename+".dsc")
+				changes   = filepath.Join(*workdir, basename+"_source.changes")
+				buildinfo = filepath.Join(*workdir, basename+"_source.buildinfo")
 			)
 			if *signer != "" {
 				build.MustRunCommand("debsign", changes)
 			}
 			if *upload != "" {
-				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes})
+				ppaUpload(*workdir, *upload, *sshUser, []string{source, dsc, changes, buildinfo})
 			}
 		}
 	}
@@ -879,11 +866,12 @@ func gomobileTool(subcmd string, args ...string) *exec.Cmd {
 		"PATH=" + GOBIN + string(os.PathListSeparator) + os.Getenv("PATH"),
 	}
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "GOPATH=") || strings.HasPrefix(e, "PATH=") {
+		if strings.HasPrefix(e, "GOPATH=") || strings.HasPrefix(e, "PATH=") || strings.HasPrefix(e, "GOBIN=") {
 			continue
 		}
 		cmd.Env = append(cmd.Env, e)
 	}
+	cmd.Env = append(cmd.Env, "GOBIN="+GOBIN)
 	return cmd
 }
 
@@ -952,7 +940,7 @@ func doXCodeFramework(cmdline []string) {
 
 	if *local {
 		// If we're building locally, use the build folder and stop afterwards
-		bind.Dir, _ = filepath.Abs(GOBIN)
+		bind.Dir = GOBIN
 		build.MustRun(bind)
 		return
 	}

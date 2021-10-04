@@ -34,7 +34,6 @@ import (
 	"github.com/core-coin/go-core/consensus/clique"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
 	"github.com/core-coin/go-core/crypto"
@@ -275,7 +274,11 @@ func (s *PrivateAccountAPI) DeriveAccount(url string, path string, pin *bool) (a
 
 // NewAccount will create a new account and returns the address for the new account.
 func (s *PrivateAccountAPI) NewAccount(password string) (common.Address, error) {
-	acc, err := fetchKeystore(s.am).NewAccount(password)
+	ks, err := fetchKeystore(s.am)
+	if err != nil {
+		return common.Address{}, err
+	}
+	acc, err := ks.NewAccount(password)
 	if err == nil {
 		log.Info("Your new key was generated", "address", acc.Address)
 		log.Warn("Please backup your key file!", "path", acc.URL.Path)
@@ -286,8 +289,11 @@ func (s *PrivateAccountAPI) NewAccount(password string) (common.Address, error) 
 }
 
 // fetchKeystore retrives the encrypted keystore from the account manager.
-func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
-	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
+func fetchKeystore(am *accounts.Manager) (*keystore.KeyStore, error) {
+	if ks := am.Backends(keystore.KeyStoreType); len(ks) > 0 {
+		return ks[0].(*keystore.KeyStore), nil
+	}
+	return nil, errors.New("local keystore not used")
 }
 
 // ImportRawKey stores the given hex encoded EDDSA key into the key directory,
@@ -297,7 +303,11 @@ func (s *PrivateAccountAPI) ImportRawKey(privkey string, password string) (commo
 	if err != nil {
 		return common.Address{}, err
 	}
-	acc, err := fetchKeystore(s.am).ImportEDDSA(key, password)
+	ks, err := fetchKeystore(s.am)
+	if err != nil {
+		return common.Address{}, err
+	}
+	acc, err := ks.ImportEDDSA(key, password)
 	return acc.Address, err
 }
 
@@ -321,7 +331,11 @@ func (s *PrivateAccountAPI) UnlockAccount(ctx context.Context, addr common.Addre
 	} else {
 		d = time.Duration(*duration) * time.Second
 	}
-	err := fetchKeystore(s.am).TimedUnlock(accounts.Account{Address: addr}, password, d)
+	ks, err := fetchKeystore(s.am)
+	if err != nil {
+		return false, err
+	}
+	err = ks.TimedUnlock(accounts.Account{Address: addr}, password, d)
 	if err != nil {
 		log.Warn("Failed account unlock attempt", "address", addr, "err", err)
 	}
@@ -330,7 +344,10 @@ func (s *PrivateAccountAPI) UnlockAccount(ctx context.Context, addr common.Addre
 
 // LockAccount will lock the account associated with the given address when it's unlocked.
 func (s *PrivateAccountAPI) LockAccount(addr common.Address) bool {
-	return fetchKeystore(s.am).Lock(addr) == nil
+	if ks, err := fetchKeystore(s.am); err == nil {
+		return ks.Lock(addr) == nil
+	}
+	return false
 }
 
 // signTransaction sets defaults and signs the given transaction
@@ -590,7 +607,7 @@ func (s *PublicBlockChainAPI) GetProof(ctx context.Context, address common.Addre
 func (s *PublicBlockChainAPI) GetHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (map[string]interface{}, error) {
 	header, err := s.b.HeaderByNumber(ctx, number)
 	if header != nil && err == nil {
-		response := s.rpcMarshalHeader(header)
+		response := s.rpcMarshalHeader(ctx, header)
 		if number == rpc.PendingBlockNumber {
 			// Pending header need to nil out a few fields
 			for _, field := range []string{"hash", "nonce", "miner"} {
@@ -606,7 +623,7 @@ func (s *PublicBlockChainAPI) GetHeaderByNumber(ctx context.Context, number rpc.
 func (s *PublicBlockChainAPI) GetHeaderByHash(ctx context.Context, hash common.Hash) map[string]interface{} {
 	header, _ := s.b.HeaderByHash(ctx, hash)
 	if header != nil {
-		return s.rpcMarshalHeader(header)
+		return s.rpcMarshalHeader(ctx, header)
 	}
 	return nil
 }
@@ -619,7 +636,7 @@ func (s *PublicBlockChainAPI) GetHeaderByHash(ctx context.Context, hash common.H
 func (s *PublicBlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.BlockNumber, fullTx bool) (map[string]interface{}, error) {
 	block, err := s.b.BlockByNumber(ctx, number)
 	if block != nil && err == nil {
-		response, err := s.rpcMarshalBlock(block, true, fullTx)
+		response, err := s.rpcMarshalBlock(ctx, block, true, fullTx)
 		if err == nil && number == rpc.PendingBlockNumber {
 			// Pending blocks need to nil out a few fields
 			for _, field := range []string{"hash", "nonce", "miner"} {
@@ -636,7 +653,7 @@ func (s *PublicBlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.B
 func (s *PublicBlockChainAPI) GetBlockByHash(ctx context.Context, hash common.Hash, fullTx bool) (map[string]interface{}, error) {
 	block, err := s.b.BlockByHash(ctx, hash)
 	if block != nil {
-		return s.rpcMarshalBlock(block, true, fullTx)
+		return s.rpcMarshalBlock(ctx, block, true, fullTx)
 	}
 	return nil, err
 }
@@ -652,7 +669,7 @@ func (s *PublicBlockChainAPI) GetUncleByBlockNumberAndIndex(ctx context.Context,
 			return nil, nil
 		}
 		block = types.NewBlockWithHeader(uncles[index])
-		return s.rpcMarshalBlock(block, false, false)
+		return s.rpcMarshalBlock(ctx, block, false, false)
 	}
 	return nil, err
 }
@@ -668,7 +685,7 @@ func (s *PublicBlockChainAPI) GetUncleByBlockHashAndIndex(ctx context.Context, b
 			return nil, nil
 		}
 		block = types.NewBlockWithHeader(uncles[index])
-		return s.rpcMarshalBlock(block, false, false)
+		return s.rpcMarshalBlock(ctx, block, false, false)
 	}
 	return nil, err
 }
@@ -732,7 +749,10 @@ func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
 	}
 
 	// Set default gas & gas price if none were set
-	energy := uint64(math.MaxUint64 / 2)
+	energy := globalEnergyCap.Uint64()
+	if energy == 0 {
+		energy = uint64(math.MaxUint64 / 2)
+	}
 	if args.Energy != nil {
 		energy = uint64(*args.Energy)
 	}
@@ -879,6 +899,9 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 		if err != nil {
 			return 0, err
 		}
+		if block == nil {
+			return 0, errors.New("block not found")
+		}
 		hi = block.EnergyLimit()
 	}
 	if energyCap != nil && hi > energyCap.Uint64() {
@@ -921,9 +944,12 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 
 // EstimateEnergy returns an estimate of the amount of energy needed to execute the
 // given transaction against the current pending block.
-func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
-	blockNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	return DoEstimateEnergy(ctx, s.b, args, blockNrOrHash, s.b.RPCEnergyCap())
+func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
+	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
+	if blockNrOrHash != nil {
+		bNrOrHash = *blockNrOrHash
+	}
+	return DoEstimateEnergy(ctx, s.b, args, bNrOrHash, s.b.RPCEnergyCap())
 }
 
 // ExecutionResult groups all structured logs emitted by the CVM
@@ -1047,21 +1073,21 @@ func RPCMarshalBlock(block *types.Block, inclTx bool, fullTx bool) (map[string]i
 
 // rpcMarshalHeader uses the generalized output filler, then adds the total difficulty field, which requires
 // a `PublicBlockchainAPI`.
-func (s *PublicBlockChainAPI) rpcMarshalHeader(header *types.Header) map[string]interface{} {
+func (s *PublicBlockChainAPI) rpcMarshalHeader(ctx context.Context, header *types.Header) map[string]interface{} {
 	fields := RPCMarshalHeader(header)
-	fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(header.Hash()))
+	fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, header.Hash()))
 	return fields
 }
 
 // rpcMarshalBlock uses the generalized output filler, then adds the total difficulty field, which requires
 // a `PublicBlockchainAPI`.
-func (s *PublicBlockChainAPI) rpcMarshalBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
+func (s *PublicBlockChainAPI) rpcMarshalBlock(ctx context.Context, b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
 	fields, err := RPCMarshalBlock(b, inclTx, fullTx)
 	if err != nil {
 		return nil, err
 	}
 	if inclTx {
-		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(b.Hash()))
+		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, b.Hash()))
 	}
 	return fields, err
 }
@@ -1261,8 +1287,8 @@ func (s *PublicTransactionPoolAPI) GetRawTransactionByHash(ctx context.Context, 
 
 // GetTransactionReceipt returns the transaction receipt for the given transaction hash.
 func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
-	tx, blockHash, blockNumber, index := rawdb.ReadTransaction(s.b.ChainDb(), hash)
-	if tx == nil {
+	tx, blockHash, blockNumber, index, err := s.b.GetTransaction(ctx, hash)
+	if err != nil {
 		return nil, nil
 	}
 	receipts, err := s.b.GetReceipts(ctx, blockHash)

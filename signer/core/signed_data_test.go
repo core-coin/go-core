@@ -245,6 +245,10 @@ func TestDomainNetworkId(t *testing.T) {
 	if _, ok := withoutNetworkID.Domain.Map()["networkId"]; ok {
 		t.Errorf("Expected the networkId key to not be present in the domain map")
 	}
+	// should encode successfully
+	if _, err := withoutNetworkID.HashStruct("CIP712Domain", withoutNetworkID.Domain.Map()); err != nil {
+		t.Errorf("Expected the typedData to encode the domain successfully, got %v", err)
+	}
 	withNetworkID := core.TypedData{
 		Types: core.Types{
 			"CIP712Domain": []core.Type{
@@ -260,6 +264,10 @@ func TestDomainNetworkId(t *testing.T) {
 
 	if _, ok := withNetworkID.Domain.Map()["networkId"]; !ok {
 		t.Errorf("Expected the networkId key be present in the domain map")
+	}
+	// should encode successfully
+	if _, err := withNetworkID.HashStruct("CIP712Domain", withNetworkID.Domain.Map()); err != nil {
+		t.Errorf("Expected the typedData to encode the domain successfully, got %v", err)
 	}
 }
 

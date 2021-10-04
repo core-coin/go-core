@@ -2318,7 +2318,7 @@ var toBigNumber = function(number) {
             if (!/^[0-9a-f]{44}$/i.test(address)) {
                 // check if it has the basic requirements of an address
                 return false;
-            } else if (/^[0-9a-f]{44}$/.test(address) || /^[0-9a-f]{44}$/.test(address)) {
+            } else if (/^[0-9a-f]{44}$/.test(address) || /^[0-9A-F]{44}$/.test(address)) {
                 // If it's all small caps or all caps, return true
                         return true;
             } else {
@@ -4073,7 +4073,7 @@ var toBigNumber = function(number) {
             this._outputTypes = json.outputs.map(function (i) {
                 return i.type;
             });
-            this._constant = json.constant;
+            this._constant = json.constant || json.stateMutability === "pure" || json.stateMutability === "view";
             this._payable = json.stateMutability === "payable";
             this._name = utils.transformToFullName(json);
             this._address = address;

@@ -37,7 +37,8 @@ import (
 
 // Reduce some of the parameters to make the tester faster.
 func init() {
-	maxForkAncestry = 10000
+	fullMaxForkAncestry = 10000
+	lightMaxForkAncestry = 10000
 	blockCacheItems = 1024
 	fsHeaderContCheck = 500 * time.Millisecond
 }
@@ -381,11 +382,7 @@ func (dlp *downloadTesterPeer) Head() (common.Hash, *big.Int) {
 // origin; associated with a particular peer in the download tester. The returned
 // function can be used to retrieve batches of headers from the particular peer.
 func (dlp *downloadTesterPeer) RequestHeadersByHash(origin common.Hash, amount int, skip int, reverse bool) error {
-	if reverse {
-		panic("reverse header requests not supported")
-	}
-
-	result := dlp.chain.headersByHash(origin, amount, skip)
+	result := dlp.chain.headersByHash(origin, amount, skip, reverse)
 	go dlp.dl.downloader.DeliverHeaders(dlp.id, result)
 	return nil
 }
@@ -394,11 +391,7 @@ func (dlp *downloadTesterPeer) RequestHeadersByHash(origin common.Hash, amount i
 // origin; associated with a particular peer in the download tester. The returned
 // function can be used to retrieve batches of headers from the particular peer.
 func (dlp *downloadTesterPeer) RequestHeadersByNumber(origin uint64, amount int, skip int, reverse bool) error {
-	if reverse {
-		panic("reverse header requests not supported")
-	}
-
-	result := dlp.chain.headersByNumber(origin, amount, skip)
+	result := dlp.chain.headersByNumber(origin, amount, skip, reverse)
 	go dlp.dl.downloader.DeliverHeaders(dlp.id, result)
 	return nil
 }
@@ -464,7 +457,7 @@ func assertOwnForkedChain(t *testing.T, tester *downloadTester, common int, leng
 		blocks += length - common
 		receipts += length - common
 	}
-	if tester.downloader.mode == LightSync {
+	if tester.downloader.getMode() == LightSync {
 		blocks, receipts = 1, 1
 	}
 	if hs := len(tester.ownHeaders) + len(tester.ancientHeaders) - 1; hs != headers {
@@ -1649,7 +1642,7 @@ func testCheckpointEnforcement(t *testing.T, protocol int, mode SyncMode) {
 	if mode == FastSync || mode == LightSync {
 		expect = errUnsyncedPeer
 	}
-	if err := tester.sync("peer", nil, mode); err != expect {
+	if err := tester.sync("peer", nil, mode); !errors.Is(err, expect) {
 		t.Fatalf("block sync error mismatch: have %v, want %v", err, expect)
 	}
 	if mode == FastSync || mode == LightSync {

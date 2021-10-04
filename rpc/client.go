@@ -85,7 +85,7 @@ type Client struct {
 
 	// writeConn is used for writing to the connection on the caller's goroutine. It should
 	// only be accessed outside of dispatch, with the write lock held. The write lock is
-	// taken by sending on requestOp and released by sending on sendDone.
+	// taken by sending on reqInit and released by sending on reqSent.
 	writeConn jsonWriter
 
 	// for dispatch
@@ -260,6 +260,19 @@ func (c *Client) Close() {
 	}
 }
 
+// SetHeader adds a custom HTTP header to the client's requests.
+// This method only works for clients using HTTP, it doesn't have
+// any effect for clients using another transport.
+func (c *Client) SetHeader(key, value string) {
+	if !c.isHTTP {
+		return
+	}
+	conn := c.writeConn.(*httpConn)
+	conn.mu.Lock()
+	conn.headers.Set(key, value)
+	conn.mu.Unlock()
+}
+
 // Call performs a JSON-RPC call with the given arguments and unmarshals into
 // result if no error occurred.
 //
@@ -399,11 +412,6 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 // XcbSubscribe registers a subscripion under the "xcb" namespace.
 func (c *Client) XcbSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
 	return c.Subscribe(ctx, "xcb", channel, args...)
-}
-
-// ShhSubscribe registers a subscripion under the "shh" namespace.
-func (c *Client) ShhSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
-	return c.Subscribe(ctx, "shh", channel, args...)
 }
 
 // Subscribe calls the "<namespace>_subscribe" method with the given arguments,

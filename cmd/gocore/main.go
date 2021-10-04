@@ -88,6 +88,7 @@ var (
 		utils.LightEgressFlag,
 		utils.LightMaxPeersFlag,
 		utils.LegacyLightPeersFlag,
+		utils.LightNoPruneFlag,
 		utils.LightKDFFlag,
 		utils.UltraLightServersFlag,
 		utils.UltraLightFractionFlag,
@@ -96,6 +97,8 @@ var (
 		utils.CacheFlag,
 		utils.CacheDatabaseFlag,
 		utils.CacheTrieFlag,
+		utils.CacheTrieJournalFlag,
+		utils.CacheTrieRejournalFlag,
 		utils.CacheGCFlag,
 		utils.CacheSnapshotFlag,
 		utils.CacheNoPrefetchFlag,
@@ -140,6 +143,7 @@ var (
 		utils.LegacyGpoBlocksFlag,
 		utils.GpoPercentileFlag,
 		utils.LegacyGpoPercentileFlag,
+		utils.GpoMaxEnergyPriceFlag,
 		utils.EWASMInterpreterFlag,
 		utils.CVMInterpreterFlag,
 		configFileFlag,
@@ -176,13 +180,6 @@ var (
 		utils.IPCPathFlag,
 		utils.InsecureUnlockAllowedFlag,
 		utils.RPCGlobalEnergyCap,
-	}
-
-	whisperFlags = []cli.Flag{
-		utils.WhisperEnabledFlag,
-		utils.WhisperMaxMessageSizeFlag,
-		utils.WhisperMinPOWFlag,
-		utils.WhisperRestrictConnectionBetweenLightClientsFlag,
 	}
 
 	metricsFlags = []cli.Flag{
@@ -235,7 +232,6 @@ func init() {
 	app.Flags = append(app.Flags, consoleFlags...)
 	app.Flags = append(app.Flags, debug.Flags...)
 	app.Flags = append(app.Flags, debug.DeprecatedFlags...)
-	app.Flags = append(app.Flags, whisperFlags...)
 	app.Flags = append(app.Flags, metricsFlags...)
 
 	app.Before = func(ctx *cli.Context) error {

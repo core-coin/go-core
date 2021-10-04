@@ -34,13 +34,14 @@ import (
 // stateReq represents a batch of state fetch requests grouped together into
 // a single data retrieval network packet.
 type stateReq struct {
-	items    []common.Hash              // Hashes of the state items to download
-	tasks    map[common.Hash]*stateTask // Download tasks to track previous attempts
-	timeout  time.Duration              // Maximum round trip time for this to complete
-	timer    *time.Timer                // Timer to fire when the RTT timeout expires
-	peer     *peerConnection            // Peer that we're requesting from
-	response [][]byte                   // Response data of the peer (nil for timeouts)
-	dropped  bool                       // Flag whether the peer dropped off early
+	items     []common.Hash              // Hashes of the state items to download
+	tasks     map[common.Hash]*stateTask // Download tasks to track previous attempts
+	timeout   time.Duration              // Maximum round trip time for this to complete
+	timer     *time.Timer                // Timer to fire when the RTT timeout expires
+	peer      *peerConnection            // Peer that we're requesting from
+	delivered time.Time                  // Time when the packet was delivered (independent when we process it)
+	response  [][]byte                   // Response data of the peer (nil for timeouts)
+	dropped   bool                       // Flag whether the peer dropped off early
 }
 
 // timedOut returns if this request timed out.
@@ -63,6 +64,10 @@ func (d *Downloader) syncState(root common.Hash) *stateSync {
 	s := newStateSync(d, root)
 	select {
 	case d.stateSyncStart <- s:
+		// If we tell the statesync to restart with a new root, we also need
+		// to wait for it to actually also start -- when old requests have timed
+		// out or been delivered
+		<-s.started
 	case <-d.quitCh:
 		s.err = errCancelStateFetch
 		close(s.done)
@@ -95,15 +100,9 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 		finished []*stateReq                  // Completed or failed requests
 		timeout  = make(chan *stateReq)       // Timed out active requests
 	)
-	defer func() {
-		// Cancel active request timers on exit. Also set peers to idle so they're
-		// available for the next sync.
-		for _, req := range active {
-			req.timer.Stop()
-			req.peer.SetNodeDataIdle(len(req.items))
-		}
-	}()
+
 	// Run the state sync.
+	log.Trace("State sync starting", "root", s.root)
 	go s.run()
 	defer s.Cancel()
 
@@ -126,9 +125,11 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 		select {
 		// The stateSync lifecycle:
 		case next := <-d.stateSyncStart:
+			d.spindownStateSync(active, finished, timeout, peerDrop)
 			return next
 
 		case <-s.done:
+			d.spindownStateSync(active, finished, timeout, peerDrop)
 			return nil
 
 		// Send the next finished request to the current sync:
@@ -149,6 +150,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 			// Finalize the request and queue up for processing
 			req.timer.Stop()
 			req.response = pack.(*statePack).states
+			req.delivered = time.Now()
 
 			finished = append(finished, req)
 			delete(active, pack.PeerId())
@@ -175,6 +177,7 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 			if active[req.peer.id] != req {
 				continue
 			}
+			req.delivered = time.Now()
 			// Move the timed out data back into the download queue
 			finished = append(finished, req)
 			delete(active, req.peer.id)
@@ -190,23 +193,58 @@ func (d *Downloader) runStateSync(s *stateSync) *stateSync {
 			if old := active[req.peer.id]; old != nil {
 				log.Warn("Busy peer assigned new state fetch", "peer", old.peer.id)
 
-				// Make sure the previous one doesn't get siletly lost
+				// Move the previous request to the finished set
 				old.timer.Stop()
 				old.dropped = true
-
+				old.delivered = time.Now()
 				finished = append(finished, old)
 			}
 			// Start a timer to notify the sync loop if the peer stalled.
 			req.timer = time.AfterFunc(req.timeout, func() {
-				select {
-				case timeout <- req:
-				case <-s.done:
-					// Prevent leaking of timer goroutines in the unlikely case where a
-					// timer is fired just before exiting runStateSync.
-				}
+				timeout <- req
 			})
 			active[req.peer.id] = req
 		}
+	}
+}
+
+// spindownStateSync 'drains' the outstanding requests; some will be delivered and other
+// will time out. This is to ensure that when the next stateSync starts working, all peers
+// are marked as idle and de facto _are_ idle.
+func (d *Downloader) spindownStateSync(active map[string]*stateReq, finished []*stateReq, timeout chan *stateReq, peerDrop chan *peerConnection) {
+	log.Trace("State sync spinning down", "active", len(active), "finished", len(finished))
+
+	for len(active) > 0 {
+		var (
+			req    *stateReq
+			reason string
+		)
+		select {
+		// Handle (drop) incoming state packs:
+		case pack := <-d.stateCh:
+			req = active[pack.PeerId()]
+			reason = "delivered"
+		// Handle dropped peer connections:
+		case p := <-peerDrop:
+			req = active[p.id]
+			reason = "peerdrop"
+		// Handle timed-out requests:
+		case req = <-timeout:
+			reason = "timeout"
+		}
+		if req == nil {
+			continue
+		}
+		req.peer.log.Trace("State peer marked idle (spindown)", "req.items", len(req.items), "reason", reason)
+		req.timer.Stop()
+		delete(active, req.peer.id)
+		req.peer.SetNodeDataIdle(len(req.items))
+	}
+	// The 'finished' set contains deliveries that we were going to pass to processing.
+	// Those are now moot, but we still need to set those peers as idle, which would
+	// otherwise have been done after processing
+	for _, req := range finished {
+		req.peer.SetNodeDataIdle(len(req.items))
 	}
 }
 
@@ -222,11 +260,15 @@ type stateSync struct {
 	numUncommitted   int
 	bytesUncommitted int
 
+	started chan struct{} // Started is signalled once the sync loop starts
+
 	deliver    chan *stateReq // Delivery channel multiplexing peer responses
 	cancel     chan struct{}  // Channel to signal a termination request
 	cancelOnce sync.Once      // Ensures cancel only ever gets called once
 	done       chan struct{}  // Channel to signal termination completion
 	err        error          // Any error hit during sync (set before completion)
+
+	root common.Hash
 }
 
 // stateTask represents a single trie node download task, containing a set of
@@ -246,6 +288,8 @@ func newStateSync(d *Downloader, root common.Hash) *stateSync {
 		deliver: make(chan *stateReq),
 		cancel:  make(chan struct{}),
 		done:    make(chan struct{}),
+		started: make(chan struct{}),
+		root:    root,
 	}
 }
 
@@ -276,6 +320,7 @@ func (s *stateSync) Cancel() error {
 // pushed here async. The reason is to decouple processing from data receipt
 // and timeouts.
 func (s *stateSync) loop() (err error) {
+	close(s.started)
 	// Listen for new peer events to assign tasks to them
 	newPeer := make(chan *peerConnection, 1024)
 	peerSub := s.d.peers.SubscribeNewPeers(newPeer)
@@ -331,11 +376,11 @@ func (s *stateSync) loop() (err error) {
 			}
 			// Process all the received blobs and check for stale delivery
 			delivered, err := s.process(req)
+			req.peer.SetNodeDataIdle(delivered)
 			if err != nil {
 				log.Warn("Node data write error", "err", err)
 				return err
 			}
-			req.peer.SetNodeDataIdle(delivered)
 		}
 	}
 	return nil
@@ -372,7 +417,7 @@ func (s *stateSync) assignTasks() {
 
 		// If the peer was assigned tasks to fetch, send the network request
 		if len(req.items) > 0 {
-			req.peer.log.Trace("Requesting new batch of data", "type", "state", "count", len(req.items))
+			req.peer.log.Trace("Requesting new batch of data", "type", "state", "count", len(req.items), "root", s.root)
 			select {
 			case s.d.trackStateReq <- req:
 				req.peer.FetchNodeData(req.items)
@@ -429,7 +474,7 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 
 	// Iterate over all the delivered data and inject one-by-one into the trie
 	for _, blob := range req.response {
-		_, hash, err := s.processNodeData(blob)
+		hash, err := s.processNodeData(blob)
 		switch err {
 		case nil:
 			s.numUncommitted++
@@ -467,13 +512,13 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 // processNodeData tries to inject a trie node data blob delivered from a remote
 // peer into the state trie, returning whether anything useful was written or any
 // error occurred.
-func (s *stateSync) processNodeData(blob []byte) (bool, common.Hash, error) {
+func (s *stateSync) processNodeData(blob []byte) (common.Hash, error) {
 	res := trie.SyncResult{Data: blob}
 	s.keccak.Reset()
 	s.keccak.Write(blob)
 	s.keccak.Sum(res.Hash[:0])
-	committed, _, err := s.sched.Process([]trie.SyncResult{res})
-	return committed, res.Hash, err
+	err := s.sched.Process(res)
+	return res.Hash, err
 }
 
 // updateStats bumps the various state sync progress counters and displays a log

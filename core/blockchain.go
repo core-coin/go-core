@@ -70,8 +70,11 @@ var (
 	blockValidationTimer = metrics.NewRegisteredTimer("chain/validation", nil)
 	blockExecutionTimer  = metrics.NewRegisteredTimer("chain/execution", nil)
 	blockWriteTimer      = metrics.NewRegisteredTimer("chain/write", nil)
-	blockReorgAddMeter   = metrics.NewRegisteredMeter("chain/reorg/drop", nil)
-	blockReorgDropMeter  = metrics.NewRegisteredMeter("chain/reorg/add", nil)
+
+	blockReorgMeter         = metrics.NewRegisteredMeter("chain/reorg/executes", nil)
+	blockReorgAddMeter      = metrics.NewRegisteredMeter("chain/reorg/add", nil)
+	blockReorgDropMeter     = metrics.NewRegisteredMeter("chain/reorg/drop", nil)
+	blockReorgInvalidatedTx = metrics.NewRegisteredMeter("chain/reorg/invalidTx", nil)
 
 	blockPrefetchExecuteTimer   = metrics.NewRegisteredTimer("chain/prefetch/executes", nil)
 	blockPrefetchInterruptMeter = metrics.NewRegisteredMeter("chain/prefetch/interrupts", nil)
@@ -109,13 +112,18 @@ const (
 	// - Version 7
 	//  The following incompatible database changes were added:
 	//    * Use freezer as the ancient database to maintain all ancient data
-	BlockChainVersion uint64 = 7
+	// - Version 8
+	//  The following incompatible database changes were added:
+	//    * New scheme for contract code in order to separate the codes and trie nodes
+	BlockChainVersion uint64 = 8
 )
 
 // CacheConfig contains the configuration values for the trie caching/pruning
 // that's resident in a blockchain.
 type CacheConfig struct {
 	TrieCleanLimit      int           // Memory allowance (MB) to use for caching trie nodes in memory
+	TrieCleanJournal    string        // Disk journal for saving clean cache entries.
+	TrieCleanRejournal  time.Duration // Time interval to dump clean cache to disk periodically
 	TrieCleanNoPrefetch bool          // Whether to disable heuristic state prefetching for followup blocks
 	TrieDirtyLimit      int           // Memory limit (MB) at which to start flushing dirty trie nodes to disk
 	TrieDirtyDisabled   bool          // Whether to disable trie write caching and GC altogether (archive node)
@@ -214,7 +222,7 @@ func NewBlockChain(db xcbdb.Database, cacheConfig *CacheConfig, chainConfig *par
 		cacheConfig:    cacheConfig,
 		db:             db,
 		triegc:         prque.New(nil),
-		stateCache:     state.NewDatabaseWithCache(db, cacheConfig.TrieCleanLimit),
+		stateCache:     state.NewDatabaseWithCache(db, cacheConfig.TrieCleanLimit, cacheConfig.TrieCleanJournal),
 		quit:           make(chan struct{}),
 		shouldPreserve: shouldPreserve,
 		bodyCache:      bodyCache,
@@ -310,6 +318,19 @@ func NewBlockChain(db xcbdb.Database, cacheConfig *CacheConfig, chainConfig *par
 	}
 	// Take ownership of this particular state
 	go bc.update()
+	// If periodic cache journal is required, spin it up.
+	if bc.cacheConfig.TrieCleanRejournal > 0 {
+		if bc.cacheConfig.TrieCleanRejournal < time.Minute {
+			log.Warn("Sanitizing invalid trie cache journal time", "provided", bc.cacheConfig.TrieCleanRejournal, "updated", time.Minute)
+			bc.cacheConfig.TrieCleanRejournal = time.Minute
+		}
+		triedb := bc.stateCache.TrieDB()
+		bc.wg.Add(1)
+		go func() {
+			defer bc.wg.Done()
+			triedb.SaveCachePeriodically(bc.cacheConfig.TrieCleanJournal, bc.cacheConfig.TrieCleanRejournal, bc.quit)
+		}()
+	}
 	return bc, nil
 }
 
@@ -848,10 +869,28 @@ func (bc *BlockChain) GetUnclesInChain(block *types.Block, length int) []*types.
 	return uncles
 }
 
-// TrieNode retrieves a blob of data associated with a trie node (or code hash)
+// TrieNode retrieves a blob of data associated with a trie node
 // either from ephemeral in-memory cache, or from persistent storage.
 func (bc *BlockChain) TrieNode(hash common.Hash) ([]byte, error) {
 	return bc.stateCache.TrieDB().Node(hash)
+}
+
+// ContractCode retrieves a blob of data associated with a contract hash
+// either from ephemeral in-memory cache, or from persistent storage.
+func (bc *BlockChain) ContractCode(hash common.Hash) ([]byte, error) {
+	return bc.stateCache.ContractCode(common.Hash{}, hash)
+}
+
+// ContractCodeWithPrefix retrieves a blob of data associated with a contract
+// hash either from ephemeral in-memory cache, or from persistent storage.
+//
+// If the code doesn't exist in the in-memory cache, check the storage with
+// new code scheme.
+func (bc *BlockChain) ContractCodeWithPrefix(hash common.Hash) ([]byte, error) {
+	type codeReader interface {
+		ContractCodeWithPrefix(addrHash, codeHash common.Hash) ([]byte, error)
+	}
+	return bc.stateCache.(codeReader).ContractCodeWithPrefix(common.Hash{}, hash)
 }
 
 // Stop stops the blockchain service. If any imports are currently in progress
@@ -888,14 +927,14 @@ func (bc *BlockChain) Stop() {
 				recent := bc.GetBlockByNumber(number - offset)
 
 				log.Info("Writing cached state to disk", "block", recent.Number(), "hash", recent.Hash(), "root", recent.Root())
-				if err := triedb.Commit(recent.Root(), true); err != nil {
+				if err := triedb.Commit(recent.Root(), true, nil); err != nil {
 					log.Error("Failed to commit recent state trie", "err", err)
 				}
 			}
 		}
 		if snapBase != (common.Hash{}) {
 			log.Info("Writing snapshot state to disk", "root", snapBase)
-			if err := triedb.Commit(snapBase, true); err != nil {
+			if err := triedb.Commit(snapBase, true, nil); err != nil {
 				log.Error("Failed to commit recent state trie", "err", err)
 			}
 		}
@@ -905,6 +944,12 @@ func (bc *BlockChain) Stop() {
 		if size, _ := triedb.Size(); size != 0 {
 			log.Error("Dangling trie nodes after full cleanup")
 		}
+	}
+	// Ensure all live cached entries be saved into disk, so that we can skip
+	// cache warmup when node restarts.
+	if bc.cacheConfig.TrieCleanJournal != "" {
+		triedb := bc.stateCache.TrieDB()
+		triedb.SaveCache(bc.cacheConfig.TrieCleanJournal)
 	}
 	log.Info("Blockchain stopped")
 }
@@ -1223,6 +1268,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 	}
 	// writeLive writes blockchain and corresponding receipt chain into active store.
 	writeLive := func(blockChain types.Blocks, receiptChain []types.Receipts) (int, error) {
+		skipPresenceCheck := false
 		batch := bc.db.NewBatch()
 		for i, block := range blockChain {
 			// Short circuit insertion if shutting down or processing failed
@@ -1233,9 +1279,17 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 			if !bc.HasHeader(block.Hash(), block.NumberU64()) {
 				return i, fmt.Errorf("containing header #%d [%x…] unknown", block.Number(), block.Hash().Bytes()[:4])
 			}
-			if bc.HasBlock(block.Hash(), block.NumberU64()) {
-				stats.ignored++
-				continue
+			if !skipPresenceCheck {
+				// Ignore if the entire data is already known
+				if bc.HasBlock(block.Hash(), block.NumberU64()) {
+					stats.ignored++
+					continue
+				} else {
+					// If block N is not present, neither are the later blocks.
+					// This should be true, but if we are mistaken, the shortcut
+					// here will only cause overwriting of some existing data
+					skipPresenceCheck = true
+				}
 			}
 			// Write all the data out into the database
 			rawdb.WriteBody(batch, block.Hash(), block.NumberU64(), block.Body())
@@ -1377,7 +1431,7 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 
 	// If we're running an archive node, always flush
 	if bc.cacheConfig.TrieDirtyDisabled {
-		if err := triedb.Commit(root, false); err != nil {
+		if err := triedb.Commit(root, false, nil); err != nil {
 			return NonStatTy, err
 		}
 	} else {
@@ -1411,7 +1465,7 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 						log.Info("State in memory for too long, committing", "time", bc.gcproc, "allowance", bc.cacheConfig.TrieTimeLimit, "optimum", float64(chosen-lastWrite)/TriesInMemory)
 					}
 					// Flush an entire trie and restart the counters
-					triedb.Commit(header.Root, true)
+					triedb.Commit(header.Root, true, nil)
 					lastWrite = chosen
 					bc.gcproc = 0
 				}
@@ -2066,6 +2120,7 @@ func (bc *BlockChain) reorg(oldBlock, newBlock *types.Block) error {
 			"drop", len(oldChain), "dropfrom", oldChain[0].Hash(), "add", len(newChain), "addfrom", newChain[0].Hash())
 		blockReorgAddMeter.Mark(int64(len(newChain)))
 		blockReorgDropMeter.Mark(int64(len(oldChain)))
+		blockReorgMeter.Mark(1)
 	} else {
 		log.Error("Impossible reorg, please file an issue", "oldnum", oldBlock.Number(), "oldhash", oldBlock.Hash(), "newnum", newBlock.Number(), "newhash", newBlock.Hash())
 	}

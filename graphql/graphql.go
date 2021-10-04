@@ -545,7 +545,7 @@ func (b *Block) TotalDifficulty(ctx context.Context) (hexutil.Big, error) {
 		}
 		h = header.Hash()
 	}
-	return hexutil.Big(*b.backend.GetTd(h)), nil
+	return hexutil.Big(*b.backend.GetTd(ctx, h)), nil
 }
 
 // BlockNumberArgs encapsulates arguments to accessors that specify a block number.

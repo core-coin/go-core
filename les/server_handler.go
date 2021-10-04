@@ -123,6 +123,9 @@ func (h *serverHandler) handle(p *clientPeer) error {
 		return err
 	}
 	if p.server {
+		if err := h.server.serverset.register(p); err != nil {
+			return err
+		}
 		// connected to another server, no messages expected, just wait for disconnection
 		_, err := p.rw.ReadMsg()
 		return err
@@ -486,7 +489,7 @@ func (h *serverHandler) handleMsg(p *clientPeer, wg *sync.WaitGroup) error {
 						atomic.AddUint32(&p.invalidCount, 1)
 						continue
 					}
-					code, err := triedb.Node(common.BytesToHash(account.CodeHash))
+					code, err := h.blockchain.StateCache().ContractCode(common.BytesToHash(request.AccKey), common.BytesToHash(account.CodeHash))
 					if err != nil {
 						p.Log().Warn("Failed to retrieve account code", "block", header.Number, "hash", header.Hash(), "account", common.BytesToHash(request.AccKey), "codehash", common.BytesToHash(account.CodeHash), "err", err)
 						continue

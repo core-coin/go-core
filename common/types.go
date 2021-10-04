@@ -180,6 +180,28 @@ func (h UnprefixedHash) MarshalText() ([]byte, error) {
 // Address represents the 20 byte address of an Core account.
 type Address [AddressLength]byte
 
+// PrecompiledContracts contains the default set of pre-compiled Core
+// contracts used in the release.
+var (
+	Addr1 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
+	Addr2 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2})
+	Addr3 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3})
+	Addr4 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4})
+	Addr5 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5})
+	Addr6 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6})
+	Addr7 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7})
+	Addr8 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8})
+	Addr9 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9})
+)
+
+func isPrecompiledAddress(addr Address) bool {
+	switch addr {
+	case Addr1, Addr2, Addr3, Addr4, Addr5, Addr6, Addr7, Addr8, Addr9:
+		return true
+	}
+	return false
+}
+
 // BytesToAddress returns Address with value b.
 // If b is larger than len(h), b will be cropped from the left.
 func BytesToAddress(b []byte) Address {
@@ -227,6 +249,9 @@ func CalculateChecksum(address, prefix []byte) string {
 }
 
 func verifyAddress(addr Address) (bool, error) {
+	if isPrecompiledAddress(addr) {
+		return true, nil
+	}
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
 		return false, invalidPrefix
 	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:], addr[:1]) {
@@ -360,7 +385,7 @@ type NetworkID uint64
 
 const (
 	Mainnet NetworkID = iota + 1
-	Devin             = iota + 1
+	Devin             = iota + 2
 	Koliba
 )
 

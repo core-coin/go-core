@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	ipcAPIs  = "admin:1.0 cryptore:1.0 debug:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 shh:1.0 txpool:1.0 web3:1.0 xcb:1.0"
+	ipcAPIs  = "admin:1.0 cryptore:1.0 debug:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0 xcb:1.0"
 	httpAPIs = "net:1.0 rpc:1.0 web3:1.0 xcb:1.0"
 )
 
@@ -43,7 +43,7 @@ func TestConsoleWelcome(t *testing.T) {
 	// Start a gocore console, make sure it's cleaned up and terminate the console
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--corebase", coinbase, "--shh",
+		"--corebase", coinbase,
 		"console")
 
 	// Gather all the infos the welcome message needs to contain
@@ -84,10 +84,9 @@ func TestIPCAttachWelcome(t *testing.T) {
 		defer os.RemoveAll(ws)
 		ipc = filepath.Join(ws, "gocore.ipc")
 	}
-	// Note: we need --shh because testAttachWelcome checks for default
 	gocore := runGocore(t,
 		"--port", "0", "--maxpeers", "0", "--nodiscover", "--nat", "none",
-		"--corebase", coinbase, "--shh", "--ipcpath", ipc)
+		"--corebase", coinbase, "--ipcpath", ipc)
 
 	defer func() {
 		gocore.Interrupt()

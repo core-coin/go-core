@@ -147,7 +147,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 
 	// Ensure we have a valid starting state before doing any work
 	origin := start.NumberU64()
-	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16) // Chain tracing will probably start at genesis
+	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16, "") // Chain tracing will probably start at genesis
 
 	if number := start.NumberU64(); number > 0 {
 		start = api.xcb.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
@@ -638,7 +638,7 @@ func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*
 	}
 	// Otherwise try to reexec blocks until we find a state or reach our limit
 	origin := block.NumberU64()
-	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16)
+	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16, "")
 
 	for i := uint64(0); i < reexec; i++ {
 		block = api.xcb.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
@@ -708,11 +708,50 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, hash common.Ha
 	if config != nil && config.Reexec != nil {
 		reexec = *config.Reexec
 	}
-	msg, vmctx, statedb, err := api.computeTxEnv(blockHash, int(index), reexec)
+	// Retrieve the block
+	block := api.xcb.blockchain.GetBlockByHash(blockHash)
+	if block == nil {
+		return nil, fmt.Errorf("block %#x not found", blockHash)
+	}
+	msg, vmctx, statedb, err := api.computeTxEnv(block, int(index), reexec)
 	if err != nil {
 		return nil, err
 	}
 	// Trace the transaction and return
+	return api.traceTx(ctx, msg, vmctx, statedb, config)
+}
+
+// TraceCall lets you trace a given eth_call. It collects the structured logs created during the execution of EVM
+// if the given transaction was added on top of the provided block and returns them as a JSON object.
+// You can provide -2 as a block number to trace on top of the pending block.
+func (api *PrivateDebugAPI) TraceCall(ctx context.Context, args xcbapi.CallArgs, blockNrOrHash rpc.BlockNumberOrHash, config *TraceConfig) (interface{}, error) {
+	// First try to retrieve the state
+	statedb, header, err := api.xcb.APIBackend.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if err != nil {
+		// Try to retrieve the specified block
+		var block *types.Block
+		if hash, ok := blockNrOrHash.Hash(); ok {
+			block = api.xcb.blockchain.GetBlockByHash(hash)
+		} else if number, ok := blockNrOrHash.Number(); ok {
+			block = api.xcb.blockchain.GetBlockByNumber(uint64(number))
+		}
+		if block == nil {
+			return nil, fmt.Errorf("block %v not found: %v", blockNrOrHash, err)
+		}
+		// try to recompute the state
+		reexec := defaultTraceReexec
+		if config != nil && config.Reexec != nil {
+			reexec = *config.Reexec
+		}
+		_, _, statedb, err = api.computeTxEnv(block, 0, reexec)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Execute the trace
+	msg := args.ToMessage(api.xcb.APIBackend.RPCEnergyCap())
+	vmctx := core.NewCVMContext(msg, header, api.xcb.blockchain, nil)
 	return api.traceTx(ctx, msg, vmctx, statedb, config)
 }
 
@@ -778,12 +817,8 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 }
 
 // computeTxEnv returns the execution environment of a certain transaction.
-func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, reexec uint64) (core.Message, vm.Context, *state.StateDB, error) {
+func (api *PrivateDebugAPI) computeTxEnv(block *types.Block, txIndex int, reexec uint64) (core.Message, vm.Context, *state.StateDB, error) {
 	// Create the parent state database
-	block := api.xcb.blockchain.GetBlockByHash(blockHash)
-	if block == nil {
-		return nil, vm.Context{}, nil, fmt.Errorf("block %#x not found", blockHash)
-	}
 	parent := api.xcb.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
 		return nil, vm.Context{}, nil, fmt.Errorf("parent %#x not found", block.ParentHash())
@@ -815,5 +850,5 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 		// Ensure any modifications are committed to the state
 		statedb.Finalise(true)
 	}
-	return nil, vm.Context{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, blockHash)
+	return nil, vm.Context{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, block.Hash())
 }

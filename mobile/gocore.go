@@ -31,7 +31,6 @@ import (
 	"github.com/core-coin/go-core/p2p"
 	"github.com/core-coin/go-core/p2p/nat"
 	"github.com/core-coin/go-core/params"
-	whisper "github.com/core-coin/go-core/whisper/whisperv6"
 	"github.com/core-coin/go-core/xcb"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcbclient"
@@ -71,9 +70,6 @@ type NodeConfig struct {
 	// It has the form "nodename:secret@host:port"
 	CoreNetStats string
 
-	// WhisperEnabled specifies whether the node should run the Whisper protocol.
-	WhisperEnabled bool
-
 	// Listening address of pprof server.
 	PprofAddress string
 }
@@ -92,6 +88,22 @@ var defaultNodeConfig = &NodeConfig{
 func NewNodeConfig() *NodeConfig {
 	config := *defaultNodeConfig
 	return &config
+}
+
+// AddBootstrapNode adds an additional bootstrap node to the node config.
+func (conf *NodeConfig) AddBootstrapNode(node *Enode) {
+	conf.BootstrapNodes.Append(node)
+}
+
+// EncodeJSON encodes a NodeConfig into a JSON data dump.
+func (conf *NodeConfig) EncodeJSON() (string, error) {
+	data, err := json.Marshal(conf)
+	return string(data), err
+}
+
+// String returns a printable representation of the node config.
+func (conf *NodeConfig) String() string {
+	return encodeOrError(conf)
 }
 
 // Node represents a Gocore Core node instance.
@@ -178,14 +190,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 			}
 		}
 	}
-	// Register the Whisper protocol if requested
-	if config.WhisperEnabled {
-		if err := rawStack.Register(func(*node.ServiceContext) (node.Service, error) {
-			return whisper.New(&whisper.DefaultConfig), nil
-		}); err != nil {
-			return nil, fmt.Errorf("whisper init: %v", err)
-		}
-	}
+
 	return &Node{rawStack}, nil
 }
 

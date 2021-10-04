@@ -93,6 +93,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.UltraLightServersFlag,
 			utils.UltraLightFractionFlag,
 			utils.UltraLightOnlyAnnounceFlag,
+			utils.LightNoPruneFlag,
 		},
 	},
 	{
@@ -124,6 +125,8 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.CacheFlag,
 			utils.CacheDatabaseFlag,
 			utils.CacheTrieFlag,
+			utils.CacheTrieJournalFlag,
+			utils.CacheTrieRejournalFlag,
 			utils.CacheGCFlag,
 			utils.CacheSnapshotFlag,
 			utils.CacheNoPrefetchFlag,
@@ -205,6 +208,7 @@ var AppHelpFlagGroups = []flagGroup{
 		Flags: []cli.Flag{
 			utils.GpoBlocksFlag,
 			utils.GpoPercentileFlag,
+			utils.GpoMaxEnergyPriceFlag,
 		},
 	},
 	{
@@ -225,10 +229,6 @@ var AppHelpFlagGroups = []flagGroup{
 	{
 		Name:  "METRICS AND STATS",
 		Flags: metricsFlags,
-	},
-	{
-		Name:  "WHISPER (EXPERIMENTAL)",
-		Flags: whisperFlags,
 	},
 	{
 		Name: "ALIASED (deprecated)",
