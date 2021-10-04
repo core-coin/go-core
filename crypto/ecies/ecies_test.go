@@ -91,7 +91,7 @@ func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
 	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
 	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
-	pub0 := decode("d0ac61cb8a3712468f5264def724a8e569d0973a88da1a14c3c3fd6db8cb79c947f36ac1b5a975790ffe46a019ed7c28500aa2f5a8b9562200")
+	pub0 := decode("2f65ab658f3b0bc9fbdea48703b9c5c0dc2151c5ae8c4b77b1e5cdaee9fa20748e01960ab51ddb118d1209f73d186f0444921ad72c7c757480")
 	pub1 := decode("77b1d24670fee6dd811f4f06573ce5f19844eb50cb6ce960d12bdbc8bf77be2221111cf755371d9e896e544ea2a4ebf206b775df55f5e74580")
 
 	prv0Pub := eddsa.Ed448DerivePublicKey(*prv0)
@@ -237,7 +237,7 @@ func TestSharedKeyStatic(t *testing.T) {
 		t.Fatal(ErrBadSharedKeys)
 	}
 
-	sk := decode("3db819aa0ebae1996860cf44941e57b4df43b50908e46717e3a23b1eee114ce0a4535683eb44b9e533075d0a4e3333d8c6752736a6faa327")
+	sk := decode("55a3895b1c32b1d9b2160d81da1f56d2f60641fc6b997adffc53b5f473e2b62a0dc65fb4aed8fddbae912864b683a29885df4bd86c1d4760")
 	if !bytes.Equal(sk1, sk) {
 		t.Fatalf("shared secret mismatch: want: %x have: %x", sk, sk1)
 	}
