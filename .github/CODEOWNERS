@@ -1,18 +1,17 @@
-accounts/usbwallet              @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-accounts/scwallet               @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-accounts/abi                    @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-cmd/clef                        @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-cmd/puppeth                     @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-consensus                       @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-core/                           @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-xcb/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-graphql/                        @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-les/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-light/                          @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-mobile/                         @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-p2p/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-rpc/                            @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-p2p/simulations                 @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-p2p/protocols                   @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-p2p/testing                     @eduardosanchezg @error2215 @raisty @SashaZezulinsky
-signer/                         @eduardosanchezg @error2215 @raisty @SashaZezulinsky
+accounts/usbwallet              @error2215 @raisty @SashaZezulinsky
+accounts/scwallet               @error2215 @raisty @SashaZezulinsky
+accounts/abi                    @error2215 @raisty @SashaZezulinsky
+cmd/clef                        @error2215 @raisty @SashaZezulinsky
+consensus                       @error2215 @raisty @SashaZezulinsky
+core/                           @error2215 @raisty @SashaZezulinsky
+xcb/                            @error2215 @raisty @SashaZezulinsky
+graphql/                        @error2215 @raisty @SashaZezulinsky
+les/                            @error2215 @raisty @SashaZezulinsky
+light/                          @error2215 @raisty @SashaZezulinsky
+mobile/                         @error2215 @raisty @SashaZezulinsky
+p2p/                            @error2215 @raisty @SashaZezulinsky
+rpc/                            @error2215 @raisty @SashaZezulinsky
+p2p/simulations                 @error2215 @raisty @SashaZezulinsky
+p2p/protocols                   @error2215 @raisty @SashaZezulinsky
+p2p/testing                     @error2215 @raisty @SashaZezulinsky
+signer/                         @error2215 @raisty @SashaZezulinsky

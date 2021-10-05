@@ -77,7 +77,6 @@ var (
 		executablePath("bootnode"),
 		executablePath("cvm"),
 		executablePath("gocore"),
-		executablePath("puppeth"),
 		executablePath("rlpdump"),
 		executablePath("clef"),
 	}
@@ -99,10 +98,6 @@ var (
 		{
 			BinaryName:  "gocore",
 			Description: "Core CLI client.",
-		},
-		{
-			BinaryName:  "puppeth",
-			Description: "Core private network manager.",
 		},
 		{
 			BinaryName:  "rlpdump",

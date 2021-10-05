@@ -251,8 +251,8 @@ type txList struct {
 	strict bool         // Whether nonces are strictly continuous or not
 	txs    *txSortedMap // Heap indexed sorted hash map of the transactions
 
-	costcap *big.Int // Price of the highest costing transaction (reset only if exceeds balance)
-	energycap  uint64   // Energy limit of the highest spending transaction (reset only if exceeds block limit)
+	costcap   *big.Int // Price of the highest costing transaction (reset only if exceeds balance)
+	energycap uint64   // Energy limit of the highest spending transaction (reset only if exceeds block limit)
 }
 
 // newTxList create a new transaction list for maintaining nonce-indexable fast,
