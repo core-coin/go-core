@@ -38,7 +38,6 @@ var DevinBootnodes = []string{
 // Koliba test network.
 var KolibaBootnodes = []string{
 	// Upstream bootnodes
-	"enode://7081d1a8a52a9d0b8bd/c0247cb7fd04277a8e76a30f85ce8a9daf41a4e8e1f79902d4959416a663a779cd28390b10a881f56d73469deb695@51.75.247.236:30303", // core-devin-eu-fr
 }
 
 // DiscoveryV5Bootnodes are the enode URLs of the P2P bootstrap nodes for the

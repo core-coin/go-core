@@ -60,9 +60,13 @@ type Config struct {
 type Cryptore struct {
 	config Config
 
-	pendingVMs *sync.WaitGroup
-	randomYVM  *randomy.RandyVm
-	vmMutex    *sync.Mutex
+	sealVM    *sync.WaitGroup // WaitGroup to manage vm for sealing
+	miningVMs *sync.WaitGroup // WaitGroup to manage VMs for mining
+
+	randomYVM *randomy.RandyVm
+	vmMutex   *sync.Mutex
+
+	stopMiningCh chan struct{}
 
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
@@ -89,12 +93,14 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 	}
 	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		pendingVMs: &sync.WaitGroup{},
-		config:     config,
-		update:     make(chan struct{}),
-		hashrate:   metrics.NewMeterForced(),
-		randomYVM:  vm,
-		vmMutex:    mutex,
+		miningVMs:    &sync.WaitGroup{},
+		sealVM:       &sync.WaitGroup{},
+		config:       config,
+		update:       make(chan struct{}),
+		hashrate:     metrics.NewMeterForced(),
+		randomYVM:    vm,
+		vmMutex:      mutex,
+		stopMiningCh: make(chan struct{}),
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -105,12 +111,14 @@ func New(config Config, notify []string, noverify bool) *Cryptore {
 func NewTester(notify []string, noverify bool) *Cryptore {
 	vm, mutex := randomy.NewRandomYVMWithKeyAndMutex()
 	cryptore := &Cryptore{
-		pendingVMs: &sync.WaitGroup{},
-		config:     Config{PowMode: ModeTest, Log: log.Root()},
-		update:     make(chan struct{}),
-		hashrate:   metrics.NewMeterForced(),
-		randomYVM:  vm,
-		vmMutex:    mutex,
+		miningVMs:    &sync.WaitGroup{},
+		sealVM:       &sync.WaitGroup{},
+		config:       Config{PowMode: ModeTest, Log: log.Root()},
+		update:       make(chan struct{}),
+		hashrate:     metrics.NewMeterForced(),
+		randomYVM:    vm,
+		vmMutex:      mutex,
+		stopMiningCh: make(chan struct{}),
 	}
 	cryptore.remote = startRemoteSealer(cryptore, notify, noverify)
 	return cryptore
@@ -181,8 +189,16 @@ func (cryptore *Cryptore) Close() error {
 		}
 		close(cryptore.remote.requestExit)
 		<-cryptore.remote.exitCh
-		cryptore.pendingVMs.Wait()
-		cryptore.remote.cryptore.randomYVM.Close()
+
+		cryptore.stopMining()
+		cryptore.miningVMs.Wait()
+		cryptore.remote.cryptore.miningVMs.Wait()
+		cryptore.sealVM.Wait()
+		cryptore.remote.cryptore.sealVM.Wait()
+
+		if cryptore.randomYVM != nil {
+			cryptore.randomYVM.Close()
+		}
 	})
 	return err
 }

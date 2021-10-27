@@ -369,7 +369,6 @@ func DefaultKolibaGenesisBlock() *Genesis {
 		Timestamp:   1599475790,
 		Nonce:       0x000000000002,
 		EnergyLimit: 12500000,
-		Difficulty:  big.NewInt(1),
 	}
 }
 

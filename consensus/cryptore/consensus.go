@@ -375,9 +375,9 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 
 	// Recompute PoW values
 	var result []byte
-	cryptore.pendingVMs.Add(1)
+	cryptore.sealVM.Add(1)
 	result, err := randomy.RandomY(cryptore.randomYVM, cryptore.vmMutex, cryptore.SealHash(header).Bytes(), header.Nonce.Uint64())
-	cryptore.pendingVMs.Done()
+	cryptore.sealVM.Done()
 	if err != nil {
 		return err
 	}

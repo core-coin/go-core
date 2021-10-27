@@ -94,10 +94,7 @@ var (
 	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
 	KolibaChainConfig = &ChainConfig{
 		NetworkID: big.NewInt(4),
-		Clique: &CliqueConfig{
-			Period: 15,
-			Epoch:  30000,
-		},
+		Cryptore:  new(CryptoreConfig),
 	}
 
 	// KolibaTrustedCheckpoint contains the light client trusted checkpoint for the Koliba test network.
