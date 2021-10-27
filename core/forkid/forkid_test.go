@@ -59,7 +59,7 @@ func TestCreation(t *testing.T) {
 			params.KolibaChainConfig,
 			params.KolibaGenesisHash,
 			[]testcase{
-				{1561651, ID{Hash: checksumToBytes(0xdcf1d320), Next: 0}},
+				{1561651, ID{Hash: checksumToBytes(0xc8a79efc), Next: 0}},
 			},
 		},
 	}
