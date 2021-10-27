@@ -29,7 +29,7 @@ import (
 var (
 	MainnetGenesisHash = common.HexToHash("0x6894bcf15a005884af1253227df1057885f2ccff132eff7665f9761b7e3ea98a")
 	DevinGenesisHash   = common.HexToHash("0x4d22056fa4d6321bf031c046f040a370128b10a557f620c2d169c6655e6ba30c")
-	KolibaGenesisHash  = common.HexToHash("0xa171c867f5b1d4c8b87ca5ea3a4205234b60768a03252f06e42936fa0bd62bf8")
+	KolibaGenesisHash  = common.HexToHash("0x4d22056fa4d6321bf031c046f040a370128b10a557f620c2d169c6655e6ba30c")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
