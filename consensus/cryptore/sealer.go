@@ -93,15 +93,15 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 		locals = make(chan *types.Block)
 	)
 	for i := 0; i < threads; i++ {
-		cryptore.pendingVMs.Add(1)
+		cryptore.miningVMs.Add(1)
 		go func(id int, nonce uint64, wg *sync.WaitGroup) {
 			defer wg.Done()
 
 			cryptore.mine(block, id, nonce, abort, locals)
-		}(i, uint64(cryptore.rand.Int63()), cryptore.pendingVMs)
+		}(i, uint64(cryptore.rand.Int63()), cryptore.miningVMs)
 	}
 	// Wait until sealing is terminated or a nonce is found
-	go func() {
+	go func(wg *sync.WaitGroup) {
 		var result *types.Block
 		select {
 		case <-stop:
@@ -123,8 +123,8 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 			}
 		}
 
-		cryptore.pendingVMs.Wait()
-	}()
+		wg.Wait()
+	}(cryptore.miningVMs)
 	return nil
 }
 
@@ -147,6 +147,10 @@ func (cryptore *Cryptore) mine(block *types.Block, id int, seed uint64, abort ch
 search:
 	for {
 		select {
+		case <-cryptore.stopMiningCh:
+			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
+			cryptore.hashrate.Mark(attempts)
+			break search
 		case <-abort:
 			// Mining terminated, update stats and abort
 			logger.Trace("Cryptore nonce search aborted", "attempts", nonce-seed)
@@ -181,6 +185,12 @@ search:
 			}
 			nonce++
 		}
+	}
+}
+
+func (cryptore *Cryptore) stopMining() {
+	for i := 0; i < cryptore.threads; i++ {
+		cryptore.stopMiningCh <- struct{}{}
 	}
 }
 
