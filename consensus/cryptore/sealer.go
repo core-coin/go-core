@@ -123,7 +123,6 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainReader, block *types.Block, 
 			}
 		}
 
-		wg.Wait()
 	}(cryptore.miningVMs)
 	return nil
 }
