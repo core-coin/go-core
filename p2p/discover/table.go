@@ -50,7 +50,7 @@ const (
 	bucketMinDistance = hashBits - nBuckets // Log distance of closest bucket
 
 	// IP address limits.
-	bucketIPLimit, bucketSubnet = 4, 24 // at most 2 addresses from the same /24
+	bucketIPLimit, bucketSubnet = 2, 24 // at most 2 addresses from the same /24
 	tableIPLimit, tableSubnet   = 10, 24
 
 	refreshInterval    = 30 * time.Minute
