@@ -99,6 +99,22 @@ type bucket struct {
 	ips          netutil.DistinctNetSet
 }
 
+const printTable = false
+
+func printKademliaTable(tab *Table) {
+	for i, b := range tab.buckets {
+		if len(b.entries) != 0 {
+			fmt.Printf("%d:%d\n", i, len(b.entries))
+			for _, e := range b.entries {
+//			fmt.Printf("%s\t", e.Node.IP())
+			fmt.Printf("%s\t%s\n", e.Node.String(), e.Node.IP())
+			}
+			fmt.Println("")
+		}
+	}
+	fmt.Println("")
+}
+
 func newTable(t transport, db *enode.DB, bootnodes []*enode.Node, log log.Logger) (*Table, error) {
 	tab := &Table{
 		net:        t,
@@ -551,6 +567,9 @@ func (tab *Table) addIP(b *bucket, ip net.IP) bool {
 	if !b.ips.Add(ip) {
 		tab.log.Debug("IP exceeds bucket limit", "ip", ip)
 		tab.ips.Remove(ip)
+		if printTable {
+			printKademliaTable(tab)
+		}
 		return false
 	}
 	return true
