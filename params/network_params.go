@@ -33,7 +33,7 @@ const (
 	BloomConfirms = 256
 
 	// CHTFrequency is the block frequency for creating CHTs
-	CHTFrequency = 32768
+	CHTFrequency = 2048
 
 	// BloomTrieFrequency is the block frequency for creating BloomTrie on both
 	// server/client sides.
