@@ -357,7 +357,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 		Config:      params.DevinChainConfig,
 		Timestamp:   1635955256,
 		Nonce:       0x000000000002,
-		EnergyLimit: 12500000,
+		EnergyLimit: 14700000,
 	}
 }
 
