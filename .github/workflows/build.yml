@@ -4,14 +4,13 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest, raspbian-private, macos-private]
+        platform: [ubuntu-latest, windows-latest, raspbian-private, macos-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
       uses: actions/setup-go@v1
       with:
         go-version: 1.17.x
-      id: go
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
@@ -26,17 +25,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Get the version
+    - name: Version
       id: vars
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-    - name: docker login
-      run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-    - name: docker build
-      run: docker build . -f Dockerfile -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
-    - name: docker push latest version
-      run: docker push docker.pkg.github.com/core-coin/go-core/gocore:latest
-    - name: docker push current version
-      run: docker push docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}}
+    - name: Docker
+      run: |
+            docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker build . -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
+            docker push --all-tags
   debian:
     name: debian
     if: false && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -57,6 +53,6 @@ jobs:
     - name: setup debuild
       run: sudo apt-get install build-essential fakeroot devscripts dh-make
     - name: run debuild
-      run: go run build/ci.go debsrc -goversion 1.14.6 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core
+      run: go run build/ci.go debsrc -goversion 1.17 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
