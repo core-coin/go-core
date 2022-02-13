@@ -20,8 +20,8 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: make gocore
-    - name: Test
-      run: make test
+    #- name: Test
+    #  run: make test
     - name: Zip
       run: zip -j ${{ matrix.platform.path }}.zip build/bin
     - name: Upload
