@@ -69,7 +69,6 @@ jobs:
       with:
         name: ${{ matrix.platform }}
         path: ${{ matrix.platform }}.zip
-    - name: Artifact
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
