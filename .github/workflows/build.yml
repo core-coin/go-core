@@ -22,14 +22,12 @@ jobs:
       run: make gocore
     #- name: Test
     #  run: make test
-    - name: Zip
-      run: zip -j ${{ matrix.platform.path }}.zip build/bin/*
     - name: Upload
       #if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.platform.path }}
-        path: ${{ matrix.platform.path }}.zip
+        name: ${{ matrix.platform.path }}.zip
+        path: build/bin/gocore
   release:
     #if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
