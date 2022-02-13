@@ -23,7 +23,7 @@ jobs:
     #- name: Test
     #  run: make test
     - name: Zip
-      run: zip -j ${{ matrix.platform.path }}.zip build/bin
+      run: zip -j ${{ matrix.platform.path }}.zip build/bin/*
     - name: Upload
       #if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
