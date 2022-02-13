@@ -1,0 +1,20 @@
+name: gocore docker
+on:
+  release:
+    types: [published]
+jobs:
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Version
+      id: vars
+      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+    - name: Docker
+      run: |
+        docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+        docker build . -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
+        docker push --all-tags docker.pkg.github.com/core-coin/go-core/gocore
