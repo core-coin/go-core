@@ -32,7 +32,7 @@ jobs:
       run: |
             docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker build . -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
-            docker push --all-tags
+            docker image push --all-tags docker.pkg.github.com/core-coin/go-core/gocore
   debian:
     name: debian
     if: false && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
