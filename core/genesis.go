@@ -355,7 +355,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
 		Coinbase:    DefaultCoinbaseDevin,
 		Config:      params.DevinChainConfig,
-		Timestamp:   1635763490,
+		Timestamp:   1635955256,
 		Nonce:       0x000000000002,
 		EnergyLimit: 12500000,
 	}
