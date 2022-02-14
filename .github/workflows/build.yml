@@ -65,7 +65,7 @@ jobs:
       #if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.platform.path }}.zip
+        name: ${{ matrix.platform.path }}
         path: build/bin/gocore
   binaries:
     needs: [release, build]
