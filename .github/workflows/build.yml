@@ -1,16 +1,12 @@
 name: go-core build
 on: push
 jobs:
-  build:
+  test:
+    if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
-        platform: [
-          {os: ubuntu-latest, path: linux-x86_64},
-          {os: windows-latest, path: windows-x86_64},
-          {os: raspbian-private, path: linux-arm64},
-          {os: macos-latest, path: darwin-x86_64},
-        ]
-    runs-on: ${{ matrix.platform.os }}
+        platform: [ubuntu-latest, windows-latest, raspbian-private, macos-latest]
+    runs-on: ${{ matrix.platform }}
     steps:
     - name: Setup
       uses: actions/setup-go@v1
@@ -18,20 +14,11 @@ jobs:
         go-version: 1.17.x
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Build
-      run: make gocore
     #- name: Test
     #  run: make test
-    - name: Upload
-      #if: github.ref == 'refs/heads/master'
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.platform.path }}.zip
-        path: build/bin/gocore
   release:
-    #if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: build
+    needs: test
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
@@ -55,6 +42,31 @@ jobs:
         release_name: go-core release ${{ steps.version_bump.outputs.tag }}
         draft: false
         prerelease: true
+  build:
+    strategy:
+      matrix:
+        platform: [
+          {os: ubuntu-latest, path: linux-x86_64},
+          {os: windows-latest, path: windows-x86_64},
+          {os: raspbian-private, path: linux-arm64},
+          {os: macos-latest, path: darwin-x86_64},
+        ]
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+    - name: Setup
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.17.x
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build
+      run: make gocore
+    - name: Upload
+      #if: github.ref == 'refs/heads/master'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.platform.path }}.zip
+        path: build\bin\gocore
   artifact:
     needs: release
     runs-on: ubuntu-latest
