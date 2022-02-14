@@ -80,13 +80,13 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.platform }}
-        path: ${{ matrix.platform }}.zip
+        path: ${{ matrix.platform }}
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ${{ matrix.platform }}.zip
-        asset_name: ${{ matrix.platform }}.zip
+        asset_path: ${{ matrix.platform }}
+        asset_name: ${{ matrix.platform }}
         asset_content_type: application/zip
