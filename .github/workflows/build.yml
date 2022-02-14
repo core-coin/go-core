@@ -67,7 +67,7 @@ jobs:
       with:
         name: ${{ matrix.platform.path }}.zip
         path: build/bin/gocore
-  artifact:
+  binaries:
     needs: [release, build]
     runs-on: ubuntu-latest
     strategy:
