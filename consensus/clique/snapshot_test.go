@@ -366,7 +366,7 @@ func TestClique(t *testing.T) {
 		}, {
 			// Recent signatures should not reset on checkpoint blocks imported in a new
 			// batch (https://github.com/core-coin/go-core/issues/17593). Whilst this
-			// seems overly specific and weird, it was a Koliba consensus split.
+			// seems overly specific and weird, it was a consensus split.
 			epoch:   3,
 			signers: []string{"A", "B", "C"},
 			votes: []testerVote{

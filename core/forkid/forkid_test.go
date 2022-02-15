@@ -54,14 +54,6 @@ func TestCreation(t *testing.T) {
 				{10, ID{Hash: checksumToBytes(0x546c4cf5), Next: 0}},
 			},
 		},
-		// Koliba test cases
-		{
-			params.KolibaChainConfig,
-			params.KolibaGenesisHash,
-			[]testcase{
-				{1561651, ID{Hash: checksumToBytes(0xc8a79efc), Next: 0}},
-			},
-		},
 	}
 	for i, tt := range tests {
 		for j, ttt := range tt.cases {

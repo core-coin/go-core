@@ -47,7 +47,6 @@ var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 var (
 	DefaultCoinbaseMainnet, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
 	DefaultCoinbaseDevin, _   = common.HexToAddress("ab720000000000000000000000000000000000000000")
-	DefaultCoinbaseKoliba, _  = common.HexToAddress("ab720000000000000000000000000000000000000000")
 	DefaultCoinbasePrivate, _ = common.HexToAddress("ce450000000000000000000000000000000000000000")
 )
 
@@ -247,8 +246,6 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.MainnetChainConfig
 	case ghash == params.DevinGenesisHash:
 		return params.DevinChainConfig
-	case ghash == params.KolibaGenesisHash:
-		return params.KolibaChainConfig
 	default:
 		return params.AllCryptoreProtocolChanges
 	}
@@ -361,17 +358,6 @@ func DefaultDevinGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultKolibaGenesisBlock returns the Koliba network genesis block.
-func DefaultKolibaGenesisBlock() *Genesis {
-	return &Genesis{
-		Coinbase:    DefaultCoinbaseKoliba,
-		Config:      params.KolibaChainConfig,
-		Timestamp:   1599475790,
-		Nonce:       0x000000000002,
-		EnergyLimit: 12500000,
-	}
-}
-
 // DeveloperGenesisBlock returns the 'gocore --dev' genesis block.
 func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	// Override the default period to the user requested one
@@ -418,8 +404,6 @@ func setGenesisCoinbase(genesis *Genesis) {
 			genesis.Coinbase = DefaultCoinbaseMainnet
 		case common.Devin:
 			genesis.Coinbase = DefaultCoinbaseDevin
-		case common.Koliba:
-			genesis.Coinbase = DefaultCoinbaseKoliba
 		default:
 			genesis.Coinbase = DefaultCoinbasePrivate
 		}

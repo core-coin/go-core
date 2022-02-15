@@ -41,12 +41,12 @@ You should treat 'masterseed.json' with utmost secrecy and make a backup of it!
 
 ## Remote interactions
 
-Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our Koliba devin keystore and specify the Koliba network ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
+Clef is capable of managing both key-file based accounts as well as hardware wallets. To evaluate clef, we're going to point it to our devin keystore and specify the Devin network ID for signing (Clef doesn't have a backing chain, so it doesn't know what network it runs on).
 
 ```text
-$ clef --keystore ~/.core/koliba/keystore --networkid 4
+$ clef --keystore ~/.core/devin/keystore --networkid 3
 
-INFO [07-01|11:00:46.385] Starting signer                          networkid=4 keystore=$HOME/.core/koliba/keystore light-kdf=false advanced=false
+INFO [07-01|11:00:46.385] Starting signer                          networkid=4 keystore=$HOME/.core/devin/keystore light-kdf=false advanced=false
 DEBUG[07-01|11:00:46.389] FS scan times                            list=3.521941ms set=9.017µs diff=4.112µs
 DEBUG[07-01|11:00:46.391] Ledger support enabled
 INFO [07-01|11:00:46.391] Audit logs configured                    file=audit.log
@@ -74,9 +74,9 @@ This will prompt the user within the Clef CLI to confirm or deny the request:
 A request has been made to list all accounts.
 You can select which accounts the caller can see
   [x] 0xD9C9Cd5f6779558b6e0eD4e6Acf6b1947E7fA1F3
-    URL: keystore://$HOME/.core/koliba/keystore/UTC--2017-04-14T15-15-00.327614556Z--d9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3
+    URL: keystore://$HOME/.core/devin/keystore/UTC--2017-04-14T15-15-00.327614556Z--d9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3
   [x] 0x086278A6C067775F71d6B2BB1856Db6E28c30418
-    URL: keystore://$HOME/.core/koliba/keystore/UTC--2018-02-06T22-53-11.211657239Z--086278a6c067775f71d6b2bb1856db6e28c30418
+    URL: keystore://$HOME/.core/devin/keystore/UTC--2018-02-06T22-53-11.211657239Z--086278a6c067775f71d6b2bb1856db6e28c30418
 -------------------------------------------
 Request context:
 	NA -> NA -> NA
@@ -104,7 +104,7 @@ Apart from listing accounts, you can also *request* creating a new account; sign
 
 ## Automatic rules
 
-For most users, manually confirming every transaction is the way to go. However, there are cases when it makes sense to set up some rules which permit Clef to sign a transaction without prompting the user. One such example would be running a signer on Koliba or other PoA networks.
+For most users, manually confirming every transaction is the way to go. However, there are cases when it makes sense to set up some rules which permit Clef to sign a transaction without prompting the user. One such example would be running a signer on Devin.
 
 For starters, we can create a rule file that automatically permits anyone to list our available accounts without user confirmation. The rule file is a tiny JavaScript snippet that you can program however you want:
 
@@ -129,10 +129,10 @@ INFO [07-01|13:25:03.290] Ruleset attestation updated              sha256=645b58
 At this point, we can start Clef with the rule file:
 
 ```text
-$ clef --keystore ~/.core/koliba/keystore --networkid 4 --rules rules.js
+$ clef --keystore ~/.core/devin/keystore --networkid 3 --rules rules.js
 
 INFO [07-01|13:39:49.726] Rule engine configured                   file=rules.js
-INFO [07-01|13:39:49.726] Starting signer                          networkid=4 keystore=$HOME/.core/koliba/keystore light-kdf=false advanced=false
+INFO [07-01|13:39:49.726] Starting signer                          networkid=4 keystore=$HOME/.core/devin/keystore light-kdf=false advanced=false
 DEBUG[07-01|13:39:49.726] FS scan times                            list=35.15µs set=4.251µs diff=2.766µs
 DEBUG[07-01|13:39:49.727] Ledger support enabled
 INFO [07-01|13:39:49.728] Audit logs configured                    file=audit.log
@@ -240,10 +240,10 @@ INFO [07-01|14:11:28.509] Ruleset attestation updated              sha256=f163a1
 Restart Clef with the new rules in place:
 
 ```
-$ clef --keystore ~/.core/koliba/keystore --networkid 4 --rules rules.js
+$ clef --keystore ~/.core/devin/keystore --networkid 3 --rules rules.js
 
 INFO [07-01|14:12:41.636] Rule engine configured                   file=rules.js
-INFO [07-01|14:12:41.636] Starting signer                          networkid=4 keystore=$HOME/.core/koliba/keystore light-kdf=false advanced=false
+INFO [07-01|14:12:41.636] Starting signer                          networkid=4 keystore=$HOME/.core/devin/keystore light-kdf=false advanced=false
 DEBUG[07-01|14:12:41.636] FS scan times                            list=46.722µs set=4.47µs diff=2.157µs
 DEBUG[07-01|14:12:41.637] Ledger support enabled
 INFO [07-01|14:12:41.638] Audit logs configured                    file=audit.log
@@ -290,16 +290,16 @@ Of course, as awesome as Clef is, it's not feasible to interact with it via JSON
 
 Until then however, we're trying to pave the way via Gocore. Gocore v1.9.0 has built in support via `--signer <API endpoint>` for using a local or remote Clef instance as an account backend!
 
-We can try this by running Clef with our previous rules on Koliba (for now it's a good idea to allow auto-listing accounts, since Gocore likes to retrieve them once in a while).
+We can try this by running Clef with our previous rules on Devin (for now it's a good idea to allow auto-listing accounts, since Gocore likes to retrieve them once in a while).
 
 ```text
-$ clef --keystore ~/.core/koliba/keystore --networkid 4 --rules rules.js
+$ clef --keystore ~/.core/devin/keystore --networkid 3 --rules rules.js
 ```
 
 In a different window we can start Gocore, list our accounts, even list our wallets to see where the accounts originate from:
 
 ```text
-$ gocore --koliba --signer=~/.clef/clef.ipc console
+$ gocore --devin --signer=~/.clef/clef.ipc console
 
 > xcb.accounts
 ["0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3", "0x086278a6c067775f71d6b2bb1856db6e28c30418"]

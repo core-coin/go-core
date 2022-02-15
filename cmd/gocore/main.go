@@ -133,7 +133,6 @@ var (
 		utils.NtpServerFlag,
 		utils.DevinFlag,
 		utils.SnapshotFlag,
-		utils.KolibaFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
 		utils.XcbStatsURLFlag,
@@ -257,7 +256,7 @@ func prepare(ctx *cli.Context) {
 	// If we're a full node on mainnet without --cache specified, bump default cache allowance
 	if ctx.GlobalString(utils.SyncModeFlag.Name) != "light" && !ctx.GlobalIsSet(utils.CacheFlag.Name) && !ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
 		// Make sure we're not on any supported preconfigured devin either
-		if !ctx.GlobalIsSet(utils.DevinFlag.Name) && !ctx.GlobalIsSet(utils.KolibaFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
+		if !ctx.GlobalIsSet(utils.DevinFlag.Name) && !ctx.GlobalIsSet(utils.DeveloperFlag.Name) {
 			// Nope, we're really on mainnet. Bump that cache up!
 			log.Info("Bumping default cache on mainnet", "provided", ctx.GlobalInt(utils.CacheFlag.Name), "updated", 4096)
 			ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(4096))

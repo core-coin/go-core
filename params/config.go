@@ -29,7 +29,6 @@ import (
 var (
 	MainnetGenesisHash = common.HexToHash("0x15ecef048cdcf32af32ed5d7ff94cc8316e177b8a442055e89f57d3306c57e24")
 	DevinGenesisHash   = common.HexToHash("0x519cbc309c9cf7472b120da57063da9286f5b897ad34de7046bb7030c4ed98f0")
-	KolibaGenesisHash  = common.HexToHash("0x4d22056fa4d6321bf031c046f040a370128b10a557f620c2d169c6655e6ba30c")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -37,7 +36,6 @@ var (
 var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 	MainnetGenesisHash: MainnetTrustedCheckpoint,
 	DevinGenesisHash:   DevinTrustedCheckpoint,
-	KolibaGenesisHash:  KolibaTrustedCheckpoint,
 }
 
 // CheckpointOracles associates each known checkpoint oracles with the genesis hash of
@@ -45,7 +43,6 @@ var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 var CheckpointOracles = map[common.Hash]*CheckpointOracleConfig{
 	MainnetGenesisHash: MainnetCheckpointOracle,
 	DevinGenesisHash:   DevinCheckpointOracle,
-	KolibaGenesisHash:  KolibaCheckpointOracle,
 }
 
 var (
@@ -86,27 +83,6 @@ var (
 
 	// DevinCheckpointOracle contains a set of configs for the Devin test network oracle.
 	DevinCheckpointOracle = &CheckpointOracleConfig{
-		Address:   common.Address{},
-		Signers:   []common.Address{},
-		Threshold: 2,
-	}
-
-	// KolibaChainConfig contains the chain parameters to run a node on the Koliba test network.
-	KolibaChainConfig = &ChainConfig{
-		NetworkID: big.NewInt(4),
-		Cryptore:  new(CryptoreConfig),
-	}
-
-	// KolibaTrustedCheckpoint contains the light client trusted checkpoint for the Koliba test network.
-	KolibaTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 66,
-		SectionHead:  common.HexToHash("0xeea3a7b2cb275956f3049dd27e6cdacd8a6ef86738d593d556efee5361019475"),
-		CHTRoot:      common.HexToHash("0x11712af50b4083dc5910e452ca69fbfc0f2940770b9846200a573f87a0af94e6"),
-		BloomRoot:    common.HexToHash("0x331b7a7b273e81daeac8cafb9952a16669d7facc7be3b0ebd3a792b4d8b95cc5"),
-	}
-
-	// KolibaCheckpointOracle contains a set of configs for the Koliba test network oracle.
-	KolibaCheckpointOracle = &CheckpointOracleConfig{
 		Address:   common.Address{},
 		Signers:   []common.Address{},
 		Threshold: 2,

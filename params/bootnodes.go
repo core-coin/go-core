@@ -34,12 +34,6 @@ var DevinBootnodes = []string{
 	"enode://ad8212b20b930a6f8609ccff235e4bcce9189711132f9b76609d51b12fe2900601fc2f81f87991ec0c74d1114fb6b88f019bdb48b8b490e380@51.158.123.140:30300",  // core-devin-node-20 core-devin-eu-fr-idf
 }
 
-// KolibaBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Koliba test network.
-var KolibaBootnodes = []string{
-	// Upstream bootnodes
-}
-
 // DiscoveryV5Bootnodes are the enode URLs of the P2P bootstrap nodes for the
 // experimental RLPx v5 topic-discovery network.
 var DiscoveryV5Bootnodes = []string{}
@@ -51,5 +45,4 @@ const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUD
 var KnownDNSNetworks = map[common.Hash]string{
 	MainnetGenesisHash: dnsPrefix + "all.mainnet.corenode.stream",
 	DevinGenesisHash:   dnsPrefix + "all.devin.corenode.stream",
-	KolibaGenesisHash:  dnsPrefix + "all.koliba.corenode.stream",
 }
