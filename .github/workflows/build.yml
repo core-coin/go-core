@@ -21,14 +21,15 @@ jobs:
     - name: Build
       run: |
         make gocore
-        #make test
+        make test
     - name: Upload
-      #if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.platform.path }}
         path: ./build/bin
   release:
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
     outputs:
@@ -44,7 +45,6 @@ jobs:
         DEFAULT_BUMP: "patch"
         RELEASE_BRANCHES: "master"
         WITH_V: true
-        PRERELEASE_SUFFIX: ""
     - name: Release
       id: create_release
       uses: actions/create-release@v1
