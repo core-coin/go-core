@@ -26,11 +26,11 @@ jobs:
       uses: actions/checkout@v1
     - name: Version
       id: version_bump
-      uses: anothrNick/github-tag-action@1.13.0
+      uses: anothrNick/github-tag-action@1.38.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DEFAULT_BUMP: "patch"
-        RELEASE_BRANCHES: "master"
+        #RELEASE_BRANCHES: "master"
         WITH_V: true
     - name: Release
       id: create_release
@@ -60,17 +60,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
-      run: make gocore
-    - name: zip
-      uses: montudor/action-zip@v1
-      with:
-        args: zip -j -r ${{ matrix.platform.path }}.zip build/bin
+      run: |
+        make gocore
+        ls -al build/bin
     - name: Upload
       #if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.platform.path }}
-        path: ${{ matrix.platform.path }}.zip
+        path: build/bin
   binaries:
     needs: [release, build]
     runs-on: ubuntu-latest
@@ -84,13 +82,13 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.platform }}
-        path: ${{ matrix.platform }}.zip
+        path: ${{ matrix.platform }}
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./${{ matrix.platform }}.zip
+        asset_path: ./${{ matrix.platform }}
         asset_name: ${{ matrix.platform }}.zip
         asset_content_type: application/zip
