@@ -1,7 +1,8 @@
 name: gocore docker
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 jobs:
   docker:
     name: docker
