@@ -70,8 +70,7 @@ jobs:
         name: ${{ matrix.platform }}
         path: ./${{ matrix.platform }}
     - name: Zip
-      run: |
-        zip ${{ matrix.platform }}.zip ${{ matrix.platform }}/* -j
+      run: zip ${{ matrix.platform }}.zip ${{ matrix.platform }}/* -j
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
