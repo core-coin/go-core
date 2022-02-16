@@ -45,6 +45,7 @@ jobs:
         DEFAULT_BUMP: "patch"
         RELEASE_BRANCHES: "master"
         WITH_V: true
+        INITIAL_VERSION: v1.0.48
     - name: Release
       id: create_release
       uses: actions/create-release@v1
