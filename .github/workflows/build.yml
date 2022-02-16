@@ -21,7 +21,7 @@ jobs:
     - name: Build
       run: |
         make gocore
-        make test
+        #make test
     - name: Upload
       if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
