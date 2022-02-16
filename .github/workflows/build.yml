@@ -4,8 +4,13 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest, raspbian-private, macos-latest]
-    runs-on: ${{ matrix.platform }}
+        platform: [
+          {os: ubuntu-latest, path: linux-x86_64},
+          {os: windows-latest, path: windows-x86_64},
+          {os: raspbian-private, path: linux-arm64},
+          {os: macos-latest, path: darwin-x86_64},
+        ]
+    runs-on: ${{ matrix.platform.os }}
     steps:
     - name: Setup
       uses: actions/setup-go@v1
@@ -14,45 +19,64 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
-      run: go run build/ci.go install
-    - name: Test
-      run: go run build/ci.go test
-  docker:
-    name: docker
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+      run: |
+        make gocore
+        make test
+    - name: Upload
+      if: github.ref == 'refs/heads/master'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.platform.path }}
+        path: ./build/bin
+  release:
+    if: github.ref == 'refs/heads/master'
     needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Version
-      id: vars
-      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-    - name: Docker
-      run: |
-            docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            docker build . -t docker.pkg.github.com/core-coin/go-core/gocore:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core/gocore:latest
-            docker image push --all-tags docker.pkg.github.com/core-coin/go-core/gocore
-  debian:
-    name: debian
-    if: false && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      id: version_bump
+      uses: anothrNick/github-tag-action@1.38.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEFAULT_BUMP: "patch"
+        RELEASE_BRANCHES: "master"
+        WITH_V: true
+    - name: Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version_bump.outputs.tag }}
+        release_name: ${{ steps.version_bump.outputs.tag }} gocore release
+        draft: false
+        prerelease: true
+  artifacts:
+    needs: release
     runs-on: ubuntu-latest
-    needs: docker
+    strategy:
+      matrix:
+        platform: [linux-x86_64, windows-x86_64, linux-arm64, darwin-x86_64]
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Import GPG key
-      uses: crazy-max/ghaction-import-gpg@v3
+    - name: Artifact
+      uses: actions/download-artifact@v2
       with:
-        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-        passphrase: ${{ secrets.PASSPHRASE }}
-    - name: Import SSH key
-      uses: webfactory/ssh-agent@v0.4.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    - name: setup debuild
-      run: sudo apt-get install build-essential fakeroot devscripts dh-make
-    - name: run debuild
-      run: go run build/ci.go debsrc -goversion 1.17 -signer "core-coin robot <sashaz@corecoin.cc>" -upload core-coin/go-core
+        name: ${{ matrix.platform }}
+        path: ./${{ matrix.platform }}
+    - name: Zip
+      run: zip ${{ matrix.platform }}.zip ${{ matrix.platform }}/* -j
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./${{ matrix.platform }}.zip
+        asset_name: ${{ matrix.platform }}.zip
+        asset_content_type: application/zip
