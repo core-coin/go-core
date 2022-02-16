@@ -68,9 +68,12 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.platform }}
-        path: ${{ matrix.platform }}
+        path: ./${{ matrix.platform }}
     - name: Zip
-      run: zip ${{ matrix.platform }}.zip ${{ matrix.platform }} -j
+      run: |
+        ls -al
+        ls -al ${{ matrix.platform }}
+        zip ${{ matrix.platform }}.zip ${{ matrix.platform }} -j
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
