@@ -159,8 +159,6 @@ func xcbFilter(args []string) (nodeFilter, error) {
 	switch args[0] {
 	case "mainnet":
 		filter = forkid.NewStaticFilter(params.MainnetChainConfig, params.MainnetGenesisHash)
-	case "koliba":
-		filter = forkid.NewStaticFilter(params.KolibaChainConfig, params.KolibaGenesisHash)
 	case "devin":
 		filter = forkid.NewStaticFilter(params.DevinChainConfig, params.DevinGenesisHash)
 	default:

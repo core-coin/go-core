@@ -166,16 +166,12 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer,1=Mainnet, 3=Devin, 4=Koliba)",
+		Usage: "Network identifier (integer,1=Mainnet, 3=Devin)",
 		Value: xcb.DefaultConfig.NetworkId,
 	}
 	DevinFlag = cli.BoolFlag{
 		Name:  "devin",
 		Usage: "Devin network: pre-configured proof-of-work test network",
-	}
-	KolibaFlag = cli.BoolFlag{
-		Name:  "koliba",
-		Usage: "Koliba network: pre-configured proof-of-authority test network",
 	}
 	DeveloperFlag = cli.BoolFlag{
 		Name:  "dev",
@@ -709,9 +705,6 @@ func MakeDataDir(ctx *cli.Context) string {
 		if ctx.GlobalBool(DevinFlag.Name) {
 			return filepath.Join(path, "devin")
 		}
-		if ctx.GlobalBool(KolibaFlag.Name) {
-			return filepath.Join(path, "koliba")
-		}
 		return path
 	}
 	Fatalf("Cannot determine default data directory, please set manually (--datadir)")
@@ -764,8 +757,6 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		}
 	case ctx.GlobalBool(DevinFlag.Name):
 		urls = params.DevinBootnodes
-	case ctx.GlobalBool(KolibaFlag.Name):
-		urls = params.KolibaBootnodes
 	case cfg.BootstrapNodes != nil:
 		return // already set, don't apply defaults.
 	}
@@ -794,8 +785,6 @@ func setBootstrapNodesV5(ctx *cli.Context, cfg *p2p.Config) {
 		} else {
 			urls = splitAndTrim(ctx.GlobalString(BootnodesFlag.Name))
 		}
-	case ctx.GlobalBool(KolibaFlag.Name):
-		urls = params.KolibaBootnodes
 	case cfg.BootstrapNodesV5 != nil:
 		return // already set, don't apply defaults.
 	}
@@ -1203,8 +1192,6 @@ func SetDefaultNetworkID(ctx *cli.Context) {
 		common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(NetworkIdFlag.Name))
 	case ctx.GlobalIsSet(DevinFlag.Name):
 		common.DefaultNetworkID = 3
-	case ctx.GlobalIsSet(KolibaFlag.Name):
-		common.DefaultNetworkID = 4
 	case ctx.GlobalIsSet(DeveloperFlag.Name):
 		common.DefaultNetworkID = 1337
 	}
@@ -1238,8 +1225,6 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 		cfg.DataDir = "" // unless explicitly requested, use memory databases
 	case ctx.GlobalBool(DevinFlag.Name) && cfg.DataDir == node.DefaultDataDir():
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devin")
-	case ctx.GlobalBool(KolibaFlag.Name) && cfg.DataDir == node.DefaultDataDir():
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "koliba")
 	}
 }
 
@@ -1419,7 +1404,6 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 // SetXcbConfig applies xcb-related command line flags to the config.
 func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, DeveloperFlag, DevinFlag, KolibaFlag)
 	CheckExclusive(ctx, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 
@@ -1517,10 +1501,6 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 		cfg.NetworkId = 3
 		cfg.Genesis = core.DefaultDevinGenesisBlock()
 		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.DevinGenesisHash])
-	case ctx.GlobalInt(NetworkIdFlag.Name) == 4, ctx.GlobalBool(KolibaFlag.Name):
-		cfg.NetworkId = 4
-		cfg.Genesis = core.DefaultKolibaGenesisBlock()
-		setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.KolibaGenesisHash])
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 1337
@@ -1714,8 +1694,6 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	switch {
 	case ctx.GlobalBool(DevinFlag.Name):
 		genesis = core.DefaultDevinGenesisBlock()
-	case ctx.GlobalBool(KolibaFlag.Name):
-		genesis = core.DefaultKolibaGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		Fatalf("Developer chains are ephemeral")
 	}

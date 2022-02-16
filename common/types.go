@@ -386,19 +386,17 @@ type NetworkID uint64
 const (
 	Mainnet NetworkID = iota + 1
 	Devin             = iota + 2
-	Koliba
 )
 
 var networkIds = [...]string{
 	"cb",       // 1 - Mainnet
 	"wrong id", // 2 - wrong
 	"ab",       // 3 - Devin
-	"ab",       // 4 - Koliba
 }
 
 func (network NetworkID) String() string {
 	if network > 4 {
-		return "ce" // everything else except main net, devin and koliba - private nets
+		return "ce" // everything else except main net and devin - private nets
 	}
 	return networkIds[network-1]
 }

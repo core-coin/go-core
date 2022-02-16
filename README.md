@@ -56,7 +56,7 @@ This command will:
 
 ### A Full node on the Devin network (PoW)
 
-Transitioning towards developers, if you'd like to play around with creating CORE contracts, you almost certainly would like to do that without any real money involved until you get the hang of the entire system. In other words, instead of attaching to the main network, you want to join one of the tests networks (Devin, Koliba) with your node, which is fully equivalent to the main network, but with play-Core only.
+Transitioning towards developers, if you'd like to play around with creating CORE contracts, you almost certainly would like to do that without any real money involved until you get the hang of the entire system. In other words, instead of attaching to the main network, you want to join the test network (Devin) with your node, which is fully equivalent to the main network, but with play-Core only.
 
 ```shell
 $ gocore --devin console
@@ -68,14 +68,6 @@ Specifying the `--devin` flag, however, will reconfigure your `gocore` instance 
 
  * Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
  * Instead of connecting the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
-
-### Full node on the Koliba test network (PoA)
-
-Gocore also supports connecting to a proof-of-authority (PoA) based test network called Koliba (operated by members of the community). This network is lighter, more secure.
-
-```shell
-$ gocore --koliba console
-```
 
 ### Configuration
 

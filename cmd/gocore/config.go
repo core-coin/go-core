@@ -119,7 +119,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	// Apply flags.
 	utils.SetNodeConfig(ctx, &cfg.Node)
 
-	// Set default network id from --networkId, --devin, --koliba flags
+	// Set default network id from --networkId, --devin flags
 	utils.SetDefaultNetworkID(ctx)
 
 	stack, err := node.New(&cfg.Node)

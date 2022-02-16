@@ -41,11 +41,6 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	if block.Hash() != params.DevinGenesisHash {
 		t.Errorf("wrong devin genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
 	}
-
-	block = DefaultKolibaGenesisBlock().ToBlock(nil)
-	if block.Hash() != params.KolibaGenesisHash {
-		t.Errorf("wrong koliba genesis hash, got %v, want %v", block.Hash(), params.KolibaGenesisHash)
-	}
 }
 
 func TestSetupGenesis(t *testing.T) {

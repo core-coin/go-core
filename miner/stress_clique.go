@@ -138,7 +138,7 @@ func main() {
 // signer and faucet accounts.
 func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core.Genesis {
 	// Create a Clique network based off of the config
-	genesis := core.DefaultKolibaGenesisBlock()
+	genesis := core.DefaultDevinGenesisBlock()
 	genesis.EnergyLimit = 25000000
 
 	genesis.Config.NetworkID = big.NewInt(18)
