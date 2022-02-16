@@ -11,10 +11,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Version
-      id: vars
+      id: version
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: Docker
       run: |
         docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-        docker build . -t docker.pkg.github.com/core-coin/go-core:${{steps.vars.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core:latest
-        docker push --all-tags
+        docker build . -t docker.pkg.github.com/core-coin/go-core:${{steps.version.outputs.tag}} -t docker.pkg.github.com/core-coin/go-core:latest
+        docker push --all-tags docker.pkg.github.com/core-coin/go-core
