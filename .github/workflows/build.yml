@@ -1,21 +1,6 @@
 name: go-core build
 on: push
 jobs:
-  test:
-    #if: github.ref == 'refs/heads/master'
-    strategy:
-      matrix:
-        platform: [ubuntu-latest, windows-latest, raspbian-private, macos-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-    - name: Setup
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.17.x
-    - name: Checkout
-      uses: actions/checkout@v1
-    #- name: Test
-    #  run: make test
   build:
     strategy:
       matrix:
@@ -34,7 +19,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
-      run: make gocore
+      run: |
+        make gocore
+        #make test
     - name: Upload
       #if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
@@ -42,7 +29,7 @@ jobs:
         name: ${{ matrix.platform.path }}
         path: ./build/bin
   release:
-    needs: [test, build]
+    needs: build
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -68,7 +55,7 @@ jobs:
         release_name: ${{ steps.version_bump.outputs.tag }} gocore release
         draft: false
         prerelease: true
-  binaries:
+  artifacts:
     needs: release
     runs-on: ubuntu-latest
     strategy:
@@ -82,12 +69,14 @@ jobs:
       with:
         name: ${{ matrix.platform }}
         path: ${{ matrix.platform }}
+    - name: Zip
+      run: zip ${{ matrix.platform }}.zip ${{ matrix.platform }} -j
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./${{ matrix.platform }}
+        asset_path: ./${{ matrix.platform }}.zip
         asset_name: ${{ matrix.platform }}.zip
         asset_content_type: application/zip
