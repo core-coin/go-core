@@ -15,6 +15,7 @@ jobs:
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: Docker
       run: |
-        docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+        docker login ghcr.io -u ${{github.actor}} -p ${{secrets.GITHUB_TOKEN}}
         docker build . -t ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}} -t ghcr.io/core-coin/go-core:latest
-        docker push --all-tags ghcr.io/core-coin/go-core
+        docker push ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}}
+        docker push ghcr.io/core-coin/go-core:latest
