@@ -342,7 +342,7 @@ func DefaultGenesisBlock() *Genesis {
 		Config:      params.MainnetChainConfig,
 		Timestamp:   1644745792,
 		Nonce:       66,
-		Difficulty:  big.NewInt(8192),
+		Difficulty:  big.NewInt(1000000),
 		EnergyLimit: 14700000,
 	}
 }
@@ -352,6 +352,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
 		Coinbase:    DefaultCoinbaseDevin,
 		Config:      params.DevinChainConfig,
+		Difficulty:  big.NewInt(1000000),
 		Timestamp:   1635955256,
 		Nonce:       0x000000000002,
 		EnergyLimit: 14700000,
