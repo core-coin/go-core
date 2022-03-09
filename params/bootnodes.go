@@ -21,7 +21,6 @@ import "github.com/core-coin/go-core/common"
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
 // the main Core network.
 var MainnetBootnodes = []string{
-	// Core Foundation Go Bootnodes
 	"enode://d74ae95f2967a731ff1341da75110daa050b603ad6dbf21c91a7d07e2b52674ce8018ba1ef529051e859b7cee358b80f5c0afae83b88f4b280@86.110.248.212:30300",
 	"enode://4b2b16a1bf3ee11f87cc45d2039d59936fd91e9b20a55f5e307d8aad9cd1428416d935d306be6cc5b640106877c90f6ca1f12a82362ccc2500@86.110.248.213:30300",
 	"enode://12b01bbbadf76c3fc4f1229c6a1af3430b61e8cbdda7d2de39413c949230496bda83ede613ac09f352b87fa7b0526dabaa366f8991b23f9300@86.110.248.214:30300",
