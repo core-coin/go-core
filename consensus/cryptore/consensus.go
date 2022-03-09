@@ -19,7 +19,6 @@ package cryptore
 import (
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-randomy"
 	"math/big"
 	"runtime"
 	"time"
@@ -31,6 +30,8 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rlp"
 	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-randomy"
+
 	mapset "github.com/deckarep/golang-set"
 	"golang.org/x/crypto/sha3"
 )
@@ -39,7 +40,7 @@ import (
 var (
 	BlockReward            = big.NewInt(5e+18) // Block reward in ore for successfully mining a block
 	maxUncles              = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTime = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+	allowedFutureBlockTime = 8 * time.Second   // Max time from current time allowed for blocks, before they're considered future blocks
 
 	calcDifficulty = makeDifficultyCalculator()
 )
