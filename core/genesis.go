@@ -344,6 +344,7 @@ func DefaultGenesisBlock() *Genesis {
 		Nonce:       66,
 		Difficulty:  big.NewInt(1000000),
 		EnergyLimit: 14700000,
+		Alloc:       decodePrealloc(mainnetAllocData),
 	}
 }
 
@@ -356,6 +357,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 		Timestamp:   1635955256,
 		Nonce:       0x000000000002,
 		EnergyLimit: 14700000,
+		Alloc:       decodePrealloc(devinAllocData),
 	}
 }
 
