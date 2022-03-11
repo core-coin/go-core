@@ -766,7 +766,7 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		if url != "" {
 			node, err := enode.Parse(enode.ValidSchemes, url)
 			if err != nil {
-				log.Crit("Bootstrap URL invalid", "enode", url, "err", err)
+				log.Warn("Bootstrap URL invalid, skipping it", "enode", url, "err", err)
 				continue
 			}
 			cfg.BootstrapNodes = append(cfg.BootstrapNodes, node)
