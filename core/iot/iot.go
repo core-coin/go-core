@@ -13,36 +13,20 @@ func EnablePin() error {
 		return err
 	}
 	pin := rpio.Pin(pin)
-	pin.Input() // Input mode
-
-	// Read status
-	res := pin.Read()
 
 	// Switch on
 	pin.Output()
-	if res == rpio.High {
-		pin.Low()
-	} else {
-		pin.High()
-	}
+	pin.High()
 
 	return nil
 }
 
 func DisablePin() error {
 	pin := rpio.Pin(pin)
-	pin.Input() // Input mode
 
-	// Read status
-	res := pin.Read()
-
-	// Switch on
+	// Switch off
 	pin.Output()
-	if res == rpio.High {
-		pin.Low()
-	} else {
-		pin.High()
-	}
+	pin.Low()
 
 	return rpio.Close()
 }
