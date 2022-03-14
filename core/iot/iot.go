@@ -1,4 +1,4 @@
-//+build linux,arm64
+// +build linux,arm64
 package iot
 
 import "github.com/stianeikeland/go-rpio/v4"
