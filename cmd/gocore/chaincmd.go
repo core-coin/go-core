@@ -233,13 +233,14 @@ func initGenesis(ctx *cli.Context) error {
 	}
 	defer file.Close()
 
+	// Open an initialise both full and light databases
+	stack := makeFullNode(ctx)
+	defer stack.Close()
+
 	genesis := new(core.Genesis)
 	if err := json.NewDecoder(file).Decode(genesis); err != nil {
 		utils.Fatalf("invalid genesis file: %v", err)
 	}
-	// Open an initialise both full and light databases
-	stack := makeFullNode(ctx)
-	defer stack.Close()
 
 	for _, name := range []string{"chaindata", "lightchaindata"} {
 		chaindb, err := stack.OpenDatabase(name, 0, 0, "")
