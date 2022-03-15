@@ -1,4 +1,5 @@
-// Package iot +build !windows
+// +build !windows
+
 package iot
 
 import "github.com/stianeikeland/go-rpio/v4"
