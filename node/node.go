@@ -19,6 +19,7 @@ package node
 import (
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/core/iot"
 	"net"
 	"os"
 	"path/filepath"
@@ -464,6 +465,13 @@ func (n *Node) Stop() error {
 
 	// unblock n.Wait
 	close(n.stop)
+
+	// Disable Pin
+	if n.config.IoT {
+		if err := iot.DisablePin(); err != nil {
+			return err
+		}
+	}
 
 	// Remove the keystore if it was created ephemerally.
 	var keystoreErr error

@@ -221,6 +221,7 @@ func init() {
 		networkIdFlag,
 		utils.LightKDFFlag,
 		utils.NoUSBFlag,
+		utils.IoTFlag,
 		utils.SmartCardDaemonPathFlag,
 		utils.HTTPListenAddrFlag,
 		utils.HTTPVirtualHostsFlag,

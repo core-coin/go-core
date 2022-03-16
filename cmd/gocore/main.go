@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/core-coin/go-core/core/iot"
 	"math"
 	"os"
 	"runtime"
@@ -68,6 +69,7 @@ var (
 		utils.KeyStoreDirFlag,
 		utils.ExternalSignerFlag,
 		utils.NoUSBFlag,
+		utils.IoTFlag,
 		utils.SmartCardDaemonPathFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
@@ -433,6 +435,13 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 		if err := core.StartMining(threads); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
+		}
+	}
+
+	// Enable Pin if iot flag is enabled
+	if stack.Config().IoT {
+		if err := iot.EnablePin(); err != nil {
+			utils.Fatalf("Failed to switch on IoT: %v", err)
 		}
 	}
 }
