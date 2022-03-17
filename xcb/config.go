@@ -61,7 +61,7 @@ var DefaultConfig = Config{
 	SnapshotCache:           102,
 	Miner: miner.Config{
 		EnergyFloor: 12500000,
-		EnergyCeil:  12500000,
+		EnergyCeil:  14700000,
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
