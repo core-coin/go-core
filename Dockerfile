@@ -1,5 +1,5 @@
 FROM golang:alpine as builder
-RUN apk add make gcc g++ musl-dev linux-headers
+RUN apk add make gcc g++ musl-dev linux-headers git
 ADD . /go-core
 RUN cd /go-core && make all
 
