@@ -62,16 +62,16 @@ jobs:
     - name: Artifact
       uses: actions/download-artifact@v2
       with:
-        name: ${{ matrix.platform }}
-        path: ./${{ matrix.platform }}
+        name: gocore-${{ matrix.platform }}
+        path: ./gocore-${{ matrix.platform }}
     - name: Zip
-      run: zip ${{ matrix.platform }}.zip ${{ matrix.platform }}/* -j
+      run: zip gocore-${{ matrix.platform }}.zip gocore-${{ matrix.platform }}/* -j
     - name: Upload release assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./${{ matrix.platform }}.zip
-        asset_name: ${{ matrix.platform }}.zip
+        asset_path: ./gocore-${{ matrix.platform }}.zip
+        asset_name: gocore-${{ matrix.platform }}.zip
         asset_content_type: application/zip
