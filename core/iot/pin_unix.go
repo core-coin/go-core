@@ -5,7 +5,7 @@ package iot
 import "github.com/stianeikeland/go-rpio/v4"
 
 const (
-	pin = 1
+	pin = 23
 )
 
 func EnablePin() error {
