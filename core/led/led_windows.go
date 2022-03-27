@@ -1,6 +1,6 @@
 //+build windows
 
-package iot
+package led
 
 func EnablePin() error {
 	return nil

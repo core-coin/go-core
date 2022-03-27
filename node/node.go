@@ -19,7 +19,7 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/core/iot"
+	"github.com/core-coin/go-core/core/led"
 	"net"
 	"os"
 	"path/filepath"
@@ -466,9 +466,9 @@ func (n *Node) Stop() error {
 	// unblock n.Wait
 	close(n.stop)
 
-	// Disable Pin
-	if n.config.IoT {
-		if err := iot.DisablePin(); err != nil {
+	// Disable Led
+	if n.config.Led {
+		if err := led.DisableLed(n.config.LedGPIOPort); err != nil {
 			return err
 		}
 	}

@@ -19,7 +19,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/core/iot"
+	"github.com/core-coin/go-core/core/led"
 	"math"
 	"os"
 	"runtime"
@@ -69,7 +69,8 @@ var (
 		utils.KeyStoreDirFlag,
 		utils.ExternalSignerFlag,
 		utils.NoUSBFlag,
-		utils.IoTFlag,
+		utils.LedFlag,
+		utils.LedGPIOPortFlag,
 		utils.SmartCardDaemonPathFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
@@ -438,10 +439,10 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		}
 	}
 
-	// Enable Pin if iot flag is enabled
-	if stack.Config().IoT {
-		if err := iot.EnablePin(); err != nil {
-			utils.Fatalf("Failed to switch on IoT: %v", err)
+	// Enable Led if led flag is enabled
+	if stack.Config().Led {
+		if err := led.EnableLed(stack.Config().LedGPIOPort); err != nil {
+			utils.Fatalf("Failed to switch on Led: %v", err)
 		}
 	}
 }
