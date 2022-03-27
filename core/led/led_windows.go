@@ -2,10 +2,10 @@
 
 package led
 
-func EnablePin() error {
+func EnableLed(port int) error {
 	return nil
 }
 
-func DisablePin() error {
+func DisableLed(port int) error {
 	return nil
 }
