@@ -159,9 +159,13 @@ var (
 		Name:  "nousb",
 		Usage: "Disables monitoring for and managing USB hardware wallets",
 	}
-	IoTFlag = cli.BoolFlag{
-		Name:  "iot",
-		Usage: "Enables Pin to indicate if node is operational",
+	LedFlag = cli.BoolFlag{
+		Name:  "led",
+		Usage: "Enables Led to indicate if node is operational",
+	}
+	LedGPIOPortFlag = cli.IntFlag{
+		Name:  "led.gpio.port",
+		Usage: "Led GPIO port number (default = 23)",
 	}
 	SmartCardDaemonPathFlag = cli.StringFlag{
 		Name:  "pcscdpath",
@@ -1185,8 +1189,9 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	if ctx.GlobalIsSet(NoUSBFlag.Name) {
 		cfg.NoUSB = ctx.GlobalBool(NoUSBFlag.Name)
 	}
-	if ctx.GlobalIsSet(IoTFlag.Name) {
-		cfg.IoT = ctx.GlobalBool(IoTFlag.Name)
+	if ctx.GlobalIsSet(LedFlag.Name) {
+		cfg.Led = ctx.GlobalBool(LedFlag.Name)
+		cfg.LedGPIOPort = ctx.GlobalInt(LedGPIOPortFlag.Name)
 	}
 	if ctx.GlobalIsSet(InsecureUnlockAllowedFlag.Name) {
 		cfg.InsecureUnlockAllowed = ctx.GlobalBool(InsecureUnlockAllowedFlag.Name)
