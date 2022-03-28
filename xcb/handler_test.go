@@ -559,15 +559,15 @@ func TestBroadcastBlock(t *testing.T) {
 		broadcastExpected int
 	}{
 		{1, 1},
-		{2, 1},
-		{3, 1},
-		{4, 2},
-		{5, 2},
-		{9, 3},
-		{12, 3},
-		{16, 4},
-		{26, 5},
-		{100, 10},
+		{2, 2},
+		{3, 3},
+		{4, 4},
+		{5, 5},
+		{9, 9},
+		{12, 12},
+		{16, 16},
+		{26, 26},
+		{100, 100},
 	}
 	for _, test := range tests {
 		testBroadcastBlock(t, test.totalPeers, test.broadcastExpected)
