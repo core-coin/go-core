@@ -831,12 +831,20 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 			log.Error("Propagating dangling block", "number", block.Number(), "hash", hash)
 			return
 		}
-		// Send the block to a subset of our peers
-		transfer := peers[:int(math.Sqrt(float64(len(peers))))]
-		for _, peer := range transfer {
-			peer.AsyncSendNewBlock(block, td)
+		// Prioritize sending to trusted peers
+		log.Warn("Broadcasting block to trusted peers", "number", block.Number(), "hash", hash)
+		for _, peer := range peers {
+			if peer.Peer.Info().Network.Trusted {
+				peer.AsyncSendNewBlock(block, td)
+			}
 		}
-		log.Trace("Propagated block", "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+		// Send to all remaining peers as well
+		for _, peer := range peers {
+			if !peer.Peer.Info().Network.Trusted {
+				peer.AsyncSendNewBlock(block, td)
+			}
+		}
+		log.Trace("Propagated block", "hash", hash, "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 		return
 	}
 	// Otherwise if the block is indeed in out own chain, announce it

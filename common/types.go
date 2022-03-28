@@ -396,7 +396,7 @@ var networkIds = [...]string{
 
 func (network NetworkID) String() string {
 	if network > 4 {
-		return "ce" // everything else except main net and devin - private nets
+		return "ce" // everything else except mainnet and devin - private nets
 	}
 	return networkIds[network-1]
 }
