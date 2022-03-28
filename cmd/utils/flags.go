@@ -165,7 +165,8 @@ var (
 	}
 	LedGPIOPortFlag = cli.IntFlag{
 		Name:  "led.gpio.port",
-		Usage: "Led GPIO port number (default = 23)",
+		Usage: "Led GPIO port number",
+		Value: 23,
 	}
 	SmartCardDaemonPathFlag = cli.StringFlag{
 		Name:  "pcscdpath",
