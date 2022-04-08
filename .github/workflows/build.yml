@@ -22,20 +22,22 @@ jobs:
       run: |
         make all
 #        make test
+    - name: Zip Gocore
+      run: zip gocore-${{ matrix.platform.path }}.zip ./build/bin/gocore* -j
+    - name: Zip Gocore-Devtools
+      run: zip gocore-devtools-${{ matrix.platform.path }}.zip ./build/bin/* -j -x "gocore*"
     - name: Upload Gocore
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
       with:
-        name: gocore-${{ matrix.platform.path }}
-        path: ./build/bin/gocore*
+        name: gocore-${{ matrix.platform.path }}.zip
+        path: ./gocore-${{ matrix.platform.path }}.zip
     - name: Upload Dev Tools
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
       with:
-        name: gocore-devtools-${{ matrix.platform.path }}
-        path: |
-          ./build/bin/*
-          !./build/bin/gocore*
+        name: gocore-devtools-${{ matrix.platform.path }}.zip
+        path: ./gocore-devtools-${{ matrix.platform.path }}.zip
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -55,7 +57,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.version.outputs.tag }}
-        release_name: ${{ steps.version.outputs.tag }} gocore release
+        release_name: ${{ steps.version.outputs.tag }} Gocore Release
         draft: false
         prerelease: true
   artifacts:
@@ -70,17 +72,13 @@ jobs:
     - name: Artifact Gocore
       uses: actions/download-artifact@v2
       with:
-        name: gocore-${{ matrix.platform }}
-        path: ./gocore-${{ matrix.platform }}
+        name: gocore-${{ matrix.platform }}.zip
+        path: ./gocore-${{ matrix.platform }}.zip
     - name: Artifact Gocore-Devtools
       uses: actions/download-artifact@v2
       with:
-        name: gocore-devtools-${{ matrix.platform }}
-        path: ./gocore-devtools-${{ matrix.platform }}
-    - name: Zip Gocore
-      run: zip gocore-${{ matrix.platform }}.zip gocore-${{ matrix.platform }}/* -j
-    - name: Zip Gocore-Devtools
-      run: zip gocore-devtools-${{ matrix.platform }}.zip gocore-devtools-${{ matrix.platform }}/* -j
+        name: gocore-devtools-${{ matrix.platform }}.zip
+        path: ./gocore-devtools-${{ matrix.platform }}.zip
     - name: Upload Gocore release assets
       uses: actions/upload-release-asset@v1
       env:
@@ -99,14 +97,25 @@ jobs:
         asset_path: ./gocore-devtools-${{ matrix.platform }}.zip
         asset_name: gocore-devtools-${{ matrix.platform }}.zip
         asset_content_type: application/zip
-    - name: Create checksums
+    - name: Generate checksums
       run: |
-        sha256sum gocore-${{ matrix.platform }}.zip >>checksum.txt
-        sha256sum gocore-devtools-${{ matrix.platform }}.zip >>checksum.txt
-    - name: Update Release page
-      uses: tubone24/update_release@v1.0
+        sha256sum gocore-${{ matrix.platform }}.zip >gocore-${{ matrix.platform }}.zip.checksum
+        sha256sum gocore-devtools-${{ matrix.platform }}.zip >gocore-devtools-${{ matrix.platform }}.zip.checksum
+    - name: Upload Gocore release assets checksums
+      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        is_append_body: true
-        body: checksum.txt # new body text
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./gocore-${{ matrix.platform }}.zip.checksum
+        asset_name: gocore-${{ matrix.platform }}.zip.checksum
+        asset_content_type: text/plain
+    - name: Upload Gocore-Devtools release assets checksums
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./gocore-devtools-${{ matrix.platform }}.zip.checksum
+        asset_name: gocore-devtools-${{ matrix.platform }}.zip.checksum
+        asset_content_type: text/plain
