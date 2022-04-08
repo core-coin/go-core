@@ -21,13 +21,19 @@ jobs:
     - name: Build
       run: |
         make gocore
-        make test
-    - name: Upload
-      if: startsWith(github.ref, 'refs/tags/v')
+#        make test
+    - name: Upload Gocore
+#      if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
       with:
         name: gocore-${{ matrix.platform.path }}
-        path: ./build/bin
+        path: ./build/bin/gocore
+    - name: Upload Dev Tools
+        #      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v2
+      with:
+        name: gocore-devtools-${{ matrix.platform.path }}
+        path: ./build/*~gocore*
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
