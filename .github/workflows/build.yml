@@ -108,4 +108,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        body_path: ./checksum.txt # new body text
+        is_append_body: true
+        body: checksum.txt # new body text
