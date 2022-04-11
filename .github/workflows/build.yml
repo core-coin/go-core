@@ -56,10 +56,10 @@ jobs:
     strategy:
       matrix:
         platform: [
-          {path: linux-x86_64, file_name_with_path: gocore-linux-x86_64, file_name: gocore},
-          {path: windows-x86_64, file_name_with_path: gocore-windows-x86_64.exe, file_name: gocore.exe},
-          {path: linux-arm64, file_name_with_path: gocore-linux-arm64, file_name: gocore},
-          {path: darwin-x86_64, file_name_with_path: gocore-darwin-x86_64, file_name: gocore},
+          {path: linux-x86_64, file_ext: ""},
+          {path: windows-x86_64, file_ext: ".exe"},
+          {path: linux-arm64, file_ext: ""},
+          {path: darwin-x86_64, file_ext: ""},
         ]
     steps:
     - name: Checkout
@@ -79,16 +79,16 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform.path }}/${{matrix.platform.file_name}}
-        asset_name: ${{ matrix.platform.file_name_with_path }}
+        asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.file_ext}}
+        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
         asset_content_type: application/octet-stream
 
     # Generating checksums
     - name: Generate gocore checksums
       working-directory: ./gocore-${{ matrix.platform.path }}
       run: |
-        mv ./${{matrix.platform.file_name}} ./${{ matrix.platform.file_name_with_path }}
-        sha256sum ${{ matrix.platform.file_name_with_path }} >${{ matrix.platform.file_name_with_path }}.checksum
+        mv ./gocore${{matrix.platform.file_ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
+        sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
 
       # Uploading checksums
     - name: Upload Gocore release assets checksums (Linux and Mac)
@@ -97,6 +97,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform.path }}/${{ matrix.platform.file_name_with_path }}.checksum
-        asset_name: ${{ matrix.platform.file_name_with_path }}.checksum
+        asset_path: ./gocore-${{ matrix.platform.path }}/gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
+        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
         asset_content_type: text/plain
