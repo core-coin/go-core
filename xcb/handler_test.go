@@ -500,7 +500,7 @@ func testCheckpointChallenge(t *testing.T, syncmode downloader.SyncMode, checkpo
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
-	pm, err := NewProtocolManager(config, cht, syncmode, DefaultConfig.NetworkId, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, cryptore.NewFaker(), blockchain, db, 1, nil)
+	pm, err := NewProtocolManager(config, cht, syncmode, DefaultConfig.NetworkId, new(event.TypeMux), &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, cryptore.NewFaker(), blockchain, db, 1, nil, false)
 	if err != nil {
 		t.Fatalf("failed to start test protocol manager: %v", err)
 	}
@@ -559,6 +559,27 @@ func TestBroadcastBlock(t *testing.T) {
 		broadcastExpected int
 	}{
 		{1, 1},
+		{2, 1},
+		{3, 1},
+		{4, 2},
+		{5, 2},
+		{9, 3},
+		{12, 3},
+		{16, 4},
+		{26, 5},
+		{100, 10},
+	}
+	for _, test := range tests {
+		testBroadcastBlock(t, test.totalPeers, test.broadcastExpected, false)
+	}
+}
+
+func TestBroadcastBlockBTTP(t *testing.T) {
+	var tests = []struct {
+		totalPeers        int
+		broadcastExpected int
+	}{
+		{1, 1},
 		{2, 2},
 		{3, 3},
 		{4, 4},
@@ -570,11 +591,11 @@ func TestBroadcastBlock(t *testing.T) {
 		{100, 100},
 	}
 	for _, test := range tests {
-		testBroadcastBlock(t, test.totalPeers, test.broadcastExpected)
+		testBroadcastBlock(t, test.totalPeers, test.broadcastExpected, true)
 	}
 }
 
-func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
+func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int, bttp bool) {
 	var (
 		evmux   = new(event.TypeMux)
 		pow     = cryptore.NewFaker()
@@ -587,7 +608,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
-	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, evmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil)
+	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, evmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil, bttp)
 	if err != nil {
 		t.Fatalf("failed to start test protocol manager: %v", err)
 	}
@@ -647,7 +668,7 @@ func TestBroadcastMalformedBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
-	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, new(event.TypeMux), new(testTxPool), engine, blockchain, db, 1, nil)
+	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, new(event.TypeMux), new(testTxPool), engine, blockchain, db, 1, nil, false)
 	if err != nil {
 		t.Fatalf("failed to start test protocol manager: %v", err)
 	}

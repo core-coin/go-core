@@ -70,6 +70,7 @@ var (
 		utils.ExternalSignerFlag,
 		utils.NoUSBFlag,
 		utils.LedFlag,
+		utils.BTTPFlag,
 		utils.LedGPIOPortFlag,
 		utils.SmartCardDaemonPathFlag,
 		utils.TxPoolLocalsFlag,

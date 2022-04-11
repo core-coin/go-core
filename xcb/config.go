@@ -149,6 +149,9 @@ type Config struct {
 	// Type of the CVM interpreter ("" for default)
 	CVMInterpreter string
 
+	// TrustedPeersBroadcasting enables broadcasting blocks to trusted peers and after to all connected peers
+	TrustedPeersBroadcasting bool
+
 	// RPCEnergyCap is the global energy cap for xcb-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`
 
