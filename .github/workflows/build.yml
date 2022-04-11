@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: |
-        make all
+        make gocore
         make test
     - name: Upload Gocore
       if: startsWith(github.ref, 'refs/tags/v')
@@ -28,14 +28,6 @@ jobs:
       with:
         name: gocore-${{ matrix.platform.path }}
         path: ./build/bin/gocore*
-    - name: Upload Dev Tools
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v2
-      with:
-        name: gocore-devtools-${{ matrix.platform.path }}
-        path: |
-          ./build/bin/*
-          !./build/bin/gocore*
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -63,7 +55,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux-x86_64, windows-x86_64, linux-arm64, darwin-x86_64]
+        platform: [
+          {path: linux-x86_64, file_name_with_path: gocore-linux-x86_64, file_name: gocore},
+          {path: windows-x86_64, file_name_with_path: gocore-windows-x86_64.exe, file_name: gocore.exe},
+          {path: linux-arm64, file_name_with_path: gocore-linux-arm64, file_name: gocore},
+          {path: darwin-x86_64, file_name_with_path: gocore-darwin-x86_64, file_name: gocore},
+        ]
     steps:
     - name: Checkout
       uses: actions/checkout@v1
@@ -72,92 +69,34 @@ jobs:
     - name: Artifact Gocore
       uses: actions/download-artifact@v2
       with:
-        name: gocore-${{ matrix.platform }}
-        path: ./gocore-${{ matrix.platform }}
-    - name: Artifact Gocore-Devtools
-      uses: actions/download-artifact@v2
-      with:
-        name: gocore-devtools-${{ matrix.platform }}
-        path: ./gocore-devtools-${{ matrix.platform }}
-
-      # Zipping devtools
-    - name: Zip Gocore-Devtools
-      run: zip gocore-devtools-${{ matrix.platform }}.zip gocore-devtools-${{ matrix.platform }}/* -j
+        name: gocore-${{ matrix.platform.path}}
+        path: ./gocore-${{ matrix.platform.path }}
 
       # Uploading assets
-    - name: Upload Gocore release assets (Linux and Mac)
-      if: matrix.platform != 'windows-x86_64'
+    - name: Upload Gocore release assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform }}/gocore
-        asset_name: gocore-${{ matrix.platform }}
+        asset_path: ./gocore-${{ matrix.platform.path }}/${{matrix.platform.file_name}}
+        asset_name: ${{ matrix.platform.file_name_with_path }}
         asset_content_type: application/octet-stream
-    - name: Upload Gocore release assets (Windows)
-      if: matrix.platform == 'windows-x86_64'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform }}/gocore.exe
-        asset_name: gocore-${{ matrix.platform }}.exe
-        asset_content_type: application/octet-stream
-    - name: Upload Gocore-Devtools release assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-devtools-${{ matrix.platform }}.zip
-        asset_name: gocore-devtools-${{ matrix.platform }}.zip
-        asset_content_type: application/zip
 
     # Generating checksums
-    - name: Generate gocore checksums (Linux and Mac)
-      if: matrix.platform != 'windows-x86_64'
-      working-directory: ./gocore-${{ matrix.platform }}
+    - name: Generate gocore checksums
+      working-directory: ./gocore-${{ matrix.platform.path }}
       run: |
-        mv ./gocore ./gocore-${{ matrix.platform }}
-        sha256sum gocore-${{ matrix.platform }} >gocore-${{ matrix.platform }}.checksum
-    - name: Generate gocore checksums (Windows)
-      if: matrix.platform == 'windows-x86_64'
-      working-directory: ./gocore-${{ matrix.platform }}
-      run: |
-        mv ./gocore.exe ./gocore-${{ matrix.platform }}.exe
-        sha256sum gocore-${{ matrix.platform }}.exe >gocore-${{ matrix.platform }}.exe.checksum
-    - name: Generate gocore-devtools checksums
-      run: sha256sum gocore-devtools-${{ matrix.platform }}.zip >gocore-devtools-${{ matrix.platform }}.zip.checksum
+        mv ./${{matrix.platform.file_name}} ./${{ matrix.platform.file_name_with_path }}
+        sha256sum ${{ matrix.platform.file_name_with_path }} >${{ matrix.platform.file_name_with_path }}.checksum
 
       # Uploading checksums
     - name: Upload Gocore release assets checksums (Linux and Mac)
-      if: matrix.platform != 'windows-x86_64'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform }}/gocore-${{ matrix.platform }}.checksum
-        asset_name: gocore-${{ matrix.platform }}.checksum
-        asset_content_type: text/plain
-    - name: Upload Gocore release assets checksums (Windows)
-      if: matrix.platform == 'windows-x86_64'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform }}/gocore-${{ matrix.platform }}.exe.checksum
-        asset_name: gocore-${{ matrix.platform }}.exe.checksum
-        asset_content_type: text/plain
-    - name: Upload Gocore-Devtools release assets checksums
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-devtools-${{ matrix.platform }}.zip.checksum
-        asset_name: gocore-devtools-${{ matrix.platform }}.zip.checksum
+        asset_path: ./gocore-${{ matrix.platform.path }}/${{ matrix.platform.file_name_with_path }}.checksum
+        asset_name: ${{ matrix.platform.file_name_with_path }}.checksum
         asset_content_type: text/plain
