@@ -342,7 +342,7 @@ func DefaultGenesisBlock() *Genesis {
 		Config:      params.MainnetChainConfig,
 		Timestamp:   1644745792,
 		Nonce:       66,
-		Difficulty:  big.NewInt(1000000),
+		Difficulty:  big.NewInt(10000000),
 		EnergyLimit: 14700000,
 		Alloc:       decodePrealloc(mainnetAllocData),
 	}
