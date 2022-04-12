@@ -195,6 +195,9 @@ type Config struct {
 	// Logger is a custom logger to use with the p2p.Server.
 	Logger log.Logger `toml:",omitempty"`
 
+	// BTTP enables blocks broadcasting to trusted peers at first and then to all another connected peers
+	BTTP bool
+
 	staticNodesWarning       bool
 	trustedNodesWarning      bool
 	oldGocoreResourceWarning bool

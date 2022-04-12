@@ -86,6 +86,8 @@ type ProtocolManager struct {
 
 	whitelist map[uint64]common.Hash
 
+	bttp bool
+
 	// channels for fetcher, syncer, txsyncLoop
 	txsyncCh chan *txsync
 	quitSync chan struct{}
@@ -100,7 +102,7 @@ type ProtocolManager struct {
 
 // NewProtocolManager returns a new Core sub protocol manager. The Core sub protocol manages peers capable
 // with the Core network.
-func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb xcbdb.Database, cacheLimit int, whitelist map[uint64]common.Hash) (*ProtocolManager, error) {
+func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb xcbdb.Database, cacheLimit int, whitelist map[uint64]common.Hash, bttp bool) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkID:  networkID,
@@ -112,6 +114,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		whitelist:  whitelist,
 		txsyncCh:   make(chan *txsync),
 		quitSync:   make(chan struct{}),
+		bttp:       bttp,
 	}
 
 	if mode == downloader.FullSync {
@@ -831,21 +834,33 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 			log.Error("Propagating dangling block", "number", block.Number(), "hash", hash)
 			return
 		}
-		// Prioritize sending to trusted peers
-		log.Warn("Broadcasting block to trusted peers", "number", block.Number(), "hash", hash)
-		for _, peer := range peers {
-			if peer.Peer.Info().Network.Trusted {
-				peer.AsyncSendNewBlock(block, td)
+
+		if pm.bttp {
+			// Prioritize sending to trusted peers
+			log.Debug("Broadcasting block to trusted peers", "number", block.Number(), "hash", hash)
+			for _, peer := range peers {
+				if peer.Peer.Info().Network.Trusted {
+					peer.AsyncSendNewBlock(block, td)
+				}
 			}
-		}
-		// Send to all remaining peers as well
-		for _, peer := range peers {
-			if !peer.Peer.Info().Network.Trusted {
-				peer.AsyncSendNewBlock(block, td)
+			// Send to all remaining peers as well
+			for _, peer := range peers {
+				if !peer.Peer.Info().Network.Trusted {
+					peer.AsyncSendNewBlock(block, td)
+				}
 			}
+			log.Trace("Propagated block", "hash", hash, "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+			return
 		}
-		log.Trace("Propagated block", "hash", hash, "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+
+		// Send the block to a subset of our peers
+		transfer := peers[:int(math.Sqrt(float64(len(peers))))]
+		for _, peer := range transfer {
+			peer.AsyncSendNewBlock(block, td)
+		}
+		log.Trace("Propagated block", "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 		return
+
 	}
 	// Otherwise if the block is indeed in out own chain, announce it
 	if pm.blockchain.HasBlock(hash, block.NumberU64()) {

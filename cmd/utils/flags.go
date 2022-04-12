@@ -238,6 +238,10 @@ var (
 		Name:  "lightkdf",
 		Usage: "Reduce key-derivation RAM & CPU usage at some expense of KDF strength",
 	}
+	BTTPFlag = cli.BoolFlag{
+		Name:  "bttp",
+		Usage: "Broadcasting blocks at first to trusted peers and then to all connected peers",
+	}
 	WhitelistFlag = cli.StringFlag{
 		Name:  "whitelist",
 		Usage: "Comma separated block number-to-hash mappings to enforce (<number>=<hash>)",
@@ -1186,6 +1190,9 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	}
 	if ctx.GlobalIsSet(LightKDFFlag.Name) {
 		cfg.UseLightweightKDF = ctx.GlobalBool(LightKDFFlag.Name)
+	}
+	if ctx.GlobalIsSet(BTTPFlag.Name) {
+		cfg.BTTP = ctx.GlobalBool(BTTPFlag.Name)
 	}
 	if ctx.GlobalIsSet(NoUSBFlag.Name) {
 		cfg.NoUSB = ctx.GlobalBool(NoUSBFlag.Name)
