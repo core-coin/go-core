@@ -5,29 +5,37 @@ jobs:
     strategy:
       matrix:
         platform: [
-          {os: ubuntu-latest, path: linux-x86_64},
-          {os: windows-latest, path: windows-x86_64},
-          {os: raspbian-private, path: linux-arm64},
-          {os: macos-latest, path: darwin-x86_64},
+          {os: ubuntu-latest, path: linux-x86_64, script: all},
+          {os: ubuntu-latest, path: windows-x86_64, script: all-windows},
+          {os: raspbian-private, path: linux-arm64, script: all},
+          {os: macos-latest, path: darwin-x86_64, script: all},
         ]
     runs-on: ${{ matrix.platform.os }}
     steps:
-    - name: Setup
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.17.x
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Build
-      run: |
-        make gocore
-        make test
-    - name: Upload Gocore
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v2
-      with:
-        name: gocore-${{ matrix.platform.path }}
-        path: ./build/bin/gocore*
+      - name: Setup
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.17.x
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Build
+        run: |
+          make ${{ matrix.platform.script }}
+          make test
+      - name: Upload Gocore
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v2
+        with:
+          name: gocore-${{ matrix.platform.path }}
+          path: ./build/bin/gocore*
+      - name: Upload Dev Tools
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v2
+        with:
+          name: gocore-devtools-${{ matrix.platform.path }}
+          path: |
+            ./build/bin/*
+            !./build/bin/gocore*
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -35,68 +43,87 @@ jobs:
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Version
-      id: version
-      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-    - name: Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.tag }}
-        release_name: ${{ steps.version.outputs.tag }} gocore release
-        draft: false
-        prerelease: true
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Version
+        id: version
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+      - name: Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: ${{ steps.version.outputs.tag }} gocore release
+          draft: false
+          prerelease: true
   artifacts:
     needs: release
     runs-on: ubuntu-latest
     strategy:
       matrix:
         platform: [
-          {path: linux-x86_64, file_ext: ""},
-          {path: windows-x86_64, file_ext: ".exe"},
-          {path: linux-arm64, file_ext: ""},
-          {path: darwin-x86_64, file_ext: ""},
+          {os: ubuntu-latest, path: linux-x86_64, ext: ""},
+          {os: windows-latest, path: windows-x86_64, ext: ".exe"},
+          {os: raspbian-private, path: linux-arm64, ext: ""},
+          {os: macos-latest, path: darwin-x86_64, ext: ""},
         ]
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v1
 
-      # Downloading assets from 1 step
-    - name: Artifact Gocore
-      uses: actions/download-artifact@v2
-      with:
-        name: gocore-${{ matrix.platform.path}}
-        path: ./gocore-${{ matrix.platform.path }}
+        # Downloading assets from 1 step
+      - name: Artifact Gocore
+        uses: actions/download-artifact@v2
+        with:
+          name: gocore-${{ matrix.platform.path }}
+          path: ./gocore-${{ matrix.platform.path }}
+      - name: Artifact Gocore-Devtools
+        uses: actions/download-artifact@v2
+        with:
+          name: gocore-devtools-${{ matrix.platform.path }}
+          path: ./gocore-devtools-${{ matrix.platform.path }}
 
-      # Uploading assets
-    - name: Upload Gocore release assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.file_ext}}
-        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
-        asset_content_type: application/octet-stream
+        # Zipping devtools
+      - name: Zip Gocore-Devtools
+        run: zip gocore-devtools-${{ matrix.platform.path }}.zip gocore-devtools-${{ matrix.platform.path }}/* -j
 
-    # Generating checksums
-    - name: Generate gocore checksums
-      working-directory: ./gocore-${{ matrix.platform.path }}
-      run: |
-        mv ./gocore${{matrix.platform.file_ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
-        sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
+        # Uploading assets
+      - name: Upload Gocore release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.ext}}
+          asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}
+          asset_content_type: application/octet-stream
+      - name: Upload Gocore-Devtools release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./gocore-devtools-${{ matrix.platform.path }}.zip
+          asset_name: gocore-devtools-${{ matrix.platform.path }}.zip
+          asset_content_type: application/zip
 
-      # Uploading checksums
-    - name: Upload Gocore release assets checksums (Linux and Mac)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ./gocore-${{ matrix.platform.path }}/gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-        asset_content_type: text/plain
+      # Generating checksums
+      - name: Generate gocore checksums
+        working-directory: ./gocore-${{ matrix.platform.path }}
+        run: |
+          mv ./gocore${{matrix.platform.ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}
+          sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}.checksum
+        
+
+        # Uploading checksums
+      - name: Upload Gocore release assets checksums (Linux and Mac)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./gocore-${{ matrix.platform.path }}/gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}.checksum
+          asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}.checksum
+          asset_content_type: text/plain
