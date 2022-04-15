@@ -185,8 +185,9 @@ func main() {
 
 func doInstall(cmdline []string) {
 	var (
-		arch = flag.String("arch", "", "Architecture to cross build for")
-		cc   = flag.String("cc", "", "C compiler to cross build with")
+		arch   = flag.String("arch", "", "Architecture to cross build for")
+		cc     = flag.String("cc", "", "C compiler to cross build with")
+		archOS = flag.String("os", "", "os to cross build with")
 	)
 	flag.CommandLine.Parse(cmdline)
 	env := build.Env()
@@ -207,6 +208,15 @@ func doInstall(cmdline []string) {
 	}
 	// Compile packages given as arguments, or everything if there are no arguments.
 	packages := []string{"./..."}
+	if *archOS == "windows" {
+		goinstall := goToolForWindowsCrosscompile(*arch, *archOS, *cc, "build", buildFlags(env)...)
+		goinstall.Args = append(goinstall.Args, "-trimpath")
+		goinstall.Args = append(goinstall.Args, "-v")
+		goinstall.Args = append(goinstall.Args, "-o", GOBIN+"/")
+		goinstall.Args = append(goinstall.Args, packages...)
+		build.MustRun(goinstall)
+		return
+	}
 	if flag.NArg() > 0 {
 		packages = flag.Args()
 	}
@@ -282,6 +292,22 @@ func goToolArch(arch string, cc string, subcmd string, args ...string) *exec.Cmd
 	if cc != "" {
 		cmd.Env = append(cmd.Env, "CC="+cc)
 	}
+	for _, e := range os.Environ() {
+		if strings.HasPrefix(e, "GOBIN=") {
+			continue
+		}
+		cmd.Env = append(cmd.Env, e)
+	}
+	return cmd
+}
+
+func goToolForWindowsCrosscompile(arch string, archOS string, cc string, subcmd string, args ...string) *exec.Cmd {
+	cmd := build.GoTool(subcmd, args...)
+	cmd.Env = append(cmd.Env, "CGO_ENABLED=1")
+	cmd.Env = append(cmd.Env, "GOARCH="+arch)
+	cmd.Env = append(cmd.Env, "GOOS="+archOS)
+	cmd.Env = append(cmd.Env, "CC="+cc)
+	cmd.Env = append(cmd.Env, "CXX="+cc)
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, "GOBIN=") {
 			continue

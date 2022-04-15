@@ -20,6 +20,13 @@ gocore:
 all:
 	$(GORUN) build/ci.go install
 
+all-windows:
+	sudo apt install build-essential git -y
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+	brew install mingw-w64
+	$(GORUN) build/ci.go install --os windows --arch amd64  --cc x86_64-w64-mingw32-gcc-11.2.0 ./...
+
 android:
 	$(GORUN) build/ci.go aar --local
 	@echo "Done building."
