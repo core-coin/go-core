@@ -114,7 +114,7 @@ jobs:
         working-directory: ./gocore-${{ matrix.platform.path }}
         run: |
           mv ./gocore${{matrix.platform.ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}
-          sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.ext}} >gocore-${{ matrix.platform }}${{matrix.platform.ext}}.checksum
+          sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.ext}}.checksum
         
 
         # Uploading checksums
