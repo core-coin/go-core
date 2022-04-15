@@ -6,7 +6,7 @@ jobs:
       matrix:
         platform: [
           {os: ubuntu-latest, path: linux-x86_64, script: all},
-          {os: ubuntu-latest, path: windows-x86_64, script: windows-all},
+          {os: ubuntu-latest, path: windows-x86_64, script: all-windows},
           {os: raspbian-private, path: linux-arm64, script: all},
           {os: macos-latest, path: darwin-x86_64, script: all},
         ]
