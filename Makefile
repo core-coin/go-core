@@ -17,6 +17,11 @@ gocore:
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/gocore\" to launch gocore."
 
+gocore-windows:
+	CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc-11.2.0 CCX=x86_64-w64-mingw32-gcc-11.2.0 $(GORUN) build/ci.go install ./cmd/gocore
+	@echo "Done building."
+	@echo "Run \"$(GOBIN)/gocore\" to launch gocore."
+
 all:
 	$(GORUN) build/ci.go install
 

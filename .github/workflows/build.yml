@@ -5,10 +5,10 @@ jobs:
     strategy:
       matrix:
         platform: [
-          {os: ubuntu-latest, path: linux-x86_64},
-          {os: windows-latest, path: windows-x86_64},
-          {os: raspbian-private, path: linux-arm64},
-          {os: macos-latest, path: darwin-x86_64},
+          {os: ubuntu-latest, path: linux-x86_64, script: "gocore"},
+          {os: windows-latest, path: windows-x86_64, script: "gocore-windows"},
+          {os: raspbian-private, path: linux-arm64, script: "gocore"},
+          {os: macos-latest, path: darwin-x86_64, script: "gocore"},
         ]
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v1
     - name: Build
       run: |
-        make gocore
+        make ${{ matrix.platform.script }}
         make test
     - name: Upload Gocore
       if: startsWith(github.ref, 'refs/tags/v')
