@@ -5,10 +5,10 @@ jobs:
     strategy:
       matrix:
         platform: [
-          {os: ubuntu-latest, path: linux-x86_64, script: all},
-          {os: ubuntu-latest, path: windows-x86_64, script: all-windows},
-          {os: raspbian-private, path: linux-arm64, script: all},
-          {os: macos-latest, path: darwin-x86_64, script: all},
+          {os: ubuntu-latest, path: linux-x86_64, script: all, file_ext: ""},
+          {os: ubuntu-latest, path: windows-x86_64, script: all-windows, file_ext: ".exe"},
+          {os: raspbian-private, path: linux-arm64, script: all, file_ext: ""},
+          {os: macos-latest, path: darwin-x86_64, script: all, file_ext: ""},
         ]
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -27,14 +27,14 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: gocore-${{ matrix.platform.path }}
-          path: ./build/bin/gocore*
+          path: ./build/bin/gocore${{ matrix.platform.file_ext }}
       - name: Upload Dev Tools
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v2
         with:
           name: gocore-devtools-${{ matrix.platform.path }}
           path: |
-            ./build/bin/*
+            ./build/bin/*${{ matrix.platform.file_ext }}
             !./build/bin/gocore*
   release:
     if: startsWith(github.ref, 'refs/tags/v')
