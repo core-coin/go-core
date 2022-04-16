@@ -271,7 +271,7 @@ func buildFlags(env build.Environment) (flags []string) {
 		ld = append(ld, "-s")
 	}
 
-	ld = append(ld, "-extldflags \"-static-libgcc -static-libstdc++\"")
+	ld = append(ld, "-extldflags \"-static-libstdc++\"")
 
 	flags = append(flags, "-ldflags", strings.Join(ld, " "))
 	return flags
