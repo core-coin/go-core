@@ -271,9 +271,9 @@ func buildFlags(env build.Environment) (flags []string) {
 		ld = append(ld, "-s")
 	}
 
-	if len(ld) > 0 {
-		flags = append(flags, "-ldflags", strings.Join(ld, " "))
-	}
+	ld = append(ld, "-static-libgcc", "-static-libstdc++")
+
+	flags = append(flags, "-ldflags", strings.Join(ld, " "))
 	return flags
 }
 
@@ -308,7 +308,6 @@ func goToolForWindowsCrosscompile(arch string, archOS string, cc string, subcmd 
 	cmd.Env = append(cmd.Env, "GOOS="+archOS)
 	cmd.Env = append(cmd.Env, "CC="+cc)
 	cmd.Env = append(cmd.Env, "CXX="+cc)
-	cmd.Env = append(cmd.Env, "CGO_CFLAGS=-static-libstdc++ -static-libgcc")
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, "GOBIN=") {
 			continue
