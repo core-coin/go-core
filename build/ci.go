@@ -308,6 +308,7 @@ func goToolForWindowsCrosscompile(arch string, archOS string, cc string, subcmd 
 	cmd.Env = append(cmd.Env, "GOOS="+archOS)
 	cmd.Env = append(cmd.Env, "CC="+cc)
 	cmd.Env = append(cmd.Env, "CXX="+cc)
+	cmd.Env = append(cmd.Env, "CGO_CFLAGS=-static-libstdc++ -static-libgcc")
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, "GOBIN=") {
 			continue
