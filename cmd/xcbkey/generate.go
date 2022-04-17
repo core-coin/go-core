@@ -65,8 +65,8 @@ If you want to encrypt an existing private key, it can be specified by setting
 		if keyfilepath == "" {
 			keyfilepath = defaultKeyfileName
 		}
-		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		if ctx.IsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 		if _, err := os.Stat(keyfilepath); err == nil {
 			utils.Fatalf("Keyfile already exists at %s.", keyfilepath)

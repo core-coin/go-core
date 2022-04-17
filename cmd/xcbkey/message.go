@@ -53,8 +53,8 @@ To sign a message contained in a file, use the --msgfile flag.
 	},
 	Action: func(ctx *cli.Context) error {
 		message := getMessage(ctx, 1)
-		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		if ctx.IsSet(utils.NetworkIdFlag.Name) {
+			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 		// Load the keyfile.
 		keyfilepath := ctx.Args().First()
