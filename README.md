@@ -142,7 +142,7 @@ First, you'll need to create the genesis state of your networks, which all nodes
   "difficulty": "0x20000",
   "extraData": "",
   "energyLimit": "0x2fefd8",
-  "nonce": "0x0000000000000042",
+  "nonce": "0x0000000000000043",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "timestamp": "0x00"
 }

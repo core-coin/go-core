@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0xb5db407f), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0x8de0801c), Next: 0}},
 			},
 		},
 		// Devin test cases

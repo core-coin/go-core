@@ -21,6 +21,7 @@ package metrics
 import (
 	"bufio"
 	"fmt"
+	"golang.org/x/sys/unix"
 	"io"
 	"os"
 	"strconv"
@@ -68,5 +69,16 @@ func ReadDiskStats(stats *DiskStats) error {
 		case "wchar":
 			stats.WriteBytes = value
 		}
+
+		var stat unix.Statfs_t
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		err = unix.Statfs(wd, &stat)
+		if err != nil {
+			return err
+		}
+		stats.FreeSpaceGB = int64(stat.Bavail * uint64(stat.Bsize) / (1 << 30)) // bytes to GB
 	}
 }
