@@ -92,6 +92,7 @@ func CollectProcessMetrics(refresh time.Duration) {
 		diskWrites            = GetOrRegisterMeter("system/disk/writecount", DefaultRegistry)
 		diskWriteBytes        = GetOrRegisterMeter("system/disk/writedata", DefaultRegistry)
 		diskWriteBytesCounter = GetOrRegisterCounter("system/disk/writebytes", DefaultRegistry)
+		discFreeSpace         = GetOrRegisterMeter("system/disk/freespace", DefaultRegistry)
 	)
 	// Iterate loading the different stats and updating the meters
 	for i := 1; ; i++ {
@@ -120,6 +121,7 @@ func CollectProcessMetrics(refresh time.Duration) {
 
 			diskReadBytesCounter.Inc(diskstats[location1].ReadBytes - diskstats[location2].ReadBytes)
 			diskWriteBytesCounter.Inc(diskstats[location1].WriteBytes - diskstats[location2].WriteBytes)
+			discFreeSpace.Mark(int64(diskstats[location1].FreeSpaceGB - diskstats[location2].FreeSpaceGB))
 		}
 		time.Sleep(refresh)
 	}
