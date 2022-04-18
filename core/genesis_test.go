@@ -17,7 +17,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -32,10 +31,6 @@ import (
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
-	data := decodePrealloc(mainnetAllocData)
-	for a, k := range data {
-		fmt.Println(a.Hex(), " : ", k.Balance)
-	}
 	block := DefaultGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", block.Hash(), params.MainnetGenesisHash)
