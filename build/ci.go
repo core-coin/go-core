@@ -216,9 +216,9 @@ func doInstall(cmdline []string) {
 		if runtime.GOARCH == "arm64" {
 			goinstall.Args = append(goinstall.Args, "-p", "1")
 		}
-        	if runtime.GOARCG == "windows" {
+		if runtime.GOARCH == "windows" {
 			goinstall.Args = append(goinstall.Args, "-buildmode=exe")
-        	}
+		}
 		goinstall.Args = append(goinstall.Args, "-trimpath")
 		goinstall.Args = append(goinstall.Args, "-v")
 		goinstall.Args = append(goinstall.Args, packages...)
