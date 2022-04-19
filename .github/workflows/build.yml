@@ -5,10 +5,10 @@ jobs:
     strategy:
       matrix:
         platform: [
-          {os: ubuntu-latest, path: linux-x86_64},
+          #{os: ubuntu-latest, path: linux-x86_64},
           {os: windows-latest, path: windows-x86_64},
-          {os: raspbian-private, path: linux-arm64},
-          {os: macos-latest, path: darwin-x86_64},
+          #{os: raspbian-private, path: linux-arm64},
+          #{os: macos-latest, path: darwin-x86_64},
         ]
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -21,7 +21,7 @@ jobs:
     - name: Build
       run: |
         make gocore
-        make test
+        #make test
     - name: Upload Gocore
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
