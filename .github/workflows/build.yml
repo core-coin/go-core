@@ -23,6 +23,7 @@ jobs:
         msystem: mingw64
         update: true
         install: >
+          git
           base-devel
           autoconf-wrapper
           autoconf
