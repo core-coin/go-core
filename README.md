@@ -6,8 +6,9 @@ Automated builds are available for stable releases and the unstable master branc
 
 ## Building the source
 
-Building `gocore` requires both a Go (version 1.13 or later) and a C compiler. You can install them using your favorite package manager. Once the dependencies are installed, run
+Building `gocore` requires both a Go (version 1.14 or later) and C/C++ compiler. You can install them using your favorite package manager. Once the dependencies are installed, run
 
+### To build gocore on Linux or Mac
 ```shell
 make gocore
 ```
@@ -16,6 +17,14 @@ or, to build the full suite of utilities:
 
 ```shell
 make all
+```
+
+### To build or run on Windows
+**Note: It is important to note that gocore requires mingw to run and build on Windows**
+
+To install mingw:
+```shell
+choco install mingw
 ```
 
 ## ICAN network prefixes
