@@ -14,9 +14,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup golang
+    - name: Setup Go
       uses: actions/setup-go@v3
-    - name: Setup Win
+    - name: Setup MSYS
       if: ${{ matrix.platform == 'windows-latest' }}
       uses: msys2/setup-msys2@v2
       with:
