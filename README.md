@@ -20,7 +20,7 @@ make all
 
 ## ICAN network prefixes
 
-CORE Client implements ICAN-based addresses with following formats:
+CORE Client implements ICAN-based addresses with the following formats:
 
 Name | Prefix | Length | Format
 --- | --- | --- | ---
@@ -36,7 +36,7 @@ directory.
 Command | Description
 --- | ---
 gocore | Main Core CLI client. It is the entry point into the CORE network (main-, "testnets" or private net), capable of running as a full node (default), archive node (retaining all historical state), or a light node (retrieving data live). It can be used by other processes as a gateway into the CORE network via JSON RPC endpoints exposed on top of HTTP, WebSocket, and/or IPC transports. Type `gocore --help` for command-line options.
-abigen | Source code generator to convert CORE contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain CORE contract ABIs with expanded functionality if the contract bytecode is also available. However, it also accepts Ylem source files, making development much more streamlined.
+abigen | Source code generator to convert CORE contract definitions into easy-to-use, compile-time type-safe Go packages. It operates on plain CORE contract ABIs with expanded functionality if the contract bytecode is also available. However, it also accepts Ylem source files, making development much more streamlined.
 bootnode | Stripped down version of our CORE client implementation that only takes part in the network node discovery protocol, but does not run any of the higher-level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.
 cvm | Developer utility version of the CVM (CORE Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of CVM opcodes.
 gocorerpctest | Developer utility tool to support our core/rpc-test test suite which validates baseline conformity to the CORE JSON RPC specs.
@@ -44,7 +44,7 @@ rlpdump | Developer utility tool to convert binary RLP (Recursive Length Prefix)
 
 ### Full node on the main CORE network
 
-By far the most common scenario is people wanting to simply interact with the CORE network: create accounts; transfer funds; deploy and interact with contracts. For this particular use-case the user doesn't care about years-old historical data, so we can fast-sync quickly to the current state of the network. To do so:
+By far the most common scenario is people wanting to simply interact with the CORE network: create accounts; transfer funds; deploy and interact with contracts. For this particular use case, the user doesn't care about years-old historical data, so we can fast-sync quickly to the current state of the network. To do so:
 
 ```shell
 $ gocore console
@@ -52,7 +52,7 @@ $ gocore console
 
 This command will:
  * Start `gocore` in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to download more data in exchange for avoiding processing the entire history of the CORE network, which is very CPU intensive.
- * Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach to an already running `gocore` instance with `gocore attach`.
+ * Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach it to an already running `gocore` instance with `gocore attach`.
 
 ### A Full node on the Devin network (PoW)
 
@@ -62,12 +62,12 @@ Transitioning towards developers, if you'd like to play around with creating COR
 $ gocore --devin console
 ```
 
-The `console` subcommand has the exact same meaning as above and they are equally useful on the devin too. Please see above for their explanations if you've skipped here.
+The `console` subcommand has the exact same meaning as above and they are equally useful on the devin too. Please see above for their explanations if you've skipped them here.
 
 Specifying the `--devin` flag, however, will reconfigure your `gocore` instance a bit:
 
  * Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
- * Instead of connecting the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
+ * Instead of connecting to the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
 
 ### Configuration
 
@@ -100,7 +100,7 @@ Do not forget `--rpcaddr 0.0.0.0`, if you want to access RPC from other containe
 
 ### Programmatically interfacing gocore nodes
 
-As a developer, sooner rather than later you'll want to start interacting with `gocore` and the CORE network via your own programs and not manually through the console. To aid this, `gocore` has built-in support for JSON-RPC based APIs and `gocore` specific APIs. These can be exposed via HTTP, WebSockets, and IPC (UNIX sockets on UNIX based platforms, and named pipes on Windows).
+As a developer, sooner rather than later you'll want to start interacting with `gocore` and the CORE network via your own programs and not manually through the console. To aid this, `gocore` has built-in support for JSON-RPC-based APIs and `gocore` specific APIs. These can be exposed via HTTP, WebSockets, and IPC (UNIX sockets on UNIX-based platforms, and named pipes on Windows).
 
 The IPC interface is enabled by default and exposes all the APIs supported by `gocore`, whereas the HTTP and WS interfaces need to manually be enabled and only expose a subset of APIs due to security reasons. These can be turned on/off and configured as you'd expect.
 
@@ -122,7 +122,7 @@ HTTP based JSON-RPC API options:
 
 You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect via HTTP, WS, or IPC to a `gocore` node configured with the above flags and you'll need to speak JSON-RPC on all transports. You can reuse the same connection for multiple requests!
 
-**Note: Please understand the security implications of opening up an HTTP/WS based transport before doing so! Hackers on the internet are actively trying to subvert CORE nodes with exposed APIs! Further, all browser tabs can access locally running web servers, so malicious web pages could try to subvert locally available APIs!**
+**Note: Please understand the security implications of opening up an HTTP/WS-based transport before doing so! Hackers on the internet are actively trying to subvert CORE nodes with exposed APIs! Further, all browser tabs can access locally running web servers, so malicious web pages could try to subvert locally available APIs!**
 
 ### Operating a private network
 
@@ -204,6 +204,55 @@ $ gocore <usual-flags> --mine --miner.threads=1 --corebase=ce4500000000000000000
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all proceedings to the account specified by `--corebase`. You can further tune the mining by changing the default energy limit blocks converge to (`--targetenergylimit`) and the price transactions are accepted at (`--energyprice`).
 
+#### Send the transaction
+
+This is guide how to send the transaction with go-core client.
+
+- Start go-core Client
+
+`./gocore --verbosity 2 --nat any console`
+
+- Get latest transaction // for nonce [0x0] // 0 = first; 1 = second; …
+
+Same tx nonce with a higher fee may be a replacement.
+
+`web3.xcb.getTransactionCount("cb…")`
+
+> Expected result: number
+
+- Compose transaction
+
+web3.toOre(1) is value in Cores
+
+energyPrice is the default in ores, default one nucle
+
+`var tx = {nonce: '0x0', energy: 21000, energyPrice: 1000000000, to : "cb…", value: web3.toOre(1), from: "cb…"}`
+
+> Expected result: undefined
+
+- Unlock account
+
+`personal.unlockAccount("cb…")`
+
+> Enter Passphrase or enter
+> Expected result: true
+
+- Sign transaction with the private key
+
+`var txSigned = xcb.signTransaction(tx)`
+
+> Expected result: undefined
+
+- Return Raw transaction for streaming later
+
+`txSigned.raw`
+
+> Expected result: Raw transaction
+
+- Stream transaction (online)
+
+`xcb.sendRawTransaction(txSigned.raw)`
+
 ## Issue Labels
 
 ### Priority
@@ -241,13 +290,11 @@ Please make sure your contributions adhere to our coding guidelines:
 
 ## Security vulnerability disclosure
 
-Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.cc/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities.
+Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.cc/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities. For more information, please look into [Security recommendations](SECURITY.md).
 
 ## License
 
-The go-core library (i.e. all code outside of the `cmd` directory) is licensed under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html), also included in our repository in the `COPYING.LESSER` file.
-
-The go-core binaries (i.e. all code inside of the `cmd` directory) are licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also included in our repository in the `COPYING` file.
+Licensed under the [CORE License](LICENSE).
 
 ## Community
 
