@@ -29,6 +29,7 @@ jobs:
           automake
           libtool
           mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-go
     - name: Build Windows
       if: ${{ matrix.platform.os == 'windows-latest' }}
       shell: msys2 {0}
