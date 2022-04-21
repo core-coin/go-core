@@ -13,7 +13,7 @@ Building `gocore` requires both a Go (version 1.14 or later) and C/C++ compiler.
 make gocore
 ```
 
-or, to all tools:
+or, to build the full suite of utilities:
 
 ```shell
 make all
