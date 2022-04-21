@@ -6,7 +6,7 @@ jobs:
       matrix:
         platform: [
           #{os: ubuntu-latest, path: linux-x86_64},
-          {os: windows-latest, path: windows-x86_64},
+          {os: windows-latest, path: windows-x86_64, target: gocore-windows},
           #{os: raspbian-private, path: linux-arm64},
           #{os: macos-latest, path: darwin-x86_64},
         ]
@@ -16,20 +16,12 @@ jobs:
       uses: actions/checkout@v3
     - name: Setup golang
       uses: actions/setup-go@v3
-    #- name: Setup msys
-    #  if: ${{ matrix.platform.os == 'windows-latest' }}
-    #  uses: msys2/setup-msys2@v2
-    - name: Build win
+    - name: Build
       run: |
         where gcc
         which gcc
-        make gocore
+        make ${{ matrix.platform.target }}
         #make test
-    - name: Build Windows
-      if: ${{ matrix.platform.os != 'windows-latest' }}
-      run: |
-        make gocore
-        make test
     - name: Upload Gocore
       #if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
@@ -44,7 +36,7 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
     - name: Version
       id: version
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
@@ -71,16 +63,12 @@ jobs:
         ]
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
-
-      # Downloading assets from 1 step
+      uses: actions/checkout@v3
     - name: Artifact Gocore
       uses: actions/download-artifact@v2
       with:
         name: gocore-${{ matrix.platform.path}}
         path: ./gocore-${{ matrix.platform.path }}
-
-      # Uploading assets
     - name: Upload Gocore release assets
       uses: actions/upload-release-asset@v1
       env:
@@ -90,15 +78,11 @@ jobs:
         asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.file_ext}}
         asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
         asset_content_type: application/octet-stream
-
-    # Generating checksums
     - name: Generate gocore checksums
       working-directory: ./gocore-${{ matrix.platform.path }}
       run: |
         mv ./gocore${{matrix.platform.file_ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
         sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-
-      # Uploading checksums
     - name: Upload Gocore release assets checksums (Linux and Mac)
       uses: actions/upload-release-asset@v1
       env:
