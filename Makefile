@@ -131,16 +131,7 @@ gocore-darwin-amd64:
 	@echo "Darwin amd64 cross compilation done:"
 	@ls -ld $(GOBIN)/gocore-darwin-* | grep amd64
 
-gocore-windows: gocore-windows-386 gocore-windows-amd64
-	@echo "Windows cross compilation done:"
-	@ls -ld $(GOBIN)/gocore-windows-*
-
-gocore-windows-386:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/gocore
-	@echo "Windows 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gocore-windows-* | grep 386
-
-gocore-windows-amd64:
-	$(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/gocore
-	@echo "Windows amd64 cross compilation done:"
+gocore-windows:
+	CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-gcc $(GORUN) build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/gocore
+	@echo "Windows amd64 compilation done:"
 	@ls -ld $(GOBIN)/gocore-windows-* | grep amd64
