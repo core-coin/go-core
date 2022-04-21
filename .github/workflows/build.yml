@@ -36,7 +36,8 @@ jobs:
         make gocore
         #make test
     - name: Build
-      if: ${{ matrix.platform != 'windows-latest' }} 
+      if: ${{ matrix.platform != 'windows-latest' }}
+      run: | 
         make gocore
         make test
     - name: Upload Gocore
