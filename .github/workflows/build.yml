@@ -23,19 +23,6 @@ jobs:
       run: |
         make gocore
         #make test
-    - name: Setup Win
-      if: ${{ matrix.platform == 'windows-latest' }}
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: mingw64
-        update: true
-        install: >
-          base-devel
-          autoconf-wrapper
-          autoconf
-          automake
-          libtool
-          mingw-w64-x86_64-toolchain
     - name: Build Windows
       if: ${{ matrix.platform == 'windows-latest' }}
       shell: msys2 {0}
