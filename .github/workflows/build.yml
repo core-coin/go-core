@@ -14,18 +14,22 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup
+    - name: Setup golang
       uses: actions/setup-go@v3
-    - name: Build
-      if: ${{ matrix.platform.os != 'windows-latest' }}
-      run: |
-        make gocore
-        #make test
-    - name: Build Windows
+    - name: Setup msys
+      if: ${{ matrix.platform.os == 'windows-latest' }}
+      uses: msys2/setup-msys2@v2
+    - name: Build win
       if: ${{ matrix.platform.os == 'windows-latest' }}
       shell: msys2 {0}
       run: |
         make gocore
+        #make test
+    - name: Build Windows
+      if: ${{ matrix.platform.os != 'windows-latest' }}
+      run: |
+        make gocore
+        make test
     - name: Upload Gocore
       #if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
