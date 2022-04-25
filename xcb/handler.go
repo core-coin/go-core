@@ -170,7 +170,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		// the propagated block if the head is too old. Unfortunately there is a corner
 		// case when starting new networks, where the genesis might be ancient (0 unix)
 		// which would prevent full nodes from accepting it.
-		if manager.blockchain.CurrentBlock().NumberU64() < manager.checkpointNumber {
+		if manager.blockchain.CurrentBlock().NumberU64() < manager.checkpointNumber && manager.checkpointHash != (common.Hash{}) {
 			log.Warn("Unsynced yet, discarded propagated block", "number", blocks[0].Number(), "hash", blocks[0].Hash())
 			return 0, nil
 		}
