@@ -27,8 +27,8 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0x3eeef5970703b4cc0eef77abfd5ec990d8a6563e105f0832a0daff12e9dffdff")
-	DevinGenesisHash   = common.HexToHash("0xb99361244cfcdf290bc65cdd626a5812a3d32fffe5e4d7172c9b60dbaba1174f")
+	MainnetGenesisHash = common.HexToHash("0x9c68b2e6b41822e42b491c3f8d360e269f72314438002c73736aff6d638c2ae8")
+	DevinGenesisHash   = common.HexToHash("0x8e717330902589ac12c939b980fd3904692946089acf57f3708537ac1eb779bb")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
