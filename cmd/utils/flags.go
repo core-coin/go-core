@@ -1568,11 +1568,9 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 			cfg.Miner.EnergyPrice = big.NewInt(1)
 		}
 	default:
-		cfg.Genesis = core.DefaultGenesisBlock()
 		if cfg.NetworkId == 1 {
+			cfg.Genesis = core.DefaultGenesisBlock()
 			setDNSDiscoveryDefaults(cfg, params.KnownDNSNetworks[params.MainnetGenesisHash])
-		} else {
-			cfg.Genesis.Coinbase = core.DefaultCoinbasePrivate
 		}
 	}
 	common.DefaultNetworkID = common.NetworkID(cfg.NetworkId)
