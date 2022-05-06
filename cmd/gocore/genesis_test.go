@@ -36,12 +36,12 @@ var customGenesisTests = []struct {
 			"difficulty" : "0x20000",
 			"extraData"  : "",
 			"energyLimit"   : "0x2fefd8",
-			"nonce"      : "0x0000000000000046",
+			"nonce"      : "0x0000000000000047",
 			"parentHash" : "0x0000000000000000000000000000000000000000000000000000000000000000",
 			"timestamp"  : "0x00"
 		}`,
 		query:  "xcb.getBlock(0).nonce",
-		result: "0x0000000000000046",
+		result: "0x0000000000000047",
 	},
 	// Genesis file with an empty chain configuration (ensure missing fields work)
 	{
@@ -51,13 +51,13 @@ var customGenesisTests = []struct {
 			"difficulty" : "0x20000",
 			"extraData"  : "",
 			"energyLimit"   : "0x2fefd8",
-			"nonce"      : "0x0000000000000046",
+			"nonce"      : "0x0000000000000047",
 			"parentHash" : "0x0000000000000000000000000000000000000000000000000000000000000000",
 			"timestamp"  : "0x00",
 			"config"     : {}
 		}`,
 		query:  "xcb.getBlock(0).nonce",
-		result: "0x0000000000000046",
+		result: "0x0000000000000047",
 	},
 	// Genesis file with specific chain configurations
 	{
@@ -67,13 +67,13 @@ var customGenesisTests = []struct {
 			"difficulty"  : "0x20000",
 			"extraData"   : "",
 			"energyLimit" : "0x2fefd8",
-			"nonce"       : "0x0000000000000046",
+			"nonce"       : "0x0000000000000047",
 			"parentHash"  : "0x0000000000000000000000000000000000000000000000000000000000000000",
 			"timestamp"   : "0x00",
 			"config"      : {},
 		}`,
 		query:  "xcb.getBlock(0).nonce",
-		result: "0x0000000000000046",
+		result: "0x0000000000000047",
 	},
 }
 
