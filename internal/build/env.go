@@ -65,7 +65,7 @@ func Env() Environment {
 			Branch:        os.Getenv("GITHUB_REF_NAME"),
 			Tag:           os.Getenv("GITHUB_REF_NAME"),
 			Buildnum:      os.Getenv("GITHUB_RUN_ID"),
-            Type:          os.Getenv("GITHUB_REF_TYPE"),
+			Type:          os.Getenv("GITHUB_REF_TYPE"),
 			IsPullRequest: false,
 			IsCronJob:     false,
 		}
