@@ -36,7 +36,7 @@ import (
 
 var (
 	// Git SHA1 commit hash of the release (set via linker flags)
-    gitTag = ""
+	gitTag = ""
 	gitCommit = ""
 	gitDate   = ""
 

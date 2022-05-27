@@ -89,7 +89,7 @@ var (
 )
 
 var (
-    gitTag    = ""
+	gitTag    = ""
 	gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
 	gitDate   = "" // Git commit date YYYYMMDD of the release (set via linker flags)
 )

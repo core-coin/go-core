@@ -41,7 +41,7 @@ type Environment struct {
 	Name                      string // name of the environment
 	Repo                      string // name of GitHub repo
 	Commit, Date, Branch, Tag string // Git info
-    Type                      string
+	Type                      string
 	Buildnum                  string
 	IsPullRequest             bool
 	IsCronJob                 bool

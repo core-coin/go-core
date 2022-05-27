@@ -30,7 +30,7 @@ import (
 
 var (
 	// Git information set by linker when building with ci.go
-    gitTag string
+	gitTag string
 	gitCommit string
 	gitDate   string
 	app       = &cli.App{
