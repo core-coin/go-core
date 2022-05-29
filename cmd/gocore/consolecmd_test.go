@@ -60,7 +60,7 @@ func TestConsoleWelcome(t *testing.T) {
 	gocore.Expect(`
 Welcome to the Gocore JavaScript console!
 
-instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{.Corebase}}
 at block: 0 ({{niltime}})
  datadir: {{.Datadir}}
@@ -156,7 +156,7 @@ func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) 
 	attach.Expect(`
 Welcome to the Gocore JavaScript console!
 
-instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{corebase}}
 at block: 0 ({{niltime}}){{if ipc}}
  datadir: {{datadir}}{{end}}
