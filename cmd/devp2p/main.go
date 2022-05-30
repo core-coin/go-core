@@ -29,13 +29,14 @@ import (
 )
 
 var (
-	// Git information set by linker when building with ci.go.
+	// Git information set by linker when building with ci.go
+	gitTag string
 	gitCommit string
 	gitDate   string
 	app       = &cli.App{
 		Name:        filepath.Base(os.Args[0]),
 		Usage:       "go-core devp2p tool",
-		Version:     params.VersionWithCommit(gitCommit, gitDate),
+		Version:     params.VersionWithTag(gitTag, gitCommit, gitDate),
 		Writer:      os.Stdout,
 		HideVersion: true,
 	}

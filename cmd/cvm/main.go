@@ -26,11 +26,12 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
+var gitTag    = ""
 var gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
-var gitDate = ""
+var gitDate   = ""
 
 var (
-	app = utils.NewApp(gitCommit, gitDate, "the cvm command line interface")
+	app = utils.NewApp(gitTag, gitCommit, gitDate, "the cvm command line interface")
 
 	DebugFlag = cli.BoolFlag{
 		Name:  "debug",
