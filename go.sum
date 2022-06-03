@@ -79,6 +79,8 @@ github.com/core-coin/ed448 v1.0.1-dev h1:lcfJAZJYJAlz23iV8zJfntACWNGpG74AYlQaxAo
 github.com/core-coin/ed448 v1.0.1-dev/go.mod h1:/S7hge2XKh2GI/dFp551tIsXDGGD6OU/CSRId+/OjII=
 github.com/core-coin/ed448 v1.0.1-dev.0.20220320144923-437ca2e0b28f h1:cCeFhi//wdxPqRJr+tTxdjfQXPWRt2cZaAMZyKT18NM=
 github.com/core-coin/ed448 v1.0.1-dev.0.20220320144923-437ca2e0b28f/go.mod h1:/S7hge2XKh2GI/dFp551tIsXDGGD6OU/CSRId+/OjII=
+github.com/core-coin/ed448 v1.0.2 h1:t9fwBGw8i3HN8cISUlt4GA3TpYPNPR6xD09qtCuoyFA=
+github.com/core-coin/ed448 v1.0.2/go.mod h1:/S7hge2XKh2GI/dFp551tIsXDGGD6OU/CSRId+/OjII=
 github.com/core-coin/go-randomy v0.0.14 h1:MIzErlW7djO5IcoMAPNYLOC4YZV47TPmofusu01TGZY=
 github.com/core-coin/go-randomy v0.0.14/go.mod h1:7YzU3Hrss60CzXlzziTZNAQUN6u+eLAHH1cL1JRGLBE=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
