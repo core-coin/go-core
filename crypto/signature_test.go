@@ -19,8 +19,8 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 

@@ -19,7 +19,7 @@ package dnsdisc
 import (
 	"context"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/rand"
 	"reflect"
 	"testing"

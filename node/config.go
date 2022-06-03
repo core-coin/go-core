@@ -19,7 +19,7 @@ package node
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io/ioutil"
 	"os"
 	"path/filepath"

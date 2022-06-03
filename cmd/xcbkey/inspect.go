@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io/ioutil"
 
 	"github.com/core-coin/go-core/accounts/keystore"

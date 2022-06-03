@@ -19,7 +19,7 @@ package clique
 import (
 	"bytes"
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"sort"
 	"testing"
 

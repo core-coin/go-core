@@ -19,7 +19,7 @@ package discv5
 import (
 	crand "crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/rand"
 
 	"net"

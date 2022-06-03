@@ -18,7 +18,7 @@ package enode
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"net"
 	"reflect"
 	"strconv"

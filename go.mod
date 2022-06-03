@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.48
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.14.0
-	github.com/core-coin/go-goldilocks v1.0.9
+	github.com/core-coin/ed448 v1.0.1-dev.0.20220320144923-437ca2e0b28f
 	github.com/core-coin/go-randomy v0.0.14
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
@@ -57,7 +57,6 @@ require (
 	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912
 	golang.org/x/text v0.3.6
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 	gopkg.in/olebedev/go-duktape.v3 v3.0.0-20200619000410-60c24ae608a6
 	gopkg.in/urfave/cli.v1 v1.20.0

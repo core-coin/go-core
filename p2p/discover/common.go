@@ -17,7 +17,7 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"net"
 
 	"github.com/core-coin/go-core/common/mclock"

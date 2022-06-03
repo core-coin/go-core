@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !nacl && !js && cgo
 // +build !nacl,!js,cgo
 
 package crypto
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.
@@ -58,7 +59,7 @@ func Sign(hash []byte, prv *eddsa.PrivateKey) ([]byte, error) {
 	}
 	pub := eddsa.Ed448DerivePublicKey(*prv)
 
-	sig := eddsa.Ed448Sign(*prv, eddsa.Ed448DerivePublicKey(*prv), hash, []byte{}, false)
+	sig := eddsa.Ed448Sign(*prv, hash)
 	if len(sig) == ExtendedSignatureLength {
 		return sig[:], nil
 	}
@@ -74,7 +75,7 @@ func VerifySignature(pub, hash, signature []byte) bool {
 	if err != nil {
 		return false
 	}
-	return eddsa.Ed448Verify(*pubkey, signature[:SignatureLength], hash, []byte{}, false)
+	return eddsa.Ed448Verify(*pubkey, signature[:SignatureLength], hash)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.

@@ -18,13 +18,13 @@ package energyprice
 
 import (
 	"context"
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/accounts"
 	"github.com/core-coin/go-core/core/bloombits"
 	"github.com/core-coin/go-core/core/state"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcbdb"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math"
 	"math/big"
 	"testing"

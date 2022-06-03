@@ -28,12 +28,12 @@ import (
 	"sync"
 	"time"
 
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/p2p/netutil"
-	eddsa "github.com/core-coin/go-goldilocks"
 )
 
 const (

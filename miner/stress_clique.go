@@ -21,7 +21,7 @@ package main
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io/ioutil"
 	"math/big"
 	"math/rand"

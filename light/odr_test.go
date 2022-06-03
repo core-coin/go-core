@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"

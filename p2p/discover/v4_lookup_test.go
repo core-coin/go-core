@@ -18,8 +18,8 @@ package discover
 
 import (
 	"fmt"
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"sort"
 	"testing"

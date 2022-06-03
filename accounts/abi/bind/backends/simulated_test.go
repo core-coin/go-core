@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/big"
 	"strings"
 	"testing"

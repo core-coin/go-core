@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io"
 	"io/ioutil"
 	"net"

@@ -18,7 +18,7 @@ package xcb
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math"
 	"math/big"
 	"math/rand"

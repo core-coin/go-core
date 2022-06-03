@@ -21,7 +21,7 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io"
 	"sort"
 	"strings"

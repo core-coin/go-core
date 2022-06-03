@@ -24,10 +24,10 @@ import (
 	"reflect"
 	"testing"
 
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"github.com/davecgh/go-spew/spew"
 )
 

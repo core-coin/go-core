@@ -23,7 +23,7 @@ import (
 	"net"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/mclock"

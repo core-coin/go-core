@@ -19,7 +19,7 @@ package p2p
 import (
 	crand "crypto/rand"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io"
 	"math/rand"
 	"net"

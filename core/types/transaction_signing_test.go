@@ -18,9 +18,9 @@ package types
 
 import (
 	"crypto/rand"
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"testing"
 

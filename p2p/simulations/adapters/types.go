@@ -25,7 +25,7 @@ import (
 	"os"
 	"strconv"
 
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/log"

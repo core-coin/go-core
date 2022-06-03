@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"net"
 	"testing"
 	"time"

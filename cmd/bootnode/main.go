@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"net"
 	"os"
 

@@ -19,7 +19,7 @@ package crypto
 import (
 	"bytes"
 	"encoding/hex"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io/ioutil"
 	"os"
 	"testing"

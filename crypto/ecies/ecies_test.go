@@ -34,7 +34,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"golang.org/x/crypto/sha3"
 	"testing"
 

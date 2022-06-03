@@ -29,12 +29,12 @@ import (
 	"net"
 	"time"
 
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"
 	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"golang.org/x/crypto/hkdf"
 )
 

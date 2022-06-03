@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/big"
 	"reflect"
 	"testing"

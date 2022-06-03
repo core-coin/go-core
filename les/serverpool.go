@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 
 	"github.com/core-coin/go-core/common/mclock"
 	"github.com/core-coin/go-core/crypto"

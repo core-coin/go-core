@@ -18,7 +18,7 @@ package miner
 
 import (
 	crand "crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/big"
 	"math/rand"
 	"sync/atomic"

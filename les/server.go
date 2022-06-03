@@ -17,7 +17,7 @@
 package les
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"time"
 
 	"github.com/core-coin/go-core/accounts/abi/bind"

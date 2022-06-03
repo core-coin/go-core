@@ -18,7 +18,7 @@ package enode
 
 import (
 	"encoding/hex"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"testing"
 
 	"github.com/core-coin/go-core/crypto"

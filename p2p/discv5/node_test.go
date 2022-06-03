@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"fmt"
-	eddsa2 "github.com/core-coin/go-goldilocks"
+	eddsa2 "github.com/core-coin/ed448"
 	"math/big"
 	"math/rand"
 	"net"

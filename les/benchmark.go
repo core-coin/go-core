@@ -20,7 +20,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"math/big"
 	"math/rand"
 	"sync"

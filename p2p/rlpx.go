@@ -25,7 +25,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"hash"
 	"io"
 	"io/ioutil"

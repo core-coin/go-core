@@ -17,7 +17,7 @@
 package dnsdisc
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"reflect"
 	"testing"
 

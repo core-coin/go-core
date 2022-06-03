@@ -1432,7 +1432,7 @@ var bindTests = []struct {
 
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 		"github.com/core-coin/go-core/crypto"
 		"github.com/core-coin/go-core/core"
 		`,
@@ -1496,7 +1496,7 @@ var bindTests = []struct {
 		"math/big"		
 		"crypto/rand"
 
-		eddsa "github.com/core-coin/go-goldilocks"
+		eddsa "github.com/core-coin/ed448"
 		"github.com/core-coin/go-core/accounts/abi/bind"
 		"github.com/core-coin/go-core/accounts/abi/bind/backends"
 		"github.com/core-coin/go-core/crypto"

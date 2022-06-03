@@ -19,7 +19,7 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"net"
 
 	"github.com/core-coin/go-core/crypto"

@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
+	eddsa "github.com/core-coin/ed448"
 	"github.com/core-coin/go-core/params"
-	eddsa "github.com/core-coin/go-goldilocks"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/crypto"

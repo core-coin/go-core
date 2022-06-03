@@ -18,7 +18,7 @@ package core
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
+	eddsa "github.com/core-coin/ed448"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
