@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerability report
+    url: https://dev.coreblockchain.cc/report/bug
+    about: To report vulnerabilty, please use this link.
+  - name: CIP
+    url: https://cip.coreblockchain.cc/
+    about: Core Improvement Proposals.
+  - name: Community Discussion
+    url: https://coretalk.space
+    about: Discussion about Blockchain.
+  - name: Blog
+    url: https://blog.coreblockchain.cc/
+    about: Basic information about Core Blockchain.
