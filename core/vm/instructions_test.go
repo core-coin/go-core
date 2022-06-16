@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/core-coin/uint256"
 	"io/ioutil"
-	"math/big"
 	"testing"
 
 	"github.com/core-coin/go-core/common"
@@ -97,42 +97,22 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 		pc             = uint64(0)
 		cvmInterpreter = env.interpreter.(*CVMInterpreter)
 	)
-	// Stuff a couple of nonzero bigints into pool, to ensure that ops do not rely on pooled integers to be zero
-	cvmInterpreter.intPool = poolOfIntPools.get()
-	cvmInterpreter.intPool.put(big.NewInt(-1337))
-	cvmInterpreter.intPool.put(big.NewInt(-1337))
-	cvmInterpreter.intPool.put(big.NewInt(-1337))
-
 	for i, test := range tests {
-		x := new(big.Int).SetBytes(common.Hex2Bytes(test.X))
-		y := new(big.Int).SetBytes(common.Hex2Bytes(test.Y))
-		expected := new(big.Int).SetBytes(common.Hex2Bytes(test.Expected))
+		x := new(uint256.Int).SetBytes(common.Hex2Bytes(test.X))
+		y := new(uint256.Int).SetBytes(common.Hex2Bytes(test.Y))
+		expected := new(uint256.Int).SetBytes(common.Hex2Bytes(test.Expected))
 		stack.push(x)
 		stack.push(y)
 		opFn(&pc, cvmInterpreter, nil, nil, stack)
+		if len(stack.data) != 1 {
+			t.Errorf("Expected one item on stack after %v, got %d: ", name, len(stack.data))
+		}
 		actual := stack.pop()
 
 		if actual.Cmp(expected) != 0 {
 			t.Errorf("Testcase %v %d, %v(%x, %x): expected  %x, got %x", name, i, name, x, y, expected, actual)
 		}
-		// Check pool usage
-		// 1.pool is not allowed to contain anything on the stack
-		// 2.pool is not allowed to contain the same pointers twice
-		if cvmInterpreter.intPool.pool.len() > 0 {
-
-			poolvals := make(map[*big.Int]struct{})
-			poolvals[actual] = struct{}{}
-
-			for cvmInterpreter.intPool.pool.len() > 0 {
-				key := cvmInterpreter.intPool.get()
-				if _, exist := poolvals[key]; exist {
-					t.Errorf("Testcase %v %d, pool contains double-entry", name, i)
-				}
-				poolvals[key] = struct{}{}
-			}
-		}
 	}
-	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func TestByteOp(t *testing.T) {
@@ -164,6 +144,44 @@ func TestSHL(t *testing.T) {
 		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "01", "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"},
 	}
 	testTwoOperandOp(t, tests, opSHL, "shl")
+}
+
+func TestAddMod(t *testing.T) {
+	var (
+		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		stack          = newstack()
+		evmInterpreter = NewCVMInterpreter(env, env.vmConfig)
+		pc             = uint64(0)
+	)
+	tests := []struct {
+		x        string
+		y        string
+		z        string
+		expected string
+	}{
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
+			"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
+		},
+	}
+	// x + y = 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd
+	// in 256 bit repr, fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd
+
+	for i, test := range tests {
+		x := new(uint256.Int).SetBytes(common.Hex2Bytes(test.x))
+		y := new(uint256.Int).SetBytes(common.Hex2Bytes(test.y))
+		z := new(uint256.Int).SetBytes(common.Hex2Bytes(test.z))
+		expected := new(uint256.Int).SetBytes(common.Hex2Bytes(test.expected))
+		stack.push(z)
+		stack.push(y)
+		stack.push(x)
+		opAddmod(&pc, evmInterpreter, nil, nil, stack)
+		actual := stack.pop()
+		if actual.Cmp(expected) != 0 {
+			t.Errorf("Testcase %d, expected  %x, got %x", i, expected, actual)
+		}
+	}
 }
 
 func TestSHR(t *testing.T) {
@@ -216,11 +234,10 @@ func getResult(args []*twoOperandParams, opFn executionFunc) []TwoOperandTestcas
 		pc          = uint64(0)
 		interpreter = env.interpreter.(*CVMInterpreter)
 	)
-	interpreter.intPool = poolOfIntPools.get()
 	result := make([]TwoOperandTestcase, len(args))
 	for i, param := range args {
-		x := new(big.Int).SetBytes(common.Hex2Bytes(param.x))
-		y := new(big.Int).SetBytes(common.Hex2Bytes(param.y))
+		x := new(uint256.Int).SetBytes(common.Hex2Bytes(param.x))
+		y := new(uint256.Int).SetBytes(common.Hex2Bytes(param.y))
 		stack.push(x)
 		stack.push(y)
 		opFn(&pc, interpreter, nil, nil, stack)
@@ -268,7 +285,6 @@ func opBenchmark(bench *testing.B, op func(pc *uint64, interpreter *CVMInterpret
 	)
 
 	env.interpreter = cvmInterpreter
-	cvmInterpreter.intPool = poolOfIntPools.get()
 	// convert args
 	byteArgs := make([][]byte, len(args))
 	for i, arg := range args {
@@ -278,13 +294,12 @@ func opBenchmark(bench *testing.B, op func(pc *uint64, interpreter *CVMInterpret
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
 		for _, arg := range byteArgs {
-			a := new(big.Int).SetBytes(arg)
-			stack.push(a)
+			a := new(uint256.Int)
+			a.SetBytes(arg)
 		}
 		op(&pc, cvmInterpreter, nil, nil, stack)
 		stack.pop()
 	}
-	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpAdd64(b *testing.B) {
@@ -504,21 +519,19 @@ func TestOpMstore(t *testing.T) {
 	)
 
 	env.interpreter = cvmInterpreter
-	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(64)
 	pc := uint64(0)
 	v := "abcdef00000000000000abba000000000deaf000000c0de00100000000133700"
-	stack.pushN(new(big.Int).SetBytes(common.Hex2Bytes(v)), big.NewInt(0))
+	stack.pushN(*new(uint256.Int).SetBytes(common.Hex2Bytes(v)), *new(uint256.Int))
 	opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	if got := common.Bytes2Hex(mem.GetCopy(0, 32)); got != v {
 		t.Fatalf("Mstore fail, got %v, expected %v", got, v)
 	}
-	stack.pushN(big.NewInt(0x1), big.NewInt(0))
+	stack.pushN(*new(uint256.Int).SetUint64(0x1), *new(uint256.Int))
 	opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	if common.Bytes2Hex(mem.GetCopy(0, 32)) != "0000000000000000000000000000000000000000000000000000000000000001" {
 		t.Fatalf("Mstore failed to overwrite previous value")
 	}
-	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpMstore(bench *testing.B) {
@@ -530,18 +543,16 @@ func BenchmarkOpMstore(bench *testing.B) {
 	)
 
 	env.interpreter = cvmInterpreter
-	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(64)
 	pc := uint64(0)
-	memStart := big.NewInt(0)
-	value := big.NewInt(0x1337)
+	memStart := new(uint256.Int)
+	value := new(uint256.Int).SetUint64(0x1337)
 
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		stack.pushN(value, memStart)
+		stack.pushN(*value, *memStart)
 		opMstore(&pc, cvmInterpreter, nil, mem, stack)
 	}
-	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func BenchmarkOpSHA3(bench *testing.B) {
@@ -552,17 +563,15 @@ func BenchmarkOpSHA3(bench *testing.B) {
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
 	env.interpreter = cvmInterpreter
-	cvmInterpreter.intPool = poolOfIntPools.get()
 	mem.Resize(32)
 	pc := uint64(0)
-	start := big.NewInt(0)
+	start := uint256.NewInt(0)
 
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		stack.pushN(big.NewInt(32), start)
+		stack.pushN(*uint256.NewInt(32), *start)
 		opSha3(&pc, cvmInterpreter, nil, mem, stack)
 	}
-	poolOfIntPools.put(cvmInterpreter.intPool)
 }
 
 func TestCreate2Addreses(t *testing.T) { //TODO: TEST

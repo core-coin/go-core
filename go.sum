@@ -75,6 +75,8 @@ github.com/core-coin/go-goldilocks v1.0.9 h1:NEX5+LXeLpj3yJPKQgEffj2ly33rOvANsWD
 github.com/core-coin/go-goldilocks v1.0.9/go.mod h1:r6mSidt/OMBXorR8jBJYJttsver3m2EBAcSuf+m2Js0=
 github.com/core-coin/go-randomy v0.0.14 h1:MIzErlW7djO5IcoMAPNYLOC4YZV47TPmofusu01TGZY=
 github.com/core-coin/go-randomy v0.0.14/go.mod h1:7YzU3Hrss60CzXlzziTZNAQUN6u+eLAHH1cL1JRGLBE=
+github.com/core-coin/uint256 v1.0.0 h1:AzgINl9YCnYDRJBlqFlWsVb4sr814LcvPAvkPyVBFVo=
+github.com/core-coin/uint256 v1.0.0/go.mod h1:rrinB/+X6+31MswTK2xwoFGi8i75SH1ILSsRSoOFa1I=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/dave/jennifer v1.2.0/go.mod h1:fIb+770HOpJ2fmN9EPPKOqm1vMGhB+TwXKMZhrIygKg=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
