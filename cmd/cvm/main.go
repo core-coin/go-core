@@ -26,9 +26,9 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-var gitTag    = ""
+var gitTag = ""
 var gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
-var gitDate   = ""
+var gitDate = ""
 
 var (
 	app = utils.NewApp(gitTag, gitCommit, gitDate, "the cvm command line interface")
@@ -125,6 +125,14 @@ var (
 		Usage: "External CVM configuration (default = built-in interpreter)",
 		Value: "",
 	}
+	DisableStorageFlag = cli.BoolFlag{
+		Name:  "nostorage",
+		Usage: "disable storage output",
+	}
+	DisableReturnDataFlag = cli.BoolFlag{
+		Name:  "noreturndata",
+		Usage: "disable return data output",
+	}
 )
 
 func init() {
@@ -151,6 +159,8 @@ func init() {
 		DisableMemoryFlag,
 		DisableStackFlag,
 		CVMInterpreterFlag,
+		DisableStorageFlag,
+		DisableReturnDataFlag,
 	}
 	app.Commands = []cli.Command{
 		compileCommand,

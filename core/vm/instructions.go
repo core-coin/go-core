@@ -592,7 +592,13 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 	stackvalue := size
 
 	contract.UseEnergy(energy)
-	res, addr, returnEnergy, suberr := interpreter.cvm.Create(contract, input, energy, value.ToBig())
+	//TODO: use uint256.Int instead of converting with toBig()
+	var bigVal = big0
+	if !value.IsZero() {
+		bigVal = value.ToBig()
+	}
+
+	res, addr, returnEnergy, suberr := interpreter.cvm.Create(contract, input, energy, bigVal)
 	// Push item on the stack based on the returned error. We must
 	// ignore this error and pretend the operation was successful.
 	if suberr == ErrCodeStoreOutOfEnergy {
@@ -625,8 +631,13 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memo
 	contract.UseEnergy(energy)
 	// reuse size int for stackvalue
 	stackvalue := size
+	//TODO: use uint256.Int instead of converting with toBig()
+	bigEndowment := big0
+	if !endowment.IsZero() {
+		bigEndowment = endowment.ToBig()
+	}
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create2(contract, input, energy,
-		endowment.ToBig(), salt.ToBig())
+		bigEndowment, &salt)
 	// Push item on the stack based on the returned error.
 	if suberr != nil {
 		stackvalue.Clear()
@@ -653,10 +664,15 @@ func opCall(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory 
 	// Get the arguments from the memory.
 	args := memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	var bigVal = big0
+	//TODO: use uint256.Int instead of converting with toBig()
+	// By using big0 here, we save an alloc for the most common case (non-ether-transferring contract calls),
+	// but it would make more sense to extend the usage of uint256.Int
 	if !value.IsZero() {
 		energy += params.CallStipend
+		bigVal = value.ToBig()
 	}
-	ret, returnEnergy, err := interpreter.cvm.Call(contract, toAddr, args, energy, value.ToBig())
+	ret, returnEnergy, err := interpreter.cvm.Call(contract, toAddr, args, energy, bigVal)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -681,10 +697,13 @@ func opCallCode(pc *uint64, interpreter *CVMInterpreter, contract *Contract, mem
 	// Get arguments from the memory.
 	args := memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	//TODO: use uint256.Int instead of converting with toBig()
+	var bigVal = big0
 	if !value.IsZero() {
 		energy += params.CallStipend
+		bigVal = value.ToBig()
 	}
-	ret, returnEnergy, err := interpreter.cvm.CallCode(contract, toAddr, args, energy, value.ToBig())
+	ret, returnEnergy, err := interpreter.cvm.CallCode(contract, toAddr, args, energy, bigVal)
 	if err != nil {
 		temp.Clear()
 	} else {

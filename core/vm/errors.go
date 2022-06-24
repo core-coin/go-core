@@ -20,11 +20,16 @@ import "errors"
 
 // List execution errors
 var (
-	ErrOutOfEnergy                 = errors.New("out of energy")
-	ErrCodeStoreOutOfEnergy        = errors.New("contract creation code storage out of energy")
+	// ErrInvalidSubroutineEntry means that a BEGINSUB was reached via iteration,
+	// as opposed to from a JUMPSUB instruction
+	ErrInvalidSubroutineEntry   = errors.New("invalid subroutine entry")
+	ErrOutOfEnergy              = errors.New("out of energy")
+	ErrCodeStoreOutOfEnergy     = errors.New("contract creation code storage out of energy")
 	ErrDepth                    = errors.New("max call depth exceeded")
 	ErrTraceLimitReached        = errors.New("the number of logs reached the specified limit")
 	ErrInsufficientBalance      = errors.New("insufficient balance for transfer")
 	ErrContractAddressCollision = errors.New("contract address collision")
 	ErrNoCompatibleInterpreter  = errors.New("no compatible interpreter")
+	ErrInvalidRetsub            = errors.New("invalid retsub")
+	ErrReturnStackExceeded      = errors.New("return stack limit reached")
 )

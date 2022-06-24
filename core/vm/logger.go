@@ -44,11 +44,12 @@ func (s Storage) Copy() Storage {
 
 // LogConfig are the configuration options for structured logger the CVM
 type LogConfig struct {
-	DisableMemory  bool // disable memory capture
-	DisableStack   bool // disable stack capture
-	DisableStorage bool // disable storage capture
-	Debug          bool // print output during capture end
-	Limit          int  // maximum length of output, but zero means unlimited
+	DisableMemory     bool // disable memory capture
+	DisableStack      bool // disable stack capture
+	DisableStorage    bool // disable storage capture
+	DisableReturnData bool // disable return data capture
+	Debug             bool // print output during capture end
+	Limit             int  // maximum length of output, but zero means unlimited
 }
 
 //go:generate gencodec -type StructLog -field-override structLogMarshaling -out gen_structlog.go
@@ -63,6 +64,8 @@ type StructLog struct {
 	Memory        []byte                      `json:"memory"`
 	MemorySize    int                         `json:"memSize"`
 	Stack         []*big.Int                  `json:"stack"`
+	ReturnStack   []uint32                    `json:"returnStack"`
+	ReturnData    []byte                      `json:"returnData"`
 	Storage       map[common.Hash]common.Hash `json:"-"`
 	Depth         int                         `json:"depth"`
 	RefundCounter uint64                      `json:"refund"`
@@ -99,7 +102,7 @@ func (s *StructLog) ErrorString() string {
 // if you need to retain them beyond the current call.
 type Tracer interface {
 	CaptureStart(from common.Address, to common.Address, create bool, input []byte, energy uint64, value *big.Int) error
-	CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error
+	CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, rData []byte, contract *Contract, depth int, err error) error
 	CaptureFault(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error
 	CaptureEnd(output []byte, energyUsed uint64, t time.Duration, err error) error
 }
@@ -137,7 +140,7 @@ func (l *StructLogger) CaptureStart(from common.Address, to common.Address, crea
 // CaptureState logs a new structured log message and pushes it out to the environment
 //
 // CaptureState also tracks SSTORE ops to track dirty values.
-func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, rData []byte, contract *Contract, depth int, err error) error {
 	// check if already accumulated the specified number of logs
 	if l.cfg.Limit != 0 && l.cfg.Limit <= len(l.logs) {
 		return ErrTraceLimitReached
@@ -177,8 +180,13 @@ func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost
 	if !l.cfg.DisableStorage {
 		storage = l.changedValues[contract.Address()].Copy()
 	}
+	var rdata []byte
+	if !l.cfg.DisableReturnData {
+		rdata = make([]byte, len(rData))
+		copy(rdata, rData)
+	}
 	// create a new snapshot of the CVM.
-	log := StructLog{pc, op, energy, cost, mem, memory.Len(), stck, storage, depth, env.StateDB.GetRefund(), err}
+	log := StructLog{pc, op, energy, cost, mem, memory.Len(), stck, []uint32{}, rData, storage, depth, env.StateDB.GetRefund(), err}
 
 	l.logs = append(l.logs, log)
 	return nil
@@ -236,6 +244,10 @@ func WriteTrace(writer io.Writer, logs []StructLog) {
 			for h, item := range log.Storage {
 				fmt.Fprintf(writer, "%x: %x\n", h, item)
 			}
+		}
+		if len(log.ReturnData) > 0 {
+			fmt.Fprintln(writer, "ReturnData:")
+			fmt.Fprint(writer, hex.Dump(log.ReturnData))
 		}
 		fmt.Fprintln(writer)
 	}

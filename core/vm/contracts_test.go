@@ -19,11 +19,9 @@ package vm
 import (
 	"bytes"
 	"fmt"
-	"math/big"
+	"github.com/core-coin/go-core/common"
 	"reflect"
 	"testing"
-
-	"github.com/core-coin/go-core/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.
@@ -405,14 +403,9 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb390000000000000000000000000000000000001337")
-	if err != nil {
-		t.Error(err)
-	}
-	contract := NewContract(AccountRef(testAddr),
-		nil, new(big.Int), p.RequiredEnergy(in))
-	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(t *testing.T) {
-		if res, err := RunPrecompiledContract(p, in, contract); err != nil {
+	energy := p.RequiredEnergy(in)
+	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, energy), func(t *testing.T) {
+		if res, _, err := RunPrecompiledContract(p, in, energy); err != nil {
 			t.Error(err)
 		} else if common.Bytes2Hex(res) != test.expected {
 			t.Errorf("Expected %v, got %v", test.expected, common.Bytes2Hex(res))
@@ -432,14 +425,10 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb390000000000000000000000000000000000001337")
-	if err != nil {
-		t.Error(err)
-	}
-	contract := NewContract(AccountRef(testAddr),
-		nil, new(big.Int), p.RequiredEnergy(in)-1)
-	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(t *testing.T) {
-		_, err := RunPrecompiledContract(p, in, contract)
+	energy := p.RequiredEnergy(in) - 1
+
+	t.Run(fmt.Sprintf("%s-Energy=%d", test.name, energy), func(t *testing.T) {
+		_, _, err := RunPrecompiledContract(p, in, energy)
 		if err.Error() != "out of energy" {
 			t.Errorf("Expected error [out of energy], got [%v]", err)
 		}
@@ -458,15 +447,9 @@ func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing
 	}
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
-	testAddr, err := common.HexToAddress("cb860000000000000000000000000000000000031337")
-	if err != nil {
-		t.Error(err)
-	}
-	contract := NewContract(AccountRef(testAddr),
-		nil, new(big.Int), p.RequiredEnergy(in))
-
+	energy := p.RequiredEnergy(in)
 	t.Run(test.name, func(t *testing.T) {
-		_, err := RunPrecompiledContract(p, in, contract)
+		_, _, err := RunPrecompiledContract(p, in, energy)
 		if !reflect.DeepEqual(err, test.expectedError) {
 			t.Errorf("Expected error [%v], got [%v]", test.expectedError, err)
 		}
@@ -489,24 +472,17 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 	p := PrecompiledContracts[address]
 	in := common.Hex2Bytes(test.input)
 	reqEnergy := p.RequiredEnergy(in)
-	testAddr, err := common.HexToAddress("cb860000000000000000000000000000000000031337")
-	if err != nil {
-		bench.Error(err)
-	}
-	contract := NewContract(AccountRef(testAddr),
-		nil, new(big.Int), reqEnergy)
-
 	var (
 		res  []byte
 		data = make([]byte, len(in))
 	)
 
-	bench.Run(fmt.Sprintf("%s-Energy=%d", test.name, contract.Energy), func(bench *testing.B) {
+	bench.Run(fmt.Sprintf("%s-Gas=%d", test.name, reqEnergy), func(bench *testing.B) {
+		bench.ReportAllocs()
 		bench.ResetTimer()
 		for i := 0; i < bench.N; i++ {
-			contract.Energy = reqEnergy
 			copy(data, in)
-			res, err = RunPrecompiledContract(p, data, contract)
+			res, _, err = RunPrecompiledContract(p, data, reqEnergy)
 		}
 		bench.StopTimer()
 		//Check if it is correct
