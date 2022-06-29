@@ -330,7 +330,7 @@ func (api *RetestxcbAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	}
 	engine := &NoRewardEngine{inner: inner, rewardsOn: chainParams.SealEngine != "NoReward"}
 
-	blockchain, err := core.NewBlockChain(xcbDb, nil, chainConfig, engine, vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(xcbDb, nil, chainConfig, engine, vm.Config{}, nil, nil)
 	if err != nil {
 		return false, err
 	}

@@ -191,7 +191,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 			SnapshotLimit:       config.SnapshotCache,
 		}
 	)
-	xcb.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xcb.engine, vmConfig, xcb.shouldPreserve)
+	xcb.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xcb.engine, vmConfig, xcb.shouldPreserve, &config.TxLookupLimit)
 	if err != nil {
 		return nil, err
 	}
