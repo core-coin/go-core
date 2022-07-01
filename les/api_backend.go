@@ -19,6 +19,7 @@ package les
 import (
 	"context"
 	"errors"
+	"github.com/core-coin/go-core/consensus"
 	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
@@ -265,6 +266,10 @@ func (b *LesApiBackend) RPCEnergyCap() *big.Int {
 	return b.xcb.config.RPCEnergyCap
 }
 
+func (b *LesApiBackend) RPCTxFeeCap() float64 {
+	return b.xcb.config.RPCTxFeeCap
+}
+
 func (b *LesApiBackend) BloomStatus() (uint64, uint64) {
 	if b.xcb.bloomIndexer == nil {
 		return 0, 0
@@ -277,4 +282,12 @@ func (b *LesApiBackend) ServiceFilter(ctx context.Context, session *bloombits.Ma
 	for i := 0; i < bloomFilterThreads; i++ {
 		go session.Multiplex(bloomRetrievalBatch, bloomRetrievalWait, b.xcb.bloomRequests)
 	}
+}
+
+func (b *LesApiBackend) Engine() consensus.Engine {
+	return b.xcb.engine
+}
+
+func (b *LesApiBackend) CurrentHeader() *types.Header {
+	return b.xcb.blockchain.CurrentHeader()
 }

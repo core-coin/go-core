@@ -65,8 +65,9 @@ var DefaultConfig = Config{
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
-	TxPool: core.DefaultTxPoolConfig,
-	GPO:    DefaultFullGPOConfig,
+	TxPool:      core.DefaultTxPoolConfig,
+	GPO:         DefaultFullGPOConfig,
+	RPCTxFeeCap: 1, // 1 core
 }
 
 func init() {
@@ -156,6 +157,10 @@ type Config struct {
 
 	// RPCEnergyCap is the global energy cap for xcb-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`
+
+	// RPCTxFeeCap is the global transaction fee(price * energylimit) cap for
+	// send-transction variants. The unit is core.
+	RPCTxFeeCap float64 `toml:",omitempty"`
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`

@@ -1437,6 +1437,13 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 
 // SubmitTransaction is a helper function that submits tx to txPool and logs a message.
 func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (common.Hash, error) {
+	// If the transaction fee cap is already specified, ensure the
+	// fee of the given transaction is _reasonable_.
+	feeCore := new(big.Float).Quo(new(big.Float).SetInt(new(big.Int).Mul(tx.EnergyPrice(), new(big.Int).SetUint64(tx.Energy()))), new(big.Float).SetInt(big.NewInt(params.Core)))
+	feeFloat, _ := feeCore.Float64()
+	if b.RPCTxFeeCap() != 0 && feeFloat > b.RPCTxFeeCap() {
+		return common.Hash{}, fmt.Errorf("tx fee (%.2f ether) exceeds the configured cap (%.2f ether)", feeFloat, b.RPCTxFeeCap())
+	}
 	if err := b.SendTx(ctx, tx); err != nil {
 		return common.Hash{}, err
 	}

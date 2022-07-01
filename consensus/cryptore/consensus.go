@@ -67,7 +67,7 @@ func (cryptore *Cryptore) Author(header *types.Header) (common.Address, error) {
 
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock Core cryptore engine.
-func (cryptore *Cryptore) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+func (cryptore *Cryptore) VerifyHeader(chain consensus.ChainHeaderReader, header *types.Header, seal bool) error {
 	// If we're running a full engine faking, accept any input as valid
 	if cryptore.config.PowMode == ModeFullFake {
 		return nil
@@ -88,7 +88,7 @@ func (cryptore *Cryptore) VerifyHeader(chain consensus.ChainReader, header *type
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications.
-func (cryptore *Cryptore) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+func (cryptore *Cryptore) VerifyHeaders(chain consensus.ChainHeaderReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	// If we're running a full engine faking, accept any input as valid
 	if cryptore.config.PowMode == ModeFullFake || len(headers) == 0 {
 		abort, results := make(chan struct{}), make(chan error, len(headers))
@@ -150,7 +150,7 @@ func (cryptore *Cryptore) VerifyHeaders(chain consensus.ChainReader, headers []*
 	return abort, errorsOut
 }
 
-func (cryptore *Cryptore) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header, seals []bool, index int) error {
+func (cryptore *Cryptore) verifyHeaderWorker(chain consensus.ChainHeaderReader, headers []*types.Header, seals []bool, index int) error {
 	var parent *types.Header
 	if index == 0 {
 		parent = chain.GetHeader(headers[0].ParentHash, headers[0].Number.Uint64()-1)
@@ -224,7 +224,7 @@ func (cryptore *Cryptore) VerifyUncles(chain consensus.ChainReader, block *types
 // verifyHeader checks whether a header conforms to the consensus rules of the
 // stock Core cryptore engine.
 // See YP section 4.3.4. "Block Header Validity"
-func (cryptore *Cryptore) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
+func (cryptore *Cryptore) verifyHeader(chain consensus.ChainHeaderReader, header, parent *types.Header, uncle bool, seal bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(header.Extra), params.MaximumExtraDataSize)
@@ -280,7 +280,7 @@ func (cryptore *Cryptore) verifyHeader(chain consensus.ChainReader, header, pare
 // CalcDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
-func (cryptore *Cryptore) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+func (cryptore *Cryptore) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
 	return CalcDifficulty(chain.Config(), time, parent)
 }
 
@@ -351,12 +351,12 @@ func makeDifficultyCalculator() func(time uint64, parent *types.Header) *big.Int
 
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
-func (cryptore *Cryptore) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (cryptore *Cryptore) VerifySeal(chain consensus.ChainHeaderReader, header *types.Header) error {
 	return cryptore.verifySeal(chain, header)
 }
 
 // verifySeal checks whether a block satisfies the PoW difficulty requirements.
-func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (cryptore *Cryptore) verifySeal(chain consensus.ChainHeaderReader, header *types.Header) error {
 	// If we're running a fake PoW, accept any seal as valid
 	if cryptore.config.PowMode == ModeFake || cryptore.config.PowMode == ModeFullFake {
 		time.Sleep(cryptore.fakeDelay)
@@ -392,7 +392,7 @@ func (cryptore *Cryptore) verifySeal(chain consensus.ChainReader, header *types.
 
 // Prepare implements consensus.Engine, initializing the difficulty field of a
 // header to conform to the cryptore protocol. The changes are done inline.
-func (cryptore *Cryptore) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (cryptore *Cryptore) Prepare(chain consensus.ChainHeaderReader, header *types.Header) error {
 	parent := chain.GetHeader(header.ParentHash, header.Number.Uint64()-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
@@ -403,7 +403,7 @@ func (cryptore *Cryptore) Prepare(chain consensus.ChainReader, header *types.Hea
 
 // Finalize implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state on the header
-func (cryptore *Cryptore) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header) {
+func (cryptore *Cryptore) Finalize(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header) {
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(state, header, uncles)
 	header.Root = state.IntermediateRoot(true)
@@ -411,7 +411,7 @@ func (cryptore *Cryptore) Finalize(chain consensus.ChainReader, header *types.He
 
 // FinalizeAndAssemble implements consensus.Engine, accumulating the block and
 // uncle rewards, setting the final state and assembling the block.
-func (cryptore *Cryptore) FinalizeAndAssemble(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+func (cryptore *Cryptore) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(state, header, uncles)
 	header.Root = state.IntermediateRoot(true)

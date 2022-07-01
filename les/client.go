@@ -19,10 +19,12 @@ package les
 
 import (
 	"fmt"
+	lpc "github.com/core-coin/go-core/les/lespay/client"
+	"github.com/core-coin/go-core/xcb/filters"
 	"math/big"
+	"time"
 
 	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/common/mclock"
@@ -33,7 +35,6 @@ import (
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/event"
 	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/les/checkpointoracle"
 	"github.com/core-coin/go-core/light"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/node"
@@ -44,22 +45,23 @@ import (
 	"github.com/core-coin/go-core/xcb"
 	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/core-coin/go-core/xcb/energyprice"
-	"github.com/core-coin/go-core/xcb/filters"
 )
 
 type LightCore struct {
 	lesCommons
 
-	peers      *serverPeerSet
-	reqDist    *requestDistributor
-	retriever  *retrieveManager
-	odr        *LesOdr
-	relay      *lesTxRelay
-	handler    *clientHandler
-	txPool     *light.TxPool
-	blockchain *light.LightChain
-	serverPool *serverPool
-	pruner     *pruner
+	peers          *serverPeerSet
+	reqDist        *requestDistributor
+	retriever      *retrieveManager
+	odr            *LesOdr
+	relay          *lesTxRelay
+	handler        *clientHandler
+	txPool         *light.TxPool
+	blockchain     *light.LightChain
+	serverPool     *serverPool
+	valueTracker   *lpc.ValueTracker
+	dialCandidates enode.Iterator
+	pruner         *pruner
 
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
@@ -69,10 +71,17 @@ type LightCore struct {
 	engine         consensus.Engine
 	accountManager *accounts.Manager
 	netRPCService  *xcbapi.PublicNetAPI
+
+	p2pServer *p2p.Server
 }
 
-func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
-	chainDb, err := ctx.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xcb/db/chaindata/")
+// New creates an instance of the light client.
+func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
+	chainDb, err := stack.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "xcb/db/chaindata/")
+	if err != nil {
+		return nil, err
+	}
+	lespayDb, err := stack.OpenDatabase("lespay", 0, 0, "xcb/db/lespay")
 	if err != nil {
 		return nil, err
 	}
@@ -96,14 +105,28 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 			closeCh:     make(chan struct{}),
 		},
 		peers:          peers,
-		eventMux:       ctx.EventMux,
+		eventMux:       stack.EventMux(),
 		reqDist:        newRequestDistributor(peers, &mclock.System{}),
-		accountManager: ctx.AccountManager,
-		engine:         xcb.CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, nil, false, chainDb),
+		accountManager: stack.AccountManager(),
+		engine:         xcb.CreateConsensusEngine(stack, chainConfig, &config.Cryptore, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   xcb.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		serverPool:     newServerPool(chainDb, config.UltraLightServers),
+		valueTracker:   lpc.NewValueTracker(lespayDb, &mclock.System{}, requestList, time.Minute, 1/float64(time.Hour), 1/float64(time.Hour*100), 1/float64(time.Hour*1000)),
+		p2pServer:      stack.Server(),
 	}
+	peers.subscribe((*vtSubscription)(lxcb.valueTracker))
+
+	dnsdisc, err := lxcb.setupDiscovery(&stack.Config().P2P)
+	if err != nil {
+		return nil, err
+	}
+	lxcb.serverPool = newServerPool(lespayDb, []byte("serverpool:"), lxcb.valueTracker, dnsdisc, time.Second, nil, &mclock.System{}, config.UltraLightServers)
+	peers.subscribe(lxcb.serverPool)
+	lxcb.dialCandidates = lxcb.serverPool.dialIterator
+
+	lxcb.retriever = newRetrieveManager(peers, lxcb.reqDist, lxcb.serverPool.getTimeout)
+
 	lxcb.retriever = newRetrieveManager(peers, lxcb.reqDist, lxcb.serverPool)
 	lxcb.relay = newLesTxRelay(peers, lxcb.retriever)
 
@@ -124,26 +147,12 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 	lxcb.chainReader = lxcb.blockchain
 	lxcb.txPool = light.NewTxPool(lxcb.chainConfig, lxcb.blockchain, lxcb.relay)
 
-	// Set up checkpoint oracle.
-	oracle := config.CheckpointOracle
-	if oracle == nil {
-		oracle = params.CheckpointOracles[genesisHash]
-	}
-	lxcb.oracle = checkpointoracle.New(oracle, lxcb.localCheckpoint)
+	lxcb.oracle = lxcb.setupOracle(stack, genesisHash, config)
 
 	// Note: AddChildIndexer starts the update process for the child
 	lxcb.bloomIndexer.AddChildIndexer(lxcb.bloomTrieIndexer)
 	lxcb.chtIndexer.Start(lxcb.blockchain)
 	lxcb.bloomIndexer.Start(lxcb.blockchain)
-
-	lxcb.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxcb)
-	if lxcb.handler.ulc != nil {
-		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcb.handler.ulc.keys), "minTrustedFraction", lxcb.handler.ulc.fraction)
-		lxcb.blockchain.DisableCheckFreq()
-	}
-
-	// Start a light chain pruner to delete useless historical data.
-	lxcb.pruner = newPruner(chainDb, lxcb.chtIndexer, lxcb.bloomTrieIndexer)
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
@@ -152,14 +161,43 @@ func New(ctx *node.ServiceContext, config *xcb.Config) (*LightCore, error) {
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	lxcb.ApiBackend = &LesApiBackend{ctx.ExtRPCEnabled(), lxcb, nil}
+	lxcb.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), lxcb, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
 	lxcb.ApiBackend.gpo = energyprice.NewOracle(lxcb.ApiBackend, gpoParams)
 
+	lxcb.netRPCService = xcbapi.NewPublicNetAPI(lxcb.p2pServer, lxcb.config.NetworkId)
+
+	// Register the backend on the node
+	stack.RegisterAPIs(lxcb.APIs())
+	stack.RegisterProtocols(lxcb.Protocols())
+	stack.RegisterLifecycle(lxcb)
+
+	lxcb.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxcb)
+	if lxcb.handler.ulc != nil {
+		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcb.handler.ulc.keys), "minTrustedFraction", lxcb.handler.ulc.fraction)
+		lxcb.blockchain.DisableCheckFreq()
+	}
 	return lxcb, nil
+}
+
+// vtSubscription implements serverPeerSubscriber
+type vtSubscription lpc.ValueTracker
+
+// registerPeer implements serverPeerSubscriber
+func (v *vtSubscription) registerPeer(p *serverPeer) {
+	vt := (*lpc.ValueTracker)(v)
+	p.setValueTracker(vt, vt.Register(p.ID()))
+	p.updateVtParams()
+}
+
+// unregisterPeer implements serverPeerSubscriber
+func (v *vtSubscription) unregisterPeer(p *serverPeer) {
+	vt := (*lpc.ValueTracker)(v)
+	vt.Unregister(p.ID())
+	p.setValueTracker(nil, nil)
 }
 
 type LightDummyAPI struct{}
@@ -215,6 +253,11 @@ func (s *LightCore) APIs() []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateLightAPI(&s.lesCommons),
 			Public:    false,
+		}, {
+			Namespace: "lespay",
+			Version:   "1.0",
+			Service:   lpc.NewPrivateClientAPI(s.valueTracker),
+			Public:    false,
 		},
 	}...)
 }
@@ -230,38 +273,36 @@ func (s *LightCore) LesVersion() int                    { return int(ClientProto
 func (s *LightCore) Downloader() *downloader.Downloader { return s.handler.downloader }
 func (s *LightCore) EventMux() *event.TypeMux           { return s.eventMux }
 
-// Protocols implements node.Service, returning all the currently configured
-// network protocols to start.
+// Protocols returns all the currently configured network protocols to start.
 func (s *LightCore) Protocols() []p2p.Protocol {
 	return s.makeProtocols(ClientProtocolVersions, s.handler.runPeer, func(id enode.ID) interface{} {
-		if p := s.peers.peer(peerIdToString(id)); p != nil {
+		if p := s.peers.peer(id.String()); p != nil {
 			return p.Info()
 		}
 		return nil
-	})
+	}, s.dialCandidates)
 }
 
-// Start implements node.Service, starting all internal goroutines needed by the
+// Start implements node.Lifecycle, starting all internal goroutines needed by the
 // light core protocol implementation.
-func (s *LightCore) Start(srvr *p2p.Server) error {
+func (s *LightCore) Start() error {
 	log.Warn("Light client mode is an experimental feature")
 
+	s.serverPool.start()
 	// Start bloom request workers.
 	s.wg.Add(bloomServiceThreads)
 	s.startBloomHandlers(params.BloomBitsBlocksClient)
+	s.handler.start()
 
-	s.netRPCService = xcbapi.NewPublicNetAPI(srvr, s.config.NetworkId)
-
-	// clients are searching for the first advertised protocol in the list
-	protocolVersion := AdvertiseProtocolVersions[0]
-	s.serverPool.start(srvr, lesTopic(s.blockchain.Genesis().Hash(), protocolVersion))
 	return nil
 }
 
-// Stop implements node.Service, terminating all internal goroutines used by the
+// Stop implements node.Lifecycle, terminating all internal goroutines used by the
 // Core protocol.
 func (s *LightCore) Stop() error {
 	close(s.closeCh)
+	s.serverPool.stop()
+	s.valueTracker.Stop()
 	s.peers.close()
 	s.reqDist.close()
 	s.odr.Stop()
@@ -279,12 +320,4 @@ func (s *LightCore) Stop() error {
 	s.wg.Wait()
 	log.Info("Light core stopped")
 	return nil
-}
-
-// SetClient sets the rpc client and binds the registrar contract.
-func (s *LightCore) SetContractBackend(backend bind.ContractBackend) {
-	if s.oracle == nil {
-		return
-	}
-	s.oracle.Start(backend)
 }

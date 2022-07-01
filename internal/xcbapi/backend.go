@@ -19,6 +19,7 @@ package xcbapi
 
 import (
 	"context"
+	"github.com/core-coin/go-core/consensus"
 	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
@@ -46,12 +47,15 @@ type Backend interface {
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
 	RPCEnergyCap() *big.Int // global energy cap for xcb_call over rpc: DoS protection
+	RPCTxFeeCap() float64   // global tx fee cap for all transaction related APIs
 
 	// Blockchain API
 	SetHead(number uint64)
 	HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, error)
 	HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error)
 	HeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Header, error)
+	CurrentHeader() *types.Header
+	CurrentBlock() *types.Block
 	BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, error)
 	BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error)
 	BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Block, error)
@@ -83,7 +87,7 @@ type Backend interface {
 	SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription
 
 	ChainConfig() *params.ChainConfig
-	CurrentBlock() *types.Block
+	Engine() consensus.Engine
 }
 
 func GetAPIs(apiBackend Backend) []rpc.API {

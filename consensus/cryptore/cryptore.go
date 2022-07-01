@@ -257,7 +257,7 @@ func (cryptore *Cryptore) Hashrate() float64 {
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs.
-func (cryptore *Cryptore) APIs(chain consensus.ChainReader) []rpc.API {
+func (cryptore *Cryptore) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 	// In order to ensure backward compatibility, we exposes cryptore RPC APIs
 	// to both eth and cryptore namespaces.
 	return []rpc.API{
