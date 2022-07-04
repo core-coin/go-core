@@ -157,7 +157,7 @@ func WriteBloomBits(db xcbdb.KeyValueWriter, bit uint, section uint64, head comm
 // given section range and bit index.
 func DeleteBloombits(db xcbdb.Database, bit uint, from uint64, to uint64) {
 	start, end := bloomBitsKey(bit, from, common.Hash{}), bloomBitsKey(bit, to, common.Hash{})
-	it := db.NewIteratorWithStart(start)
+	it := db.NewIterator(nil, start)
 	defer it.Release()
 
 	for it.Next() {

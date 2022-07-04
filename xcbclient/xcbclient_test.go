@@ -183,12 +183,12 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	if err != nil {
 		t.Fatalf("can't create new node: %v", err)
 	}
-	// Create Ethereum Service
+	// Create Core Service
 	config := &xcb.Config{Genesis: genesis}
 	config.Cryptore.PowMode = cryptore.ModeFake
 	xcbservice, err := xcb.New(n, config)
 	if err != nil {
-		t.Fatalf("can't create new ethereum service: %v", err)
+		t.Fatalf("can't create new core service: %v", err)
 	}
 
 	// Import the test chain.

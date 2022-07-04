@@ -111,7 +111,6 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 		engine:         xcb.CreateConsensusEngine(stack, chainConfig, &config.Cryptore, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   xcb.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
-		serverPool:     newServerPool(chainDb, config.UltraLightServers),
 		valueTracker:   lpc.NewValueTracker(lespayDb, &mclock.System{}, requestList, time.Minute, 1/float64(time.Hour), 1/float64(time.Hour*100), 1/float64(time.Hour*1000)),
 		p2pServer:      stack.Server(),
 	}
@@ -126,8 +125,6 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	lxcb.dialCandidates = lxcb.serverPool.dialIterator
 
 	lxcb.retriever = newRetrieveManager(peers, lxcb.reqDist, lxcb.serverPool.getTimeout)
-
-	lxcb.retriever = newRetrieveManager(peers, lxcb.reqDist, lxcb.serverPool)
 	lxcb.relay = newLesTxRelay(peers, lxcb.retriever)
 
 	lxcb.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lxcb.retriever)

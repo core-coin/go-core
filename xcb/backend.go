@@ -193,7 +193,7 @@ func New(stack *node.Node, config *Config) (*Core, error) {
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}
-	if xcb.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, xcb.eventMux, xcb.txPool, xcb.engine, xcb.blockchain, chainDb, cacheLimit, config.Whitelist, ctx.Config.BTTP); err != nil {
+	if xcb.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, xcb.eventMux, xcb.txPool, xcb.engine, xcb.blockchain, chainDb, cacheLimit, config.Whitelist, stack.Config().BTTP); err != nil {
 		return nil, err
 	}
 	xcb.miner = miner.New(xcb, &config.Miner, chainConfig, xcb.EventMux(), xcb.engine, xcb.isLocalBlock)

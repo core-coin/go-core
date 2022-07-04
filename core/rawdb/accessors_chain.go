@@ -94,7 +94,7 @@ func ReadAllCanonicalHashes(db xcbdb.Iteratee, from uint64, to uint64, limit int
 	)
 	// Construct the key prefix of start point.
 	start, end := headerHashKey(from), headerHashKey(to)
-	it := db.NewIteratorWithStart(start)
+	it := db.NewIterator(nil, start)
 	defer it.Release()
 
 	for it.Next() {
@@ -184,6 +184,32 @@ func ReadHeadFastBlockHash(db xcbdb.KeyValueReader) common.Hash {
 func WriteHeadFastBlockHash(db xcbdb.KeyValueWriter, hash common.Hash) {
 	if err := db.Put(headFastBlockKey, hash.Bytes()); err != nil {
 		log.Crit("Failed to store last fast block's hash", "err", err)
+	}
+}
+
+// ReadLastPivotNumber retrieves the number of the last pivot block. If the node
+// full synced, the last pivot will always be nil.
+func ReadLastPivotNumber(db xcbdb.KeyValueReader) *uint64 {
+	data, _ := db.Get(lastPivotKey)
+	if len(data) == 0 {
+		return nil
+	}
+	var pivot uint64
+	if err := rlp.DecodeBytes(data, &pivot); err != nil {
+		log.Error("Invalid pivot block number in database", "err", err)
+		return nil
+	}
+	return &pivot
+}
+
+// WriteLastPivotNumber stores the number of the last pivot block.
+func WriteLastPivotNumber(db xcbdb.KeyValueWriter, pivot uint64) {
+	enc, err := rlp.EncodeToBytes(pivot)
+	if err != nil {
+		log.Crit("Failed to encode pivot block number", "err", err)
+	}
+	if err := db.Put(lastPivotKey, enc); err != nil {
+		log.Crit("Failed to store pivot block number", "err", err)
 	}
 }
 

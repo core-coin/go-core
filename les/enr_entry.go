@@ -34,11 +34,11 @@ func (e lesEntry) ENRKey() string {
 	return "les"
 }
 
-// setupDiscovery creates the node discovery source for the eth protocol.
-func (eth *LightCore) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
-	if /*cfg.NoDiscovery || */ len(eth.config.DiscoveryURLs) == 0 {
+// setupDiscovery creates the node discovery source for the xcb protocol.
+func (xcb *LightCore) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
+	if /*cfg.NoDiscovery || */ len(xcb.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}
 	client := dnsdisc.NewClient(dnsdisc.Config{})
-	return client.NewIterator(eth.config.DiscoveryURLs...)
+	return client.NewIterator(xcb.config.DiscoveryURLs...)
 }

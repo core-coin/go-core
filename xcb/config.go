@@ -31,14 +31,14 @@ import (
 	"github.com/core-coin/go-core/xcb/energyprice"
 )
 
-// DefaultFullGPOConfig contains default gasprice oracle settings for full node.
+// DefaultFullGPOConfig contains default energyprice oracle settings for full node.
 var DefaultFullGPOConfig = energyprice.Config{
 	Blocks:     20,
 	Percentile: 60,
 	MaxPrice:   energyprice.DefaultMaxPrice,
 }
 
-// DefaultLightGPOConfig contains default gasprice oracle settings for light client.
+// DefaultLightGPOConfig contains default energyprice oracle settings for light client.
 var DefaultLightGPOConfig = energyprice.Config{
 	Blocks:     2,
 	Percentile: 60,

@@ -668,6 +668,12 @@ func (f *BlockFetcher) rescheduleFetch(fetch *time.Timer) {
 	if len(f.announced) == 0 {
 		return
 	}
+	// Schedule announcement retrieval quickly for light mode
+	// since server won't send any headers to client.
+	if f.light {
+		fetch.Reset(lightTimeout)
+		return
+	}
 	// Otherwise find the earliest expiring announcement
 	earliest := time.Now()
 	for _, announces := range f.announced {
@@ -684,12 +690,7 @@ func (f *BlockFetcher) rescheduleComplete(complete *time.Timer) {
 	if len(f.fetched) == 0 {
 		return
 	}
-	// Schedule announcement retrieval quickly for light mode
-	// since server won't send any headers to client.
-	if f.light {
-		fetch.Reset(lightTimeout)
-		return
-	}
+
 	// Otherwise find the earliest expiring announcement
 	earliest := time.Now()
 	for _, announces := range f.fetched {

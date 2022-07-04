@@ -168,10 +168,10 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *xcb.Core, error) {
 		GPO:             xcb.DefaultConfig.GPO,
 		Ethash:          xcb.DefaultConfig.Cryptore,
 		Miner: miner.Config{
-			GasFloor: genesis.EnergyLimit * 9 / 10,
-			GasCeil:  genesis.EnergyLimit * 11 / 10,
-			GasPrice: big.NewInt(1),
-			Recommit: time.Second,
+			EnergyFloor: genesis.EnergyLimit * 9 / 10,
+			EnergyCeil:  genesis.EnergyLimit * 11 / 10,
+			EnergyPrice: big.NewInt(1),
+			Recommit:    time.Second,
 		},
 	})
 	if err != nil {

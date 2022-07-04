@@ -1242,7 +1242,7 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 
 func setGPO(ctx *cli.Context, cfg *energyprice.Config, light bool) {
 	// If we are running the light client, apply another group
-	// settings for gas oracle.
+	// settings for energy oracle.
 	if light {
 		cfg.Blocks = xcb.DefaultLightGPOConfig.Blocks
 		cfg.Percentile = xcb.DefaultLightGPOConfig.Percentile

@@ -98,7 +98,7 @@ func (gpo *Oracle) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	head, _ := gpo.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
 	headHash := head.Hash()
 
-	// If the latest gasprice is still available, return it.
+	// If the latest energyprice is still available, return it.
 	gpo.cacheLock.RLock()
 	lastHead, lastPrice := gpo.lastHead, gpo.lastPrice
 	gpo.cacheLock.RUnlock()
@@ -185,7 +185,7 @@ func (t transactionsByEnergyPrice) Less(i, j int) bool {
 // getBlockPrices calculates the lowest transaction energy price in a given block
 // and sends it to the result channel. If the block is empty or all transactions
 // are sent by the miner itself(it doesn't make any sense to include this kind of
-// transaction prices for sampling), nil gasprice is returned.
+// transaction prices for sampling), nil energyprice is returned.
 func (gpo *Oracle) getBlockPrices(ctx context.Context, signer types.Signer, blockNum uint64, limit int, result chan getBlockPricesResult, quit chan struct{}) {
 	block, err := gpo.backend.BlockByNumber(ctx, rpc.BlockNumber(blockNum))
 	if block == nil {
