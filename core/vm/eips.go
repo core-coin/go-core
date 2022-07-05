@@ -16,15 +16,17 @@
 
 package vm
 
+import "github.com/core-coin/uint256"
+
 func opSelfBalance(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	balance := interpreter.intPool.get().Set(interpreter.cvm.StateDB.GetBalance(contract.Address()))
+	balance, _ := uint256.FromBig(interpreter.cvm.StateDB.GetBalance(contract.Address()))
 	stack.push(balance)
 	return nil, nil
 }
 
 // opNetworkID implements NETWORKID opcode
 func opNetworkID(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	networkId := interpreter.intPool.get().Set(interpreter.cvm.chainConfig.NetworkID)
+	networkId, _ := uint256.FromBig(interpreter.cvm.chainConfig.NetworkID)
 	stack.push(networkId)
 	return nil, nil
 }

@@ -58,8 +58,8 @@ type LogConfig struct {
 type StructLog struct {
 	Pc            uint64                      `json:"pc"`
 	Op            OpCode                      `json:"op"`
-	Energy           uint64                      `json:"energy"`
-	EnergyCost       uint64                      `json:"energyCost"`
+	Energy        uint64                      `json:"energy"`
+	EnergyCost    uint64                      `json:"energyCost"`
 	Memory        []byte                      `json:"memory"`
 	MemorySize    int                         `json:"memSize"`
 	Stack         []*big.Int                  `json:"stack"`
@@ -72,8 +72,8 @@ type StructLog struct {
 // overrides for gencodec
 type structLogMarshaling struct {
 	Stack       []*math.HexOrDecimal256
-	Energy         math.HexOrDecimal64
-	EnergyCost     math.HexOrDecimal64
+	Energy      math.HexOrDecimal64
+	EnergyCost  math.HexOrDecimal64
 	Memory      hexutil.Bytes
 	OpName      string `json:"opName"` // adds call to OpName() in MarshalJSON
 	ErrorString string `json:"error"`  // adds call to ErrorString() in MarshalJSON
@@ -153,8 +153,8 @@ func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost
 	// it in the local storage container.
 	if op == SSTORE && stack.len() >= 2 {
 		var (
-			value   = common.BigToHash(stack.data[stack.len()-2])
-			address = common.BigToHash(stack.data[stack.len()-1])
+			value   = common.Hash(stack.data[stack.len()-2].Bytes32())
+			address = common.Hash(stack.data[stack.len()-1].Bytes32())
 		)
 		l.changedValues[contract.Address()][address] = value
 	}
@@ -169,7 +169,7 @@ func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost
 	if !l.cfg.DisableStack {
 		stck = make([]*big.Int, len(stack.Data()))
 		for i, item := range stack.Data() {
-			stck[i] = new(big.Int).Set(item)
+			stck[i] = new(big.Int).Set(item.ToBig())
 		}
 	}
 	// Copy a snapshot of the current storage to a new container

@@ -76,12 +76,12 @@ type Context struct {
 	GetHash GetHashFunc
 
 	// Message information
-	Origin   common.Address // Provides information for ORIGIN
+	Origin      common.Address // Provides information for ORIGIN
 	EnergyPrice *big.Int       // Provides information for ENERGYPRICE
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
-	EnergyLimit    uint64         // Provides information for ENERGYLIMIT
+	EnergyLimit uint64         // Provides information for ENERGYLIMIT
 	BlockNumber *big.Int       // Provides information for NUMBER
 	Time        *big.Int       // Provides information for TIME
 	Difficulty  *big.Int       // Provides information for DIFFICULTY
@@ -338,7 +338,7 @@ func (cvm *CVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	// We do an AddBalance of zero here, just in order to trigger a touch.
 	// but is the correct thing to do and matters on other networks, in tests, and potential
 	// future scenarios
-	cvm.StateDB.AddBalance(addr, bigZero)
+	cvm.StateDB.AddBalance(addr, big.NewInt(0))
 
 	// When an error was returned by the CVM or when setting the creation code
 	// above we revert to the snapshot and consume any energy remaining.

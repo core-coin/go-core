@@ -75,8 +75,6 @@ type CVMInterpreter struct {
 	cvm *CVM
 	cfg Config
 
-	intPool *intPool
-
 	hasher    keccakState // SHA3 hasher instance shared across opcodes
 	hasherBuf common.Hash // SHA3 hasher result array shared aross opcodes
 
@@ -111,14 +109,6 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 // considered a revert-and-consume-all-energy operation except for
 // errExecutionReverted which means revert-and-keep-energy-left.
 func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
-	if in.intPool == nil {
-		in.intPool = poolOfIntPools.get()
-		defer func() {
-			poolOfIntPools.put(in.intPool)
-			in.intPool = nil
-		}()
-	}
-
 	// Increment the call depth which is restricted to 1024
 	in.cvm.depth++
 	defer func() { in.cvm.depth-- }()
@@ -155,9 +145,6 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		res        []byte // result of the opcode execution function
 	)
 	contract.Input = input
-
-	// Reclaim the stack as an int pool when the execution stops
-	defer func() { in.intPool.put(stack.data...) }()
 
 	if in.cfg.Debug {
 		defer func() {
@@ -248,11 +235,6 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 		// execute the operation
 		res, err = operation.execute(&pc, in, contract, mem, stack)
-		// verifyPool is a build flag. Pool verification makes sure the integrity
-		// of the integer pool by comparing values to a default value.
-		if verifyPool {
-			verifyIntegerPool(in.intPool)
-		}
 		// if the operation clears the return data (e.g. it has returning data)
 		// set the last return to the result of the operation.
 		if operation.returns {
