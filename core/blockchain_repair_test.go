@@ -17,13 +17,11 @@
 package core
 
 import (
-	"fmt"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/consensus/cryptore"
 	"github.com/core-coin/go-core/core/rawdb"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
 	"io/ioutil"
 	"math/big"
@@ -1552,8 +1550,8 @@ func TestLongReorgedFastSyncingDeepRepair(t *testing.T) {
 
 func testRepair(t *testing.T, tt *rewindTest) {
 	// It's hard to follow the test case, visualize the input
-	log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
-	fmt.Println(tt.dump(true))
+	//log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
+	//fmt.Println(tt.dump(true))
 
 	// Create a temporary persistent database
 	datadir, err := ioutil.TempDir("", "")
