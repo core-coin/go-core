@@ -234,5 +234,5 @@ func (abi *ABI) HasFallback() bool {
 
 // HasReceive returns an indicator whether a receive function is included.
 func (abi *ABI) HasReceive() bool {
-	return abi.Fallback.Type == Receive
+	return abi.Receive.Type == Receive
 }
