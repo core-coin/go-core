@@ -208,6 +208,15 @@ func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transactio
 	return res.Tx, nil
 }
 
+func (api *ExternalSigner) SignTypedData(account accounts.Account, tx *core.TypedData, networkID *big.Int) ([]byte, error) {
+	var res hexutil.Bytes
+	if err := api.client.Call(&res, "account_signTypedData", account.Address, tx); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (api *ExternalSigner) SignTextWithPassphrase(account accounts.Account, passphrase string, text []byte) ([]byte, error) {
 	return []byte{}, fmt.Errorf("password-operations not supported on external signers")
 }
