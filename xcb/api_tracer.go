@@ -501,7 +501,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 		vmctx := core.NewCVMContext(msg, block.Header(), api.xcb.blockchain, nil)
 
 		vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vm.Config{})
-		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy())); err != nil {
+		if _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy())); err != nil {
 			failed = err
 			break
 		}
@@ -594,7 +594,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 		}
 		// Execute the transaction and flush any traces to disk
 		vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vmConf)
-		_, _, _, err = core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy()))
+		_, err = core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy()))
 		if writer != nil {
 			writer.Flush()
 		}
@@ -794,7 +794,7 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	// Run the transaction with tracing enabled.
 	vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer})
 
-	ret, energy, failed, err := core.ApplyMessage(vmenv, message, new(core.EnergyPool).AddEnergy(message.Energy()))
+	result, err := core.ApplyMessage(vmenv, message, new(core.EnergyPool).AddEnergy(message.Energy()))
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %v", err)
 	}
@@ -802,9 +802,9 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	switch tracer := tracer.(type) {
 	case *vm.StructLogger:
 		return &xcbapi.ExecutionResult{
-			Energy:      energy,
-			Failed:      failed,
-			ReturnValue: fmt.Sprintf("%x", ret),
+			Energy:      result.UsedEnergy,
+			Failed:      result.Failed(),
+			ReturnValue: fmt.Sprintf("%x", result.Return()),
 			StructLogs:  xcbapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
@@ -844,7 +844,7 @@ func (api *PrivateDebugAPI) computeTxEnv(block *types.Block, txIndex int, reexec
 		}
 		// Not yet the searched for transaction, execute on top of the current state
 		vmenv := vm.NewCVM(context, statedb, api.xcb.blockchain.Config(), vm.Config{})
-		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
+		if _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
 			return nil, vm.Context{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 		}
 		// Ensure any modifications are committed to the state

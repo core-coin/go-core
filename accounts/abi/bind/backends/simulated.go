@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/accounts/abi"
 	"math/big"
 	"sync"
 	"time"
@@ -49,7 +50,6 @@ var (
 	errBlockNumberUnsupported  = errors.New("simulatedBackend cannot access blocks other than the latest block")
 	errBlockDoesNotExist       = errors.New("block does not exist in blockchain")
 	errTransactionDoesNotExist = errors.New("transaction does not exist")
-	errEnergyEstimationFailed  = errors.New("energy required exceeds allowance or always failing transaction")
 )
 
 // SimulatedBackend implements bind.ContractBackend, simulating a blockchain in
@@ -349,8 +349,11 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg
 	if err != nil {
 		return nil, err
 	}
-	rval, _, _, err := b.callContract(ctx, call, b.blockchain.CurrentBlock(), state)
-	return rval, err
+	res, err := b.callContract(ctx, call, b.blockchain.CurrentBlock(), state)
+	if err != nil {
+		return nil, err
+	}
+	return res.Return(), nil
 }
 
 // PendingCallContract executes a contract call on the pending state.
@@ -359,8 +362,11 @@ func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gocore.
 	defer b.mu.Unlock()
 	defer b.pendingState.RevertToSnapshot(b.pendingState.Snapshot())
 
-	rval, _, _, err := b.callContract(ctx, call, b.pendingBlock, b.pendingState)
-	return rval, err
+	res, err := b.callContract(ctx, call, b.pendingBlock, b.pendingState)
+	if err != nil {
+		return nil, err
+	}
+	return res.Return(), nil
 }
 
 // PendingNonceAt implements PendingStateReader.PendingNonceAt, retrieving
@@ -397,23 +403,34 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 	}
 	cap = hi
 
-	// Create a helper to check if a energy allowance results in an executable transaction
-	executable := func(energy uint64) bool {
+	// Create a helper to check if an energy allowance results in an executable transaction
+	executable := func(energy uint64) (bool, *core.ExecutionResult, error) {
 		call.Energy = energy
 
 		snapshot := b.pendingState.Snapshot()
-		_, _, failed, err := b.callContract(ctx, call, b.pendingBlock, b.pendingState)
+		res, err := b.callContract(ctx, call, b.pendingBlock, b.pendingState)
 		b.pendingState.RevertToSnapshot(snapshot)
 
-		if err != nil || failed {
-			return false
+		if err != nil {
+			if err == core.ErrIntrinsicEnergy {
+				return true, nil, nil // Special case, raise energy limit
+			}
+			return true, nil, err // Bail out
 		}
-		return true
+		return res.Failed(), res, nil
 	}
 	// Execute the binary search and hone in on an executable energy limit
 	for lo+1 < hi {
 		mid := (hi + lo) / 2
-		if !executable(mid) {
+		failed, _, err := executable(mid)
+
+		// If the error is not nil(consensus error), it means the provided message
+		// call or transaction will never be accepted no matter how much gas it is
+		// assigned. Return the error directly, don't struggle any more
+		if err != nil {
+			return 0, err
+		}
+		if failed {
 			lo = mid
 		} else {
 			hi = mid
@@ -421,8 +438,25 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 	}
 	// Reject the transaction as invalid if it still fails at the highest allowance
 	if hi == cap {
-		if !executable(hi) {
-			return 0, errEnergyEstimationFailed
+		failed, result, err := executable(hi)
+		if err != nil {
+			return 0, err
+		}
+		if failed {
+			if result != nil && result.Err != vm.ErrOutOfEnergy {
+				errMsg := fmt.Sprintf("always failing transaction (%v)", result.Err)
+				if len(result.Revert()) > 0 {
+					ret, err := abi.UnpackRevert(result.Revert())
+					if err != nil {
+						errMsg += fmt.Sprintf(" (%#x)", result.Revert())
+					} else {
+						errMsg += fmt.Sprintf(" (%s)", ret)
+					}
+				}
+				return 0, errors.New(errMsg)
+			}
+			// Otherwise, the specified energy cap is too low
+			return 0, fmt.Errorf("energy required exceeds allowance (%d)", cap)
 		}
 	}
 	return hi, nil
@@ -430,7 +464,7 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call gocore.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call gocore.CallMsg, block *types.Block, statedb *state.StateDB) (*core.ExecutionResult, error) {
 	// Ensure message is initialized properly.
 	if call.EnergyPrice == nil {
 		call.EnergyPrice = big.NewInt(1)

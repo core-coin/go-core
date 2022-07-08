@@ -18,6 +18,7 @@ package vm
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -28,6 +29,8 @@ import (
 	"github.com/core-coin/go-core/common/math"
 	"github.com/core-coin/go-core/core/types"
 )
+
+var errTraceLimitReached = errors.New("the number of logs reached the specified limit")
 
 // Storage represents a contract's storage.
 type Storage map[common.Hash]common.Hash
@@ -58,8 +61,8 @@ type LogConfig struct {
 type StructLog struct {
 	Pc            uint64                      `json:"pc"`
 	Op            OpCode                      `json:"op"`
-	Energy           uint64                      `json:"energy"`
-	EnergyCost       uint64                      `json:"energyCost"`
+	Energy        uint64                      `json:"energy"`
+	EnergyCost    uint64                      `json:"energyCost"`
 	Memory        []byte                      `json:"memory"`
 	MemorySize    int                         `json:"memSize"`
 	Stack         []*big.Int                  `json:"stack"`
@@ -72,8 +75,8 @@ type StructLog struct {
 // overrides for gencodec
 type structLogMarshaling struct {
 	Stack       []*math.HexOrDecimal256
-	Energy         math.HexOrDecimal64
-	EnergyCost     math.HexOrDecimal64
+	Energy      math.HexOrDecimal64
+	EnergyCost  math.HexOrDecimal64
 	Memory      hexutil.Bytes
 	OpName      string `json:"opName"` // adds call to OpName() in MarshalJSON
 	ErrorString string `json:"error"`  // adds call to ErrorString() in MarshalJSON
@@ -140,7 +143,7 @@ func (l *StructLogger) CaptureStart(from common.Address, to common.Address, crea
 func (l *StructLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
 	// check if already accumulated the specified number of logs
 	if l.cfg.Limit != 0 && l.cfg.Limit <= len(l.logs) {
-		return ErrTraceLimitReached
+		return errTraceLimitReached
 	}
 
 	// initialise new changed values storage container for this contract

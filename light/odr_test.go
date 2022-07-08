@@ -206,8 +206,8 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain
 		context := core.NewCVMContext(msg, header, chain, nil)
 		vmenv := vm.NewCVM(context, st, config, vm.Config{})
 		gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
-		ret, _, _, _ := core.ApplyMessage(vmenv, msg, gp)
-		res = append(res, ret...)
+		result, _ := core.ApplyMessage(vmenv, msg, gp)
+		res = append(res, result.Return()...)
 		if st.Error() != nil {
 			return res, st.Error()
 		}
