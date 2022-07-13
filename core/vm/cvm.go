@@ -342,7 +342,7 @@ func (cvm *CVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	// We do an AddBalance of zero here, just in order to trigger a touch.
 	// but is the correct thing to do and matters on other networks, in tests, and potential
 	// future scenarios
-	cvm.StateDB.AddBalance(addr, bigZero)
+	cvm.StateDB.AddBalance(addr, big.NewInt(0))
 
 	// When an error was returned by the CVM or when setting the creation code
 	// above we revert to the snapshot and consume any energy remaining.

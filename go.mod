@@ -12,7 +12,8 @@ require (
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.14.0
 	github.com/core-coin/go-goldilocks v1.0.9
-	github.com/core-coin/go-randomy v0.0.14
+	github.com/core-coin/go-randomy v0.0.18
+	github.com/core-coin/uint256 v1.0.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
 	github.com/dlclark/regexp2 v1.4.0 // indirect
