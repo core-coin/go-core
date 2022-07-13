@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build none
 // +build none
 
 /*
@@ -184,7 +185,7 @@ func doInstall(cmdline []string) {
 func buildFlags(env build.Environment) (flags []string) {
 	var ld []string
 	if env.Commit != "" {
-        ld = append(ld, "-X", "main.gitTag="+env.Tag)
+		ld = append(ld, "-X", "main.gitTag="+env.Tag)
 		ld = append(ld, "-X", "main.gitCommit="+env.Commit)
 		ld = append(ld, "-X", "main.gitDate="+env.Date)
 	}
@@ -241,7 +242,7 @@ func doTest(cmdline []string) {
 	// Test a single package at a time. CI builders are slow
 	// and some tests run into timeouts under load.
 	gotest := goTool("test", buildFlags(env)...)
-	gotest.Args = append(gotest.Args, "-p", "1", "-timeout", "5m")
+	gotest.Args = append(gotest.Args, "-p", "1", "-timeout", "20m")
 	if *coverage {
 		gotest.Args = append(gotest.Args, "-covermode=atomic", "-cover")
 	}
@@ -297,7 +298,6 @@ func downloadGoSources(version string, cachedir string) string {
 	}
 	return dst
 }
-
 
 // Cross compilation
 func doXgo(cmdline []string) {

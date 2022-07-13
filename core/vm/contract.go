@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"github.com/core-coin/uint256"
 	"math/big"
 
 	"github.com/core-coin/go-core/common"
@@ -57,8 +58,8 @@ type Contract struct {
 	CodeAddr *common.Address
 	Input    []byte
 
-	Energy   uint64
-	value *big.Int
+	Energy uint64
+	value  *big.Int
 }
 
 // NewContract returns a new contract environment for the execution of CVM.
@@ -81,11 +82,11 @@ func NewContract(caller ContractRef, object ContractRef, value *big.Int, energy 
 	return c
 }
 
-func (c *Contract) validJumpdest(dest *big.Int) bool {
-	udest := dest.Uint64()
+func (c *Contract) validJumpdest(dest *uint256.Int) bool {
+	udest, overflow := dest.Uint64WithOverflow()
 	// PC cannot go beyond len(code) and certainly can't be bigger than 63bits.
 	// Don't bother checking for JUMPDEST in that case.
-	if dest.BitLen() >= 63 || udest >= uint64(len(c.Code)) {
+	if overflow || udest >= uint64(len(c.Code)) {
 		return false
 	}
 	// Only JUMPDESTs allowed for destinations

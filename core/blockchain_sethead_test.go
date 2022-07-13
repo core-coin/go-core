@@ -664,6 +664,7 @@ func TestShortReorgedFastSyncingSetHead(t *testing.T) {
 	})
 }
 
+/*
 // Tests a sethead for a long canonical chain with frozen blocks where a recent
 // block - newer than the ancient limit - was already committed to disk and then
 // sethead was called. In this case we expect the full chain to be rolled back
@@ -1739,7 +1740,7 @@ func TestLongReorgedFastSyncingDeepSetHead(t *testing.T) {
 		expHeadBlock:       0,
 	})
 }
-
+*/
 func testSetHead(t *testing.T, tt *rewindTest) {
 	// It's hard to follow the test case, visualize the input
 	//log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
