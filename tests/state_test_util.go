@@ -112,11 +112,11 @@ type stTransactionMarshaling struct {
 	PrivateKey  hexutil.Bytes
 }
 
-// getVMConfig takes a fork definition and returns a chain config.
+// GetChainConfig takes a fork definition and returns a chain config.
 // The fork definition can be
 // - a plain forkname, e.g. `Nucleus`,
 // - a fork basename, and a list of CIPs to enable; e.g. `Nucleus+1884+1283`.
-func getVMConfig(forkString string) (baseConfig *params.ChainConfig, cips []int, err error) {
+func GetChainConfig(forkString string) (baseConfig *params.ChainConfig, cips []int, err error) {
 	var (
 		splitForks            = strings.Split(forkString, "+")
 		ok                    bool
@@ -166,7 +166,7 @@ func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bo
 
 // RunNoVerify runs a specific subtest and returns the statedb and post-state root
 func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*state.StateDB, common.Hash, error) {
-	config, cips, err := getVMConfig(subtest.Fork)
+	config, cips, err := GetChainConfig(subtest.Fork)
 	if err != nil {
 		return nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
 	}
