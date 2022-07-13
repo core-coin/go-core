@@ -321,55 +321,27 @@ func TestBlockhash(t *testing.T) {
 	}
 }
 
-// BenchmarkSimpleLoop test a pretty simple loop which loops
-// 1M (1 048 575) times.
-// Takes about 200 ms
-func BenchmarkSimpleLoop(b *testing.B) {
-	// 0xfffff = 1048575 loops
-	code := []byte{
-		byte(vm.PUSH3), 0x0f, 0xff, 0xff,
-		byte(vm.JUMPDEST), //  [ count ]
-		byte(vm.PUSH1), 1, // [count, 1]
-		byte(vm.SWAP1),    // [1, count]
-		byte(vm.SUB),      // [ count -1 ]
-		byte(vm.DUP1),     //  [ count -1 , count-1]
-		byte(vm.PUSH1), 4, // [count-1, count -1, label]
-		byte(vm.JUMPI), // [ 0 ]
-		byte(vm.STOP),
-	}
-	//tracer := vm.NewJSONLogger(nil, os.Stdout)
-	//Execute(code, nil, &Config{
-	//	CVMConfig: vm.Config{
-	//		Debug:  true,
-	//		Tracer: tracer,
-	//	}})
-
-	for i := 0; i < b.N; i++ {
-		Execute(code, nil, nil)
-	}
-}
-
 type stepCounter struct {
 	inner *vm.JSONLogger
 	steps int
 }
 
-func (s *stepCounter) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) error {
+func (s *stepCounter) CaptureStart(from common.Address, to common.Address, create bool, input []byte, energy uint64, value *big.Int) error {
 	return nil
 }
 
-func (s *stepCounter) CaptureState(env *vm.CVM, pc uint64, op vm.OpCode, gas, cost uint64, memory *vm.Memory, stack *vm.Stack, rStack *vm.ReturnStack, contract *vm.Contract, depth int, err error) error {
+func (s *stepCounter) CaptureState(env *vm.CVM, pc uint64, op vm.OpCode, energy, cost uint64, memory *vm.Memory, stack *vm.Stack, rStack *vm.ReturnStack, rData []byte, contract *vm.Contract, depth int, err error) error {
 	s.steps++
 	// Enable this for more output
-	//s.inner.CaptureState(env, pc, op, gas, cost, memory, stack, rStack, contract, depth, err)
+	//s.inner.CaptureState(env, pc, op, energy, cost, memory, stack, rStack, contract, depth, err)
 	return nil
 }
 
-func (s *stepCounter) CaptureFault(env *vm.CVM, pc uint64, op vm.OpCode, gas, cost uint64, memory *vm.Memory, stack *vm.Stack, rStack *vm.ReturnStack, contract *vm.Contract, depth int, err error) error {
+func (s *stepCounter) CaptureFault(env *vm.CVM, pc uint64, op vm.OpCode, energy, cost uint64, memory *vm.Memory, stack *vm.Stack, rStack *vm.ReturnStack, contract *vm.Contract, depth int, err error) error {
 	return nil
 }
 
-func (s *stepCounter) CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error) error {
+func (s *stepCounter) CaptureEnd(output []byte, energyUsed uint64, t time.Duration, err error) error {
 	return nil
 }
 
@@ -588,4 +560,161 @@ func DisabledTestEipExampleCases(t *testing.T) {
 		prettyPrint("In this example, the code 'walks' into a subroutine, which is not "+
 			"allowed, and causes an error", code)
 	}
+}
+
+// benchmarkNonModifyingCode benchmarks code, but if the code modifies the
+// state, this should not be used, since it does not reset the state between runs.
+func benchmarkNonModifyingCode(energy uint64, code []byte, name string, b *testing.B) {
+	cfg := new(Config)
+	setDefaults(cfg)
+	cfg.State, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
+	cfg.EnergyLimit = energy
+	var (
+		destination = common.BytesToAddress([]byte("contract"))
+		vmenv       = NewEnv(cfg)
+		sender      = vm.AccountRef(cfg.Origin)
+	)
+	cfg.State.CreateAccount(destination)
+	eoa, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+	{
+		cfg.State.CreateAccount(eoa)
+		cfg.State.SetNonce(eoa, 100)
+	}
+	reverting, _ := common.HexToAddress("cb970000000000000000000000000000000000000002")
+	{
+		cfg.State.CreateAccount(reverting)
+		cfg.State.SetCode(reverting, []byte{
+			byte(vm.PUSH1), 0x00,
+			byte(vm.PUSH1), 0x00,
+			byte(vm.REVERT),
+		})
+	}
+
+	//cfg.State.CreateAccount(cfg.Origin)
+	// set the receiver's (the executing contract) code for execution.
+	cfg.State.SetCode(destination, code)
+	vmenv.Call(sender, destination, nil, energy, cfg.Value)
+
+	b.Run(name, func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			vmenv.Call(sender, destination, nil, energy, cfg.Value)
+		}
+	})
+}
+
+// BenchmarkSimpleLoop test a pretty simple loop which loops until OOG
+// 55 ms
+func BenchmarkSimpleLoop(b *testing.B) {
+
+	staticCallIdentity := []byte{
+		byte(vm.JUMPDEST), //  [ count ]
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),       // out offset
+		byte(vm.DUP1),       // out insize
+		byte(vm.DUP1),       // in offset
+		byte(vm.PUSH1), 0x4, // address of identity
+		byte(vm.ENERGY), // energy
+		byte(vm.STATICCALL),
+		byte(vm.POP),      // pop return value
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	callIdentity := []byte{
+		byte(vm.JUMPDEST), //  [ count ]
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),       // out offset
+		byte(vm.DUP1),       // out insize
+		byte(vm.DUP1),       // in offset
+		byte(vm.DUP1),       // value
+		byte(vm.PUSH1), 0x4, // address of identity
+		byte(vm.ENERGY), // energy
+		byte(vm.CALL),
+		byte(vm.POP),      // pop return value
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	callInexistant := []byte{
+		byte(vm.JUMPDEST), //  [ count ]
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),        // out offset
+		byte(vm.DUP1),        // out insize
+		byte(vm.DUP1),        // in offset
+		byte(vm.DUP1),        // value
+		byte(vm.PUSH1), 0xff, // address of existing contract
+		byte(vm.ENERGY), // energy
+		byte(vm.CALL),
+		byte(vm.POP),      // pop return value
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	callEOA := []byte{
+		byte(vm.JUMPDEST), //  [ count ]
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),        // out offset
+		byte(vm.DUP1),        // out insize
+		byte(vm.DUP1),        // in offset
+		byte(vm.DUP1),        // value
+		byte(vm.PUSH1), 0xE0, // address of EOA
+		byte(vm.ENERGY), // energy
+		byte(vm.CALL),
+		byte(vm.POP),      // pop return value
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	loopingCode := []byte{
+		byte(vm.JUMPDEST), //  [ count ]
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),       // out offset
+		byte(vm.DUP1),       // out insize
+		byte(vm.DUP1),       // in offset
+		byte(vm.PUSH1), 0x4, // address of identity
+		byte(vm.ENERGY), // energy
+
+		byte(vm.POP), byte(vm.POP), byte(vm.POP), byte(vm.POP), byte(vm.POP), byte(vm.POP),
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	calllRevertingContractWithInput := []byte{
+		byte(vm.JUMPDEST), //
+		// push args for the call
+		byte(vm.PUSH1), 0, // out size
+		byte(vm.DUP1),        // out offset
+		byte(vm.PUSH1), 0x20, // in size
+		byte(vm.PUSH1), 0x00, // in offset
+		byte(vm.PUSH1), 0x00, // value
+		byte(vm.PUSH1), 0xEE, // address of reverting contract
+		byte(vm.ENERGY), // energy
+		byte(vm.CALL),
+		byte(vm.POP),      // pop return value
+		byte(vm.PUSH1), 0, // jumpdestination
+		byte(vm.JUMP),
+	}
+
+	//tracer := vm.NewJSONLogger(nil, os.Stdout)
+	//Execute(loopingCode, nil, &Config{
+	//	EVMConfig: vm.Config{
+	//		Debug:  true,
+	//		Tracer: tracer,
+	//	}})
+	// 100M energy
+	benchmarkNonModifyingCode(100000000, staticCallIdentity, "staticcall-identity-100M", b)
+	benchmarkNonModifyingCode(100000000, callIdentity, "call-identity-100M", b)
+	benchmarkNonModifyingCode(100000000, loopingCode, "loop-100M", b)
+	benchmarkNonModifyingCode(100000000, callInexistant, "call-nonexist-100M", b)
+	benchmarkNonModifyingCode(100000000, callEOA, "call-EOA-100M", b)
+	benchmarkNonModifyingCode(100000000, calllRevertingContractWithInput, "call-reverting-100M", b)
+
+	//benchmarkNonModifyingCode(10000000, staticCallIdentity, "staticcall-identity-10M", b)
+	//benchmarkNonModifyingCode(10000000, loopingCode, "loop-10M", b)
 }

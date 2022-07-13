@@ -159,13 +159,20 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		logged     bool   // deferred Tracer should ignore already logged steps
 		res        []byte // result of the opcode execution function
 	)
+	// Don't move this deferrred function, it's placed before the capturestate-deferred method,
+	// so that it get's executed _after_: the capturestate needs the stacks before
+	// they are returned to the pools
+	defer func() {
+		returnStack(stack)
+		returnRStack(returns)
+	}()
 	contract.Input = input
 
 	if in.cfg.Debug {
 		defer func() {
 			if err != nil {
 				if !logged {
-					in.cfg.Tracer.CaptureState(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
+					in.cfg.Tracer.CaptureState(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, returns, in.returnData, contract, in.cvm.depth, err)
 				} else {
 					in.cfg.Tracer.CaptureFault(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
 				}
@@ -249,7 +256,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 
 		if in.cfg.Debug {
-			in.cfg.Tracer.CaptureState(in.cvm, pc, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
+			in.cfg.Tracer.CaptureState(in.cvm, pc, op, energyCopy, cost, mem, stack, returns, in.returnData, contract, in.cvm.depth, err)
 			logged = true
 		}
 
@@ -258,7 +265,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// if the operation clears the return data (e.g. it has returning data)
 		// set the last return to the result of the operation.
 		if operation.returns {
-			in.returnData = res
+			in.returnData = common.CopyBytes(res)
 		}
 
 		switch {

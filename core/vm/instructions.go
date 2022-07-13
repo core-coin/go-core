@@ -571,7 +571,7 @@ func opJumpSub(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 	if !callContext.contract.validJumpSubdest(posU64) {
 		return nil, ErrInvalidJump
 	}
-	callContext.rstack.push(*pc)
+	callContext.rstack.push(uint32(*pc))
 	*pc = posU64 + 1
 	return nil, nil
 }
@@ -583,7 +583,7 @@ func opReturnSub(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) 
 	// Other than the check that the return stack is not empty, there is no
 	// need to validate the pc from 'returns', since we only ever push valid
 	//values onto it via jumpsub.
-	*pc = callContext.rstack.pop() + 1
+	*pc = uint64(callContext.rstack.pop()) + 1
 	return nil, nil
 }
 
@@ -615,7 +615,13 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 	stackvalue := size
 
 	callContext.contract.UseEnergy(energy)
-	res, addr, returnEnergy, suberr := interpreter.cvm.Create(callContext.contract, input, energy, value.ToBig())
+	//TODO: use uint256.Int instead of converting with toBig()
+	var bigVal = big0
+	if !value.IsZero() {
+		bigVal = value.ToBig()
+	}
+
+	res, addr, returnEnergy, suberr := interpreter.cvm.Create(callContext.contract, input, energy, bigVal)
 	// Push item on the callContext.stack based on the returned error. We must
 	// ignore this error and pretend the operation was successful.
 	if suberr == ErrCodeStoreOutOfEnergy {
@@ -648,8 +654,13 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 	callContext.contract.UseEnergy(energy)
 	// reuse size int for callContext.stackvalue
 	stackvalue := size
+	//TODO: use uint256.Int instead of converting with toBig()
+	bigEndowment := big0
+	if !endowment.IsZero() {
+		bigEndowment = endowment.ToBig()
+	}
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create2(callContext.contract, input, energy,
-		endowment.ToBig(), salt.ToBig())
+		bigEndowment, &salt)
 	// Push item on the callContext.stack based on the returned error.
 	if suberr != nil {
 		stackvalue.Clear()
@@ -676,10 +687,16 @@ func opCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]by
 	// Get the arguments from the callContext.memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	var bigVal = big0
+	//TODO: use uint256.Int instead of converting with toBig()
+	// By using big0 here, we save an alloc for the most common case (non-ether-transferring contract calls),
+	// but it would make more sense to extend the usage of uint256.Int
 	if !value.IsZero() {
 		energy += params.CallStipend
+		bigVal = value.ToBig()
 	}
-	ret, returnEnergy, err := interpreter.cvm.Call(callContext.contract, toAddr, args, energy, value.ToBig())
+
+	ret, returnEnergy, err := interpreter.cvm.Call(callContext.contract, toAddr, args, energy, bigVal)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -704,10 +721,14 @@ func opCallCode(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) (
 	// Get arguments from the callContext.memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	//TODO: use uint256.Int instead of converting with toBig()
+	var bigVal = big0
 	if !value.IsZero() {
 		energy += params.CallStipend
+		bigVal = value.ToBig()
 	}
-	ret, returnEnergy, err := interpreter.cvm.CallCode(callContext.contract, toAddr, args, energy, value.ToBig())
+
+	ret, returnEnergy, err := interpreter.cvm.CallCode(callContext.contract, toAddr, args, energy, bigVal)
 	if err != nil {
 		temp.Clear()
 	} else {
