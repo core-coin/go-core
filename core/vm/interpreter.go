@@ -61,6 +61,14 @@ type Interpreter interface {
 	CanRun([]byte) bool
 }
 
+// callCtx contains the things that are per-call, such as stack and memory,
+// but not transients like pc and energy
+type callCtx struct {
+	memory   *Memory
+	stack    *Stack
+	contract *Contract
+}
+
 // keccakState wraps sha3.state. In addition to the usual hash methods, it also supports
 // Read to get a variable amount of data from the hash state. Read is faster than Sum
 // because it doesn't copy the internal state, but also modifies the internal state.
@@ -129,9 +137,14 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	}
 
 	var (
-		op    OpCode        // current opcode
-		mem   = NewMemory() // bound memory
-		stack = newstack()  // local stack
+		op          OpCode        // current opcode
+		mem         = NewMemory() // bound memory
+		stack       = newstack()  // local stack
+		callContext = &callCtx{
+			memory:   mem,
+			stack:    stack,
+			contract: contract,
+		}
 		// For optimisation reason we're using uint64 as the program counter.
 		// It's theoretically possible to go above 2^64. The YP defines the PC
 		// to be uint256. Practically much less so feasible.
@@ -160,7 +173,12 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	// explicit STOP, RETURN or SELFDESTRUCT is executed, an error occurred during
 	// the execution of one of the operations or until the done flag is set by the
 	// parent context.
-	for atomic.LoadInt32(&in.cvm.abort) == 0 {
+	steps := 0
+	for {
+		steps++
+		if steps%1000 == 0 && atomic.LoadInt32(&in.cvm.abort) != 0 {
+			break
+		}
 		if in.cfg.Debug {
 			// Capture pre-execution values for tracing.
 			logged, pcCopy, energyCopy = false, pc, contract.Energy
@@ -233,7 +251,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 
 		// execute the operation
-		res, err = operation.execute(&pc, in, contract, mem, stack)
+		res, err = operation.execute(&pc, in, callContext)
 		// if the operation clears the return data (e.g. it has returning data)
 		// set the last return to the result of the operation.
 		if operation.returns {
