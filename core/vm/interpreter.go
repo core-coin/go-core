@@ -32,7 +32,7 @@ type Config struct {
 	NoRecursion             bool   // Disables call, callcode, delegate call and create
 	EnablePreimageRecording bool   // Enables recording of SHA3/keccak preimages
 
-	JumpTable [256]operation // CVM instruction table, automatically populated if unset
+	JumpTable [256]*operation // EVM instruction table, automatically populated if unset
 
 	EWASMInterpreter string // External EWASM interpreter options
 	CVMInterpreter   string // External CVM interpreter options
@@ -75,8 +75,6 @@ type CVMInterpreter struct {
 	cvm *CVM
 	cfg Config
 
-	intPool *intPool
-
 	hasher    keccakState // SHA3 hasher instance shared across opcodes
 	hasherBuf common.Hash // SHA3 hasher result array shared aross opcodes
 
@@ -89,7 +87,7 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 	// We use the STOP instruction whether to see
 	// the jump table was initialised. If it was not
 	// we'll set the default jump table.
-	if !cfg.JumpTable[STOP].valid {
+	if cfg.JumpTable[STOP] == nil {
 		var jt JumpTable
 		switch {
 		default:
@@ -111,14 +109,6 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 // considered a revert-and-consume-all-energy operation except for
 // errExecutionReverted which means revert-and-keep-energy-left.
 func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
-	if in.intPool == nil {
-		in.intPool = poolOfIntPools.get()
-		defer func() {
-			poolOfIntPools.put(in.intPool)
-			in.intPool = nil
-		}()
-	}
-
 	// Increment the call depth which is restricted to 1024
 	in.cvm.depth++
 	defer func() { in.cvm.depth-- }()
@@ -156,9 +146,6 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	)
 	contract.Input = input
 
-	// Reclaim the stack as an int pool when the execution stops
-	defer func() { in.intPool.put(stack.data...) }()
-
 	if in.cfg.Debug {
 		defer func() {
 			if err != nil {
@@ -184,7 +171,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// enough stack items available to perform the operation.
 		op = contract.GetOp(pc)
 		operation := in.cfg.JumpTable[op]
-		if !operation.valid {
+		if operation == nil {
 			return nil, fmt.Errorf("invalid opcode 0x%x", int(op))
 		}
 		// Validate stack
@@ -248,11 +235,6 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 		// execute the operation
 		res, err = operation.execute(&pc, in, contract, mem, stack)
-		// verifyPool is a build flag. Pool verification makes sure the integrity
-		// of the integer pool by comparing values to a default value.
-		if verifyPool {
-			verifyIntegerPool(in.intPool)
-		}
 		// if the operation clears the return data (e.g. it has returning data)
 		// set the last return to the result of the operation.
 		if operation.returns {
