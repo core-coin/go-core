@@ -175,7 +175,8 @@ func (n *Node) Start() error {
 		return ErrNodeStopped
 	}
 	n.state = runningState
-	err := n.startNetworking()
+	// open networking and RPC endpoints
+	err := n.openEndpoints()
 	lifecycles := make([]Lifecycle, len(n.lifecycles))
 	copy(lifecycles, n.lifecycles)
 	n.lock.Unlock()
@@ -270,12 +271,14 @@ func (n *Node) doClose(errs []error) error {
 	}
 }
 
-// startNetworking starts all network endpoints.
-func (n *Node) startNetworking() error {
+// openEndpoints starts all network and RPC endpoints.
+func (n *Node) openEndpoints() error {
+	// start networking endpoints
 	n.log.Info("Starting peer-to-peer node", "instance", n.server.Name)
 	if err := n.server.Start(); err != nil {
 		return convertFileLockError(err)
 	}
+	// start RPC endpoints
 	err := n.startRPC()
 	if err != nil {
 		n.stopRPC()
@@ -320,6 +323,7 @@ func (n *Node) openDataDir() error {
 	if n.config.DataDir == "" {
 		return nil // ephemeral
 	}
+
 	instdir := filepath.Join(n.config.DataDir, n.config.name())
 	if err := os.MkdirAll(instdir, 0700); err != nil {
 		return err
@@ -415,6 +419,7 @@ func (n *Node) startRPC() error {
 			CorsAllowedOrigins: n.config.HTTPCors,
 			Vhosts:             n.config.HTTPVirtualHosts,
 			Modules:            n.config.HTTPModules,
+			prefix:             n.config.HTTPPathPrefix,
 		}); err != nil {
 			return err
 		}
@@ -601,6 +606,7 @@ func (n *Node) RegisterHandler(name, path string, handler http.Handler) {
 	if n.state != initializingState {
 		panic("can't register HTTP handler on running/stopped node")
 	}
+
 	n.http.mux.Handle(path, handler)
 	n.http.handlerNames[path] = name
 }
