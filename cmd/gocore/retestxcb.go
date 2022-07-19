@@ -807,7 +807,7 @@ func retestxcb(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Could not register RPC apis: %w", err)
 	}
-	handler := node.NewHTTPHandlerStack(srv, cors, vhosts)
+	handler := node.NewHTTPHandlerStack(srv, cors, vhosts, nil)
 
 	// start http server
 	var RetestethHTTPTimeouts = rpc.HTTPTimeouts{

@@ -462,6 +462,16 @@ var (
 		Usage: "Sets a cap on transaction fee (in core) that can be sent via the RPC APIs (0 = no cap)",
 		Value: xcb.DefaultConfig.RPCTxFeeCap,
 	}
+	// Authenticated port settings
+	AuthPortFlag = cli.IntFlag{
+		Name:  "authrpc.port",
+		Usage: "Listening port for authenticated APIs",
+		Value: node.DefaultAuthPort,
+	}
+	JWTSecretFlag = cli.StringFlag{
+		Name:  "authrpc.jwtsecret",
+		Usage: "JWT secret (or path to a jwt secret) to use for authenticated RPC endpoints",
+	}
 	// Logging and debug settings
 	XcbStatsURLFlag = cli.StringFlag{
 		Name:  "xcbstats",
@@ -892,6 +902,11 @@ func setHTTP(ctx *cli.Context, cfg *node.Config) {
 		cfg.HTTPCors = splitAndTrim(ctx.GlobalString(LegacyRPCCORSDomainFlag.Name))
 		log.Warn("The flag --rpccorsdomain is deprecated and will be removed in the future, please use --http.corsdomain")
 	}
+
+	if ctx.GlobalIsSet(AuthPortFlag.Name) {
+		cfg.AuthPort = ctx.GlobalInt(AuthPortFlag.Name)
+	}
+
 	if ctx.GlobalIsSet(HTTPCORSDomainFlag.Name) {
 		cfg.HTTPCors = splitAndTrim(ctx.GlobalString(HTTPCORSDomainFlag.Name))
 	}
@@ -1190,6 +1205,10 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	setNodeUserIdent(ctx, cfg)
 	setDataDir(ctx, cfg)
 	setSmartCard(ctx, cfg)
+
+	if ctx.GlobalIsSet(JWTSecretFlag.Name) {
+		cfg.JWTSecret = ctx.GlobalString(JWTSecretFlag.Name)
+	}
 
 	if ctx.GlobalIsSet(ExternalSignerFlag.Name) {
 		cfg.ExternalSigner = ctx.GlobalString(ExternalSignerFlag.Name)

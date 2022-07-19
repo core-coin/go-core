@@ -600,7 +600,7 @@ func signer(c *cli.Context) error {
 		if err != nil {
 			utils.Fatalf("Could not register API: %w", err)
 		}
-		handler := node.NewHTTPHandlerStack(srv, cors, vhosts)
+		handler := node.NewHTTPHandlerStack(srv, cors, vhosts, nil)
 
 		// start http server
 		httpEndpoint := fmt.Sprintf("%s:%d", c.GlobalString(utils.HTTPListenAddrFlag.Name), c.Int(rpcPortFlag.Name))
