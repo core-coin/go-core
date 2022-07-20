@@ -162,6 +162,7 @@ func TestTrustedAnnouncementsLes2(t *testing.T) { testTrustedAnnouncement(t, 2) 
 func TestTrustedAnnouncementsLes3(t *testing.T) { testTrustedAnnouncement(t, 3) }
 
 func testTrustedAnnouncement(t *testing.T, protocol int) {
+	t.Skip("long-running test")
 	var (
 		servers   []*testServer
 		teardowns []func()
