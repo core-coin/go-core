@@ -302,6 +302,7 @@ func testServerPool(t *testing.T, preNeg, fail bool) {
 func TestServerPoolChangedNodes(t *testing.T)           { testServerPoolChangedNodes(t, false) }
 func TestServerPoolChangedNodesWithPreNeg(t *testing.T) { testServerPoolChangedNodes(t, true) }
 func testServerPoolChangedNodes(t *testing.T, preNeg bool) {
+	t.Skip("skip long-running tests")
 	s := newServerPoolTest(preNeg, false)
 	nodes := s.setNodes(100, 200, 200, true, false)
 	s.setNodes(100, 20, 20, false, false)
