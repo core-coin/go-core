@@ -78,6 +78,7 @@ func tfCodeAccess(db xcbdb.Database, bhash common.Hash, num uint64) light.OdrReq
 }
 
 func testAccess(t *testing.T, protocol int, fn accessTestFn) {
+	t.Skip("skip long-running tests")
 	// Assemble the test environment
 	server, client, tearDown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, true, true)
 	defer tearDown()
