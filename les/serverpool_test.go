@@ -320,6 +320,7 @@ func testServerPoolChangedNodes(t *testing.T, preNeg bool) {
 
 func TestServerPoolRestartNoDiscovery(t *testing.T) { testServerPoolRestartNoDiscovery(t, false) }
 func TestServerPoolRestartNoDiscoveryWithPreNeg(t *testing.T) {
+	t.Skip("skip long-running tests")
 	testServerPoolRestartNoDiscovery(t, true)
 }
 func testServerPoolRestartNoDiscovery(t *testing.T, preNeg bool) {
