@@ -208,7 +208,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 
 			// Set the timeout as 1 second here, ensure there is enough time
 			// for travis to make the action.
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			b2 := fn(ctx, client.db, client.handler.backend.chainConfig, nil, client.handler.backend.blockchain, bhash)
 			cancel()
 
@@ -225,20 +225,20 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 
 	// expect retrievals to fail (except genesis block) without a les peer
 	client.handler.backend.peers.lock.Lock()
-	client.peer.speer.hasBlock = func(common.Hash, uint64, bool) bool { return false }
+	client.peer.speer.hasBlockHook = func(common.Hash, uint64, bool) bool { return false }
 	client.handler.backend.peers.lock.Unlock()
 	test(expFail)
 
 	// expect all retrievals to pass
 	client.handler.backend.peers.lock.Lock()
-	client.peer.speer.hasBlock = func(common.Hash, uint64, bool) bool { return true }
+	client.peer.speer.hasBlockHook = func(common.Hash, uint64, bool) bool { return true }
 	client.handler.backend.peers.lock.Unlock()
 	test(5)
 
 	// still expect all retrievals to pass, now data should be cached locally
 	if checkCached {
 		client.handler.backend.peers.unregister(client.peer.speer.id)
-		time.Sleep(time.Second * 1) // ensure that all peerSetNotify callbacks are executed
+		time.Sleep(time.Second * 3) // ensure that all peerSetNotify callbacks are executed
 		test(5)
 	}
 }

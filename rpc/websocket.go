@@ -26,8 +26,8 @@ import (
 	"strings"
 	"sync"
 
-	mapset "github.com/deckarep/golang-set"
 	"github.com/core-coin/go-core/log"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/gorilla/websocket"
 )
 
@@ -37,13 +37,6 @@ const (
 )
 
 var wsBufferPool = new(sync.Pool)
-
-// NewWSServer creates a new websocket RPC server around an API provider.
-//
-// Deprecated: use Server.WebsocketHandler
-func NewWSServer(allowedOrigins []string, srv *Server) *http.Server {
-	return &http.Server{Handler: srv.WebsocketHandler(allowedOrigins)}
-}
 
 // WebsocketHandler returns a handler that serves JSON-RPC to WebSocket connections.
 //

@@ -75,7 +75,7 @@ type SimulatedBackend struct {
 func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil)
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
 
 	backend := &SimulatedBackend{
 		database:   database,

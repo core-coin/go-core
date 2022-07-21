@@ -40,4 +40,6 @@ var (
 
 	stateInMeter   = metrics.NewRegisteredMeter("xcb/downloader/states/in", nil)
 	stateDropMeter = metrics.NewRegisteredMeter("xcb/downloader/states/drop", nil)
+
+	throttleCounter = metrics.NewRegisteredCounter("xcb/downloader/throttle", nil)
 )

@@ -440,7 +440,7 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 }
 
 // EcRecover returns the address for the account that was used to create the signature.
-// Note, this function is compatible with eth_sign and personal_sign. As such it recovers
+// Note, this function is compatible with xcb_sign and personal_sign. As such it recovers
 // the address of:
 // hash = keccak256("\x19Core Signed Message:\n"${message length}${message})
 // addr = ecrecover(hash, signature)
@@ -748,7 +748,7 @@ func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
 		addr = *args.From
 	}
 
-	// Set default gas & gas price if none were set
+	// Set default energy & energy price if none were set
 	energy := globalEnergyCap.Uint64()
 	if energy == 0 {
 		energy = uint64(math.MaxUint64 / 2)
@@ -1437,6 +1437,13 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 
 // SubmitTransaction is a helper function that submits tx to txPool and logs a message.
 func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (common.Hash, error) {
+	// If the transaction fee cap is already specified, ensure the
+	// fee of the given transaction is _reasonable_.
+	feeCore := new(big.Float).Quo(new(big.Float).SetInt(new(big.Int).Mul(tx.EnergyPrice(), new(big.Int).SetUint64(tx.Energy()))), new(big.Float).SetInt(big.NewInt(params.Core)))
+	feeFloat, _ := feeCore.Float64()
+	if b.RPCTxFeeCap() != 0 && feeFloat > b.RPCTxFeeCap() {
+		return common.Hash{}, fmt.Errorf("tx fee (%.2f xcb) exceeds the configured cap (%.2f core)", feeFloat, b.RPCTxFeeCap())
+	}
 	if err := b.SendTx(ctx, tx); err != nil {
 		return common.Hash{}, err
 	}

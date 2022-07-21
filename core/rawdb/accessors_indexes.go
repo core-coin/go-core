@@ -64,9 +64,31 @@ func WriteTxLookupEntries(db xcbdb.KeyValueWriter, block *types.Block) {
 	}
 }
 
+// WriteTxLookupEntriesByHash is identical to WriteTxLookupEntries, but does not
+// require a full types.Block as input.
+func WriteTxLookupEntriesByHash(db xcbdb.KeyValueWriter, number uint64, hashes []common.Hash) {
+	numberBytes := new(big.Int).SetUint64(number).Bytes()
+	for _, hash := range hashes {
+		if err := db.Put(txLookupKey(hash), numberBytes); err != nil {
+			log.Crit("Failed to store transaction lookup entry", "err", err)
+		}
+	}
+}
+
 // DeleteTxLookupEntry removes all transaction data associated with a hash.
 func DeleteTxLookupEntry(db xcbdb.KeyValueWriter, hash common.Hash) {
-	db.Delete(txLookupKey(hash))
+	if err := db.Delete(txLookupKey(hash)); err != nil {
+		log.Crit("Failed to delete transaction lookup entry", "err", err)
+	}
+}
+
+// DeleteTxLookupEntries removes all transaction lookups for a given block.
+func DeleteTxLookupEntriesByHash(db xcbdb.KeyValueWriter, hashes []common.Hash) {
+	for _, hash := range hashes {
+		if err := db.Delete(txLookupKey(hash)); err != nil {
+			log.Crit("Failed to delete transaction lookup entry", "err", err)
+		}
+	}
 }
 
 // ReadTransaction retrieves a specific transaction from the database, along with
@@ -135,7 +157,7 @@ func WriteBloomBits(db xcbdb.KeyValueWriter, bit uint, section uint64, head comm
 // given section range and bit index.
 func DeleteBloombits(db xcbdb.Database, bit uint, from uint64, to uint64) {
 	start, end := bloomBitsKey(bit, from, common.Hash{}), bloomBitsKey(bit, to, common.Hash{})
-	it := db.NewIteratorWithStart(start)
+	it := db.NewIterator(nil, start)
 	defer it.Release()
 
 	for it.Next() {

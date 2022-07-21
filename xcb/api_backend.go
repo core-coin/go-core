@@ -19,6 +19,8 @@ package xcb
 import (
 	"context"
 	"errors"
+	"github.com/core-coin/go-core/consensus"
+	"github.com/core-coin/go-core/miner"
 	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
@@ -257,6 +259,10 @@ func (b *XcbAPIBackend) TxPoolContent() (map[common.Address]types.Transactions, 
 	return b.xcb.TxPool().Content()
 }
 
+func (b *XcbAPIBackend) TxPool() *core.TxPool {
+	return b.xcb.TxPool()
+}
+
 func (b *XcbAPIBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subscription {
 	return b.xcb.TxPool().SubscribeNewTxsEvent(ch)
 }
@@ -293,6 +299,10 @@ func (b *XcbAPIBackend) RPCEnergyCap() *big.Int {
 	return b.xcb.config.RPCEnergyCap
 }
 
+func (b *XcbAPIBackend) RPCTxFeeCap() float64 {
+	return b.xcb.config.RPCTxFeeCap
+}
+
 func (b *XcbAPIBackend) BloomStatus() (uint64, uint64) {
 	sections, _, _ := b.xcb.bloomIndexer.Sections()
 	return params.BloomBitsBlocks, sections
@@ -302,4 +312,20 @@ func (b *XcbAPIBackend) ServiceFilter(ctx context.Context, session *bloombits.Ma
 	for i := 0; i < bloomFilterThreads; i++ {
 		go session.Multiplex(bloomRetrievalBatch, bloomRetrievalWait, b.xcb.bloomRequests)
 	}
+}
+
+func (b *XcbAPIBackend) Engine() consensus.Engine {
+	return b.xcb.engine
+}
+
+func (b *XcbAPIBackend) CurrentHeader() *types.Header {
+	return b.xcb.blockchain.CurrentHeader()
+}
+
+func (b *XcbAPIBackend) Miner() *miner.Miner {
+	return b.xcb.Miner()
+}
+
+func (b *XcbAPIBackend) StartMining(threads int) error {
+	return b.xcb.StartMining(threads)
 }
