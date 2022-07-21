@@ -32,7 +32,7 @@ func verifyImportEvent(t *testing.T, imported chan interface{}, arrive bool) {
 	if arrive {
 		select {
 		case <-imported:
-		case <-time.After(time.Second):
+		case <-time.After(3 * time.Second):
 			t.Fatalf("import timeout")
 		}
 	} else {
