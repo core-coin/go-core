@@ -78,6 +78,7 @@ func tfCodeAccess(db xcbdb.Database, bhash common.Hash, num uint64) light.OdrReq
 }
 
 func testAccess(t *testing.T, protocol int, fn accessTestFn) {
+	t.Skip("skip long-running tests")
 	// Assemble the test environment
 	server, client, tearDown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, true, true)
 	defer tearDown()
@@ -92,7 +93,7 @@ func testAccess(t *testing.T, protocol int, fn accessTestFn) {
 		for i := uint64(0); i <= server.handler.blockchain.CurrentHeader().Number.Uint64(); i++ {
 			bhash := rawdb.ReadCanonicalHash(server.db, i)
 			if req := fn(client.db, bhash, i); req != nil {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				err := client.handler.backend.odr.Retrieve(ctx, req)
 				cancel()
 

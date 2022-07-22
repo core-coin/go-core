@@ -150,7 +150,7 @@ func TestAddMod(t *testing.T) {
 	var (
 		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
-		evmInterpreter = NewCVMInterpreter(env, env.vmConfig)
+		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 		pc             = uint64(0)
 	)
 	tests := []struct {
@@ -176,7 +176,7 @@ func TestAddMod(t *testing.T) {
 		stack.push(z)
 		stack.push(y)
 		stack.push(x)
-		opAddmod(&pc, evmInterpreter, nil, nil, stack)
+		opAddmod(&pc, cvmInterpreter, nil, nil, stack)
 		actual := stack.pop()
 		if actual.Cmp(expected) != 0 {
 			t.Errorf("Testcase %d, expected  %x, got %x", i, expected, actual)
