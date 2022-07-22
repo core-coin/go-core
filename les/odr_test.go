@@ -208,7 +208,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 
 			// Set the timeout as 1 second here, ensure there is enough time
 			// for travis to make the action.
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			b2 := fn(ctx, client.db, client.handler.backend.chainConfig, nil, client.handler.backend.blockchain, bhash)
 			cancel()
 
@@ -238,7 +238,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 	// still expect all retrievals to pass, now data should be cached locally
 	if checkCached {
 		client.handler.backend.peers.unregister(client.peer.speer.id)
-		time.Sleep(time.Second * 1) // ensure that all peerSetNotify callbacks are executed
+		time.Sleep(time.Second * 3) // ensure that all peerSetNotify callbacks are executed
 		test(5)
 	}
 }

@@ -130,7 +130,7 @@ func TestTimedUnlock(t *testing.T) {
 	}
 
 	// Signing with passphrase works
-	if err = ks.TimedUnlock(a1, pass, 100*time.Millisecond); err != nil {
+	if err = ks.TimedUnlock(a1, pass, 200*time.Millisecond); err != nil {
 		t.Fatal(err)
 	}
 
@@ -141,7 +141,7 @@ func TestTimedUnlock(t *testing.T) {
 	}
 
 	// Signing fails again after automatic locking
-	time.Sleep(250 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	_, err = ks.SignHash(accounts.Account{Address: a1.Address}, testSigData)
 	if err != ErrLocked {
 		t.Fatal("Signing should've failed with ErrLocked timeout expired, got ", err)
