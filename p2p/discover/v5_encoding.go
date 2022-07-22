@@ -21,7 +21,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	crand "crypto/rand"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/sha3"
@@ -211,7 +210,7 @@ func (h *authHeaderList) ephemeralKey() *eddsa.PublicKey {
 // newWireCodec creates a wire codec.
 func newWireCodec(ln *enode.LocalNode, key *eddsa.PrivateKey, clock mclock.Clock) *wireCodec {
 	c := &wireCodec{
-		sha256:    sha256.New(),
+		sha256:    sha3.New256(),
 		localnode: ln,
 		privkey:   key,
 		sc:        newSessionCache(1024, clock),

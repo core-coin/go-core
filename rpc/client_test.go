@@ -156,10 +156,10 @@ func testClientCancel(transport string, t *testing.T) {
 	//
 	// Once a connection is dead, there is a fair chance it won't connect
 	// successfully because the accept is delayed by 1s.
-	maxContextCancelTimeout := 300 * time.Millisecond
+	maxContextCancelTimeout := 600 * time.Millisecond
 	fl := &flakeyListener{
-		maxAcceptDelay: 1 * time.Second,
-		maxKillTimeout: 600 * time.Millisecond,
+		maxAcceptDelay: 2 * time.Second,
+		maxKillTimeout: 1200 * time.Millisecond,
 	}
 
 	var client *Client
