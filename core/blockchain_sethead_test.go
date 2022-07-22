@@ -664,7 +664,6 @@ func TestShortReorgedFastSyncingSetHead(t *testing.T) {
 	})
 }
 
-/*
 // Tests a sethead for a long canonical chain with frozen blocks where a recent
 // block - newer than the ancient limit - was already committed to disk and then
 // sethead was called. In this case we expect the full chain to be rolled back
@@ -672,6 +671,7 @@ func TestShortReorgedFastSyncingSetHead(t *testing.T) {
 // In between the committed block and the requested head the data can remain as
 // "fast sync" data to avoid redownloading it.
 func TestLongShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//
@@ -716,6 +716,7 @@ func TestLongShallowSetHead(t *testing.T) {
 // to the committed block. Since the ancient limit was underflown, everything
 // needs to be deleted onwards to avoid creating a gap.
 func TestLongDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//
@@ -760,6 +761,7 @@ func TestLongDeepSetHead(t *testing.T) {
 // deleted. In between the committed block and the requested head the data can
 // remain as "fast sync" data to avoid redownloading it.
 func TestLongFastSyncedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//
@@ -804,6 +806,7 @@ func TestLongFastSyncedShallowSetHead(t *testing.T) {
 // back to the committed block. Since the ancient limit was underflown, everything
 // needs to be deleted onwards to avoid creating a gap.
 func TestLongFastSyncedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//
@@ -847,6 +850,7 @@ func TestLongFastSyncedDeepSetHead(t *testing.T) {
 // syncing and delete everything from the new head, since we can just pick up fast
 // syncing from there.
 func TestLongFastSyncingShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//
@@ -891,6 +895,7 @@ func TestLongFastSyncingShallowSetHead(t *testing.T) {
 // syncing and delete everything from the new head, since we can just pick up fast
 // syncing from there.
 func TestLongFastSyncingDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//
@@ -936,6 +941,7 @@ func TestLongFastSyncingDeepSetHead(t *testing.T) {
 // can remain as "fast sync" data to avoid redownloading it. The side chain is nuked
 // by the freezer.
 func TestLongOldForkedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3
@@ -982,6 +988,7 @@ func TestLongOldForkedShallowSetHead(t *testing.T) {
 // underflown, everything needs to be deleted onwards to avoid creating a gap. The
 // side chain is nuked by the freezer.
 func TestLongOldForkedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3
@@ -1029,6 +1036,7 @@ func TestLongOldForkedDeepSetHead(t *testing.T) {
 // requested head the data can remain as "fast sync" data to avoid redownloading
 // it. The side chain is nuked by the freezer.
 func TestLongOldForkedFastSyncedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3
@@ -1076,6 +1084,7 @@ func TestLongOldForkedFastSyncedShallowSetHead(t *testing.T) {
 // underflown, everything needs to be deleted onwards to avoid creating a gap. The
 // side chain is nuked by the freezer.
 func TestLongOldForkedFastSyncedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3
@@ -1122,6 +1131,7 @@ func TestLongOldForkedFastSyncedDeepSetHead(t *testing.T) {
 // just pick up fast syncing from there. The side chain is completely nuked by the
 // freezer.
 func TestLongOldForkedFastSyncingShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3
@@ -1169,6 +1179,7 @@ func TestLongOldForkedFastSyncingShallowSetHead(t *testing.T) {
 // just pick up fast syncing from there. The side chain is completely nuked by the
 // freezer.
 func TestLongOldForkedFastSyncingDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3
@@ -1213,6 +1224,7 @@ func TestLongOldForkedFastSyncingDeepSetHead(t *testing.T) {
 // chain is above the committed block. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongShallowSetHead.
 func TestLongNewerForkedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1258,6 +1270,7 @@ func TestLongNewerForkedShallowSetHead(t *testing.T) {
 // chain is above the committed block. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongDeepSetHead.
 func TestLongNewerForkedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1302,6 +1315,7 @@ func TestLongNewerForkedDeepSetHead(t *testing.T) {
 // the side chain is above the committed block. In this case the freezer will delete
 // the sidechain since it's dangling, reverting to TestLongFastSyncedShallowSetHead.
 func TestLongNewerForkedFastSyncedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1347,6 +1361,7 @@ func TestLongNewerForkedFastSyncedShallowSetHead(t *testing.T) {
 // the side chain is above the committed block. In this case the freezer will delete
 // the sidechain since it's dangling, reverting to TestLongFastSyncedDeepSetHead.
 func TestLongNewerForkedFastSyncedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1391,6 +1406,7 @@ func TestLongNewerForkedFastSyncedDeepSetHead(t *testing.T) {
 // chain is above the committed block. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongFastSyncinghallowSetHead.
 func TestLongNewerForkedFastSyncingShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1436,6 +1452,7 @@ func TestLongNewerForkedFastSyncingShallowSetHead(t *testing.T) {
 // chain is above the committed block. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongFastSyncingDeepSetHead.
 func TestLongNewerForkedFastSyncingDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12
@@ -1479,6 +1496,7 @@ func TestLongNewerForkedFastSyncingDeepSetHead(t *testing.T) {
 // to disk and then sethead was called. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongShallowSetHead.
 func TestLongReorgedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1523,6 +1541,7 @@ func TestLongReorgedShallowSetHead(t *testing.T) {
 // to disk and then sethead was called. In this case the freezer will delete the
 // sidechain since it's dangling, reverting to TestLongDeepSetHead.
 func TestLongReorgedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1567,6 +1586,7 @@ func TestLongReorgedDeepSetHead(t *testing.T) {
 // freezer will delete the sidechain since it's dangling, reverting to
 // TestLongFastSyncedShallowSetHead.
 func TestLongReorgedFastSyncedShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1612,6 +1632,7 @@ func TestLongReorgedFastSyncedShallowSetHead(t *testing.T) {
 // freezer will delete the sidechain since it's dangling, reverting to
 // TestLongFastSyncedDeepSetHead.
 func TestLongReorgedFastSyncedDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1657,6 +1678,7 @@ func TestLongReorgedFastSyncedDeepSetHead(t *testing.T) {
 // head, since we can just pick up fast syncing from there. The side chain is
 // completely nuked by the freezer.
 func TestLongReorgedFastSyncingShallowSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1703,6 +1725,7 @@ func TestLongReorgedFastSyncingShallowSetHead(t *testing.T) {
 // head, since we can just pick up fast syncing from there. The side chain is
 // completely nuked by the freezer.
 func TestLongReorgedFastSyncingDeepSetHead(t *testing.T) {
+	t.Skip("skip long-running tests")
 	// Chain:
 	//   G->C1->C2->C3->C4->C5->C6->C7->C8->C9->C10->C11->C12->C13->C14->C15->C16->C17->C18->C19->C20->C21->C22->C23->C24 (HEAD)
 	//   └->S1->S2->S3->S4->S5->S6->S7->S8->S9->S10->S11->S12->S13->S14->S15->S16->S17->S18->S19->S20->S21->S22->S23->S24->S25->S26
@@ -1740,7 +1763,7 @@ func TestLongReorgedFastSyncingDeepSetHead(t *testing.T) {
 		expHeadBlock:       0,
 	})
 }
-*/
+
 func testSetHead(t *testing.T, tt *rewindTest) {
 	// It's hard to follow the test case, visualize the input
 	//log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
