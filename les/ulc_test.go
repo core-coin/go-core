@@ -116,7 +116,7 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 	}()
 
 	select {
-	case <-time.After(time.Millisecond * 100):
+	case <-time.After(time.Millisecond * 500):
 	case err := <-errc1:
 		return nil, nil, fmt.Errorf("peerLight handshake error: %v", err)
 	case err := <-errc2:
