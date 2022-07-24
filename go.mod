@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.48
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.14.0
-	github.com/core-coin/go-goldilocks v1.0.9
+	github.com/core-coin/go-goldilocks v1.0.12
 	github.com/core-coin/go-randomy v0.0.18
 	github.com/core-coin/uint256 v1.0.0
 	github.com/davecgh/go-spew v1.1.1
@@ -36,7 +36,7 @@ require (
 	github.com/influxdata/influxdb v1.8.3
 	github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458
 	github.com/julienschmidt/httprouter v1.2.0
-	github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356
+	github.com/karalabe/usb v0.0.2
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mattn/go-isatty v0.0.12
