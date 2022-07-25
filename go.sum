@@ -71,8 +71,8 @@ github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMn
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudflare/cloudflare-go v0.14.0 h1:gFqGlGl/5f9UGXAaKapCGUfaTCgRKKnzu2VvzMZlOFA=
 github.com/cloudflare/cloudflare-go v0.14.0/go.mod h1:EnwdgGMaFOruiPZRFSgn+TsQ3hQ7C/YWzIGLeu5c304=
-github.com/core-coin/go-goldilocks v1.0.9 h1:NEX5+LXeLpj3yJPKQgEffj2ly33rOvANsWDcQR8jBUs=
-github.com/core-coin/go-goldilocks v1.0.9/go.mod h1:r6mSidt/OMBXorR8jBJYJttsver3m2EBAcSuf+m2Js0=
+github.com/core-coin/go-goldilocks v1.0.12 h1:wEoAtrgDGrM09pfyAvrcWHQn9dy+7afDkK9TDRTAccA=
+github.com/core-coin/go-goldilocks v1.0.12/go.mod h1:r6mSidt/OMBXorR8jBJYJttsver3m2EBAcSuf+m2Js0=
 github.com/core-coin/go-randomy v0.0.18 h1:m0IW81uirjpT0fCAnS+5PxPrbI+s/zviFK8hfQbhRcs=
 github.com/core-coin/go-randomy v0.0.18/go.mod h1:7YzU3Hrss60CzXlzziTZNAQUN6u+eLAHH1cL1JRGLBE=
 github.com/core-coin/uint256 v1.0.0 h1:AzgINl9YCnYDRJBlqFlWsVb4sr814LcvPAvkPyVBFVo=

@@ -53,7 +53,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			if cs >= 1 && bts >= 1 {
 				break
 			}
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(20 * time.Millisecond)
 		}
 	}
 	// Generate 512+4 blocks (totally 1 CHT sections)
@@ -92,7 +92,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			for {
 				_, hash, _, err := server.handler.server.oracle.Contract().Contract().GetLatestCheckpoint(nil)
 				if err != nil || hash == [32]byte{} {
-					time.Sleep(10 * time.Millisecond)
+					time.Sleep(20 * time.Millisecond)
 					continue
 				}
 				break
@@ -125,7 +125,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			t.Error("sync failed", err)
 		}
 		return
-	case <-time.NewTimer(10 * time.Second).C:
+	case <-time.NewTimer(25 * time.Second).C:
 		t.Error("checkpoint syncing timeout")
 	}
 }
