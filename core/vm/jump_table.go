@@ -961,5 +961,27 @@ func newInstructionSet() JumpTable {
 			minStack:       minStack(0, 1),
 			maxStack:       maxStack(0, 1),
 		},
+		BEGINSUB: {
+			execute:        opBeginSub,
+			constantEnergy: EnergyQuickStep,
+			minStack:       minStack(0, 0),
+			maxStack:       maxStack(0, 0),
+		},
+		// New opcode
+		JUMPSUB: {
+			execute:        opJumpSub,
+			constantEnergy: EnergySlowStep,
+			minStack:       minStack(1, 0),
+			maxStack:       maxStack(1, 0),
+			jumps:          true,
+		},
+		// New opcode
+		RETURNSUB: {
+			execute:        opReturnSub,
+			constantEnergy: EnergyFastStep,
+			minStack:       minStack(0, 0),
+			maxStack:       maxStack(0, 0),
+			jumps:          true,
+		},
 	}
 }

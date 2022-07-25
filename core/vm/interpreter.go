@@ -66,6 +66,7 @@ type Interpreter interface {
 type callCtx struct {
 	memory   *Memory
 	stack    *Stack
+	rstack   *ReturnStack
 	contract *Contract
 }
 
@@ -137,12 +138,14 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	}
 
 	var (
-		op          OpCode        // current opcode
-		mem         = NewMemory() // bound memory
-		stack       = newstack()  // local stack
+		op          OpCode             // current opcode
+		mem         = NewMemory()      // bound memory
+		stack       = newstack()       // local stack
+		returns     = newReturnStack() // local returns stack
 		callContext = &callCtx{
 			memory:   mem,
 			stack:    stack,
+			rstack:   returns,
 			contract: contract,
 		}
 		// For optimisation reason we're using uint64 as the program counter.
@@ -162,9 +165,9 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		defer func() {
 			if err != nil {
 				if !logged {
-					in.cfg.Tracer.CaptureState(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
+					in.cfg.Tracer.CaptureState(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
 				} else {
-					in.cfg.Tracer.CaptureFault(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
+					in.cfg.Tracer.CaptureFault(in.cvm, pcCopy, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
 				}
 			}
 		}()
@@ -246,7 +249,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 
 		if in.cfg.Debug {
-			in.cfg.Tracer.CaptureState(in.cvm, pc, op, energyCopy, cost, mem, stack, contract, in.cvm.depth, err)
+			in.cfg.Tracer.CaptureState(in.cvm, pc, op, energyCopy, cost, mem, stack, returns, contract, in.cvm.depth, err)
 			logged = true
 		}
 

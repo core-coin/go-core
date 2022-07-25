@@ -23,6 +23,9 @@ import (
 
 // List cvm execution errors
 var (
+	// ErrInvalidSubroutineEntry means that a BEGINSUB was reached via iteration,
+	// as opposed to from a JUMPSUB instruction
+	ErrInvalidSubroutineEntry   = errors.New("invalid subroutine entry")
 	ErrOutOfEnergy              = errors.New("out of energy")
 	ErrCodeStoreOutOfEnergy     = errors.New("contract creation code storage out of energy")
 	ErrDepth                    = errors.New("max call depth exceeded")
@@ -34,6 +37,8 @@ var (
 	ErrWriteProtection          = errors.New("write protection")
 	ErrReturnDataOutOfBounds    = errors.New("return data out of bounds")
 	ErrEnergyUintOverflow       = errors.New("energy uint64 overflow")
+	ErrInvalidRetsub            = errors.New("invalid retsub")
+	ErrReturnStackExceeded      = errors.New("return stack limit reached")
 )
 
 // ErrStackUnderflow wraps an cvm error when the items on the stack less
