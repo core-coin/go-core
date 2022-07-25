@@ -183,7 +183,8 @@ var bindTests = []struct {
 				{"type":"event","name":"indexed","inputs":[{"name":"addr","type":"address","indexed":true},{"name":"num","type":"int256","indexed":true}]},
 				{"type":"event","name":"mixed","inputs":[{"name":"addr","type":"address","indexed":true},{"name":"num","type":"int256"}]},
 				{"type":"event","name":"anonymous","anonymous":true,"inputs":[]},
-				{"type":"event","name":"dynamic","inputs":[{"name":"idxStr","type":"string","indexed":true},{"name":"idxDat","type":"bytes","indexed":true},{"name":"str","type":"string"},{"name":"dat","type":"bytes"}]}
+				{"type":"event","name":"dynamic","inputs":[{"name":"idxStr","type":"string","indexed":true},{"name":"idxDat","type":"bytes","indexed":true},{"name":"str","type":"string"},{"name":"dat","type":"bytes"}]},
+				{"type":"event","name":"unnamed","inputs":[{"name":"","type":"uint256","indexed": true},{"name":"","type":"uint256","indexed":true}]}
 			]
 		`},
 		`
@@ -233,6 +234,11 @@ var bindTests = []struct {
 			 fmt.Println(event.Addr)          // Make sure the reconstructed indexed fields are present
 
 			 fmt.Println(res, str, dat, hash, err)
+
+			 oit, err := e.FilterUnnamed(nil, []*big.Int{}, []*big.Int{})
+			 arg0  := oit.Event.Arg0    // Make sure unnamed arguments are handled correctly
+			 arg1  := oit.Event.Arg1    // Make sure unnamed arguments are handled correctly
+			 fmt.Println(arg0, arg1)
 		 }
 		 // Run a tiny reflection test to ensure disallowed methods don't appear
 		 if _, ok := reflect.TypeOf(&EventChecker{}).MethodByName("FilterAnonymous"); ok {
@@ -1710,7 +1716,7 @@ func TestGolangBindings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create temporary workspace: %v", err)
 	}
-	//defer os.RemoveAll(ws)
+	defer os.RemoveAll(ws)
 
 	pkg := filepath.Join(ws, "bindtest")
 	if err = os.MkdirAll(pkg, 0700); err != nil {
