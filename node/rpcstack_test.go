@@ -18,9 +18,11 @@ package node
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/core-coin/go-core/internal/testlog"
 	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/rpc"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -28,6 +30,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestCorsHandler makes sure CORS are properly handled on the http server.
@@ -56,25 +59,120 @@ func TestVhosts(t *testing.T) {
 	assert.Equal(t, resp2.StatusCode, http.StatusForbidden)
 }
 
+type originTest struct {
+	spec    string
+	expOk   []string
+	expFail []string
+}
+
+// splitAndTrim splits input separated by a comma
+// and trims excessive white space from the substrings.
+// Copied over from flags.go
+func splitAndTrim(input string) (ret []string) {
+	l := strings.Split(input, ",")
+	for _, r := range l {
+		r = strings.TrimSpace(r)
+		if len(r) > 0 {
+			ret = append(ret, r)
+		}
+	}
+	return ret
+}
+
 // TestWebsocketOrigins makes sure the websocket origins are properly handled on the websocket server.
 func TestWebsocketOrigins(t *testing.T) {
-	srv := createAndStartServer(t, &httpConfig{}, true, &wsConfig{Origins: []string{"test"}})
-	defer srv.stop()
+	tests := []originTest{
+		{
+			spec: "*", // allow all
+			expOk: []string{"", "http://test", "https://test", "http://test:8540", "https://test:8540",
+				"http://test.com", "https://foo.test", "http://testa", "http://atestb:8540", "https://atestb:8540"},
+		},
+		{
+			spec:    "test",
+			expOk:   []string{"http://test", "https://test", "http://test:8540", "https://test:8540"},
+			expFail: []string{"http://test.com", "https://foo.test", "http://testa", "http://atestb:8540", "https://atestb:8540"},
+		},
+		// scheme tests
+		{
+			spec:  "https://test",
+			expOk: []string{"https://test", "https://test:9999"},
+			expFail: []string{
+				"test",                                // no scheme, required by spec
+				"http://test",                         // wrong scheme
+				"http://test.foo", "https://a.test.x", // subdomain variatoins
+				"http://testx:8540", "https://xtest:8540"},
+		},
+		// ip tests
+		{
+			spec:  "https://12.34.56.78",
+			expOk: []string{"https://12.34.56.78", "https://12.34.56.78:8540"},
+			expFail: []string{
+				"http://12.34.56.78",     // wrong scheme
+				"http://12.34.56.78:443", // wrong scheme
+				"http://1.12.34.56.78",   // wrong 'domain name'
+				"http://12.34.56.78.a",   // wrong 'domain name'
+				"https://87.65.43.21", "http://87.65.43.21:8540", "https://87.65.43.21:8540"},
+		},
+		// port tests
+		{
+			spec:  "test:8540",
+			expOk: []string{"http://test:8540", "https://test:8540"},
+			expFail: []string{
+				"http://test", "https://test", // spec says port required
+				"http://test:8541", "https://test:8541", // wrong port
+				"http://bad", "https://bad", "http://bad:8540", "https://bad:8540"},
+		},
+		// scheme and port
+		{
+			spec:  "https://test:8540",
+			expOk: []string{"https://test:8540"},
+			expFail: []string{
+				"https://test",                          // missing port
+				"http://test",                           // missing port, + wrong scheme
+				"http://test:8540",                      // wrong scheme
+				"http://test:8541", "https://test:8541", // wrong port
+				"http://bad", "https://bad", "http://bad:8540", "https://bad:8540"},
+		},
+		// several allowed origins
+		{
+			spec: "localhost,http://127.0.0.1",
+			expOk: []string{"localhost", "http://localhost", "https://localhost:8443",
+				"http://127.0.0.1", "http://127.0.0.1:8080"},
+			expFail: []string{
+				"https://127.0.0.1", // wrong scheme
+				"http://bad", "https://bad", "http://bad:8540", "https://bad:8540"},
+		},
+	}
+	for _, tc := range tests {
+		srv := createAndStartServer(t, &httpConfig{}, true, &wsConfig{Origins: splitAndTrim(tc.spec)})
+		url := fmt.Sprintf("ws://%v", srv.listenAddr())
+		for _, origin := range tc.expOk {
+			if err := wsRequest(t, url, "Origin", origin); err != nil {
+				t.Errorf("spec '%v', origin '%v': expected ok, got %v", tc.spec, origin, err)
+			}
+		}
+		for _, origin := range tc.expFail {
+			if err := wsRequest(t, url, "Origin", origin); err == nil {
+				t.Errorf("spec '%v', origin '%v': expected not to allow,  got ok", tc.spec, origin)
+			}
+		}
+		srv.stop()
+	}
+}
 
-	dialer := websocket.DefaultDialer
-	_, _, err := dialer.Dial("ws://"+srv.listenAddr(), http.Header{
-		"Content-type":          []string{"application/json"},
-		"Sec-WebSocket-Version": []string{"13"},
-		"Origin":                []string{"test"},
-	})
-	assert.NoError(t, err)
+// TestIsWebsocket tests if an incoming websocket upgrade request is handled properly.
+func TestIsWebsocket(t *testing.T) {
+	r, _ := http.NewRequest("GET", "/", nil)
 
-	_, _, err = dialer.Dial("ws://"+srv.listenAddr(), http.Header{
-		"Content-type":          []string{"application/json"},
-		"Sec-WebSocket-Version": []string{"13"},
-		"Origin":                []string{"bad"},
-	})
-	assert.Error(t, err)
+	assert.False(t, isWebsocket(r))
+	r.Header.Set("upgrade", "websocket")
+	assert.False(t, isWebsocket(r))
+	r.Header.Set("connection", "upgrade")
+	assert.True(t, isWebsocket(r))
+	r.Header.Set("connection", "upgrade,keep-alive")
+	assert.True(t, isWebsocket(r))
+	r.Header.Set("connection", " UPGRADE,keep-alive")
+	assert.True(t, isWebsocket(r))
 }
 
 func Test_checkPath(t *testing.T) {
@@ -146,13 +244,18 @@ func createAndStartServer(t *testing.T, conf *httpConfig, ws bool, wsConf *wsCon
 }
 
 // wsRequest attempts to open a WebSocket connection to the given URL.
-func wsRequest(t *testing.T, url, browserOrigin string) error {
+func wsRequest(t *testing.T, url string, extraHeaders ...string) error {
 	t.Helper()
-	t.Logf("checking WebSocket on %s (origin %q)", url, browserOrigin)
+	//t.Logf("checking WebSocket on %s (origin %q)", url, browserOrigin)
 
 	headers := make(http.Header)
-	if browserOrigin != "" {
-		headers.Set("Origin", browserOrigin)
+	// Apply extra headers.
+	if len(extraHeaders)%2 != 0 {
+		panic("odd extraHeaders length")
+	}
+	for i := 0; i < len(extraHeaders); i += 2 {
+		key, value := extraHeaders[i], extraHeaders[i+1]
+		headers.Set(key, value)
 	}
 	conn, _, err := websocket.DefaultDialer.Dial(url, headers)
 	if conn != nil {
@@ -193,4 +296,80 @@ func rpcRequest(t *testing.T, url string, extraHeaders ...string) *http.Response
 		t.Fatal(err)
 	}
 	return resp
+}
+
+type testClaim map[string]interface{}
+
+func (testClaim) Valid() error {
+	return nil
+}
+
+func TestJWT(t *testing.T) {
+	var secret = []byte("secret")
+	issueToken := func(secret []byte, method jwt.SigningMethod, input map[string]interface{}) string {
+		if method == nil {
+			method = jwt.SigningMethodHS256
+		}
+		ss, _ := jwt.NewWithClaims(method, testClaim(input)).SignedString(secret)
+		return ss
+	}
+	expOk := []string{
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix() + 4})),
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix() - 4})),
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{
+			"iat": time.Now().Unix(),
+			"exp": time.Now().Unix() + 2,
+		})),
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{
+			"iat": time.Now().Unix(),
+			"bar": "baz",
+		})),
+	}
+	expFail := []string{
+		// future
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix() + 6})),
+		// stale
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix() - 6})),
+		// wrong algo
+		fmt.Sprintf("Bearer %v", issueToken(secret, jwt.SigningMethodHS512, testClaim{"iat": time.Now().Unix() + 4})),
+		// expired
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix(), "exp": time.Now().Unix()})),
+		// missing mandatory iat
+		fmt.Sprintf("Bearer %v", issueToken(secret, nil, testClaim{})),
+		// wrong secret
+		fmt.Sprintf("Bearer %v", issueToken([]byte("wrong"), nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer %v", issueToken([]byte{}, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer %v", issueToken(nil, nil, testClaim{"iat": time.Now().Unix()})),
+		// Various malformed syntax
+		fmt.Sprintf("%v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer  %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("bearer %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer: %v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer:%v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer\t%v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+		fmt.Sprintf("Bearer \t%v", issueToken(secret, nil, testClaim{"iat": time.Now().Unix()})),
+	}
+	srv := createAndStartServer(t, &httpConfig{jwtSecret: []byte("secret")},
+		true, &wsConfig{Origins: []string{"*"}, jwtSecret: []byte("secret")})
+	wsUrl := fmt.Sprintf("ws://%v", srv.listenAddr())
+	htUrl := fmt.Sprintf("http://%v", srv.listenAddr())
+
+	for i, token := range expOk {
+		if err := wsRequest(t, wsUrl, "Authorization", token); err != nil {
+			t.Errorf("test %d-ws, token '%v': expected ok, got %v", i, token, err)
+		}
+		if resp := rpcRequest(t, htUrl, "Authorization", token); resp.StatusCode != 200 {
+			t.Errorf("test %d-http, token '%v': expected ok, got %v", i, token, resp.StatusCode)
+		}
+	}
+	for i, token := range expFail {
+		if err := wsRequest(t, wsUrl, "Authorization", token); err == nil {
+			t.Errorf("tc %d-ws, token '%v': expected not to allow,  got ok", i, token)
+		}
+		if resp := rpcRequest(t, htUrl, "Authorization", token); resp.StatusCode != 403 {
+			t.Errorf("tc %d-http, token '%v': expected not to allow,  got %v", i, token, resp.StatusCode)
+		}
+	}
+	srv.stop()
 }

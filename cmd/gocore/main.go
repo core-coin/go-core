@@ -159,6 +159,8 @@ var (
 		utils.HTTPListenAddrFlag,
 		utils.HTTPPortFlag,
 		utils.HTTPCORSDomainFlag,
+		utils.AuthPortFlag,
+		utils.JWTSecretFlag,
 		utils.HTTPVirtualHostsFlag,
 		utils.LegacyRPCEnabledFlag,
 		utils.LegacyRPCListenAddrFlag,
