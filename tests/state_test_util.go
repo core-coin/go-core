@@ -186,7 +186,7 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapsh
 	energypool := new(core.EnergyPool)
 	energypool.AddEnergy(block.EnergyLimit())
 	snapshot := statedb.Snapshot()
-	if _, _, _, err := core.ApplyMessage(cvm, msg, energypool); err != nil {
+	if _, err := core.ApplyMessage(cvm, msg, energypool); err != nil {
 		statedb.RevertToSnapshot(snapshot)
 	}
 	// Commit block

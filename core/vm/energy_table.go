@@ -36,7 +36,7 @@ func memoryEnergyCost(mem *Memory, newMemSize uint64) (uint64, error) {
 	// overflow. The constant 0x1FFFFFFFE0 is the highest number that can be used
 	// without overflowing the energy calculation.
 	if newMemSize > 0x1FFFFFFFE0 {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	newMemSizeWords := toWordSize(newMemSize)
 	newMemSize = newMemSizeWords * 32
@@ -72,15 +72,15 @@ func memoryCopierEnergy(stackpos int) energyFunc {
 		// And energy for copying data, charged per word at param.CopyEnergy
 		words, overflow := stack.Back(stackpos).Uint64WithOverflow()
 		if overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 
 		if words, overflow = math.SafeMul(toWordSize(words), params.CopyEnergy); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 
 		if energy, overflow = math.SafeAdd(energy, words); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 		return energy, nil
 	}
@@ -152,7 +152,7 @@ func makeEnergyLog(n uint64) energyFunc {
 	return func(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 		requestedSize, overflow := stack.Back(1).Uint64WithOverflow()
 		if overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 
 		energy, err := memoryEnergyCost(mem, memorySize)
@@ -161,18 +161,18 @@ func makeEnergyLog(n uint64) energyFunc {
 		}
 
 		if energy, overflow = math.SafeAdd(energy, params.LogEnergy); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 		if energy, overflow = math.SafeAdd(energy, n*params.LogTopicEnergy); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 
 		var memorySizeEnergy uint64
 		if memorySizeEnergy, overflow = math.SafeMul(requestedSize, params.LogDataEnergy); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 		if energy, overflow = math.SafeAdd(energy, memorySizeEnergy); overflow {
-			return 0, errEnergyUintOverflow
+			return 0, ErrEnergyUintOverflow
 		}
 		return energy, nil
 	}
@@ -185,13 +185,13 @@ func energySha3(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 	}
 	wordEnergy, overflow := stack.Back(1).Uint64WithOverflow()
 	if overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	if wordEnergy, overflow = math.SafeMul(toWordSize(wordEnergy), params.Sha3WordEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	if energy, overflow = math.SafeAdd(energy, wordEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -219,13 +219,13 @@ func energyCreate2(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memo
 	}
 	wordEnergy, overflow := stack.Back(2).Uint64WithOverflow()
 	if overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	if wordEnergy, overflow = math.SafeMul(toWordSize(wordEnergy), params.Sha3WordEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	if energy, overflow = math.SafeAdd(energy, wordEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -238,7 +238,7 @@ func energyExp(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 		overflow bool
 	)
 	if energy, overflow = math.SafeAdd(energy, params.ExpEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -261,7 +261,7 @@ func energyCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 	}
 	var overflow bool
 	if energy, overflow = math.SafeAdd(energy, memoryEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 
 	cvm.callEnergyTemp, err = callEnergy(contract.Energy, energy, stack.Back(0))
@@ -269,7 +269,7 @@ func energyCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memoryS
 		return 0, err
 	}
 	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -287,14 +287,14 @@ func energyCallCode(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, mem
 		energy += params.CallValueTransferEnergy
 	}
 	if energy, overflow = math.SafeAdd(energy, memoryEnergy); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	cvm.callEnergyTemp, err = callEnergy(contract.Energy, energy, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
 	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -310,7 +310,7 @@ func energyDelegateCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory,
 	}
 	var overflow bool
 	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }
@@ -326,7 +326,7 @@ func energyStaticCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, m
 	}
 	var overflow bool
 	if energy, overflow = math.SafeAdd(energy, cvm.callEnergyTemp); overflow {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 	return energy, nil
 }

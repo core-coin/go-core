@@ -17,20 +17,11 @@
 package vm
 
 import (
-	"errors"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/types"
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/uint256"
 	"golang.org/x/crypto/sha3"
-)
-
-var (
-	errWriteProtection       = errors.New("cvm: write protection")
-	errReturnDataOutOfBounds = errors.New("cvm: return data out of bounds")
-	errExecutionReverted     = errors.New("cvm: execution reverted")
-	errMaxCodeSizeExceeded   = errors.New("cvm: max code size exceeded")
-	errInvalidJump           = errors.New("cvm: invalid jump destination")
 )
 
 func opAdd(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
@@ -340,14 +331,14 @@ func opReturnDataCopy(pc *uint64, interpreter *CVMInterpreter, contract *Contrac
 
 	offset64, overflow := dataOffset.Uint64WithOverflow()
 	if overflow {
-		return nil, errReturnDataOutOfBounds
+		return nil, ErrReturnDataOutOfBounds
 	}
 	// we can reuse dataOffset now (aliasing it for clarity)
 	var end = dataOffset
 	end.Add(&dataOffset, &length)
 	end64, overflow := end.Uint64WithOverflow()
 	if overflow || uint64(len(interpreter.returnData)) < end64 {
-		return nil, errReturnDataOutOfBounds
+		return nil, ErrReturnDataOutOfBounds
 	}
 	memory.Set(memOffset.Uint64(), length.Uint64(), interpreter.returnData[offset64:end64])
 	return nil, nil
@@ -539,7 +530,7 @@ func opSstore(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 func opJump(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
 	pos := stack.pop()
 	if !contract.validJumpdest(&pos) {
-		return nil, errInvalidJump
+		return nil, ErrInvalidJump
 	}
 	*pc = pos.Uint64()
 
@@ -550,7 +541,7 @@ func opJumpi(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory
 	pos, cond := stack.pop(), stack.pop()
 	if !cond.IsZero() {
 		if !contract.validJumpdest(&pos) {
-			return nil, errInvalidJump
+			return nil, ErrInvalidJump
 		}
 		*pc = pos.Uint64()
 	} else {
@@ -605,7 +596,7 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memor
 	stack.push(&stackvalue)
 	contract.Energy += returnEnergy
 
-	if suberr == errExecutionReverted {
+	if suberr == ErrExecutionReverted {
 		return res, nil
 	}
 	return nil, nil
@@ -636,7 +627,7 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memo
 	stack.push(&stackvalue)
 	contract.Energy += returnEnergy
 
-	if suberr == errExecutionReverted {
+	if suberr == ErrExecutionReverted {
 		return res, nil
 	}
 	return nil, nil
@@ -663,7 +654,7 @@ func opCall(pc *uint64, interpreter *CVMInterpreter, contract *Contract, memory 
 		temp.SetOne()
 	}
 	stack.push(&temp)
-	if err == nil || err == errExecutionReverted {
+	if err == nil || err == ErrExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	contract.Energy += returnEnergy
@@ -691,7 +682,7 @@ func opCallCode(pc *uint64, interpreter *CVMInterpreter, contract *Contract, mem
 		temp.SetOne()
 	}
 	stack.push(&temp)
-	if err == nil || err == errExecutionReverted {
+	if err == nil || err == ErrExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	contract.Energy += returnEnergy
@@ -716,7 +707,7 @@ func opDelegateCall(pc *uint64, interpreter *CVMInterpreter, contract *Contract,
 		temp.SetOne()
 	}
 	stack.push(&temp)
-	if err == nil || err == errExecutionReverted {
+	if err == nil || err == ErrExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	contract.Energy += returnEnergy
@@ -741,7 +732,7 @@ func opStaticCall(pc *uint64, interpreter *CVMInterpreter, contract *Contract, m
 		temp.SetOne()
 	}
 	stack.push(&temp)
-	if err == nil || err == errExecutionReverted {
+	if err == nil || err == ErrExecutionReverted {
 		memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	contract.Energy += returnEnergy

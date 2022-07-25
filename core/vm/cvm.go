@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"errors"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -61,7 +62,7 @@ func run(cvm *CVM, contract *Contract, input []byte, readOnly bool) ([]byte, err
 			return interpreter.Run(contract, input, readOnly)
 		}
 	}
-	return nil, ErrNoCompatibleInterpreter
+	return nil, errors.New("no compatible interpreter")
 }
 
 // Context provides the CVM with auxiliary information. Once provided
@@ -233,7 +234,7 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 	// above we revert to the snapshot and consume any energy remaining.
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
-		if err != errExecutionReverted {
+		if err != ErrExecutionReverted {
 			contract.UseEnergy(contract.Energy)
 		}
 	}
@@ -257,7 +258,10 @@ func (cvm *CVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 		return nil, energy, ErrDepth
 	}
 	// Fail if we're trying to transfer more than the available balance
-	if !cvm.CanTransfer(cvm.StateDB, caller.Address(), value) {
+	// Note although it's noop to transfer X core to caller itself. But
+	// if caller doesn't have enough balance, it would be an error to allow
+	// over-charging itself. So the check here is necessary.
+	if !cvm.Context.CanTransfer(cvm.StateDB, caller.Address(), value) {
 		return nil, energy, ErrInsufficientBalance
 	}
 
@@ -273,7 +277,7 @@ func (cvm *CVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 	ret, err = run(cvm, contract, input, false)
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
-		if err != errExecutionReverted {
+		if err != ErrExecutionReverted {
 			contract.UseEnergy(contract.Energy)
 		}
 	}
@@ -306,7 +310,7 @@ func (cvm *CVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 	ret, err = run(cvm, contract, input, false)
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
-		if err != errExecutionReverted {
+		if err != ErrExecutionReverted {
 			contract.UseEnergy(contract.Energy)
 		}
 	}
@@ -345,7 +349,7 @@ func (cvm *CVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	ret, err = run(cvm, contract, input, true)
 	if err != nil {
 		cvm.StateDB.RevertToSnapshot(snapshot)
-		if err != errExecutionReverted {
+		if err != ErrExecutionReverted {
 			contract.UseEnergy(contract.Energy)
 		}
 	}
@@ -423,13 +427,13 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	// above we revert to the snapshot and consume any energy remaining.
 	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfEnergy) {
 		cvm.StateDB.RevertToSnapshot(snapshot)
-		if err != errExecutionReverted {
+		if err != ErrExecutionReverted {
 			contract.UseEnergy(contract.Energy)
 		}
 	}
 	// Assign err if contract code size exceeds the max while the err is still empty.
 	if maxCodeSizeExceeded && err == nil {
-		err = errMaxCodeSizeExceeded
+		err = ErrMaxCodeSizeExceeded
 	}
 	if cvm.vmConfig.Debug && cvm.depth == 0 {
 		cvm.vmConfig.Tracer.CaptureEnd(ret, energy-contract.Energy, time.Since(start), err)

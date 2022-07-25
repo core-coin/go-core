@@ -43,7 +43,7 @@ func callEnergy(availableEnergy, base uint64, callCost *uint256.Int) (uint64, er
 		return energy, nil
 	}
 	if !callCost.IsUint64() {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 
 	return callCost.Uint64(), nil

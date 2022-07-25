@@ -17,7 +17,6 @@
 package vm
 
 import (
-	"fmt"
 	"hash"
 	"sync/atomic"
 
@@ -107,7 +106,7 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 //
 // It's important to note that any errors returned by the interpreter should be
 // considered a revert-and-consume-all-energy operation except for
-// errExecutionReverted which means revert-and-keep-energy-left.
+// ErrExecutionReverted which means revert-and-keep-energy-left.
 func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
 	// Increment the call depth which is restricted to 1024
 	in.cvm.depth++
@@ -172,13 +171,13 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		op = contract.GetOp(pc)
 		operation := in.cfg.JumpTable[op]
 		if operation == nil {
-			return nil, fmt.Errorf("invalid opcode 0x%x", int(op))
+			return nil, &ErrInvalidOpCode{opcode: op}
 		}
 		// Validate stack
 		if sLen := stack.len(); sLen < operation.minStack {
-			return nil, fmt.Errorf("stack underflow (%d <=> %d)", sLen, operation.minStack)
+			return nil, &ErrStackUnderflow{stackLen: sLen, required: operation.minStack}
 		} else if sLen > operation.maxStack {
-			return nil, fmt.Errorf("stack limit reached %d (%d)", sLen, operation.maxStack)
+			return nil, &ErrStackOverflow{stackLen: sLen, limit: operation.maxStack}
 		}
 		// If the operation is valid, enforce and write restrictions
 		if in.readOnly {
@@ -188,7 +187,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			// account to the others means the state is modified and should also
 			// return with an error.
 			if operation.writes || (op == CALL && stack.Back(2).Sign() != 0) {
-				return nil, errWriteProtection
+				return nil, ErrWriteProtection
 			}
 		}
 		// Static portion of energy
@@ -205,12 +204,12 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		if operation.memorySize != nil {
 			memSize, overflow := operation.memorySize(stack)
 			if overflow {
-				return nil, errEnergyUintOverflow
+				return nil, ErrEnergyUintOverflow
 			}
 			// memory is expanded in words of 32 bytes. Energy
 			// is also calculated in words.
 			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); overflow {
-				return nil, errEnergyUintOverflow
+				return nil, ErrEnergyUintOverflow
 			}
 		}
 		// Dynamic portion of energy
@@ -245,7 +244,7 @@ func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		case err != nil:
 			return nil, err
 		case operation.reverts:
-			return res, errExecutionReverted
+			return res, ErrExecutionReverted
 		case operation.halts:
 			return res, nil
 		case !operation.jumps:
