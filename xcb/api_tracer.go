@@ -801,10 +801,15 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	// Depending on the tracer type, format and return the output
 	switch tracer := tracer.(type) {
 	case *vm.StructLogger:
+		// If the result contains a revert reason, return it.
+		returnVal := fmt.Sprintf("%x", result.Return())
+		if len(result.Revert()) > 0 {
+			returnVal = fmt.Sprintf("%x", result.Revert())
+		}
 		return &xcbapi.ExecutionResult{
 			Energy:      result.UsedEnergy,
 			Failed:      result.Failed(),
-			ReturnValue: fmt.Sprintf("%x", result.Return()),
+			ReturnValue: returnVal,
 			StructLogs:  xcbapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
