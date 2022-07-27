@@ -723,7 +723,7 @@ func (ns *NodeStateMachine) opFinish() {
 	}
 	ns.opPending = nil
 	ns.opFlag = false
-	ns.opWait.Signal()
+	ns.opWait.Broadcast()
 }
 
 // Operation calls the given function as an operation callback. This allows the caller
