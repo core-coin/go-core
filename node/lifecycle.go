@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build VERIFY_CVM_INTEGER_POOL
+package node
 
-package vm
+// Lifecycle encompasses the behavior of services that can be started and stopped
+// on the node. Lifecycle management is delegated to the node, but it is the
+// responsibility of the service-specific package to configure and register the
+// service on the node using the `RegisterLifecycle` method.
+type Lifecycle interface {
+	// Start is called after all services have been constructed and the networking
+	// layer was also initialized to spawn any goroutines required by the service.
+	Start() error
 
-import "fmt"
-
-const verifyPool = true
-
-func verifyIntegerPool(ip *intPool) {
-	for i, item := range ip.pool.data {
-		if item.Cmp(checkVal) != 0 {
-			panic(fmt.Sprintf("%d'th item failed aggressive pool check. Value was modified", i))
-		}
-	}
+	// Stop terminates all goroutines belonging to the service, blocking until they
+	// are all terminated.
+	Stop() error
 }

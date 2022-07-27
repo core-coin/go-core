@@ -41,6 +41,7 @@ type Environment struct {
 	Name                      string // name of the environment
 	Repo                      string // name of GitHub repo
 	Commit, Date, Branch, Tag string // Git info
+	Type                      string
 	Buildnum                  string
 	IsPullRequest             bool
 	IsCronJob                 bool
@@ -61,9 +62,10 @@ func Env() Environment {
 			Repo:          os.Getenv("GITHUB_REPOSITORY"),
 			Commit:        os.Getenv("GITHUB_SHA"),
 			Date:          getDate(commit),
-			Branch:        os.Getenv("GITHUB_REF"),
-			Tag:           os.Getenv("GITHUB_REF"),
-			Buildnum:      "",
+			Branch:        os.Getenv("GITHUB_REF_NAME"),
+			Tag:           os.Getenv("GITHUB_REF_NAME"),
+			Buildnum:      os.Getenv("GITHUB_RUN_ID"),
+			Type:          os.Getenv("GITHUB_REF_TYPE"),
 			IsPullRequest: false,
 			IsCronJob:     false,
 		}
@@ -99,7 +101,7 @@ func LocalEnv() Environment {
 		}
 	}
 	if info, err := os.Stat(".git/objects"); err == nil && info.IsDir() && env.Tag == "" {
-		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
+		env.Tag = firstLine(RunGit("describe", "--tags", "--abbrev=0"))
 	}
 	return env
 }

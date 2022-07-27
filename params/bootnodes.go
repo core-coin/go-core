@@ -63,9 +63,9 @@ var DiscoveryV5Bootnodes = []string{}
 
 const dnsPrefix = "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@"
 
-// These DNS names provide bootstrap connectivity for public testnets and the mainnet.
-// See https://github.com/core-coin/discv4-dns-lists for more information.
-var KnownDNSNetworks = map[common.Hash]string{
-	MainnetGenesisHash: dnsPrefix + "all.mainnet.corenode.stream",
-	DevinGenesisHash:   dnsPrefix + "all.devin.corenode.stream",
+// KnownDNSNetwork returns the address of a public DNS-based node list for the given
+// genesis hash and protocol. See https://github.com/core-coin/discv4-dns-lists for more
+// information.
+func KnownDNSNetwork(genesis common.Hash, protocol string) string {
+	return ""
 }

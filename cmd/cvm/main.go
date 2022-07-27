@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/core-coin/go-core/cmd/cvm/t8ntool"
 	"math/big"
 	"os"
 
@@ -26,11 +27,12 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
+var gitTag = ""
 var gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
 var gitDate = ""
 
 var (
-	app = utils.NewApp(gitCommit, gitDate, "the cvm command line interface")
+	app = utils.NewApp(gitTag, gitCommit, gitDate, "the cvm command line interface")
 
 	DebugFlag = cli.BoolFlag{
 		Name:  "debug",
@@ -119,12 +121,41 @@ var (
 		Name:  "nostack",
 		Usage: "disable stack output",
 	}
+	DisableStorageFlag = cli.BoolFlag{
+		Name:  "nostorage",
+		Usage: "disable storage output",
+	}
+	DisableReturnDataFlag = cli.BoolFlag{
+		Name:  "noreturndata",
+		Usage: "disable return data output",
+	}
 	CVMInterpreterFlag = cli.StringFlag{
 		Name:  "vm.cvm",
 		Usage: "External CVM configuration (default = built-in interpreter)",
 		Value: "",
 	}
 )
+
+var stateTransitionCommand = cli.Command{
+	Name:    "transition",
+	Aliases: []string{"t8n"},
+	Usage:   "executes a full state transition",
+	Action:  t8ntool.Main,
+	Flags: []cli.Flag{
+		t8ntool.TraceFlag,
+		t8ntool.TraceDisableMemoryFlag,
+		t8ntool.TraceDisableStackFlag,
+		t8ntool.TraceDisableReturnDataFlag,
+		t8ntool.OutputAllocFlag,
+		t8ntool.OutputResultFlag,
+		t8ntool.InputAllocFlag,
+		t8ntool.InputEnvFlag,
+		t8ntool.InputTxsFlag,
+		t8ntool.NetworkIDFlag,
+		t8ntool.RewardFlag,
+		t8ntool.VerbosityFlag,
+	},
+}
 
 func init() {
 	app.Flags = []cli.Flag{
@@ -149,6 +180,8 @@ func init() {
 		ReceiverFlag,
 		DisableMemoryFlag,
 		DisableStackFlag,
+		DisableStorageFlag,
+		DisableReturnDataFlag,
 		CVMInterpreterFlag,
 	}
 	app.Commands = []cli.Command{
@@ -156,13 +189,18 @@ func init() {
 		disasmCommand,
 		runCommand,
 		stateTestCommand,
+		stateTransitionCommand,
 	}
 	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
 }
 
 func main() {
 	if err := app.Run(os.Args); err != nil {
+		code := 1
+		if ec, ok := err.(*t8ntool.NumberedError); ok {
+			code = ec.Code()
+		}
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		os.Exit(code)
 	}
 }

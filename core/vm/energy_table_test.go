@@ -39,8 +39,8 @@ func TestMemoryEnergyCost(t *testing.T) {
 	}
 	for i, tt := range tests {
 		v, err := memoryEnergyCost(&Memory{}, tt.size)
-		if (err == errEnergyUintOverflow) != tt.overflow {
-			t.Errorf("test %d: overflow mismatch: have %v, want %v", i, err == errEnergyUintOverflow, tt.overflow)
+		if (err == ErrEnergyUintOverflow) != tt.overflow {
+			t.Errorf("test %d: overflow mismatch: have %v, want %v", i, err == ErrEnergyUintOverflow, tt.overflow)
 		}
 		if v != tt.cost {
 			t.Errorf("test %d: energy cost mismatch: have %v, want %v", i, v, tt.cost)

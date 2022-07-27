@@ -17,6 +17,7 @@
 package xcb
 
 import (
+	"github.com/core-coin/go-core/core/rawdb"
 	"math/big"
 	"math/rand"
 	"sync/atomic"
@@ -265,15 +266,25 @@ func peerToSyncOp(mode downloader.SyncMode, p *peer) *chainSyncOp {
 }
 
 func (cs *chainSyncer) modeAndLocalHead() (downloader.SyncMode, *big.Int) {
+	// If we're in fast sync mode, return that directly
 	if atomic.LoadUint32(&cs.pm.fastSync) == 1 {
 		block := cs.pm.blockchain.CurrentFastBlock()
 		td := cs.pm.blockchain.GetTdByHash(block.Hash())
 		return downloader.FastSync, td
-	} else {
-		head := cs.pm.blockchain.CurrentHeader()
-		td := cs.pm.blockchain.GetTd(head.Hash(), head.Number.Uint64())
-		return downloader.FullSync, td
 	}
+	// We are probably in full sync, but we might have rewound to before the
+	// fast sync pivot, check if we should reenable
+	if pivot := rawdb.ReadLastPivotNumber(cs.pm.chaindb); pivot != nil {
+		if head := cs.pm.blockchain.CurrentBlock(); head.NumberU64() < *pivot {
+			block := cs.pm.blockchain.CurrentFastBlock()
+			td := cs.pm.blockchain.GetTdByHash(block.Hash())
+			return downloader.FastSync, td
+		}
+	}
+	// Nope, we're really full syncing
+	head := cs.pm.blockchain.CurrentHeader()
+	td := cs.pm.blockchain.GetTd(head.Hash(), head.Number.Uint64())
+	return downloader.FullSync, td
 }
 
 // startSync launches doSync in a new goroutine.
@@ -284,6 +295,25 @@ func (cs *chainSyncer) startSync(op *chainSyncOp) {
 
 // doSync synchronizes the local blockchain with a remote peer.
 func (pm *ProtocolManager) doSync(op *chainSyncOp) error {
+	if op.mode == downloader.FastSync {
+		// Before launch the fast sync, we have to ensure user uses the same
+		// txlookup limit.
+		// The main concern here is: during the fast sync Gocore won't index the
+		// block(generate tx indices) before the HEAD-limit. But if user changes
+		// the limit in the next fast sync(e.g. user kill Gocore manually and
+		// restart) then it will be hard for Gocore to figure out the oldest block
+		// has been indexed. So here for the user-experience wise, it's non-optimal
+		// that user can't change limit during the fast sync. If changed, Gocore
+		// will just blindly use the original one.
+		limit := pm.blockchain.TxLookupLimit()
+		if stored := rawdb.ReadFastTxLookupLimit(pm.chaindb); stored == nil {
+			rawdb.WriteFastTxLookupLimit(pm.chaindb, limit)
+		} else if *stored != limit {
+			pm.blockchain.SetTxLookupLimit(*stored)
+			log.Warn("Update txLookup limit", "provided", limit, "updated", *stored)
+		}
+	}
+
 	// Run the sync cycle, and disable fast sync if we're past the pivot block
 	err := pm.downloader.Synchronise(op.peer.id, op.head, op.td, op.mode)
 	if err != nil {

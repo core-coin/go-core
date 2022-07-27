@@ -177,16 +177,19 @@ var (
 func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	// Generate test chain.
 	genesis, blocks := generateTestChain()
+	// Create node
 
-	// Start Core service.
-	var xcbservice *xcb.Core
 	n, err := node.New(&node.Config{})
-	n.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		config := &xcb.Config{Genesis: genesis}
-		config.Cryptore.PowMode = cryptore.ModeFake
-		xcbservice, err = xcb.New(ctx, config)
-		return xcbservice, err
-	})
+	if err != nil {
+		t.Fatalf("can't create new node: %v", err)
+	}
+	// Create Core Service
+	config := &xcb.Config{Genesis: genesis}
+	config.Cryptore.PowMode = cryptore.ModeFake
+	xcbservice, err := xcb.New(n, config)
+	if err != nil {
+		t.Fatalf("can't create new core service: %v", err)
+	}
 
 	// Import the test chain.
 	if err := n.Start(); err != nil {
@@ -223,7 +226,7 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 func TestHeader(t *testing.T) {
 	backend, chain := newTestBackend(t)
 	client, _ := backend.Attach()
-	defer backend.Stop()
+	defer backend.Close()
 	defer client.Close()
 
 	tests := map[string]struct {
@@ -267,7 +270,7 @@ func TestHeader(t *testing.T) {
 func TestBalanceAt(t *testing.T) {
 	backend, _ := newTestBackend(t)
 	client, _ := backend.Attach()
-	defer backend.Stop()
+	defer backend.Close()
 	defer client.Close()
 
 	tests := map[string]struct {
@@ -313,7 +316,7 @@ func TestBalanceAt(t *testing.T) {
 func TestTransactionInBlockInterrupted(t *testing.T) {
 	backend, _ := newTestBackend(t)
 	client, _ := backend.Attach()
-	defer backend.Stop()
+	defer backend.Close()
 	defer client.Close()
 
 	ec := NewClient(client)
@@ -331,7 +334,7 @@ func TestTransactionInBlockInterrupted(t *testing.T) {
 func TestNetworkID(t *testing.T) {
 	backend, _ := newTestBackend(t)
 	client, _ := backend.Attach()
-	defer backend.Stop()
+	defer backend.Close()
 	defer client.Close()
 	ec := NewClient(client)
 

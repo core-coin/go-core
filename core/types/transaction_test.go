@@ -218,9 +218,9 @@ func TestTransactionTimeSort(t *testing.T) {
 			fromNext, _ := Sender(signer, next)
 
 			if txi.EnergyPrice().Cmp(next.EnergyPrice()) < 0 {
-				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.EnergyPrice(), i+1, fromNext[:4], next.EnergyPrice())
+				t.Errorf("invalid energyprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.EnergyPrice(), i+1, fromNext[:4], next.EnergyPrice())
 			}
-			// Make sure time order is ascending if the txs have the same gas price
+			// Make sure time order is ascending if the txs have the same energy price
 			if txi.EnergyPrice().Cmp(next.EnergyPrice()) == 0 && txi.time.After(next.time) {
 				t.Errorf("invalid received time ordering: tx #%d (A=%x T=%v) > tx #%d (A=%x T=%v)", i, fromi[:4], txi.time, i+1, fromNext[:4], next.time)
 			}

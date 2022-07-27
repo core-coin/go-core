@@ -17,7 +17,7 @@
 package vm
 
 import (
-	"math/big"
+	"github.com/core-coin/uint256"
 )
 
 // Energy costs
@@ -33,7 +33,7 @@ const (
 // callEnergy returns the actual energy cost of the call.
 //
 // The returned energy is energy - base * 63 / 64.
-func callEnergy(availableEnergy, base uint64, callCost *big.Int) (uint64, error) {
+func callEnergy(availableEnergy, base uint64, callCost *uint256.Int) (uint64, error) {
 	availableEnergy = availableEnergy - base
 	energy := availableEnergy - availableEnergy/64
 	// If the bit length exceeds 64 bit we know that the newly calculated "energy" for CIP150
@@ -43,7 +43,7 @@ func callEnergy(availableEnergy, base uint64, callCost *big.Int) (uint64, error)
 		return energy, nil
 	}
 	if !callCost.IsUint64() {
-		return 0, errEnergyUintOverflow
+		return 0, ErrEnergyUintOverflow
 	}
 
 	return callCost.Uint64(), nil

@@ -42,6 +42,7 @@ import (
 
 const (
 	datadirPrivateKey      = "nodekey"            // Path within the datadir to the node's private key
+	datadirJWTKey          = "jwtsecret"          // Path within the datadir to the node's jwt secret
 	datadirDefaultKeyStore = "keystore"           // Path within the datadir to the keystore
 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
@@ -120,6 +121,9 @@ type Config struct {
 	// for ephemeral nodes).
 	HTTPPort int `toml:",omitempty"`
 
+	// Authport is the port number on which the authenticated API is provided.
+	AuthPort int `toml:",omitempty"`
+
 	// HTTPCors is the Cross-Origin Resource Sharing header to send to requesting
 	// clients. Please be aware that CORS is a browser enforced security, it's fully
 	// useless for custom HTTP clients.
@@ -143,6 +147,9 @@ type Config struct {
 	// interface.
 	HTTPTimeouts rpc.HTTPTimeouts
 
+	// HTTPPathPrefix specifies a path prefix on which http-rpc is to be served.
+	HTTPPathPrefix string `toml:",omitempty"`
+
 	// WSHost is the host interface on which to start the websocket RPC server. If
 	// this field is empty, no websocket API endpoint will be started.
 	WSHost string
@@ -151,6 +158,9 @@ type Config struct {
 	// default zero value is/ valid and will pick a port number randomly (useful for
 	// ephemeral nodes).
 	WSPort int `toml:",omitempty"`
+
+	// WSPathPrefix specifies a path prefix on which ws-rpc is to be served.
+	WSPathPrefix string `toml:",omitempty"`
 
 	// WSOrigins is the list of domain to accept websocket requests from. Please be
 	// aware that the server can only act upon the HTTP request the client sends and
@@ -168,15 +178,6 @@ type Config struct {
 	// *WARNING* Only set this if the node is running in a trusted network, exposing
 	// private APIs to untrusted users is a major security risk.
 	WSExposeAll bool `toml:",omitempty"`
-
-	// GraphQLHost is the host interface on which to start the GraphQL server. If this
-	// field is empty, no GraphQL API endpoint will be started.
-	GraphQLHost string
-
-	// GraphQLPort is the TCP port number on which to start the GraphQL server. The
-	// default zero value is/ valid and will pick a port number randomly (useful
-	// for ephemeral nodes).
-	GraphQLPort int `toml:",omitempty"`
 
 	// GraphQLCors is the Cross-Origin Resource Sharing header to send to requesting
 	// clients. Please be aware that CORS is a browser enforced security, it's fully
@@ -201,6 +202,9 @@ type Config struct {
 	staticNodesWarning       bool
 	trustedNodesWarning      bool
 	oldGocoreResourceWarning bool
+
+	// JWTSecret is the hex-encoded jwt secret.
+	JWTSecret string `toml:",omitempty"`
 }
 
 // IPCEndpoint resolves an IPC endpoint based on a configured value, taking into
@@ -257,18 +261,9 @@ func (c *Config) HTTPEndpoint() string {
 	return fmt.Sprintf("%s:%d", c.HTTPHost, c.HTTPPort)
 }
 
-// GraphQLEndpoint resolves a GraphQL endpoint based on the configured host interface
-// and port parameters.
-func (c *Config) GraphQLEndpoint() string {
-	if c.GraphQLHost == "" {
-		return ""
-	}
-	return fmt.Sprintf("%s:%d", c.GraphQLHost, c.GraphQLPort)
-}
-
 // DefaultHTTPEndpoint returns the HTTP endpoint used by default.
 func DefaultHTTPEndpoint() string {
-	config := &Config{HTTPHost: DefaultHTTPHost, HTTPPort: DefaultHTTPPort}
+	config := &Config{HTTPHost: DefaultHTTPHost, HTTPPort: DefaultHTTPPort, AuthPort: DefaultAuthPort}
 	return config.HTTPEndpoint()
 }
 
@@ -290,7 +285,7 @@ func DefaultWSEndpoint() string {
 // ExtRPCEnabled returns the indicator whether node enables the external
 // RPC(http, ws or graphql).
 func (c *Config) ExtRPCEnabled() bool {
-	return c.HTTPHost != "" || c.WSHost != "" || c.GraphQLHost != ""
+	return c.HTTPHost != "" || c.WSHost != ""
 }
 
 // NodeName returns the devp2p node identifier.

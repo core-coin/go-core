@@ -91,20 +91,20 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewCVM(context, statedb, config, cfg)
 	// Apply the transaction to the current state (included in the env)
-	_, energy, failed, err := ApplyMessage(vmenv, msg, gp)
+	result, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
 		return nil, err
 	}
 	// Update the state with pending changes
 	var root []byte
 	statedb.Finalise(true)
-	*usedEnergy += energy
+	*usedEnergy += result.UsedEnergy
 
 	// Create a new receipt for the transaction, storing the intermediate root and energy used by the tx
 	// based on the cip phase, we're passing whether the root touch-delete accounts.
-	receipt := types.NewReceipt(root, failed, *usedEnergy)
+	receipt := types.NewReceipt(root, result.Failed(), *usedEnergy)
 	receipt.TxHash = tx.Hash()
-	receipt.EnergyUsed = energy
+	receipt.EnergyUsed = result.UsedEnergy
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())

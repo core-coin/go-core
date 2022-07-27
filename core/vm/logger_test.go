@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"github.com/core-coin/uint256"
 	"math/big"
 	"testing"
 
@@ -29,7 +30,7 @@ type dummyContractRef struct {
 	calledForEach bool
 }
 
-func (dummyContractRef) ReturnEnergy(*big.Int)          {}
+func (dummyContractRef) ReturnEnergy(*big.Int)       {}
 func (dummyContractRef) Address() common.Address     { return common.Address{} }
 func (dummyContractRef) Value() *big.Int             { return new(big.Int) }
 func (dummyContractRef) SetCode(common.Hash, []byte) {}
@@ -54,12 +55,13 @@ func TestStoreCapture(t *testing.T) {
 		logger   = NewStructLogger(nil)
 		mem      = NewMemory()
 		stack    = newstack()
+		rstack   = newReturnStack()
 		contract = NewContract(&dummyContractRef{}, &dummyContractRef{}, new(big.Int), 0)
 	)
-	stack.push(big.NewInt(1))
-	stack.push(big.NewInt(0))
+	stack.push(uint256.NewInt(1))
+	stack.push(new(uint256.Int))
 	var index common.Hash
-	logger.CaptureState(env, 0, SSTORE, 0, 0, mem, stack, contract, 0, nil)
+	logger.CaptureState(env, 0, SSTORE, 0, 0, mem, stack, rstack, nil, contract, 0, nil)
 	if len(logger.changedValues[contract.Address()]) == 0 {
 		t.Fatalf("expected exactly 1 changed value on address %x, got %d", contract.Address(), len(logger.changedValues[contract.Address()]))
 	}

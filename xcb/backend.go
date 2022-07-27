@@ -26,7 +26,6 @@ import (
 	"sync/atomic"
 
 	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/abi/bind"
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/common/hexutil"
 	"github.com/core-coin/go-core/consensus"
@@ -54,15 +53,6 @@ import (
 	"github.com/core-coin/go-core/xcbdb"
 )
 
-type LesServer interface {
-	Start(srvr *p2p.Server)
-	Stop()
-	APIs() []rpc.API
-	Protocols() []p2p.Protocol
-	SetBloomBitsIndexer(bbIndexer *core.ChainIndexer)
-	SetContractBackend(bind.ContractBackend)
-}
-
 // Core implements the Core full node service.
 type Core struct {
 	config *Config
@@ -71,8 +61,7 @@ type Core struct {
 	txPool          *core.TxPool
 	blockchain      *core.BlockChain
 	protocolManager *ProtocolManager
-	lesServer       LesServer
-	dialCandiates   enode.Iterator
+	dialCandidates  enode.Iterator
 
 	// DB interfaces
 	chainDb xcbdb.Database // Block chain database
@@ -94,25 +83,14 @@ type Core struct {
 	networkID     uint64
 	netRPCService *xcbapi.PublicNetAPI
 
+	p2pServer *p2p.Server
+
 	lock sync.RWMutex // Protects the variadic fields (e.g. energy price and corebase)
-}
-
-func (s *Core) AddLesServer(ls LesServer) {
-	s.lesServer = ls
-	ls.SetBloomBitsIndexer(s.bloomIndexer)
-}
-
-// SetClient sets a rpc client which connecting to our local node.
-func (s *Core) SetContractBackend(backend bind.ContractBackend) {
-	// Pass the rpc client to les server if it is enabled.
-	if s.lesServer != nil {
-		s.lesServer.SetContractBackend(backend)
-	}
 }
 
 // New creates a new Core object (including the
 // initialisation of the common Core object)
-func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
+func New(stack *node.Node, config *Config) (*Core, error) {
 	// Ensure configuration values are compatible and sane
 	if config.SyncMode == downloader.LightSync {
 		return nil, errors.New("can't run xcb.Core in light sync mode, use les.LightCore")
@@ -132,7 +110,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	log.Info("Allocated trie memory caches", "clean", common.StorageSize(config.TrieCleanCache)*1024*1024, "dirty", common.StorageSize(config.TrieDirtyCache)*1024*1024)
 
 	// Assemble the Core object
-	chainDb, err := ctx.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "xcb/db/chaindata/")
+	chainDb, err := stack.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "xcb/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
@@ -148,15 +126,16 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	xcb := &Core{
 		config:            config,
 		chainDb:           chainDb,
-		eventMux:          ctx.EventMux,
-		accountManager:    ctx.AccountManager,
-		engine:            CreateConsensusEngine(ctx, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
+		eventMux:          stack.EventMux(),
+		accountManager:    stack.AccountManager(),
+		engine:            CreateConsensusEngine(stack, chainConfig, &config.Cryptore, config.Miner.Notify, config.Miner.Noverify, chainDb),
 		closeBloomHandler: make(chan struct{}),
 		networkID:         config.NetworkId,
 		energyPrice:       config.Miner.EnergyPrice,
 		corebase:          config.Miner.Corebase,
 		bloomRequests:     make(chan chan *bloombits.Retrieval),
 		bloomIndexer:      NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
+		p2pServer:         stack.Server(),
 	}
 
 	bcVersion := rawdb.ReadDatabaseVersion(chainDb)
@@ -168,7 +147,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 
 	if !config.SkipBcVersionCheck {
 		if bcVersion != nil && *bcVersion > core.BlockChainVersion {
-			return nil, fmt.Errorf("database version is v%d, Gocore %s only supports v%d", *bcVersion, params.VersionWithMeta, core.BlockChainVersion)
+			return nil, fmt.Errorf("database version is v%d, Gocore only supports v%d", *bcVersion, core.BlockChainVersion)
 		} else if bcVersion == nil || *bcVersion < core.BlockChainVersion {
 			log.Warn("Upgrade blockchain database version", "from", dbVer, "to", core.BlockChainVersion)
 			rawdb.WriteDatabaseVersion(chainDb, core.BlockChainVersion)
@@ -182,7 +161,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 		}
 		cacheConfig = &core.CacheConfig{
 			TrieCleanLimit:      config.TrieCleanCache,
-			TrieCleanJournal:    ctx.ResolvePath(config.TrieCleanCacheJournal),
+			TrieCleanJournal:    stack.ResolvePath(config.TrieCleanCacheJournal),
 			TrieCleanRejournal:  config.TrieCleanCacheRejournal,
 			TrieCleanNoPrefetch: config.NoPrefetch,
 			TrieDirtyLimit:      config.TrieDirtyCache,
@@ -191,7 +170,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 			SnapshotLimit:       config.SnapshotCache,
 		}
 	)
-	xcb.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xcb.engine, vmConfig, xcb.shouldPreserve)
+	xcb.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, xcb.engine, vmConfig, xcb.shouldPreserve, &config.TxLookupLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +183,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	xcb.bloomIndexer.Start(xcb.blockchain)
 
 	if config.TxPool.Journal != "" {
-		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
+		config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
 	}
 	xcb.txPool = core.NewTxPool(config.TxPool, chainConfig, xcb.blockchain)
 
@@ -214,24 +193,31 @@ func New(ctx *node.ServiceContext, config *Config) (*Core, error) {
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}
-	if xcb.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, xcb.eventMux, xcb.txPool, xcb.engine, xcb.blockchain, chainDb, cacheLimit, config.Whitelist, ctx.Config.BTTP); err != nil {
+	if xcb.protocolManager, err = NewProtocolManager(chainConfig, checkpoint, config.SyncMode, config.NetworkId, xcb.eventMux, xcb.txPool, xcb.engine, xcb.blockchain, chainDb, cacheLimit, config.Whitelist, stack.Config().BTTP); err != nil {
 		return nil, err
 	}
 	xcb.miner = miner.New(xcb, &config.Miner, chainConfig, xcb.EventMux(), xcb.engine, xcb.isLocalBlock)
 	xcb.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
 
-	xcb.APIBackend = &XcbAPIBackend{ctx.ExtRPCEnabled(), xcb, nil}
+	xcb.APIBackend = &XcbAPIBackend{stack.Config().ExtRPCEnabled(), xcb, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.EnergyPrice
 	}
 	xcb.APIBackend.gpo = energyprice.NewOracle(xcb.APIBackend, gpoParams)
 
-	xcb.dialCandiates, err = xcb.setupDiscovery(&ctx.Config.P2P)
+	xcb.dialCandidates, err = xcb.setupDiscovery(&stack.Config().P2P)
 	if err != nil {
 		return nil, err
 	}
 
+	// Start the RPC service
+	xcb.netRPCService = xcbapi.NewPublicNetAPI(xcb.p2pServer, xcb.NetVersion())
+
+	// Register the backend on the node
+	stack.RegisterAPIs(xcb.APIs())
+	stack.RegisterProtocols(xcb.Protocols())
+	stack.RegisterLifecycle(xcb)
 	return xcb, nil
 }
 
@@ -239,7 +225,6 @@ func makeExtraData(extra []byte) []byte {
 	if len(extra) == 0 {
 		// create default extradata
 		extra, _ = rlp.EncodeToBytes([]interface{}{
-			uint(params.VersionMajor<<16 | params.VersionMinor<<8 | params.VersionPatch),
 			"gocore",
 			runtime.Version(),
 			runtime.GOOS,
@@ -253,7 +238,7 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Core service
-func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *cryptore.Config, notify []string, noverify bool, db xcbdb.Database) consensus.Engine {
+func CreateConsensusEngine(stack *node.Node, chainConfig *params.ChainConfig, config *cryptore.Config, notify []string, noverify bool, db xcbdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
@@ -281,17 +266,8 @@ func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainCo
 func (s *Core) APIs() []rpc.API {
 	apis := xcbapi.GetAPIs(s.APIBackend)
 
-	// Append any APIs exposed explicitly by the les server
-	if s.lesServer != nil {
-		apis = append(apis, s.lesServer.APIs()...)
-	}
 	// Append any APIs exposed explicitly by the consensus engine
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
-
-	// Append any APIs exposed explicitly by the les server
-	if s.lesServer != nil {
-		apis = append(apis, s.lesServer.APIs()...)
-	}
 
 	// Append all the local APIs and return
 	return append(apis, []rpc.API{
@@ -507,57 +483,46 @@ func (s *Core) NetVersion() uint64                 { return s.networkID }
 func (s *Core) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 func (s *Core) Synced() bool                       { return atomic.LoadUint32(&s.protocolManager.acceptTxs) == 1 }
 func (s *Core) ArchiveMode() bool                  { return s.config.NoPruning }
+func (s *Core) BloomIndexer() *core.ChainIndexer   { return s.bloomIndexer }
 
-// Protocols implements node.Service, returning all the currently configured
+// Protocols returns all the currently configured
 // network protocols to start.
 func (s *Core) Protocols() []p2p.Protocol {
 	protos := make([]p2p.Protocol, len(ProtocolVersions))
 	for i, vsn := range ProtocolVersions {
 		protos[i] = s.protocolManager.makeProtocol(vsn)
 		protos[i].Attributes = []enr.Entry{s.currentXcbEntry()}
-		protos[i].DialCandidates = s.dialCandiates
-	}
-	if s.lesServer != nil {
-		protos = append(protos, s.lesServer.Protocols()...)
+		protos[i].DialCandidates = s.dialCandidates
 	}
 	return protos
 }
 
-// Start implements node.Service, starting all internal goroutines needed by the
+// Start implements node.Lifecycle, starting all internal goroutines needed by the
 // Core protocol implementation.
-func (s *Core) Start(srvr *p2p.Server) error {
-	s.startXcbEntryUpdate(srvr.LocalNode())
+func (s *Core) Start() error {
+	s.startXcbEntryUpdate(s.p2pServer.LocalNode())
 
 	// Start the bloom bits servicing goroutines
 	s.startBloomHandlers(params.BloomBitsBlocks)
 
-	// Start the RPC service
-	s.netRPCService = xcbapi.NewPublicNetAPI(srvr, s.NetVersion())
-
 	// Figure out a max peers count based on the server limits
-	maxPeers := srvr.MaxPeers
+	maxPeers := s.p2pServer.MaxPeers
 	if s.config.LightServ > 0 {
-		if s.config.LightPeers >= srvr.MaxPeers {
-			return fmt.Errorf("invalid peer config: light peer count (%d) >= total peer count (%d)", s.config.LightPeers, srvr.MaxPeers)
+		if s.config.LightPeers >= s.p2pServer.MaxPeers {
+			return fmt.Errorf("invalid peer config: light peer count (%d) >= total peer count (%d)", s.config.LightPeers, s.p2pServer.MaxPeers)
 		}
 		maxPeers -= s.config.LightPeers
 	}
 	// Start the networking layer and the light server if requested
 	s.protocolManager.Start(maxPeers)
-	if s.lesServer != nil {
-		s.lesServer.Start(srvr)
-	}
 	return nil
 }
 
-// Stop implements node.Service, terminating all internal goroutines used by the
+// Stop implements node.Lifecycle, terminating all internal goroutines used by the
 // Core protocol.
 func (s *Core) Stop() error {
 	// Stop all the peer-related stuff first.
 	s.protocolManager.Stop()
-	if s.lesServer != nil {
-		s.lesServer.Stop()
-	}
 
 	// Then stop everything else.
 	s.bloomIndexer.Close()

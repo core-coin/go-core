@@ -46,12 +46,12 @@ func (l *JSONLogger) CaptureStart(from common.Address, to common.Address, create
 }
 
 // CaptureState outputs state information on the logger.
-func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error {
 	log := StructLog{
 		Pc:            pc,
 		Op:            op,
-		Energy:           energy,
-		EnergyCost:       cost,
+		Energy:        energy,
+		EnergyCost:    cost,
 		MemorySize:    memory.Len(),
 		Storage:       nil,
 		Depth:         depth,
@@ -62,23 +62,31 @@ func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost u
 		log.Memory = memory.Data()
 	}
 	if !l.cfg.DisableStack {
-		log.Stack = stack.Data()
+		//TODO(@holiman) improve this
+		logstack := make([]*big.Int, len(stack.Data()))
+		for i, item := range stack.Data() {
+			logstack[i] = item.ToBig()
+		}
+		log.Stack = logstack
+	}
+	if !l.cfg.DisableReturnData {
+		log.ReturnData = rData
 	}
 	return l.encoder.Encode(log)
 }
 
 // CaptureFault outputs state information on the logger.
-func (l *JSONLogger) CaptureFault(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, contract *Contract, depth int, err error) error {
+func (l *JSONLogger) CaptureFault(env *CVM, pc uint64, op OpCode, energy, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error {
 	return nil
 }
 
 // CaptureEnd is triggered at end of execution.
 func (l *JSONLogger) CaptureEnd(output []byte, energyUsed uint64, t time.Duration, err error) error {
 	type endLog struct {
-		Output  string              `json:"output"`
+		Output     string              `json:"output"`
 		EnergyUsed math.HexOrDecimal64 `json:"energyUsed"`
-		Time    time.Duration       `json:"time"`
-		Err     string              `json:"error,omitempty"`
+		Time       time.Duration       `json:"time"`
+		Err        string              `json:"error,omitempty"`
 	}
 	if err != nil {
 		return l.encoder.Encode(endLog{common.Bytes2Hex(output), math.HexOrDecimal64(energyUsed), t, err.Error()})

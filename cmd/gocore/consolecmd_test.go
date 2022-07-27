@@ -50,7 +50,7 @@ func TestConsoleWelcome(t *testing.T) {
 	gocore.SetTemplateFunc("goos", func() string { return runtime.GOOS })
 	gocore.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	gocore.SetTemplateFunc("gover", runtime.Version)
-	gocore.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
+	gocore.SetTemplateFunc("gocorever", func() string { return params.VersionWithTag("", "", "") })
 	gocore.SetTemplateFunc("niltime", func() string {
 		return time.Unix(1651833293, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
@@ -60,7 +60,7 @@ func TestConsoleWelcome(t *testing.T) {
 	gocore.Expect(`
 Welcome to the Gocore JavaScript console!
 
-instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{.Corebase}}
 at block: 0 ({{niltime}})
  datadir: {{.Datadir}}
@@ -143,7 +143,7 @@ func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) 
 	attach.SetTemplateFunc("goos", func() string { return runtime.GOOS })
 	attach.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	attach.SetTemplateFunc("gover", runtime.Version)
-	attach.SetTemplateFunc("gocorever", func() string { return params.VersionWithCommit("", "") })
+	attach.SetTemplateFunc("gocorever", func() string { return params.VersionWithTag("", "", "") })
 	attach.SetTemplateFunc("corebase", func() string { return gocore.Corebase })
 	attach.SetTemplateFunc("niltime", func() string {
 		return time.Unix(1651833293, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
@@ -156,7 +156,7 @@ func testAttachWelcome(t *testing.T, gocore *testgocore, endpoint, apis string) 
 	attach.Expect(`
 Welcome to the Gocore JavaScript console!
 
-instance: Gocore/v{{gocorever}}/{{goos}}-{{goarch}}/{{gover}}
+instance: Gocore/{{goos}}-{{goarch}}/{{gover}}
 coinbase: {{corebase}}
 at block: 0 ({{niltime}}){{if ipc}}
  datadir: {{datadir}}{{end}}

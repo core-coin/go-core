@@ -185,7 +185,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 		t.Fatalf("failed to prepare transaction for tracing: %v", err)
 	}
 	st := core.NewStateTransition(cvm, msg, new(core.EnergyPool).AddEnergy(tx.Energy()))
-	if _, _, _, err = st.TransitionDb(); err != nil {
+	if _, err = st.TransitionDb(); err != nil {
 		t.Fatalf("failed to execute transaction: %v", err)
 	}
 	// Retrieve the trace result and compare against the etalon
@@ -205,7 +205,7 @@ func TestPrestateTracerCreate2(t *testing.T) {
 // Iterates over all the input-output datasets in the tracer test harness and
 // runs the JavaScript tracers against them.
 func TestCallTracer(t *testing.T) {
-	t.Skip("Need to recompile contracts using energyPrice and energyAmount instead of gasPrice and gasAmount")
+	t.Skip("Need to recompile contracts using energyPrice and energyAmount instead of energyPrice and energyAmount")
 	files, err := ioutil.ReadDir("testdata")
 	if err != nil {
 		t.Fatalf("failed to retrieve tracer test suite: %v", err)
@@ -260,7 +260,7 @@ func TestCallTracer(t *testing.T) {
 				t.Fatalf("failed to prepare transaction for tracing: %v", err)
 			}
 			st := core.NewStateTransition(cvm, msg, new(core.EnergyPool).AddEnergy(tx.Energy()))
-			if _, _, _, err = st.TransitionDb(); err != nil {
+			if _, err = st.TransitionDb(); err != nil {
 				t.Fatalf("failed to execute transaction: %v", err)
 			}
 			// Retrieve the trace result and compare against the etalon

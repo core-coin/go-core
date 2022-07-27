@@ -69,7 +69,7 @@ func ReadAllHashes(db xcbdb.Iteratee, number uint64) []common.Hash {
 	prefix := headerKeyPrefix(number)
 
 	hashes := make([]common.Hash, 0, 1)
-	it := db.NewIteratorWithPrefix(prefix)
+	it := db.NewIterator(prefix, nil)
 	defer it.Release()
 
 	for it.Next() {
@@ -94,7 +94,7 @@ func ReadAllCanonicalHashes(db xcbdb.Iteratee, from uint64, to uint64, limit int
 	)
 	// Construct the key prefix of start point.
 	start, end := headerHashKey(from), headerHashKey(to)
-	it := db.NewIteratorWithStart(start)
+	it := db.NewIterator(nil, start)
 	defer it.Release()
 
 	for it.Next() {
@@ -187,6 +187,32 @@ func WriteHeadFastBlockHash(db xcbdb.KeyValueWriter, hash common.Hash) {
 	}
 }
 
+// ReadLastPivotNumber retrieves the number of the last pivot block. If the node
+// full synced, the last pivot will always be nil.
+func ReadLastPivotNumber(db xcbdb.KeyValueReader) *uint64 {
+	data, _ := db.Get(lastPivotKey)
+	if len(data) == 0 {
+		return nil
+	}
+	var pivot uint64
+	if err := rlp.DecodeBytes(data, &pivot); err != nil {
+		log.Error("Invalid pivot block number in database", "err", err)
+		return nil
+	}
+	return &pivot
+}
+
+// WriteLastPivotNumber stores the number of the last pivot block.
+func WriteLastPivotNumber(db xcbdb.KeyValueWriter, pivot uint64) {
+	enc, err := rlp.EncodeToBytes(pivot)
+	if err != nil {
+		log.Crit("Failed to encode pivot block number", "err", err)
+	}
+	if err := db.Put(lastPivotKey, enc); err != nil {
+		log.Crit("Failed to store pivot block number", "err", err)
+	}
+}
+
 // ReadFastTrieProgress retrieves the number of tries nodes fast synced to allow
 // reporting correct numbers across restarts.
 func ReadFastTrieProgress(db xcbdb.KeyValueReader) uint64 {
@@ -202,6 +228,43 @@ func ReadFastTrieProgress(db xcbdb.KeyValueReader) uint64 {
 func WriteFastTrieProgress(db xcbdb.KeyValueWriter, count uint64) {
 	if err := db.Put(fastTrieProgressKey, new(big.Int).SetUint64(count).Bytes()); err != nil {
 		log.Crit("Failed to store fast sync trie progress", "err", err)
+	}
+}
+
+// ReadTxIndexTail retrieves the number of oldest indexed block
+// whose transaction indices has been indexed. If the corresponding entry
+// is non-existent in database it means the indexing has been finished.
+func ReadTxIndexTail(db xcbdb.KeyValueReader) *uint64 {
+	data, _ := db.Get(txIndexTailKey)
+	if len(data) != 8 {
+		return nil
+	}
+	number := binary.BigEndian.Uint64(data)
+	return &number
+}
+
+// WriteTxIndexTail stores the number of oldest indexed block
+// into database.
+func WriteTxIndexTail(db xcbdb.KeyValueWriter, number uint64) {
+	if err := db.Put(txIndexTailKey, encodeBlockNumber(number)); err != nil {
+		log.Crit("Failed to store the transaction index tail", "err", err)
+	}
+}
+
+// ReadFastTxLookupLimit retrieves the tx lookup limit used in fast sync.
+func ReadFastTxLookupLimit(db xcbdb.KeyValueReader) *uint64 {
+	data, _ := db.Get(fastTxLookupLimitKey)
+	if len(data) != 8 {
+		return nil
+	}
+	number := binary.BigEndian.Uint64(data)
+	return &number
+}
+
+// WriteFastTxLookupLimit stores the txlookup limit used in fast sync into database.
+func WriteFastTxLookupLimit(db xcbdb.KeyValueWriter, number uint64) {
+	if err := db.Put(fastTxLookupLimitKey, encodeBlockNumber(number)); err != nil {
+		log.Crit("Failed to store transaction lookup limit for fast sync", "err", err)
 	}
 }
 
@@ -321,6 +384,25 @@ func ReadBodyRLP(db xcbdb.Reader, hash common.Hash, number uint64) rlp.RawValue 
 		}
 	}
 	return nil // Can't find the data anywhere.
+}
+
+// ReadCanonicalBodyRLP retrieves the block body (transactions and uncles) for the canonical
+// block at number, in RLP encoding.
+func ReadCanonicalBodyRLP(db xcbdb.Reader, number uint64) rlp.RawValue {
+	// If it's an ancient one, we don't need the canonical hash
+	data, _ := db.Ancient(freezerBodiesTable, number)
+	if len(data) == 0 {
+		// Need to get the hash
+		data, _ = db.Get(blockBodyKey(number, ReadCanonicalHash(db, number)))
+		// In the background freezer is moving data from leveldb to flatten files.
+		// So during the first check for ancient db, the data is not yet in there,
+		// but when we reach into leveldb, the data was already moved. That would
+		// result in a not found error.
+		if len(data) == 0 {
+			data, _ = db.Ancient(freezerBodiesTable, number)
+		}
+	}
+	return data
 }
 
 // WriteBodyRLP stores an RLP encoded block body into the database.
