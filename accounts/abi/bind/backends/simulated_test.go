@@ -40,7 +40,7 @@ import (
 func TestSimulatedBackend(t *testing.T) {
 	var energyLimit uint64 = 8000029
 	key, _ := crypto.GenerateKey(rand.Reader) // nolint: gosec
-	auth := bind.NewKeyedTransactor(key)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 
@@ -382,7 +382,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
 	pub := eddsa.Ed448DerivePublicKey(*key)
 	addr := crypto.PubkeyToAddress(pub)
-	opts := bind.NewKeyedTransactor(key)
+	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1))
 
 	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core)}}, 10000000)
 	defer sim.Close()
@@ -820,7 +820,7 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth := bind.NewKeyedTransactor(testKey)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -862,7 +862,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth := bind.NewKeyedTransactor(testKey)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -900,7 +900,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	contractAuth := bind.NewKeyedTransactor(testKey)
+	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	addr, _, _, err := bind.DeployContract(contractAuth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v", err)
