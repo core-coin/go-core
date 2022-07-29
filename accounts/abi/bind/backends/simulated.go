@@ -90,7 +90,7 @@ func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.Genesis
 
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes.
-// A simulated backend always uses chainID 1337.
+// A simulated backend always uses networkID 1.
 func NewSimulatedBackend(alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	return NewSimulatedBackendWithDatabase(rawdb.NewMemoryDatabase(), alloc, energyLimit)
 }
