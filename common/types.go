@@ -249,7 +249,11 @@ func CalculateChecksum(address, prefix []byte) string {
 }
 
 func verifyAddress(addr Address) (bool, error) {
+	fmt.Println(addr.Hex())
 	if isPrecompiledAddress(addr) {
+		return true, nil
+	}
+	if bytes.Equal(addr.Bytes(), Address{}.Bytes()) {
 		return true, nil
 	}
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
