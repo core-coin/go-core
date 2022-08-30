@@ -22,13 +22,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/common/hexutil"
 	"math/big"
 	"math/rand"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"runtime/debug"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -254,7 +255,7 @@ func verifyAddress(addr Address) (bool, error) {
 		return true, nil
 	}
 	if bytes.Equal(addr.Bytes(), Address{}.Bytes()) {
-		return true, nil
+		debug.PrintStack()
 	}
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
 		return false, invalidPrefix
