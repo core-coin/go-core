@@ -46,7 +46,7 @@ type Backend interface {
 	ChainDb() xcbdb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
-	RPCEnergyCap() *big.Int // global energy cap for xcb_call over rpc: DoS protection
+	RPCEnergyCap() *big.Int // global energy cap for eth_call over rpc: DoS protection
 	RPCTxFeeCap() float64   // global tx fee cap for all transaction related APIs
 
 	// Blockchain API

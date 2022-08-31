@@ -2679,7 +2679,7 @@ var toBigNumber = function(number) {
                 }),
                 new Property({
                     name: 'version.core',
-                    getter: 'xcb_protocolVersion',
+                    getter: 'eth_protocolVersion',
                     inputFormatter: utils.toDecimal
                 }),
                 new Property({
@@ -4272,7 +4272,7 @@ var toBigNumber = function(number) {
             var format = this.unpackOutput.bind(this);
 
             return {
-                method: this._constant ? 'xcb_call' : 'xcb_sendTransaction',
+                method: this._constant ? 'eth_call' : 'eth_sendTransaction',
                 callback: callback,
                 params: [payload],
                 format: format
@@ -5276,23 +5276,23 @@ var toBigNumber = function(number) {
         var transfer = require('../transfer');
 
         var blockCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "xcb_getBlockByHash" : "xcb_getBlockByNumber";
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "eth_getBlockByHash" : "eth_getBlockByNumber";
         };
 
         var transactionFromBlockCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getTransactionByBlockHashAndIndex' : 'xcb_getTransactionByBlockNumberAndIndex';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getTransactionByBlockHashAndIndex' : 'eth_getTransactionByBlockNumberAndIndex';
         };
 
         var uncleCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getUncleByBlockHashAndIndex' : 'xcb_getUncleByBlockNumberAndIndex';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleByBlockHashAndIndex' : 'eth_getUncleByBlockNumberAndIndex';
         };
 
         var getBlockTransactionCountCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getBlockTransactionCountByHash' : 'xcb_getBlockTransactionCountByNumber';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getBlockTransactionCountByHash' : 'eth_getBlockTransactionCountByNumber';
         };
 
         var uncleCountCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'xcb_getUncleCountByBlockHash' : 'xcb_getUncleCountByBlockNumber';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleCountByBlockHash' : 'eth_getUncleCountByBlockNumber';
         };
 
         function Xcb(web3) {
@@ -5338,7 +5338,7 @@ var toBigNumber = function(number) {
         var methods = function () {
             var getBalance = new Method({
                 name: 'getBalance',
-                call: 'xcb_getBalance',
+                call: 'eth_getBalance',
                 params: 2,
                 inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter],
                 outputFormatter: formatters.outputBigNumberFormatter
@@ -5346,14 +5346,14 @@ var toBigNumber = function(number) {
 
             var getStorageAt = new Method({
                 name: 'getStorageAt',
-                call: 'xcb_getStorageAt',
+                call: 'eth_getStorageAt',
                 params: 3,
                 inputFormatter: [null, utils.toHex, formatters.inputDefaultBlockNumberFormatter]
             });
 
             var getCode = new Method({
                 name: 'getCode',
-                call: 'xcb_getCode',
+                call: 'eth_getCode',
                 params: 2,
                 inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
             });
@@ -5377,7 +5377,7 @@ var toBigNumber = function(number) {
 
             var getCompilers = new Method({
                 name: 'getCompilers',
-                call: 'xcb_getCompilers',
+                call: 'eth_getCompilers',
                 params: 0
             });
 
@@ -5399,7 +5399,7 @@ var toBigNumber = function(number) {
 
             var getTransaction = new Method({
                 name: 'getTransaction',
-                call: 'xcb_getTransactionByHash',
+                call: 'eth_getTransactionByHash',
                 params: 1,
                 outputFormatter: formatters.outputTransactionFormatter
             });
@@ -5414,14 +5414,14 @@ var toBigNumber = function(number) {
 
             var getTransactionReceipt = new Method({
                 name: 'getTransactionReceipt',
-                call: 'xcb_getTransactionReceipt',
+                call: 'eth_getTransactionReceipt',
                 params: 1,
                 outputFormatter: formatters.outputTransactionReceiptFormatter
             });
 
             var getTransactionCount = new Method({
                 name: 'getTransactionCount',
-                call: 'xcb_getTransactionCount',
+                call: 'eth_getTransactionCount',
                 params: 2,
                 inputFormatter: [null, formatters.inputDefaultBlockNumberFormatter],
                 outputFormatter: utils.toDecimal
@@ -5429,42 +5429,42 @@ var toBigNumber = function(number) {
 
             var sendRawTransaction = new Method({
                 name: 'sendRawTransaction',
-                call: 'xcb_sendRawTransaction',
+                call: 'eth_sendRawTransaction',
                 params: 1,
                 inputFormatter: [null]
             });
 
             var sendTransaction = new Method({
                 name: 'sendTransaction',
-                call: 'xcb_sendTransaction',
+                call: 'eth_sendTransaction',
                 params: 1,
                 inputFormatter: [formatters.inputTransactionFormatter]
             });
 
             var signTransaction = new Method({
                 name: 'signTransaction',
-                call: 'xcb_signTransaction',
+                call: 'eth_signTransaction',
                 params: 1,
                 inputFormatter: [formatters.inputTransactionFormatter]
             });
 
             var sign = new Method({
                 name: 'sign',
-                call: 'xcb_sign',
+                call: 'eth_sign',
                 params: 2,
                 inputFormatter: [formatters.inputAddressFormatter, null]
             });
 
             var call = new Method({
                 name: 'call',
-                call: 'xcb_call',
+                call: 'eth_call',
                 params: 2,
                 inputFormatter: [formatters.inputCallFormatter, formatters.inputDefaultBlockNumberFormatter]
             });
 
             var estimateEnergy = new Method({
                 name: 'estimateEnergy',
-                call: 'xcb_estimateEnergy',
+                call: 'eth_estimateEnergy',
                 params: 1,
                 inputFormatter: [formatters.inputCallFormatter],
                 outputFormatter: utils.toDecimal
@@ -5472,31 +5472,31 @@ var toBigNumber = function(number) {
 
             var compileYlem = new Method({
                 name: 'compile.ylem',
-                call: 'xcb_compileYlem',
+                call: 'eth_compileYlem',
                 params: 1
             });
 
             var compileLLL = new Method({
                 name: 'compile.lll',
-                call: 'xcb_compileLLL',
+                call: 'eth_compileLLL',
                 params: 1
             });
 
             var compileSerpent = new Method({
                 name: 'compile.serpent',
-                call: 'xcb_compileSerpent',
+                call: 'eth_compileSerpent',
                 params: 1
             });
 
             var submitWork = new Method({
                 name: 'submitWork',
-                call: 'xcb_submitWork',
+                call: 'eth_submitWork',
                 params: 3
             });
 
             var getWork = new Method({
                 name: 'getWork',
-                call: 'xcb_getWork',
+                call: 'eth_getWork',
                 params: 0
             });
 
@@ -5532,39 +5532,39 @@ var toBigNumber = function(number) {
             return [
                 new Property({
                     name: 'coinbase',
-                    getter: 'xcb_coinbase'
+                    getter: 'eth_coinbase'
                 }),
                 new Property({
                     name: 'mining',
-                    getter: 'xcb_mining'
+                    getter: 'eth_mining'
                 }),
                 new Property({
                     name: 'hashrate',
-                    getter: 'xcb_hashrate',
+                    getter: 'eth_hashrate',
                     outputFormatter: utils.toDecimal
                 }),
                 new Property({
                     name: 'syncing',
-                    getter: 'xcb_syncing',
+                    getter: 'eth_syncing',
                     outputFormatter: formatters.outputSyncingFormatter
                 }),
                 new Property({
                     name: 'energyPrice',
-                    getter: 'xcb_energyPrice',
+                    getter: 'eth_energyPrice',
                     outputFormatter: formatters.outputBigNumberFormatter
                 }),
                 new Property({
                     name: 'accounts',
-                    getter: 'xcb_accounts'
+                    getter: 'eth_accounts'
                 }),
                 new Property({
                     name: 'blockNumber',
-                    getter: 'xcb_blockNumber',
+                    getter: 'eth_blockNumber',
                     outputFormatter: utils.toDecimal
                 }),
                 new Property({
                     name: 'protocolVersion',
-                    getter: 'xcb_protocolVersion'
+                    getter: 'eth_protocolVersion'
                 })
             ];
         };
@@ -6090,13 +6090,13 @@ var toBigNumber = function(number) {
                     case 'latest':
                         args.shift();
                         this.params = 0;
-                        return 'xcb_newBlockFilter';
+                        return 'eth_newBlockFilter';
                     case 'pending':
                         args.shift();
                         this.params = 0;
-                        return 'xcb_newPendingTransactionFilter';
+                        return 'eth_newPendingTransactionFilter';
                     default:
-                        return 'xcb_newFilter';
+                        return 'eth_newFilter';
                 }
             };
 
@@ -6108,19 +6108,19 @@ var toBigNumber = function(number) {
 
             var uninstallFilter = new Method({
                 name: 'uninstallFilter',
-                call: 'xcb_uninstallFilter',
+                call: 'eth_uninstallFilter',
                 params: 1
             });
 
             var getLogs = new Method({
                 name: 'getLogs',
-                call: 'xcb_getFilterLogs',
+                call: 'eth_getFilterLogs',
                 params: 1
             });
 
             var poll = new Method({
                 name: 'poll',
-                call: 'xcb_getFilterChanges',
+                call: 'eth_getFilterChanges',
                 params: 1
             });
 
@@ -6694,7 +6694,7 @@ var toBigNumber = function(number) {
             };
 
             self.requestManager.startPolling({
-                method: 'xcb_syncing',
+                method: 'eth_syncing',
                 params: [],
             }, self.pollId, onMessage, self.stopWatching.bind(self));
 

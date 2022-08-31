@@ -455,7 +455,7 @@ var (
 	}
 	RPCGlobalEnergyCap = cli.Uint64Flag{
 		Name:  "rpc.energycap",
-		Usage: "Sets a cap on energy that can be used in xcb_call/estimateEnergy",
+		Usage: "Sets a cap on energy that can be used in eth_call/estimateEnergy",
 	}
 	RPCGlobalTxFeeCap = cli.Float64Flag{
 		Name:  "rpc.txfeecap",
