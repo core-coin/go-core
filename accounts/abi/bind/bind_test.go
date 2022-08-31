@@ -1528,7 +1528,7 @@ var bindTests = []struct {
 			F2: [32]byte{0x01, 0x02, 0x03},
 		})
 		if err != nil {
-			t.Fatal("Failed to invoke function")
+			t.Fatal("Failed to invoke function:", err)
 		}
 		_, _, c2, err := DeployContractTwo(transactOpts, sim)
 		if err != nil {
@@ -1540,7 +1540,7 @@ var bindTests = []struct {
 			F2: [32]byte{0x01, 0x02, 0x03},
 		})
 		if err != nil {
-			t.Fatal("Failed to invoke function")
+			t.Fatal("Failed to invoke function:", err)
 		}
         `,
 		nil,
