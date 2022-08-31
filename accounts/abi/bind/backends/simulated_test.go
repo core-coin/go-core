@@ -122,11 +122,11 @@ func TestNewSimulatedBackend(t *testing.T) {
 	)
 	defer sim.Close()
 
-	if sim.config != params.AllCryptoreProtocolChanges {
+	if sim.config != params.DevChainConfig {
 		t.Errorf("expected sim config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
-	if sim.blockchain.Config() != params.AllCryptoreProtocolChanges {
+	if sim.blockchain.Config() != params.DevChainConfig {
 		t.Errorf("expected sim blockchain config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
@@ -382,7 +382,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	key, _ := crypto.GenerateKey(rand.Reader)
 	pub := eddsa.Ed448DerivePublicKey(*key)
 	addr := crypto.PubkeyToAddress(pub)
-	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1))
+	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
 
 	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core)}}, 10000000)
 	defer sim.Close()
@@ -820,7 +820,7 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -862,7 +862,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -900,7 +900,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
+	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	addr, _, _, err := bind.DeployContract(contractAuth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v", err)

@@ -103,6 +103,7 @@ var (
 	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
 	TestChainConfig = &ChainConfig{big.NewInt(2), nil, new(CryptoreConfig), nil}
+	DevChainConfig  = &ChainConfig{big.NewInt(1337), nil, new(CryptoreConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
