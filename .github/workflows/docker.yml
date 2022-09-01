@@ -1,17 +1,21 @@
 name: gocore docker
 on:
   push:
-#    tags:
-#      - 'v*'
+    tags:
+      - 'v*'
 jobs:
   docker:
     name: docker
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Docker
-      run: |
-        docker login ghcr.io -u ${{github.actor}} -p ${{secrets.GITHUB_TOKEN}}
-        docker build . -t ghcr.io/core-coin/go-core:ethereum
-        docker push ghcr.io/core-coin/go-core:ethereum
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Version
+        id: version
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+      - name: Docker
+        run: |
+          docker login ghcr.io -u ${{github.actor}} -p ${{secrets.GITHUB_TOKEN}}
+          docker build . -t ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}} -t ghcr.io/core-coin/go-core:latest
+          docker push ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}}
+          docker push ghcr.io/core-coin/go-core:latest
