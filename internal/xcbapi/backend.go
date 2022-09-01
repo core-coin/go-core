@@ -20,6 +20,7 @@ package xcbapi
 import (
 	"context"
 	"github.com/core-coin/go-core/consensus"
+	"github.com/core-coin/go-core/xcbdb"
 	"math/big"
 
 	"github.com/core-coin/go-core/accounts"
@@ -33,7 +34,6 @@ import (
 	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/go-core/rpc"
 	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcbdb"
 )
 
 // Backend interface provides the common API services (that are provided by
@@ -94,17 +94,17 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 	nonceLock := new(AddrLocker)
 	return []rpc.API{
 		{
-			Namespace: "xcb",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   NewPublicCoreAPI(apiBackend),
 			Public:    true,
 		}, {
-			Namespace: "xcb",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   NewPublicBlockChainAPI(apiBackend),
 			Public:    true,
 		}, {
-			Namespace: "xcb",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   NewPublicTransactionPoolAPI(apiBackend, nonceLock),
 			Public:    true,
@@ -123,7 +123,7 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateDebugAPI(apiBackend),
 		}, {
-			Namespace: "xcb",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   NewPublicAccountAPI(apiBackend.AccountManager()),
 			Public:    true,

@@ -97,8 +97,8 @@ func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithTag(gitTag, gitCommit, gitDate)
-	cfg.HTTPModules = append(cfg.HTTPModules, "xcb")
-	cfg.WSModules = append(cfg.WSModules, "xcb")
+	cfg.HTTPModules = append(cfg.HTTPModules, "eth")
+	cfg.WSModules = append(cfg.WSModules, "eth")
 	cfg.IPCPath = "gocore.ipc"
 	return cfg
 }

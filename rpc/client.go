@@ -411,7 +411,7 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 
 // XcbSubscribe registers a subscripion under the "xcb" namespace.
 func (c *Client) XcbSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
-	return c.Subscribe(ctx, "xcb", channel, args...)
+	return c.Subscribe(ctx, "eth", channel, args...)
 }
 
 // Subscribe calls the "<namespace>_subscribe" method with the given arguments,

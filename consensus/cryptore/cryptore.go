@@ -262,7 +262,7 @@ func (cryptore *Cryptore) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 	// to both xcb and cryptore namespaces.
 	return []rpc.API{
 		{
-			Namespace: "xcb",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   &API{cryptore},
 			Public:    true,

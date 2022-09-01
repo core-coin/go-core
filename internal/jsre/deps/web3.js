@@ -927,7 +927,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @returns {SolidityParam}
          */
         var formatInputInt = function (value) {
-            BigNumber.config(c.XCB_BIGNUMBER_ROUNDING_MODE);
+            BigNumber.config(c.ETH_BIGNUMBER_ROUNDING_MODE);
             var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
             return new SolidityParam(result);
         };
@@ -1760,10 +1760,10 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
 
        
-/// required to define XCB_BIGNUMBER_ROUNDING_MODE
+/// required to define ETH_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var XCB_UNITS = [
+var ETH_UNITS = [
     'ore',
     'fecore',
     'picore',
@@ -1782,11 +1782,11 @@ var XCB_UNITS = [
 ];
 
 module.exports = {
-    XCB_PADDING: 32,
-    XCB_SIGNATURE_LENGTH: 4,
-    XCB_UNITS: XCB_UNITS,
-    XCB_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    XCB_POLLING_TIMEOUT: 1000/2,
+    ETH_PADDING: 32,
+    ETH_SIGNATURE_LENGTH: 4,
+    ETH_UNITS: ETH_UNITS,
+    ETH_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    ETH_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -1873,7 +1873,7 @@ module.exports = {
         var utf8 = require('utf8');
 
 
-        var XCB_UNITS = [
+        var ETH_UNITS = [
             'ore',
             'fecore',
             'picore',
@@ -2577,7 +2577,7 @@ var toBigNumber = function(number) {
 
         var RequestManager = require('./web3/requestmanager');
         var Iban = require('./web3/iban');
-        var Xcb = require('./web3/methods/xcb');
+        var Eth = require('./web3/methods/eth');
         var DB = require('./web3/methods/db');
         var Shh = require('./web3/methods/shh');
         var Net = require('./web3/methods/net');
@@ -2599,7 +2599,7 @@ var toBigNumber = function(number) {
         function Web3(provider) {
             this._requestManager = new RequestManager(provider);
             this.currentProvider = provider;
-            this.xcb = new Xcb(this);
+            this.eth = new Eth(this);
             this.db = new DB(this);
             this.shh = new Shh(this);
             this.net = new Net(this);
@@ -2701,7 +2701,7 @@ var toBigNumber = function(number) {
         module.exports = Web3;
 
 
-    }, { "./utils/sha3": 19, "./utils/utils": 20, "./version.json": 21, "./web3/batch": 24, "./web3/extend": 28, "./web3/httpprovider": 32, "./web3/iban": 33, "./web3/ipcprovider": 34, "./web3/methods/db": 37, "./web3/methods/xcb": 38, "./web3/methods/net": 39, "./web3/methods/personal": 40, "./web3/methods/shh": 41, "./web3/methods/swarm": 42, "./web3/property": 45, "./web3/requestmanager": 46, "./web3/settings": 47, "bignumber.js": "bignumber.js" }], 23: [function (require, module, exports) {
+    }, { "./utils/sha3": 19, "./utils/utils": 20, "./version.json": 21, "./web3/batch": 24, "./web3/extend": 28, "./web3/httpprovider": 32, "./web3/iban": 33, "./web3/ipcprovider": 34, "./web3/methods/db": 37, "./web3/methods/eth": 38, "./web3/methods/net": 39, "./web3/methods/personal": 40, "./web3/methods/shh": 41, "./web3/methods/swarm": 42, "./web3/property": 45, "./web3/requestmanager": 46, "./web3/settings": 47, "bignumber.js": "bignumber.js" }], 23: [function (require, module, exports) {
         /*
             This file is part of web3.js.
         
@@ -2780,7 +2780,7 @@ var toBigNumber = function(number) {
 
             var o = this.encode(options);
             var formatter = this.decode.bind(this);
-            return new Filter(o, 'xcb', this._requestManager, watches.xcb(), formatter, callback);
+            return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
         };
 
         AllSolidityEvents.prototype.attachToContract = function (contract) {
@@ -2918,7 +2918,7 @@ var toBigNumber = function(number) {
             contract.abi.filter(function (json) {
                 return json.type === 'function';
             }).map(function (json) {
-                return new SolidityFunction(contract._xcb, json, contract.address);
+                return new SolidityFunction(contract._eth, json, contract.address);
             }).forEach(function (f) {
                 f.attachToContract(contract);
             });
@@ -2936,11 +2936,11 @@ var toBigNumber = function(number) {
                 return json.type === 'event';
             });
 
-            var All = new AllEvents(contract._xcb._requestManager, events, contract.address);
+            var All = new AllEvents(contract._eth._requestManager, events, contract.address);
             All.attachToContract(contract);
 
             events.map(function (json) {
-                return new SolidityEvent(contract._xcb._requestManager, json, contract.address);
+                return new SolidityEvent(contract._eth._requestManager, json, contract.address);
             }).forEach(function (e) {
                 e.attachToContract(contract);
             });
@@ -2960,7 +2960,7 @@ var toBigNumber = function(number) {
                 callbackFired = false;
 
             // wait for receipt
-            var filter = contract._xcb.filter('latest', function (e) {
+            var filter = contract._eth.filter('latest', function (e) {
                 if (!e && !callbackFired) {
                     count++;
 
@@ -2978,10 +2978,10 @@ var toBigNumber = function(number) {
 
                     } else {
 
-                        contract._xcb.getTransactionReceipt(contract.transactionHash, function(e, receipt){
+                        contract._eth.getTransactionReceipt(contract.transactionHash, function(e, receipt){
                             if(receipt && !callbackFired) {
         
-                                contract._xcb.getCode(receipt.contractAddress, function(e, code){
+                                contract._eth.getCode(receipt.contractAddress, function(e, code){
                                     /*jshint maxcomplexity: 6 */
         
                                     if(callbackFired || !code)
@@ -3024,8 +3024,8 @@ var toBigNumber = function(number) {
          * @method ContractFactory
          * @param {Array} abi
          */
-        var ContractFactory = function (xcb, abi) {
-            this.xcb = xcb;
+        var ContractFactory = function (eth, abi) {
+            this.eth = eth;
             this.abi = abi;
 
             /**
@@ -3041,7 +3041,7 @@ var toBigNumber = function(number) {
             this.new = function () {
                 /*jshint maxcomplexity: 7 */
 
-                var contract = new Contract(this.xcb, this.abi);
+                var contract = new Contract(this.eth, this.abi);
 
                 // parse arguments
                 var options = {}; // required!
@@ -3073,7 +3073,7 @@ var toBigNumber = function(number) {
                 if (callback) {
 
                     // wait for the contract address and check if the code was deployed
-                    this.xcb.sendTransaction(options, function (err, hash) {
+                    this.eth.sendTransaction(options, function (err, hash) {
                         if (err) {
                             callback(err);
                         } else {
@@ -3087,7 +3087,7 @@ var toBigNumber = function(number) {
                         }
                     });
                 } else {
-                    var hash = this.xcb.sendTransaction(options);
+                    var hash = this.eth.sendTransaction(options);
                     // add the transaction hash
                     contract.transactionHash = hash;
                     checkForContractAddress(contract);
@@ -3122,7 +3122,7 @@ var toBigNumber = function(number) {
          * otherwise calls callback function (err, contract)
          */
         ContractFactory.prototype.at = function (address, callback) {
-            var contract = new Contract(this.xcb, this.abi, address);
+            var contract = new Contract(this.eth, this.abi, address);
 
             // this functions are not part of prototype,
             // because we dont want to spoil the interface
@@ -3162,8 +3162,8 @@ var toBigNumber = function(number) {
          * @param {Array} abi
          * @param {Address} contract address
          */
-        var Contract = function (xcb, abi, address) {
-            this._xcb = xcb;
+        var Contract = function (eth, abi, address) {
+            this._eth = eth;
             this.transactionHash = null;
             this.address = address;
             this.abi = abi;
@@ -3405,7 +3405,7 @@ var toBigNumber = function(number) {
 
             var o = this.encode(indexed, options);
             var formatter = this.decode.bind(this);
-            return new Filter(o, 'xcb', this._requestManager, watches.xcb(), formatter, callback);
+            return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
         };
 
         /**
@@ -3539,7 +3539,7 @@ var toBigNumber = function(number) {
 
 
             switch (type) {
-                case 'xcb':
+                case 'eth':
 
                     // make sure topics, get converted to hex
                     options.topics = options.topics || [];
@@ -4065,8 +4065,8 @@ var toBigNumber = function(number) {
         /**
          * This prototype should be used to call/sendTransaction to solidity functions
          */
-        var SolidityFunction = function (xcb, json, address) {
-            this._xcb = xcb;
+        var SolidityFunction = function (eth, json, address) {
+            this._eth = eth;
             this._inputTypes = json.inputs.map(function (i) {
                 return i.type;
             });
@@ -4168,12 +4168,12 @@ var toBigNumber = function(number) {
 
 
             if (!callback) {
-                var output = this._xcb.call(payload, defaultBlock);
+                var output = this._eth.call(payload, defaultBlock);
                 return this.unpackOutput(output);
             }
 
             var self = this;
-            this._xcb.call(payload, defaultBlock, function (error, output) {
+            this._eth.call(payload, defaultBlock, function (error, output) {
                 if (error) return callback(error, null);
 
                 var unpacked = null;
@@ -4203,10 +4203,10 @@ var toBigNumber = function(number) {
             }
 
             if (!callback) {
-                return this._xcb.sendTransaction(payload);
+                return this._eth.sendTransaction(payload);
             }
 
-            this._xcb.sendTransaction(payload, callback);
+            this._eth.sendTransaction(payload, callback);
         };
 
 /**
@@ -4220,10 +4220,10 @@ var toBigNumber = function(number) {
     var payload = this.toPayload(args);
 
     if (!callback) {
-        return this._xcb.estimateEnergy(payload);
+        return this._eth.estimateEnergy(payload);
     }
 
-    this._xcb.estimateEnergy(payload, callback);
+    this._eth.estimateEnergy(payload, callback);
 };
 
         /**
@@ -4604,7 +4604,7 @@ var toBigNumber = function(number) {
          * @return {Iban} the IBAN object
          */
         Iban.createIndirect = function (options) {
-            return Iban.fromBban('XCB' + options.institution + options.identifier);
+            return Iban.fromBban('ETH' + options.institution + options.identifier);
         };
 
         /**
@@ -4626,7 +4626,7 @@ var toBigNumber = function(number) {
          * @returns {Boolean} true if it is, otherwise false
          */
         Iban.prototype.isValid = function () {
-            return /^XE[0-9]{2}(XCB[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
+            return /^XE[0-9]{2}(ETH[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
             mod9710(iso13616Prepare(this._iban)) === 1;
         };
 
@@ -5254,7 +5254,7 @@ var toBigNumber = function(number) {
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
         /**
-         * @file xcb.js
+         * @file eth.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @author Fabian Vogelsteller <fabian@ethdev.com>
          * @date 2015
@@ -5295,7 +5295,7 @@ var toBigNumber = function(number) {
             return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleCountByBlockHash' : 'eth_getUncleCountByBlockNumber';
         };
 
-        function Xcb(web3) {
+        function Eth(web3) {
             this._requestManager = web3._requestManager;
 
             var self = this;
@@ -5315,7 +5315,7 @@ var toBigNumber = function(number) {
             this.sendIBANTransaction = transfer.bind(null, this);
         }
 
-        Object.defineProperty(Xcb.prototype, 'defaultBlock', {
+        Object.defineProperty(Eth.prototype, 'defaultBlock', {
             get: function () {
                 return c.defaultBlock;
             },
@@ -5325,7 +5325,7 @@ var toBigNumber = function(number) {
             }
         });
 
-        Object.defineProperty(Xcb.prototype, 'defaultAccount', {
+        Object.defineProperty(Eth.prototype, 'defaultAccount', {
             get: function () {
                 return c.defaultAccount;
             },
@@ -5569,28 +5569,28 @@ var toBigNumber = function(number) {
             ];
         };
 
-        Xcb.prototype.contract = function (abi) {
+        Eth.prototype.contract = function (abi) {
             var factory = new Contract(this, abi);
             return factory;
         };
         
-        Xcb.prototype.filter = function (options, callback, filterCreationErrorCallback) {
-            return new Filter(options, 'xcb', this._requestManager, watches.xcb(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
+        Eth.prototype.filter = function (options, callback, filterCreationErrorCallback) {
+            return new Filter(options, 'eth', this._requestManager, watches.eth(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
         };
         
-        Xcb.prototype.namereg = function () {
+        Eth.prototype.namereg = function () {
             return this.contract(namereg.global.abi).at(namereg.global.address);
         };
         
-            Xcb.prototype.icapNamereg = function () {
+            Eth.prototype.icapNamereg = function () {
                 return this.contract(namereg.icap.abi).at(namereg.icap.address);
         };
 
-        Xcb.prototype.isSyncing = function (callback) {
+        Eth.prototype.isSyncing = function (callback) {
             return new IsSyncing(this._requestManager, callback);
         };
 
-        module.exports = Xcb;
+        module.exports = Eth;
 
     }, { "../../utils/config": 18, "../../utils/utils": 20, "../contract": 25, "../filter": 29, "../formatters": 30, "../iban": 33, "../method": 36, "../namereg": 44, "../property": 45, "../syncing": 48, "../transfer": 49, "./watches": 43 }], 39: [function (require, module, exports) {
         /*
@@ -5609,7 +5609,7 @@ var toBigNumber = function(number) {
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** @file xcb.js
+        /** @file eth.js
          * @authors:
          *   Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -5629,7 +5629,7 @@ var toBigNumber = function(number) {
             });
         };
 
-        /// @returns an array of objects describing web3.xcb api properties
+        /// @returns an array of objects describing web3.eth api properties
         var properties = function () {
             return [
                 new Property({
@@ -5664,7 +5664,7 @@ var toBigNumber = function(number) {
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
         /**
-         * @file xcb.js
+         * @file eth.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @author Fabian Vogelsteller <fabian@ethdev.com>
          * @date 2015
@@ -6081,8 +6081,8 @@ var toBigNumber = function(number) {
 
         var Method = require('../method');
 
-        /// @returns an array of objects describing web3.xcb.filter api methods
-        var xcb = function () {
+        /// @returns an array of objects describing web3.eth.filter api methods
+        var eth = function () {
             var newFilterCall = function (args) {
                 var type = args[0];
 
@@ -6160,7 +6160,7 @@ var toBigNumber = function(number) {
         };
 
         module.exports = {
-            xcb: xcb,
+            eth: eth,
             shh: shh
         };
 
@@ -6550,7 +6550,7 @@ var toBigNumber = function(number) {
          */
         RequestManager.prototype.poll = function () {
             /*jshint maxcomplexity: 6 */
-            this.timeout = setTimeout(this.poll.bind(this), c.XCB_POLLING_TIMEOUT);
+            this.timeout = setTimeout(this.poll.bind(this), c.ETH_POLLING_TIMEOUT);
 
             if (Object.keys(this.polls).length === 0) {
                 return;
@@ -6760,23 +6760,23 @@ var toBigNumber = function(number) {
          * @param {Value} value to be tranfered
          * @param {Function} callback, callback
          */
-        var transfer = function (xcb, from, to, value, callback) {
+        var transfer = function (eth, from, to, value, callback) {
             var iban = new Iban(to);
             if (!iban.isValid()) {
                 throw new Error('invalid iban address');
             }
 
             if (iban.isDirect()) {
-                return transferToAddress(xcb, from, iban.address(), value, callback);
+                return transferToAddress(eth, from, iban.address(), value, callback);
             }
 
             if (!callback) {
-                var address = xcb.icapNamereg().addr(iban.institution());
-                return deposit(xcb, from, address, value, iban.client());
+                var address = eth.icapNamereg().addr(iban.institution());
+                return deposit(eth, from, address, value, iban.client());
             }
 
-            xcb.icapNamereg().addr(iban.institution(), function (err, address) {
-                return deposit(xcb, from, address, value, iban.client(), callback);
+            eth.icapNamereg().addr(iban.institution(), function (err, address) {
+                return deposit(eth, from, address, value, iban.client(), callback);
             });
 
         };
@@ -6790,8 +6790,8 @@ var toBigNumber = function(number) {
          * @param {Value} value to be tranfered
          * @param {Function} callback, callback
          */
-        var transferToAddress = function (xcb, from, to, value, callback) {
-            return xcb.sendTransaction({
+        var transferToAddress = function (eth, from, to, value, callback) {
+            return eth.sendTransaction({
                 address: to,
                 from: from,
                 value: value
@@ -6808,9 +6808,9 @@ var toBigNumber = function(number) {
          * @param {String} client unique identifier
          * @param {Function} callback, callback
          */
-        var deposit = function (xcb, from, to, value, client, callback) {
+        var deposit = function (eth, from, to, value, client, callback) {
             var abi = exchangeAbi;
-            return xcb.contract(abi).at(to).deposit(client, {
+            return eth.contract(abi).at(to).deposit(client, {
                 from: from,
                 value: value
             }, callback);
@@ -11971,7 +11971,7 @@ var toBigNumber = function(number) {
                 var SHA384 = C_algo.SHA384 = SHA512.extend({
                     _doReset: function () {
                         this._hash = new X64WordArray.init([
-                            new X64Word.init(0xcbbb9d5d, 0xc1059ed8), new X64Word.init(0x629a292a, 0x367cd507),
+                            new X64Word.init(0ethbb9d5d, 0xc1059ed8), new X64Word.init(0x629a292a, 0x367cd507),
                             new X64Word.init(0x9159015a, 0x3070dd17), new X64Word.init(0x152fecd8, 0xf70e5939),
                             new X64Word.init(0x67332667, 0xffc00b31), new X64Word.init(0x8eb44a87, 0x68581511),
                             new X64Word.init(0xdb0c2e0d, 0x64f98fa7), new X64Word.init(0x47b5481d, 0xbefa4fa4)
@@ -12094,7 +12094,7 @@ var toBigNumber = function(number) {
                     X64Word_create(0x113f9804, 0xbef90dae), X64Word_create(0x1b710b35, 0x131c471b),
                     X64Word_create(0x28db77f5, 0x23047d84), X64Word_create(0x32caab7b, 0x40c72493),
                     X64Word_create(0x3c9ebe0a, 0x15c9bebc), X64Word_create(0x431d67c4, 0x9c100d4c),
-                    X64Word_create(0x4cc5d4be, 0xcb3e42b6), X64Word_create(0x597f299c, 0xfc657e2a),
+                    X64Word_create(0x4cc5d4be, 0eth3e42b6), X64Word_create(0x597f299c, 0xfc657e2a),
                     X64Word_create(0x5fcb6fab, 0x3ad6faec), X64Word_create(0x6c44198c, 0x4a475817)
                 ];
 

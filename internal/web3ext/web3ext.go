@@ -24,7 +24,7 @@ var Modules = map[string]string{
 	"clique":     CliqueJs,
 	"cryptore":   CryptoreJs,
 	"debug":      DebugJs,
-	"xcb":        XcbJs,
+	"eth":        EthJs,
 	"miner":      MinerJs,
 	"net":        NetJs,
 	"personal":   PersonalJs,
@@ -473,9 +473,9 @@ web3._extend({
 });
 `
 
-const XcbJs = `
+const EthJs = `
 web3._extend({
-	property: 'xcb',
+	property: 'eth',
 	methods: [
 		new web3._extend.Method({
 			name: 'networkId',
