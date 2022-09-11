@@ -181,6 +181,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 			Config:      params.AllCryptoreProtocolChanges,
 			Alloc:       core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
 			EnergyLimit: 100000000,
+			Coinbase:    core.DefaultCoinbaseMainnet,
 		}
 		oracle *checkpointoracle.CheckpointOracle
 	)

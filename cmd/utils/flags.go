@@ -1583,6 +1583,7 @@ func SetXcbConfig(ctx *cli.Context, stack *node.Node, cfg *xcb.Config) {
 			developer = ks.Accounts()[0]
 		} else {
 			developer, err = ks.NewAccount(passphrase)
+			cfg.Miner.Corebase = developer.Address
 			if err != nil {
 				Fatalf("Failed to create developer account: %v", err)
 			}

@@ -74,7 +74,7 @@ type SimulatedBackend struct {
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
 func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
+	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc, Coinbase: core.DefaultCoinbaseMainnet}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
 
@@ -121,7 +121,9 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
+	})
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
@@ -540,6 +542,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	}
 
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
@@ -653,6 +656,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	defer b.mu.Unlock()
 
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTx(tx)
 		}
