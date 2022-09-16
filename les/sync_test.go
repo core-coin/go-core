@@ -53,7 +53,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			if cs >= 1 && bts >= 1 {
 				break
 			}
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(20 * time.Millisecond)
 		}
 	}
 	// Generate 512+4 blocks (totally 1 CHT sections)
@@ -83,7 +83,8 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
 			sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
 			//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-			if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(bind.NewKeyedTransactor(signerKey), cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
+			auth, _ := bind.NewKeyedTransactorWithNetworkID(signerKey, big.NewInt(1337))
+			if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(auth, cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 				t.Error("register checkpoint failed", err)
 			}
 			server.backend.Commit()
@@ -92,7 +93,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			for {
 				_, hash, _, err := server.handler.server.oracle.Contract().Contract().GetLatestCheckpoint(nil)
 				if err != nil || hash == [32]byte{} {
-					time.Sleep(10 * time.Millisecond)
+					time.Sleep(20 * time.Millisecond)
 					continue
 				}
 				break
@@ -125,7 +126,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			t.Error("sync failed", err)
 		}
 		return
-	case <-time.NewTimer(10 * time.Second).C:
+	case <-time.NewTimer(25 * time.Second).C:
 		t.Error("checkpoint syncing timeout")
 	}
 }
@@ -166,7 +167,8 @@ func testMissOracleBackend(t *testing.T, hasCheckpoint bool) {
 	data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
 	sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
 	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-	if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(bind.NewKeyedTransactor(signerKey), cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(signerKey, big.NewInt(1337))
+	if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(auth, cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 		t.Error("register checkpoint failed", err)
 	}
 	server.backend.Commit()

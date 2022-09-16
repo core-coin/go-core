@@ -227,7 +227,7 @@ func (c *ChtIndexerBackend) Commit() error {
 		c.trieset.Clear()
 		c.triedb.Commit(root, false, func(hash common.Hash) { c.trieset.Add(hash) })
 
-		it := c.trieTable.NewIterator()
+		it := c.trieTable.NewIterator(nil, nil)
 		defer it.Release()
 
 		var (
@@ -464,7 +464,7 @@ func (b *BloomTrieIndexerBackend) Commit() error {
 		b.trieset.Clear()
 		b.triedb.Commit(root, false, func(hash common.Hash) { b.trieset.Add(hash) })
 
-		it := b.trieTable.NewIterator()
+		it := b.trieTable.NewIterator(nil, nil)
 		defer it.Release()
 
 		var (

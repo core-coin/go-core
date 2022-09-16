@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"errors"
 	eddsa "github.com/core-coin/ed448"
 	"math/big"
 	"strings"
@@ -39,7 +40,7 @@ import (
 func TestSimulatedBackend(t *testing.T) {
 	var energyLimit uint64 = 8000029
 	key, _ := crypto.GenerateKey(rand.Reader) // nolint: gosec
-	auth := bind.NewKeyedTransactor(key)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 
@@ -121,11 +122,11 @@ func TestNewSimulatedBackend(t *testing.T) {
 	)
 	defer sim.Close()
 
-	if sim.config != params.AllCryptoreProtocolChanges {
+	if sim.config != params.DevChainConfig {
 		t.Errorf("expected sim config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
-	if sim.blockchain.Config() != params.AllCryptoreProtocolChanges {
+	if sim.blockchain.Config() != params.DevChainConfig {
 		t.Errorf("expected sim blockchain config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
 	}
 
@@ -366,26 +367,113 @@ func TestSimulatedBackend_TransactionByHash(t *testing.T) {
 }
 
 func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
-	sim := NewSimulatedBackend(
-		core.GenesisAlloc{}, 10000000,
-	)
+	/*
+		pragma solidity ^0.6.4;
+		contract EnergyEstimation {
+		    function PureRevert() public { revert(); }
+		    function Revert() public { revert("revert reason");}
+		    function OOG() public { for (uint i = 0; ; i++) {}}
+		    function Assert() public { assert(false);}
+		    function Valid() public {}
+		}*/
+	const contractAbi = "[{\"inputs\":[],\"name\":\"Assert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OOG\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PureRevert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"Revert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"Valid\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+	const contractBin = "608060405234801561001057600080fd5b5061027a806100206000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633ae247141461005c578063593b9361146100665780636c5fcd821461007057806396be6e031461007a578063a842ede314610084575b600080fd5b61006461008e565b005b61006e6100c9565b005b6100786100ce565b005b6100826100e4565b005b61008c6100e6565b005b6040517f4e401cbe0000000000000000000000000000000000000000000000000000000081526004016100c090610140565b60405180910390fd5b600080fd5b60005b80806100dc9061017b565b9150506100d1565b565b600061011b577f4b1f2ce300000000000000000000000000000000000000000000000000000000600052600160045260246000fd5b565b600061012a600d83610160565b9150610135826101f3565b602082019050919050565b600060208201905081810360008301526101598161011d565b9050919050565b600082825260208201905092915050565b6000819050919050565b600061018682610171565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156101b9576101b86101c4565b5b600182019050919050565b7f4b1f2ce300000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f72657665727420726561736f6e0000000000000000000000000000000000000060008201525056fea26469706673582212202458901c98e418f9c6e0efe666fc13c1536b98db06e04c1d7bae3eede256401f64736f6c63782a302e382e342d646576656c6f702e323032322e372e382b636f6d6d69742e30353336326564342e6d6f64005b"
+
+	key, _ := crypto.GenerateKey(rand.Reader)
+	pub := eddsa.Ed448DerivePublicKey(*key)
+	addr := crypto.PubkeyToAddress(pub)
+	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
+
+	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core)}}, 10000000)
 	defer sim.Close()
-	bgCtx := context.Background()
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	energy, err := sim.EstimateEnergy(bgCtx, gocore.CallMsg{
-		From:  testAddr,
-		To:    &testAddr,
-		Value: big.NewInt(1000),
-		Data:  []byte{},
-	})
-	if err != nil {
-		t.Errorf("could not estimate energy: %v", err)
+	parsed, _ := abi.JSON(strings.NewReader(contractAbi))
+	contractAddr, _, _, _ := bind.DeployContract(opts, parsed, common.FromHex(contractBin), sim)
+	sim.Commit()
+
+	var cases = []struct {
+		name        string
+		message     gocore.CallMsg
+		expect      uint64
+		expectError error
+	}{
+		{"plain transfer(valid)", gocore.CallMsg{
+			From:        addr,
+			To:          &addr,
+			Energy:      0,
+			EnergyPrice: big.NewInt(0),
+			Value:       big.NewInt(1),
+			Data:        nil,
+		}, params.TxEnergy, nil},
+
+		{"plain transfer(invalid)", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      0,
+			EnergyPrice: big.NewInt(0),
+			Value:       big.NewInt(1),
+			Data:        nil,
+		}, 0, errors.New("always failing transaction (execution reverted)")},
+
+		{"Revert", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      0,
+			EnergyPrice: big.NewInt(0),
+			Value:       nil,
+			Data:        common.Hex2Bytes("3ae24714"),
+		}, 0, errors.New("always failing transaction (execution reverted) (revert reason)")},
+
+		{"PureRevert", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      0,
+			EnergyPrice: big.NewInt(0),
+			Value:       nil,
+			Data:        common.Hex2Bytes("593b9361"),
+		}, 0, errors.New("always failing transaction (execution reverted)")},
+
+		{"OOG", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      100000,
+			EnergyPrice: big.NewInt(0),
+			Value:       nil,
+			Data:        common.Hex2Bytes("6c5fcd82"),
+		}, 0, errors.New("energy required exceeds allowance (100000)")},
+
+		{"Assert", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      100000,
+			EnergyPrice: big.NewInt(0),
+			Value:       nil,
+			Data:        common.Hex2Bytes("a842ede3"),
+		}, 0, errors.New("always failing transaction (execution reverted) (0x4b1f2ce30000000000000000000000000000000000000000000000000000000000000001)")},
+
+		{"Valid", gocore.CallMsg{
+			From:        addr,
+			To:          &contractAddr,
+			Energy:      100000,
+			EnergyPrice: big.NewInt(0),
+			Value:       nil,
+			Data:        common.Hex2Bytes("96be6e03"),
+		}, 21252, nil},
 	}
-
-	if energy != params.TxEnergy {
-		t.Errorf("expected 21000 energy cost for a transaction got %v", energy)
+	for _, c := range cases {
+		got, err := sim.EstimateEnergy(context.Background(), c.message)
+		if c.expectError != nil {
+			if err == nil {
+				t.Fatalf("Expect error, got nil")
+			}
+			if c.expectError.Error() != err.Error() {
+				t.Fatalf("Expect error, want %v, got %v", c.expectError, err)
+			}
+			continue
+		}
+		if got != c.expect {
+			t.Fatalf("Energy estimation mismatch, want %d, got %d", c.expect, got)
+		}
 	}
 }
 
@@ -732,7 +820,7 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth := bind.NewKeyedTransactor(testKey)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -774,7 +862,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth := bind.NewKeyedTransactor(testKey)
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -812,7 +900,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	contractAuth := bind.NewKeyedTransactor(testKey)
+	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
 	addr, _, _, err := bind.DeployContract(contractAuth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v", err)

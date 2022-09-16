@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/core-coin/go-core/common"
@@ -41,16 +42,32 @@ type freezerdb struct {
 // the slow ancient tables.
 func (frdb *freezerdb) Close() error {
 	var errs []error
-	if err := frdb.KeyValueStore.Close(); err != nil {
+	if err := frdb.AncientStore.Close(); err != nil {
 		errs = append(errs, err)
 	}
-	if err := frdb.AncientStore.Close(); err != nil {
+	if err := frdb.KeyValueStore.Close(); err != nil {
 		errs = append(errs, err)
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("%v", errs)
 	}
 	return nil
+}
+
+// Freeze is a helper method used for external testing to trigger and block until
+// a freeze cycle completes, without having to sleep for a minute to trigger the
+// automatic background run.
+func (frdb *freezerdb) Freeze(threshold uint64) {
+	// Set the freezer threshold to a temporary value
+	defer func(old uint64) {
+		atomic.StoreUint64(&frdb.AncientStore.(*freezer).threshold, old)
+	}(atomic.LoadUint64(&frdb.AncientStore.(*freezer).threshold))
+	atomic.StoreUint64(&frdb.AncientStore.(*freezer).threshold, threshold)
+
+	// Trigger a freeze cycle and block until it's done
+	trigger := make(chan struct{}, 1)
+	frdb.AncientStore.(*freezer).trigger <- trigger
+	<-trigger
 }
 
 // nofreezedb is a database wrapper that disables freezer data retrievals.
@@ -137,7 +154,10 @@ func NewDatabaseWithFreezer(db xcbdb.KeyValueStore, freezer string, namespace st
 			// If the freezer already contains something, ensure that the genesis blocks
 			// match, otherwise we might mix up freezers across chains and destroy both
 			// the freezer and the key-value store.
-			if frgenesis, _ := frdb.Ancient(freezerHashTable, 0); !bytes.Equal(kvgenesis, frgenesis) {
+			frgenesis, err := frdb.Ancient(freezerHashTable, 0)
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve genesis from ancient %v", err)
+			} else if !bytes.Equal(kvgenesis, frgenesis) {
 				return nil, fmt.Errorf("genesis mismatch: %#x (leveldb) != %#x (ancients)", kvgenesis, frgenesis)
 			}
 			// Key-value store and freezer belong to the same network. Ensure that they
@@ -251,7 +271,7 @@ func (s *stat) Count() string {
 // InspectDatabase traverses the entire database and checks the size
 // of all different categories of data.
 func InspectDatabase(db xcbdb.Database) error {
-	it := db.NewIterator()
+	it := db.NewIterator(nil, nil)
 	defer it.Release()
 
 	var (

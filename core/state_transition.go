@@ -17,18 +17,12 @@
 package core
 
 import (
-	"errors"
 	"math"
 	"math/big"
 
 	"github.com/core-coin/go-core/common"
 	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/log"
 	"github.com/core-coin/go-core/params"
-)
-
-var (
-	errInsufficientBalanceForEnergy = errors.New("insufficient balance to pay for energy")
 )
 
 /*
@@ -74,6 +68,41 @@ type Message interface {
 	Data() []byte
 }
 
+// ExecutionResult includes all output after executing given evm
+// message no matter the execution itself is successful or not.
+type ExecutionResult struct {
+	UsedEnergy uint64 // Total used energy but include the refunded energy
+	Err        error  // Any error encountered during the execution(listed in core/vm/errors.go)
+	ReturnData []byte // Returned data from evm(function result or data supplied with revert opcode)
+}
+
+// Unwrap returns the internal evm error which allows us for further
+// analysis outside.
+func (result *ExecutionResult) Unwrap() error {
+	return result.Err
+}
+
+// Failed returns the indicator whether the execution is successful or not
+func (result *ExecutionResult) Failed() bool { return result.Err != nil }
+
+// Return is a helper function to help caller distinguish between revert reason
+// and function return. Return returns the data after execution if no error occurs.
+func (result *ExecutionResult) Return() []byte {
+	if result.Err != nil {
+		return nil
+	}
+	return common.CopyBytes(result.ReturnData)
+}
+
+// Revert returns the concrete revert reason if the execution is aborted by `REVERT`
+// opcode. Note the reason can be nil if no data supplied with revert opcode.
+func (result *ExecutionResult) Revert() []byte {
+	if result.Err != vm.ErrExecutionReverted {
+		return nil
+	}
+	return common.CopyBytes(result.ReturnData)
+}
+
 // IntrinsicEnergy computes the 'intrinsic energy' for a message with the given data.
 func IntrinsicEnergy(data []byte, contractCreation bool) (uint64, error) {
 	// Set the starting energy for the raw transaction
@@ -95,13 +124,13 @@ func IntrinsicEnergy(data []byte, contractCreation bool) (uint64, error) {
 		// Make sure we don't exceed uint64 for all data combinations
 		nonZeroEnergy := params.TxDataNonZeroEnergy
 		if (math.MaxUint64-energy)/nonZeroEnergy < nz {
-			return 0, vm.ErrOutOfEnergy
+			return 0, ErrEnergyUintOverflow
 		}
 		energy += nz * nonZeroEnergy
 
 		z := uint64(len(data)) - nz
 		if (math.MaxUint64-energy)/params.TxDataZeroEnergy < z {
-			return 0, vm.ErrOutOfEnergy
+			return 0, ErrEnergyUintOverflow
 		}
 		energy += z * params.TxDataZeroEnergy
 	}
@@ -128,7 +157,7 @@ func NewStateTransition(cvm *vm.CVM, msg Message, gp *EnergyPool) *StateTransiti
 // the energy used (which includes energy refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(cvm *vm.CVM, msg Message, gp *EnergyPool) ([]byte, uint64, bool, error) {
+func ApplyMessage(cvm *vm.CVM, msg Message, gp *EnergyPool) (*ExecutionResult, error) {
 	return NewStateTransition(cvm, msg, gp).TransitionDb()
 }
 
@@ -140,19 +169,10 @@ func (st *StateTransition) to() common.Address {
 	return *st.msg.To()
 }
 
-func (st *StateTransition) useEnergy(amount uint64) error {
-	if st.energy < amount {
-		return vm.ErrOutOfEnergy
-	}
-	st.energy -= amount
-
-	return nil
-}
-
 func (st *StateTransition) buyEnergy() error {
 	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Energy()), st.energyPrice)
 	if st.state.GetBalance(st.msg.From()).Cmp(mgval) < 0 {
-		return errInsufficientBalanceForEnergy
+		return ErrInsufficientFunds
 	}
 	if err := st.gp.SubEnergy(st.msg.Energy()); err != nil {
 		return err
@@ -178,52 +198,70 @@ func (st *StateTransition) preCheck() error {
 }
 
 // TransitionDb will transition the state by applying the current message and
-// returning the result including the used energy. It returns an error if failed.
-// An error indicates a consensus issue.
-func (st *StateTransition) TransitionDb() (ret []byte, usedEnergy uint64, failed bool, err error) {
-	if err = st.preCheck(); err != nil {
-		return
+// returning the evm execution result with following fields.
+//
+// - used energy:
+//      total energy used (including energy being refunded)
+// - returndata:
+//      the returned data from cvm
+// - concrete execution error:
+//      various **CVM** error which aborts the execution,
+//      e.g. ErrOutOfEnergy, ErrExecutionReverted
+//
+// However if any consensus issue encountered, return the error directly with
+// nil evm execution result.
+func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
+	// First check this message satisfies all consensus rules before
+	// applying the message. The rules include these clauses
+	//
+	// 1. the nonce of the message caller is correct
+	// 2. caller has enough balance to cover transaction fee(energylimit * energyprice)
+	// 3. the amount of energy required is available in the block
+	// 4. the purchased energy is enough to cover intrinsic usage
+	// 5. there is no overflow when calculating intrinsic energy
+	// 6. caller has enough balance to cover asset transfer for **topmost** call
+
+	// Check clauses 1-3, buy energy if everything is correct
+	if err := st.preCheck(); err != nil {
+		return nil, err
 	}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
 
-	// Pay intrinsic energy
+	// Check clauses 4-5, subtract intrinsic energy if everything is correct
 	energy, err := IntrinsicEnergy(st.data, contractCreation)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, err
 	}
-	if err = st.useEnergy(energy); err != nil {
-		return nil, 0, false, err
+	if st.energy < energy {
+		return nil, ErrIntrinsicEnergy
 	}
+	st.energy -= energy
 
+	// Check clause 6
+	if msg.Value().Sign() > 0 && !st.cvm.CanTransfer(st.state, msg.From(), msg.Value()) {
+		return nil, ErrInsufficientFundsForTransfer
+	}
 	var (
-		cvm = st.cvm
-		// vm errors do not effect consensus and are therefor
-		// not assigned to err, except for insufficient balance
-		// error.
-		vmerr error
+		ret   []byte
+		vmerr error // vm errors do not effect consensus and are therefore not assigned to err
 	)
 	if contractCreation {
-		ret, _, st.energy, vmerr = cvm.Create(sender, st.data, st.energy, st.value)
+		ret, _, st.energy, vmerr = st.cvm.Create(sender, st.data, st.energy, st.value)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
-		ret, st.energy, vmerr = cvm.Call(sender, st.to(), st.data, st.energy, st.value)
-	}
-	if vmerr != nil {
-		log.Debug("VM returned with error", "err", vmerr)
-		// The only possible consensus-error would be if there wasn't
-		// sufficient balance to make the transfer happen. The first
-		// balance transfer may never fail.
-		if vmerr == vm.ErrInsufficientBalance {
-			return nil, 0, false, vmerr
-		}
+		ret, st.energy, vmerr = st.cvm.Call(sender, st.to(), st.data, st.energy, st.value)
 	}
 	st.refundEnergy()
 	st.state.AddBalance(st.cvm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
 
-	return ret, st.energyUsed(), vmerr != nil, err
+	return &ExecutionResult{
+		UsedEnergy: st.energyUsed(),
+		Err:        vmerr,
+		ReturnData: ret,
+	}, nil
 }
 
 func (st *StateTransition) refundEnergy() {

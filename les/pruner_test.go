@@ -37,7 +37,7 @@ func TestLightPruner(t *testing.T) {
 			if cs >= 3 && bts >= 3 {
 				break
 			}
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(15 * time.Millisecond)
 		}
 	}
 	server, client, tearDown := newClientServerEnv(t, int(3*config.ChtSize+config.ChtConfirms), 2, waitIndexers, nil, 0, false, true, false)
@@ -46,7 +46,7 @@ func TestLightPruner(t *testing.T) {
 	// checkDB iterates the chain with given prefix, resolves the block number
 	// with given callback and ensures this entry should exist or not.
 	checkDB := func(from, to uint64, prefix []byte, resolve func(key, value []byte) *uint64, exist bool) bool {
-		it := client.db.NewIteratorWithPrefix(prefix)
+		it := client.db.NewIterator(prefix, nil)
 		defer it.Release()
 
 		var next = from
@@ -122,10 +122,10 @@ func TestLightPruner(t *testing.T) {
 		}
 	}
 	// Start light pruner.
-	time.Sleep(1500 * time.Millisecond) // Ensure light client has finished the syncing and indexing
+	time.Sleep(2500 * time.Millisecond) // Ensure light client has finished the syncing and indexing
 	newPruner(client.db, client.chtIndexer, client.bloomTrieIndexer)
 
-	time.Sleep(1500 * time.Millisecond) // Ensure pruner have enough time to prune data.
+	time.Sleep(2500 * time.Millisecond) // Ensure pruner have enough time to prune data.
 	checkPruned(1, config.ChtSize-1)
 
 	// Ensure all APIs still work after pruning.
@@ -192,6 +192,6 @@ func TestLightPruner(t *testing.T) {
 
 	// Ensure the ODR cached data can be cleaned by pruner.
 	newPruner(client.db, client.chtIndexer, client.bloomTrieIndexer)
-	time.Sleep(50 * time.Millisecond) // Ensure pruner have enough time to prune data.
-	checkPruned(1, config.ChtSize-1)  // Ensure all cached data(by odr) is cleaned.
+	time.Sleep(150 * time.Millisecond) // Ensure pruner have enough time to prune data.
+	checkPruned(1, config.ChtSize-1)   // Ensure all cached data(by odr) is cleaned.
 }

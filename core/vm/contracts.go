@@ -56,12 +56,18 @@ var PrecompiledContracts = map[common.Address]PrecompiledContract{
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
-func RunPrecompiledContract(p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
-	energy := p.RequiredEnergy(input)
-	if contract.UseEnergy(energy) {
-		return p.Run(input)
+// It returns
+// - the returned bytes,
+// - the _remaining_ energy,
+// - any error that occurred
+func RunPrecompiledContract(p PrecompiledContract, input []byte, suppliedEnergy uint64) (ret []byte, remainingEnergy uint64, err error) {
+	energyCost := p.RequiredEnergy(input)
+	if suppliedEnergy < energyCost {
+		return nil, 0, ErrOutOfEnergy
 	}
-	return nil, ErrOutOfEnergy
+	suppliedEnergy -= energyCost
+	output, err := p.Run(input)
+	return output, suppliedEnergy, err
 }
 
 // ECRECOVER implemented as a native contract.
@@ -136,6 +142,7 @@ func (c *dataCopy) Run(in []byte) ([]byte, error) {
 type bigModExp struct{}
 
 var (
+	big0      = big.NewInt(0)
 	big1      = big.NewInt(1)
 	big4      = big.NewInt(4)
 	big8      = big.NewInt(8)

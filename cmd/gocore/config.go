@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/core-coin/go-core/internal/xcbapi"
 	"os"
 	"reflect"
 	"unicode"
@@ -95,7 +96,7 @@ func loadConfig(file string, cfg *gocoreConfig) error {
 func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
-	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
+	cfg.Version = params.VersionWithTag(gitTag, gitCommit, gitDate)
 	cfg.HTTPModules = append(cfg.HTTPModules, "xcb")
 	cfg.WSModules = append(cfg.WSModules, "xcb")
 	cfg.IPCPath = "gocore.ipc"
@@ -134,19 +135,20 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	return stack, cfg
 }
 
-func makeFullNode(ctx *cli.Context) *node.Node {
+func makeFullNode(ctx *cli.Context) (*node.Node, xcbapi.Backend) {
 	stack, cfg := makeConfigNode(ctx)
-	utils.RegisterXcbService(stack, &cfg.Xcb)
+
+	backend := utils.RegisterXcbService(stack, &cfg.Xcb)
 
 	// Configure GraphQL if requested
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
-		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
+		utils.RegisterGraphQLService(stack, backend, cfg.Node)
 	}
 	// Add the Core Stats daemon if requested.
 	if cfg.Xcbstats.URL != "" {
-		utils.RegisterXcbStatsService(stack, cfg.Xcbstats.URL)
+		utils.RegisterXcbStatsService(stack, backend, cfg.Xcbstats.URL)
 	}
-	return stack
+	return stack, backend
 }
 
 // dumpConfig is the dumpconfig command.

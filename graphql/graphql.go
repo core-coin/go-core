@@ -764,16 +764,19 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, energy, failed, err := xcbapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
+	result, err := xcbapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCEnergyCap())
+	if err != nil {
+		return nil, err
+	}
 	status := hexutil.Uint64(1)
-	if failed {
+	if result.Failed() {
 		status = 0
 	}
 	return &CallResult{
-		data:       hexutil.Bytes(result),
-		energyUsed: hexutil.Uint64(energy),
+		data:       result.Return(),
+		energyUsed: hexutil.Uint64(result.UsedEnergy),
 		status:     status,
-	}, err
+	}, nil
 }
 
 func (b *Block) EstimateEnergy(ctx context.Context, args struct {
@@ -830,16 +833,19 @@ func (p *Pending) Call(ctx context.Context, args struct {
 	Data xcbapi.CallArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, energy, failed, err := xcbapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
+	result, err := xcbapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCEnergyCap())
+	if err != nil {
+		return nil, err
+	}
 	status := hexutil.Uint64(1)
-	if failed {
+	if result.Failed() {
 		status = 0
 	}
 	return &CallResult{
-		data:       hexutil.Bytes(result),
-		energyUsed: hexutil.Uint64(energy),
+		data:       result.Return(),
+		energyUsed: hexutil.Uint64(result.UsedEnergy),
 		status:     status,
-	}, err
+	}, nil
 }
 
 func (p *Pending) EstimateEnergy(ctx context.Context, args struct {

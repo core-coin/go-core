@@ -94,8 +94,8 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 	var id enode.ID
 	rand.Read(id[:])
 
-	peer1 := newServerPeer(protocol, NetworkId, true, p2p.NewPeer(serverId, "", nil), net) // Mark server as trusted
-	peer2 := newClientPeer(protocol, NetworkId, p2p.NewPeer(id, "", nil), app)
+	peer1 := newServerPeer(protocol, DevNetworkId, true, p2p.NewPeer(serverId, "", nil), net) // Mark server as trusted
+	peer2 := newClientPeer(protocol, DevNetworkId, p2p.NewPeer(id, "", nil), app)
 
 	// Start the peerLight on a new thread
 	errc1 := make(chan error, 1)
@@ -116,7 +116,7 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 	}()
 
 	select {
-	case <-time.After(time.Millisecond * 100):
+	case <-time.After(time.Millisecond * 500):
 	case err := <-errc1:
 		return nil, nil, fmt.Errorf("peerLight handshake error: %v", err)
 	case err := <-errc2:

@@ -112,7 +112,8 @@ func newTester(t *testing.T, confOverride func(*xcb.Config)) *tester {
 	if confOverride != nil {
 		confOverride(xcbConf)
 	}
-	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return xcb.New(ctx, xcbConf) }); err != nil {
+	xcbBackend, err := xcb.New(stack, xcbConf)
+	if err != nil {
 		t.Fatalf("failed to register Core protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
@@ -138,13 +139,10 @@ func newTester(t *testing.T, confOverride func(*xcb.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var core *xcb.Core
-	stack.Service(&core)
-
 	return &tester{
 		workspace: workspace,
 		stack:     stack,
-		core:      core,
+		core:      xcbBackend,
 		console:   console,
 		input:     prompter,
 		output:    printer,

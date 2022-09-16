@@ -1,7 +1,7 @@
 {
   "context": {
     "difficulty": "2",
-    "gasLimit": "8000000",
+    "energyLimit": "8000000",
     "miner": "0x0000000000000000000000000000000000000000",
     "number": "3212651",
     "timestamp": "1597246515"
@@ -39,7 +39,7 @@
     },
     "difficulty": "3509749784",
     "extraData": "0x4554482e45544846414e532e4f52472d4641313738394444",
-    "gasLimit": "4727564",
+    "energyLimit": "4727564",
     "hash": "0x609948ac3bd3c00b7736b933248891d6c901ee28f066241bddb28f4e00a9f440",
     "miner": "0xbbf5029fd710d227630c8b7d338051b8e76d50b3",
     "mixHash": "0xb131e4507c93c7377de00e7c271bf409ec7492767142ff0f45c882f8068c2ada",
@@ -53,8 +53,8 @@
   "result": {
     "error": "execution reverted",
     "from": "0xf7579c3d8a669c89d5ed246a22eb6db8f6fedbf1",
-    "gas": "0x2d7308",
-    "gasUsed": "0x588",
+    "energy": "0x2d7308",
+    "energyUsed": "0x588",
     "input": "0x5c19a95c000000000000000000000000f7579c3d8a669c89d5ed246a22eb6db8f6fedbf1",
     "to": "0xf58833cf0c791881b494eb79d461e08a1f043f52",
     "type": "CALL",

@@ -19,10 +19,15 @@ package tests
 import (
 	"fmt"
 	"github.com/core-coin/go-core/params"
+	"math/big"
 )
 
 // Forks table defines supported forks and their chain config.
 var Forks = map[string]*params.ChainConfig{
+	"Mainnet": {
+		NetworkID: big.NewInt(1),
+		Cryptore:  &params.CryptoreConfig{},
+	},
 }
 
 // UnsupportedForkError is returned when a test requests a fork that isn't implemented.

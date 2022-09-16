@@ -58,7 +58,7 @@ func TestDump(t *testing.T) {
 	s.state.updateStateObject(obj2)
 	s.state.Commit(false)
 
-	// check that dump contains the state objects that are in trie
+	// check that DumpToCollector contains the state objects that are in trie
 	got := string(s.state.Dump(false, false, true))
 	want := `{
     "root": "4a6ee6ee61e1ba178e184b74f0b7ea7d16869ef48e17f81a961cf5f58a867b4a",
@@ -85,7 +85,7 @@ func TestDump(t *testing.T) {
     }
 }`
 	if got != want {
-		t.Errorf("dump mismatch:\ngot: %s\nwant: %s\n", got, want)
+		t.Errorf("DumpToCollector mismatch:\ngot: %s\nwant: %s\n", got, want)
 	}
 }
 

@@ -31,14 +31,14 @@ import (
 	"github.com/core-coin/go-core/xcb/energyprice"
 )
 
-// DefaultFullGPOConfig contains default gasprice oracle settings for full node.
+// DefaultFullGPOConfig contains default energyprice oracle settings for full node.
 var DefaultFullGPOConfig = energyprice.Config{
 	Blocks:     20,
 	Percentile: 60,
 	MaxPrice:   energyprice.DefaultMaxPrice,
 }
 
-// DefaultLightGPOConfig contains default gasprice oracle settings for light client.
+// DefaultLightGPOConfig contains default energyprice oracle settings for light client.
 var DefaultLightGPOConfig = energyprice.Config{
 	Blocks:     2,
 	Percentile: 60,
@@ -65,8 +65,9 @@ var DefaultConfig = Config{
 		EnergyPrice: big.NewInt(params.Nucle),
 		Recommit:    3 * time.Second,
 	},
-	TxPool: core.DefaultTxPoolConfig,
-	GPO:    DefaultFullGPOConfig,
+	TxPool:      core.DefaultTxPoolConfig,
+	GPO:         DefaultFullGPOConfig,
+	RPCTxFeeCap: 1, // 1 core
 }
 
 func init() {
@@ -96,6 +97,8 @@ type Config struct {
 
 	NoPruning  bool // Whether to disable pruning and flush everything to disk
 	NoPrefetch bool // Whether to disable prefetching and only load state on demand
+
+	TxLookupLimit uint64 `toml:",omitempty"` // The maximum number of blocks from head whose tx indices are reserved.
 
 	// Whitelist of required block number -> hash values to accept
 	Whitelist map[uint64]common.Hash `toml:"-"`
@@ -154,6 +157,10 @@ type Config struct {
 
 	// RPCEnergyCap is the global energy cap for xcb-call variants.
 	RPCEnergyCap *big.Int `toml:",omitempty"`
+
+	// RPCTxFeeCap is the global transaction fee(price * energylimit) cap for
+	// send-transction variants. The unit is core.
+	RPCTxFeeCap float64 `toml:",omitempty"`
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`

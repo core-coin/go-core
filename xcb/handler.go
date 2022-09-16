@@ -72,6 +72,7 @@ type ProtocolManager struct {
 
 	txpool     txPool
 	blockchain *core.BlockChain
+	chaindb    xcbdb.Database
 	maxPeers   int
 
 	downloader   *downloader.Downloader
@@ -110,6 +111,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		eventMux:   mux,
 		txpool:     txpool,
 		blockchain: blockchain,
+		chaindb:    chaindb,
 		peers:      newPeerSet(),
 		whitelist:  whitelist,
 		txsyncCh:   make(chan *txsync),
@@ -189,7 +191,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		}
 		return n, err
 	}
-	manager.blockFetcher = fetcher.NewBlockFetcher(blockchain.GetBlockByHash, validator, manager.BroadcastBlock, heighter, inserter, manager.removePeer)
+	manager.blockFetcher = fetcher.NewBlockFetcher(false, nil, blockchain.GetBlockByHash, validator, manager.BroadcastBlock, heighter, nil, inserter, manager.removePeer)
 
 	fetchTx := func(peer string, hashes []common.Hash) error {
 		p := manager.peers.Peer(peer)

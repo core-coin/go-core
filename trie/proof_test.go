@@ -106,7 +106,7 @@ func TestBadProof(t *testing.T) { //TODO: TEST
 			if proof == nil {
 				t.Fatalf("prover %d: nil proof", i)
 			}
-			it := proof.NewIterator()
+			it := proof.NewIterator(nil, nil)
 			for i, d := 0, mrand.Intn(proof.Len()); i <= d; i++ {
 				it.Next()
 			}

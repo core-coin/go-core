@@ -129,30 +129,30 @@ func (db *Database) NewBatch() xcbdb.Batch {
 	}
 }
 
-// NewIterator creates a binary-alphabetical iterator over the entire keyspace
-// contained within the memory database.
-func (db *Database) NewIterator() xcbdb.Iterator {
-	return db.NewIteratorWithStart(nil)
-}
-
-// NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
-// database content starting at a particular initial key (or after, if it does
-// not exist).
-func (db *Database) NewIteratorWithStart(start []byte) xcbdb.Iterator {
+// NewIterator creates a binary-alphabetical iterator over a subset
+// of database content with a particular key prefix, starting at a particular
+// initial key (or after, if it does not exist).
+func (db *Database) NewIterator(prefix []byte, start []byte) xcbdb.Iterator {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 
 	var (
-		st     = string(start)
+		pr     = string(prefix)
+		st     = string(append(prefix, start...))
 		keys   = make([]string, 0, len(db.db))
 		values = make([][]byte, 0, len(db.db))
 	)
-	// Collect the keys from the memory database corresponding to the given start
+	// Collect the keys from the memory database corresponding to the given prefix
+	// and start
 	for key := range db.db {
+		if !strings.HasPrefix(key, pr) {
+			continue
+		}
 		if key >= st {
 			keys = append(keys, key)
 		}
 	}
+
 	// Sort the items and retrieve the associated values
 	sort.Strings(keys)
 	for _, key := range keys {

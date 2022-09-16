@@ -135,6 +135,16 @@ var (
 		Usage: "Suggested energy price is the given percentile of a set of recent transaction energy prices (deprecated, use --gpo.percentile)",
 		Value: xcb.DefaultConfig.GPO.Percentile,
 	}
+	// (Deprecated June 2022, shown in aliased flags section)
+	LegacyGraphQLListenAddrFlag = cli.StringFlag{
+		Name:  "graphql.addr",
+		Usage: "GraphQL server listening interface (deprecated, graphql can only be enabled on the HTTP-RPC server endpoint, use --graphql)",
+	}
+	LegacyGraphQLPortFlag = cli.IntFlag{
+		Name:  "graphql.port",
+		Usage: "GraphQL server listening port (deprecated, graphql can only be enabled on the HTTP-RPC server endpoint, use --graphql)",
+		Value: node.DefaultHTTPPort,
+	}
 )
 
 // showDeprecated displays deprecated flags that will be soon removed from the codebase.

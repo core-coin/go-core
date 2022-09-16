@@ -93,7 +93,7 @@ func DeleteStorageSnapshot(db xcbdb.KeyValueWriter, accountHash, storageHash com
 // IterateStorageSnapshots returns an iterator for walking the entire storage
 // space of a specific account.
 func IterateStorageSnapshots(db xcbdb.Iteratee, accountHash common.Hash) xcbdb.Iterator {
-	return db.NewIteratorWithPrefix(storageSnapshotsKey(accountHash))
+	return db.NewIterator(storageSnapshotsKey(accountHash), nil)
 }
 
 // ReadSnapshotJournal retrieves the serialized in-memory diff layers saved at
