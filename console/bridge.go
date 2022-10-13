@@ -132,15 +132,14 @@ func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 		if val, err = openWallet(goja.Null(), wallet, passwd); err != nil {
 			if !strings.HasSuffix(err.Error(), scwallet.ErrPINNeeded.Error()) {
 				return nil, err
-			} else {
-				// PIN input requested, fetch from the user and call open again
-				input, err := b.prompter.PromptPassword("Please enter current PIN: ")
-				if err != nil {
-					return nil, err
-				}
-				if val, err = openWallet(goja.Null(), wallet, call.VM.ToValue(input)); err != nil {
-					return nil, err
-				}
+			}
+			// PIN input requested, fetch from the user and call open again
+			input, err := b.prompter.PromptPassword("Please enter current PIN: ")
+			if err != nil {
+				return nil, err
+			}
+			if val, err = openWallet(goja.Null(), wallet, call.VM.ToValue(input)); err != nil {
+				return nil, err
 			}
 		}
 
@@ -369,9 +368,7 @@ func (b *bridge) Send(call jsre.Call) (goja.Value, error) {
 		resp.Set("id", req.ID)
 
 		var result json.RawMessage
-		err = b.client.Call(&result, req.Method, req.Params...)
-		switch err := err.(type) {
-		case nil:
+		if err = b.client.Call(&result, req.Method, req.Params...); err == nil {
 			if result == nil {
 				// Special case null because it is decoded as an empty
 				// raw message for some reason.
@@ -384,15 +381,21 @@ func (b *bridge) Send(call jsre.Call) (goja.Value, error) {
 				}
 				resultVal, err := parse(goja.Null(), call.VM.ToValue(string(result)))
 				if err != nil {
-					setError(resp, -32603, err.Error())
+					setError(resp, -32603, err.Error(), nil)
 				} else {
 					resp.Set("result", resultVal)
 				}
 			}
-		case rpc.Error:
-			setError(resp, err.ErrorCode(), err.Error())
-		default:
-			setError(resp, -32603, err.Error())
+		} else {
+			code := -32603
+			var data interface{}
+			if err, ok := err.(rpc.Error); ok {
+				code = err.ErrorCode()
+			}
+			if err, ok := err.(rpc.DataError); ok {
+				data = err.ErrorData()
+			}
+			setError(resp, code, err.Error(), data)
 		}
 		resps = append(resps, resp)
 	}
@@ -412,8 +415,14 @@ func (b *bridge) Send(call jsre.Call) (goja.Value, error) {
 	return result, nil
 }
 
-func setError(resp *goja.Object, code int, msg string) {
-	resp.Set("error", map[string]interface{}{"code": code, "message": msg})
+func setError(resp *goja.Object, code int, msg string, data interface{}) {
+	err := make(map[string]interface{})
+	err["code"] = code
+	err["message"] = msg
+	if data != nil {
+		err["data"] = data
+	}
+	resp.Set("error", err)
 }
 
 // isNumber returns true if input value is a JS number.

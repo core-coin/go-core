@@ -870,6 +870,36 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	return result, err
 }
 
+func newRevertError(result *core.ExecutionResult) *revertError {
+	reason, errUnpack := abi.UnpackRevert(result.Revert())
+	err := errors.New("execution reverted")
+	if errUnpack == nil {
+		err = fmt.Errorf("execution reverted: %v", reason)
+	}
+	return &revertError{
+		error:  err,
+		reason: hexutil.Encode(result.Revert()),
+	}
+}
+
+// revertError is an API error that encompassas an EVM revertal with JSON error
+// code and a binary data blob.
+type revertError struct {
+	error
+	reason string // revert reason hex encoded
+}
+
+// ErrorCode returns the JSON error code for a revertal.
+// See: https://github.com/ethereum/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
+func (e *revertError) ErrorCode() int {
+	return 3
+}
+
+// ErrorData returns the hex encoded revert reason.
+func (e *revertError) ErrorData() interface{} {
+	return e.reason
+}
+
 // Call executes the given transaction on the state for the given block number.
 //
 // Additionally, the caller can specify a batch of contract for fields overriding.
@@ -885,25 +915,13 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOr
 	if err != nil {
 		return nil, err
 	}
-	return result.Return(), nil
+	// If the result contains a revert reason, try to unpack and return it.
+	if len(result.Revert()) > 0 {
+		return nil, newRevertError(result)
+	}
+	return result.Return(), result.Err
 }
 
-type estimateEnergyError struct {
-	error  string // Concrete error type if it's failed to estimate energy usage
-	vmerr  error  // Additional field, it's non-nil if the given transaction is invalid
-	revert string // Additional field, it's non-empty if the transaction is reverted and reason is provided
-}
-
-func (e estimateEnergyError) Error() string {
-	errMsg := e.error
-	if e.vmerr != nil {
-		errMsg += fmt.Sprintf(" (%v)", e.vmerr)
-	}
-	if e.revert != "" {
-		errMsg += fmt.Sprintf(" (%s)", e.revert)
-	}
-	return errMsg
-}
 func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, energyCap *big.Int) (hexutil.Uint64, error) {
 	// Binary search the energy requirement, as it may be higher than the amount used
 	var (
@@ -972,23 +990,13 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 		}
 		if failed {
 			if result != nil && result.Err != vm.ErrOutOfEnergy {
-				var revert string
 				if len(result.Revert()) > 0 {
-					ret, err := abi.UnpackRevert(result.Revert())
-					if err != nil {
-						revert = hexutil.Encode(result.Revert())
-					} else {
-						revert = ret
-					}
+					return 0, newRevertError(result)
 				}
-				return 0, estimateEnergyError{
-					error:  "always failing transaction",
-					vmerr:  result.Err,
-					revert: revert,
-				}
+				return 0, result.Err
 			}
 			// Otherwise, the specified energy cap is too low
-			return 0, estimateEnergyError{error: fmt.Sprintf("energy required exceeds allowance (%d)", cap)}
+			return 0, fmt.Errorf("energy required exceeds allowance (%d)", cap)
 		}
 	}
 	return hexutil.Uint64(hi), nil

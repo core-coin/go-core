@@ -274,6 +274,5 @@ func estimateSize(n node) int {
 		return 1 + len(n)
 	default:
 		panic(fmt.Sprintf("node type %T", n))
-
 	}
 }
