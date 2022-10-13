@@ -19,6 +19,7 @@ package discover
 import (
 	"fmt"
 	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/p2p/discover/v4wire"
 	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"sort"
@@ -136,15 +137,15 @@ func TestUDPv4_LookupIteratorClose(t *testing.T) {
 
 func serveDevin(test *udpTest, devin *preminedDevin) {
 	for done := false; !done; {
-		done = test.waitPacketOut(func(p packetV4, to *net.UDPAddr, hash []byte) {
+		done = test.waitPacketOut(func(p v4wire.Packet, to *net.UDPAddr, hash []byte) {
 			n, key := devin.nodeByAddr(to)
 			switch p.(type) {
-			case *pingV4:
-				test.packetInFrom(nil, key, to, &pongV4{Expiration: futureExp, ReplyTok: hash})
-			case *findnodeV4:
+			case *v4wire.Ping:
+				test.packetInFrom(nil, key, to, &v4wire.Pong{Expiration: futureExp, ReplyTok: hash})
+			case *v4wire.Findnode:
 				dist := enode.LogDist(n.ID(), devin.target.id())
 				nodes := devin.nodesAtDistance(dist - 1)
-				test.packetInFrom(nil, key, to, &neighborsV4{Expiration: futureExp, Nodes: nodes})
+				test.packetInFrom(nil, key, to, &v4wire.Neighbors{Expiration: futureExp, Nodes: nodes})
 			}
 		})
 	}
@@ -271,8 +272,8 @@ func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.Priv
 	return tn.node(dist, index), key
 }
 
-func (tn *preminedDevin) nodesAtDistance(dist int) []rpcNode {
-	result := make([]rpcNode, len(tn.dists[dist]))
+func (tn *preminedDevin) nodesAtDistance(dist int) []v4wire.Node {
+	result := make([]v4wire.Node, len(tn.dists[dist]))
 	for i := range result {
 		result[i] = nodeToRPC(wrapNode(tn.node(dist, i)))
 	}
