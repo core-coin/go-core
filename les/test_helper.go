@@ -116,7 +116,8 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 		switch i {
 		case 0:
 			// deploy checkpoint contract
-			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(bind.NewKeyedTransactor(bankKey), backend, []common.Address{signerAddr}, sectionSize, processConfirms, big.NewInt(1))
+			auth, _ := bind.NewKeyedTransactorWithNetworkID(bankKey, big.NewInt(1337))
+			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(auth, backend, []common.Address{signerAddr}, sectionSize, processConfirms, big.NewInt(1))
 			// bankUser transfers some core to user1
 			nonce, _ := backend.PendingNonceAt(ctx, bankAddr)
 			tx, _ := types.SignTx(types.NewTransaction(nonce, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
@@ -178,7 +179,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 		evmux  = new(event.TypeMux)
 		engine = cryptore.NewFaker()
 		gspec  = core.Genesis{
-			Config:      params.AllCryptoreProtocolChanges,
+			Config:      params.DevChainConfig,
 			Alloc:       core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
 			EnergyLimit: 100000000,
 		}
@@ -235,7 +236,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
 	var (
 		gspec = core.Genesis{
-			Config:      params.AllCryptoreProtocolChanges,
+			Config:      params.DevChainConfig,
 			Alloc:       core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
 			EnergyLimit: 100000000,
 		}

@@ -72,8 +72,9 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
+// A simulated backend always uses chainID 1337.
 func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.AllCryptoreProtocolChanges, EnergyLimit: energyLimit, Alloc: alloc}
+	genesis := core.Genesis{Config: params.DevChainConfig, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
 
@@ -89,6 +90,7 @@ func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.Genesis
 
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes.
+// A simulated backend always uses networkID 1337.
 func NewSimulatedBackend(alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
 	return NewSimulatedBackendWithDatabase(rawdb.NewMemoryDatabase(), alloc, energyLimit)
 }
