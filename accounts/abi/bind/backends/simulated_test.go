@@ -452,7 +452,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			EnergyPrice: big.NewInt(0),
 			Value:       nil,
 			Data:        common.Hex2Bytes("96be6e03"),
-		}, 21275, nil, nil},
+		}, 21252, nil, nil},
 	}
 	for _, c := range cases {
 		got, err := sim.EstimateEnergy(context.Background(), c.message)
