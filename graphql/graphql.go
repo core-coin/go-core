@@ -773,7 +773,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 		status = 0
 	}
 	return &CallResult{
-		data:       result.Return(),
+		data:       result.ReturnData,
 		energyUsed: hexutil.Uint64(result.UsedEnergy),
 		status:     status,
 	}, nil
@@ -842,7 +842,7 @@ func (p *Pending) Call(ctx context.Context, args struct {
 		status = 0
 	}
 	return &CallResult{
-		data:       result.Return(),
+		data:       result.ReturnData,
 		energyUsed: hexutil.Uint64(result.UsedEnergy),
 		status:     status,
 	}, nil

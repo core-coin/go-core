@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/core-coin/go-core/accounts/abi"
+	"github.com/core-coin/go-core/common/hexutil"
 	"math/big"
 	"sync"
 	"time"
@@ -74,7 +75,7 @@ type SimulatedBackend struct {
 // and uses a simulated blockchain for testing purposes.
 // A simulated backend always uses chainID 1337.
 func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.DevChainConfig, EnergyLimit: energyLimit, Alloc: alloc}
+	genesis := core.Genesis{Config: params.DevChainConfig, EnergyLimit: energyLimit, Alloc: alloc, Coinbase: core.DefaultCoinbaseMainnet}
 	genesis.MustCommit(database)
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
 
@@ -122,7 +123,9 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
+	})
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
@@ -339,6 +342,36 @@ func (b *SimulatedBackend) PendingCodeAt(ctx context.Context, contract common.Ad
 	return b.pendingState.GetCode(contract), nil
 }
 
+func newRevertError(result *core.ExecutionResult) *revertError {
+	reason, errUnpack := abi.UnpackRevert(result.Revert())
+	err := errors.New("execution reverted")
+	if errUnpack == nil {
+		err = fmt.Errorf("execution reverted: %v", reason)
+	}
+	return &revertError{
+		error:  err,
+		reason: hexutil.Encode(result.Revert()),
+	}
+}
+
+// revertError is an API error that encompassas an EVM revertal with JSON error
+// code and a binary data blob.
+type revertError struct {
+	error
+	reason string // revert reason hex encoded
+}
+
+// ErrorCode returns the JSON error code for a revertal.
+// See: https://github.com/ethereum/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
+func (e *revertError) ErrorCode() int {
+	return 3
+}
+
+// ErrorData returns the hex encoded revert reason.
+func (e *revertError) ErrorData() interface{} {
+	return e.reason
+}
+
 // CallContract executes a contract call.
 func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	b.mu.Lock()
@@ -355,7 +388,12 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg
 	if err != nil {
 		return nil, err
 	}
-	return res.Return(), nil
+
+	// If the result contains a revert reason, try to unpack and return it.
+	if len(res.Revert()) > 0 {
+		return nil, newRevertError(res)
+	}
+	return res.Return(), res.Err
 }
 
 // PendingCallContract executes a contract call on the pending state.
@@ -368,7 +406,11 @@ func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gocore.
 	if err != nil {
 		return nil, err
 	}
-	return res.Return(), nil
+	// If the result contains a revert reason, try to unpack and return it.
+	if len(res.Revert()) > 0 {
+		return nil, newRevertError(res)
+	}
+	return res.Return(), res.Err
 }
 
 // PendingNonceAt implements PendingStateReader.PendingNonceAt, retrieving
@@ -446,16 +488,10 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 		}
 		if failed {
 			if result != nil && result.Err != vm.ErrOutOfEnergy {
-				errMsg := fmt.Sprintf("always failing transaction (%v)", result.Err)
 				if len(result.Revert()) > 0 {
-					ret, err := abi.UnpackRevert(result.Revert())
-					if err != nil {
-						errMsg += fmt.Sprintf(" (%#x)", result.Revert())
-					} else {
-						errMsg += fmt.Sprintf(" (%s)", ret)
-					}
+					return 0, newRevertError(result)
 				}
-				return 0, errors.New(errMsg)
+				return 0, result.Err
 			}
 			// Otherwise, the specified energy cap is too low
 			return 0, fmt.Errorf("energy required exceeds allowance (%d)", cap)
@@ -508,6 +544,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	}
 
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
@@ -621,6 +658,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	defer b.mu.Unlock()
 
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+		block.SetCoinbase(core.DefaultCoinbaseMainnet)
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTx(tx)
 		}
