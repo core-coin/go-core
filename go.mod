@@ -21,7 +21,9 @@ require (
 	github.com/dop251/goja v0.0.0-20200721192441-a695b0cdd498
 	github.com/elastic/gosigar v0.8.1-0.20180330100440-37f05ff46ffa
 	github.com/fatih/color v1.7.0
+	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
+	github.com/garslo/gogen v0.0.0-20170307003452-d6ebae628c7c // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/go-stack/stack v1.8.0
@@ -37,6 +39,7 @@ require (
 	github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458
 	github.com/julienschmidt/httprouter v1.2.0
 	github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356
+	github.com/kevinburke/go-bindata v3.24.0+incompatible // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mattn/go-isatty v0.0.12
@@ -61,6 +64,7 @@ require (
 	golang.org/x/sys v0.0.0-20221010170243-090e33056c14
 	golang.org/x/text v0.3.7
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
+	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce

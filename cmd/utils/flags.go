@@ -1640,19 +1640,18 @@ func RegisterXcbService(stack *node.Node, cfg *xcb.Config) xcbapi.Backend {
 			Fatalf("Failed to register the Core service: %v", err)
 		}
 		return backend.ApiBackend
-	} else {
-		backend, err := xcb.New(stack, cfg)
-		if err != nil {
-			Fatalf("Failed to register the Core service: %v", err)
-		}
-		if cfg.LightServ > 0 {
-			_, err := les.NewLesServer(stack, backend, cfg)
-			if err != nil {
-				Fatalf("Failed to create the LES server: %v", err)
-			}
-		}
-		return backend.APIBackend
 	}
+	backend, err := xcb.New(stack, cfg)
+	if err != nil {
+		Fatalf("Failed to register the Core service: %v", err)
+	}
+	if cfg.LightServ > 0 {
+		_, err := les.NewLesServer(stack, backend, cfg)
+		if err != nil {
+			Fatalf("Failed to create the LES server: %v", err)
+		}
+	}
+	return backend.APIBackend
 }
 
 // RegisterXcbStatsService configures the Core Stats daemon and adds it to
