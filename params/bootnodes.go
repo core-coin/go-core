@@ -21,9 +21,9 @@ import "github.com/core-coin/go-core/common"
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
 // the main Core network.
 var MainnetBootnodes = []string{
-	"enode://d74ae95f2967a731ff1341da75110daa050b603ad6dbf21c91a7d07e2b52674ce8018ba1ef529051e859b7cee358b80f5c0afae83b88f4b280@86.110.248.212:30300",
-	"enode://4b2b16a1bf3ee11f87cc45d2039d59936fd91e9b20a55f5e307d8aad9cd1428416d935d306be6cc5b640106877c90f6ca1f12a82362ccc2500@86.110.248.213:30300",
-	"enode://12b01bbbadf76c3fc4f1229c6a1af3430b61e8cbdda7d2de39413c949230496bda83ede613ac09f352b87fa7b0526dabaa366f8991b23f9300@86.110.248.214:30300",
+	"enode://d74ae95f2967a731ff1341da75110daa050b603ad6dbf21c91a7d07e2b52674ce8018ba1ef529051e859b7cee358b80f5c0afae83b88f4b280@n14.coremainnet.net:30300",
+	"enode://4b2b16a1bf3ee11f87cc45d2039d59936fd91e9b20a55f5e307d8aad9cd1428416d935d306be6cc5b640106877c90f6ca1f12a82362ccc2500@n15.coremainnet.net:30300",
+	"enode://12b01bbbadf76c3fc4f1229c6a1af3430b61e8cbdda7d2de39413c949230496bda83ede613ac09f352b87fa7b0526dabaa366f8991b23f9300@n16.coremainnet.net:30300",
 
 	"enode://7fcacb7a3f70e12db2accbc554ffce7889d4b42bfa3f94210c75960a498b8bb8062fe191f9bc4aa33d683dba2e0492ce7335675da912b9a300@n1.coremainnet.net:30300",
 	"enode://65749e415a8ebe4f584f7c95de3f5d84dd2f4f1cb789ccae35e67286aab00041797a630ffc0c21781bd10aefc51423f03fd2412b265e0d2d80@n2.coremainnet.net:30300",
@@ -44,8 +44,8 @@ var MainnetBootnodes = []string{
 // DevinBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Devin test network.
 var DevinBootnodes = []string{
-	"enode://93ecfbf2093dbb87f0bbee0ccdafa3afb74003aeb816513b0ca428acff9dd1ac15966f3e34ef5fb2acb98a477ffc289015d23446f0ec195b00@86.110.248.210:30300",
-	"enode://e0c9b6e9df3d45c90e83fb40135eefbc35a0ce411dd04acd005fa1ef4b97e635133629eee486b8f0a65084139a4ac31e8f8c88c8edbb600a00@86.110.248.211:30300",
+	"enode://93ecfbf2093dbb87f0bbee0ccdafa3afb74003aeb816513b0ca428acff9dd1ac15966f3e34ef5fb2acb98a477ffc289015d23446f0ec195b00@n8.coredevin.net:30300",
+	"enode://e0c9b6e9df3d45c90e83fb40135eefbc35a0ce411dd04acd005fa1ef4b97e635133629eee486b8f0a65084139a4ac31e8f8c88c8edbb600a00@n9.coredevin.net:30300",
 
 	"enode://e24c18eca931475b267b511c62e19cc8aa428919111d195e250d59f6edcda4a361d102de1c6c2eb5061aa7b246f820c19d03407d38b975b980@n1.coredevin.net:30300",
 	"enode://110aa01954eda50ae7ae1c018fdc9772c72108e0d6e9b0571e6ac5f766d99a3d07156894cb288e9b6ea756d660569743b847b385a539720c00@n2.coredevin.net:30300",
