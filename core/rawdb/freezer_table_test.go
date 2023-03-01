@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/v2/metrics"
 )
 
 func init() {
@@ -521,7 +521,7 @@ func TestOffset(t *testing.T) {
 		f.Append(1, getChunk(20, 0xEE))
 
 		f.Append(2, getChunk(20, 0xdd))
-		f.Append(3, getChunk(20, 0xcb))
+		f.Append(3, getChunk(20, 0xcc))
 
 		f.Append(4, getChunk(20, 0xbb))
 		f.Append(5, getChunk(20, 0xaa))
@@ -630,7 +630,7 @@ func TestOffset(t *testing.T) {
 	checkPresent(1000000)
 }
 
-// TODO(raisty)
+// TODO (?)
 // - test that if we remove several head-files, aswell as data last data-file,
 //   the index is truncated accordingly
 // Right now, the freezer would fail on these conditions:

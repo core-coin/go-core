@@ -20,37 +20,36 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"reflect"
 	"testing"
 	"time"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 // Verify that Client implements the core interfaces.
 var (
-	_ = gocore.ChainReader(&Client{})
-	_ = gocore.TransactionReader(&Client{})
-	_ = gocore.ChainStateReader(&Client{})
-	_ = gocore.ChainSyncReader(&Client{})
-	_ = gocore.ContractCaller(&Client{})
-	_ = gocore.EnergyEstimator(&Client{})
-	_ = gocore.EnergyPricer(&Client{})
-	_ = gocore.LogFilterer(&Client{})
-	_ = gocore.PendingStateReader(&Client{})
-	// _ = gocore.PendingStateEventer(&Client{})
-	_ = gocore.PendingContractCaller(&Client{})
+	_ = c.ChainReader(&Client{})
+	_ = c.TransactionReader(&Client{})
+	_ = c.ChainStateReader(&Client{})
+	_ = c.ChainSyncReader(&Client{})
+	_ = c.ContractCaller(&Client{})
+	_ = c.EnergyEstimator(&Client{})
+	_ = c.EnergyPricer(&Client{})
+	_ = c.LogFilterer(&Client{})
+	_ = c.PendingStateReader(&Client{})
+	// _ = c.PendingStateEventer(&Client{})
+	_ = c.PendingContractCaller(&Client{})
 )
 
 func TestToFilterArg(t *testing.T) {
@@ -68,13 +67,13 @@ func TestToFilterArg(t *testing.T) {
 
 	for _, testCase := range []struct {
 		name   string
-		input  gocore.FilterQuery
+		input  c.FilterQuery
 		output interface{}
 		err    error
 	}{
 		{
 			"without BlockHash",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				FromBlock: big.NewInt(1),
 				ToBlock:   big.NewInt(2),
@@ -90,7 +89,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with nil fromBlock and nil toBlock",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				Topics:    [][]common.Hash{},
 			},
@@ -103,8 +102,24 @@ func TestToFilterArg(t *testing.T) {
 			nil,
 		},
 		{
+			"with negative fromBlock and negative toBlock",
+			c.FilterQuery{
+				Addresses: addresses,
+				FromBlock: big.NewInt(-1),
+				ToBlock:   big.NewInt(-1),
+				Topics:    [][]common.Hash{},
+			},
+			map[string]interface{}{
+				"address":   addresses,
+				"fromBlock": "pending",
+				"toBlock":   "pending",
+				"topics":    [][]common.Hash{},
+			},
+			nil,
+		},
+		{
 			"with blockhash",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				Topics:    [][]common.Hash{},
@@ -118,7 +133,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and from block",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),
@@ -129,7 +144,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and to block",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				ToBlock:   big.NewInt(1),
@@ -140,7 +155,7 @@ func TestToFilterArg(t *testing.T) {
 		},
 		{
 			"with blockhash and both from / to block",
-			gocore.FilterQuery{
+			c.FilterQuery{
 				Addresses: addresses,
 				BlockHash: &blockHash,
 				FromBlock: big.NewInt(1),
@@ -168,9 +183,7 @@ func TestToFilterArg(t *testing.T) {
 }
 
 var (
-	testKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub         = eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr    = crypto.PubkeyToAddress(pub)
+	testKey, _  = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 	testBalance = big.NewInt(2e10)
 )
 
@@ -178,19 +191,17 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	// Generate test chain.
 	genesis, blocks := generateTestChain()
 	// Create node
-
 	n, err := node.New(&node.Config{})
 	if err != nil {
 		t.Fatalf("can't create new node: %v", err)
 	}
 	// Create Core Service
-	config := &xcb.Config{Genesis: genesis}
+	config := &xcb.Config{NetworkId: genesis.Config.NetworkID.Uint64(), Genesis: genesis}
 	config.Cryptore.PowMode = cryptore.ModeFake
 	xcbservice, err := xcb.New(n, config)
 	if err != nil {
 		t.Fatalf("can't create new core service: %v", err)
 	}
-
 	// Import the test chain.
 	if err := n.Start(); err != nil {
 		t.Fatalf("can't start test node: %v", err)
@@ -203,12 +214,11 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 
 func generateTestChain() (*core.Genesis, []*types.Block) {
 	db := rawdb.NewMemoryDatabase()
-	config := params.AllCryptoreProtocolChanges
-	coinbase, _ := common.HexToAddress("cb540000000000000000000000000000000000000000")
+	config := params.MainnetChainConfig
 	genesis := &core.Genesis{
-		Coinbase:  coinbase,
+		Coinbase:  core.DefaultCoinbaseMainnet,
 		Config:    config,
-		Alloc:     core.GenesisAlloc{testAddr: {Balance: testBalance}},
+		Alloc:     core.GenesisAlloc{testKey.Address(): {Balance: testBalance}},
 		ExtraData: []byte("test genesis"),
 		Timestamp: 9000,
 	}
@@ -225,7 +235,10 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 
 func TestHeader(t *testing.T) {
 	backend, chain := newTestBackend(t)
-	client, _ := backend.Attach()
+	client, err := backend.Attach()
+	if err != nil {
+		t.Error(err)
+	}
 	defer backend.Close()
 	defer client.Close()
 
@@ -250,7 +263,7 @@ func TestHeader(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			ec := NewClient(client)
-			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 			defer cancel()
 
 			got, err := ec.HeaderByNumber(ctx, tt.block)
@@ -280,7 +293,7 @@ func TestBalanceAt(t *testing.T) {
 		wantErr error
 	}{
 		"valid_account": {
-			account: testAddr,
+			account: testKey.Address(),
 			block:   big.NewInt(1),
 			want:    testBalance,
 		},
@@ -290,7 +303,7 @@ func TestBalanceAt(t *testing.T) {
 			want:    big.NewInt(0),
 		},
 		"future_block": {
-			account: testAddr,
+			account: testKey.Address(),
 			block:   big.NewInt(1000000000),
 			want:    big.NewInt(0),
 			wantErr: errors.New("header not found"),
@@ -342,7 +355,23 @@ func TestNetworkID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if id == nil || id.Cmp(params.AllCryptoreProtocolChanges.NetworkID) != 0 {
+	if id == nil || id.Cmp(params.MainnetChainConfig.NetworkID) != 0 {
 		t.Fatalf("NetworkID returned wrong number: %+v", id)
+	}
+}
+
+func TestBlockNumber(t *testing.T) {
+	backend, _ := newTestBackend(t)
+	client, _ := backend.Attach()
+	defer backend.Close()
+	defer client.Close()
+	ec := NewClient(client)
+
+	blockNumber, err := ec.BlockNumber(context.Background())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if blockNumber != 1 {
+		t.Fatalf("BlockNumber returned wrong number: %d", blockNumber)
 	}
 }

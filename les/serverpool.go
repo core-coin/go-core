@@ -18,21 +18,22 @@ package les
 
 import (
 	"errors"
-	lpc "github.com/core-coin/go-core/les/lespay/client"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/xcbdb"
 	"math/rand"
 	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nodestate"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	lpc "github.com/core-coin/go-core/v2/les/lespay/client"
+	"github.com/core-coin/go-core/v2/les/utils"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/nodestate"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 const (
@@ -313,6 +314,7 @@ func (s *serverPool) recalTimeout() {
 	// conservative values when the database is new. As soon as we have a
 	// considerable amount of real stats this small value won't matter.
 	rts.Add(time.Second*2, 10, s.vt.StatsExpFactor())
+
 	// Use either 10% failure rate timeout or twice the median response time
 	// as the recommended timeout.
 	timeout := minTimeout
@@ -321,7 +323,6 @@ func (s *serverPool) recalTimeout() {
 	}
 	if t := rts.Timeout(0.5) * 2; t > timeout {
 		timeout = t
-
 	}
 	s.timeoutLock.Lock()
 	if s.timeout != timeout {

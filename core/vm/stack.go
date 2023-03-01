@@ -18,8 +18,9 @@ package vm
 
 import (
 	"fmt"
-	"github.com/core-coin/uint256"
 	"sync"
+
+	"github.com/core-coin/uint256"
 )
 
 var stackPool = sync.Pool{
@@ -44,7 +45,7 @@ func returnStack(s *Stack) {
 	stackPool.Put(s)
 }
 
-// Data returns the underlying uint256 array.
+// Data returns the underlying uint256.Int array.
 func (st *Stack) Data() []uint256.Int {
 	return st.data
 }

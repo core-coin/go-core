@@ -22,15 +22,16 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/core-coin/go-core/internal/debug"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/internal/debug"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
-	// Git information set by linker when building with ci.go
-	gitTag string
+	// Git information set by linker when building with ci.go.
+	gitTag    string
 	gitCommit string
 	gitDate   string
 	app       = &cli.App{
@@ -64,6 +65,7 @@ func init() {
 		discv5Command,
 		dnsCommand,
 		nodesetCommand,
+		rlpxCommand,
 	}
 }
 
@@ -81,7 +83,7 @@ func commandHasFlag(ctx *cli.Context, flag cli.Flag) bool {
 
 // getNodeArg handles the common case of a single node descriptor argument.
 func getNodeArg(ctx *cli.Context) *enode.Node {
-	if ctx.NArg() != 1 {
+	if ctx.NArg() < 1 {
 		exit("missing node as command-line argument")
 	}
 	n, err := parseNode(ctx.Args()[0])

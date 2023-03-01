@@ -23,7 +23,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/core-coin/go-core/p2p/simulations/pipes"
+	"github.com/core-coin/go-core/v2/p2p/simulations/pipes"
 )
 
 func TestTCPPipe(t *testing.T) {

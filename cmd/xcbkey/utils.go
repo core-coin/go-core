@@ -19,36 +19,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/core-coin/go-core/common"
 	"io/ioutil"
 	"strings"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/crypto"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/crypto"
 )
-
-// promptPassphrase prompts the user for a passphrase.  Set confirmation to true
-// to require the user to confirm the passphrase.
-func promptPassphrase(confirmation bool) string {
-	passphrase, err := console.Stdin.PromptPassword("Password: ")
-	if err != nil {
-		utils.Fatalf("Failed to read password: %v", err)
-	}
-
-	if confirmation {
-		confirm, err := console.Stdin.PromptPassword("Repeat password: ")
-		if err != nil {
-			utils.Fatalf("Failed to read password confirmation: %v", err)
-		}
-		if passphrase != confirm {
-			utils.Fatalf("Passwords do not match")
-		}
-	}
-
-	return passphrase
-}
 
 // getPassphrase obtains a passphrase given by the user.  It first checks the
 // --passfile command line flag and ultimately prompts the user for a
@@ -66,14 +44,15 @@ func getPassphrase(ctx *cli.Context, confirmation bool) string {
 	}
 
 	// Otherwise prompt the user for the passphrase.
-	return promptPassphrase(confirmation)
+	return utils.GetPassPhrase("", confirmation)
 }
 
 // signHash is a helper function that calculates a hash for the given message
 // that can be safely used to calculate a signature from.
 //
 // The hash is calulcated as
-//   keccak256("\x19Core Signed Message:\n"${message length}${message}).
+//
+//	SHA3("\x19Core Signed Message:\n"${message length}${message}).
 //
 // This gives context to the signed message and prevents signing of transactions.
 func signHash(data []byte) []byte {
@@ -89,8 +68,4 @@ func mustPrintJSON(jsonObject interface{}) {
 		utils.Fatalf("Failed to marshal JSON object: %v", err)
 	}
 	fmt.Println(string(str))
-}
-
-func setDefaultNetworkId(id uint64) {
-	common.DefaultNetworkID = common.NetworkID(id)
 }

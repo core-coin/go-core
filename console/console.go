@@ -28,13 +28,15 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/core-coin/go-core/internal/jsre"
-	"github.com/core-coin/go-core/internal/jsre/deps"
-	"github.com/core-coin/go-core/internal/web3ext"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/dop251/goja"
 	"github.com/mattn/go-colorable"
 	"github.com/peterh/liner"
+
+	"github.com/core-coin/go-core/v2/console/prompt"
+	"github.com/core-coin/go-core/v2/internal/jsre"
+	"github.com/core-coin/go-core/v2/internal/jsre/deps"
+	"github.com/core-coin/go-core/v2/internal/web3ext"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 var (
@@ -53,26 +55,26 @@ const DefaultPrompt = "> "
 // Config is the collection of configurations to fine tune the behavior of the
 // JavaScript console.
 type Config struct {
-	DataDir  string       // Data directory to store the console history at
-	DocRoot  string       // Filesystem path from where to load JavaScript files from
-	Client   *rpc.Client  // RPC client to execute Core requests through
-	Prompt   string       // Input prompt prefix string (defaults to DefaultPrompt)
-	Prompter UserPrompter // Input prompter to allow interactive user feedback (defaults to TerminalPrompter)
-	Printer  io.Writer    // Output writer to serialize any display strings to (defaults to os.Stdout)
-	Preload  []string     // Absolute paths to JavaScript files to preload
+	DataDir  string              // Data directory to store the console history at
+	DocRoot  string              // Filesystem path from where to load JavaScript files from
+	Client   *rpc.Client         // RPC client to execute Core requests through
+	Prompt   string              // Input prompt prefix string (defaults to DefaultPrompt)
+	Prompter prompt.UserPrompter // Input prompter to allow interactive user feedback (defaults to TerminalPrompter)
+	Printer  io.Writer           // Output writer to serialize any display strings to (defaults to os.Stdout)
+	Preload  []string            // Absolute paths to JavaScript files to preload
 }
 
 // Console is a JavaScript interpreted runtime environment. It is a fully fledged
 // JavaScript console attached to a running node via an external or in-process RPC
 // client.
 type Console struct {
-	client   *rpc.Client  // RPC client to execute Core requests through
-	jsre     *jsre.JSRE   // JavaScript runtime environment running the interpreter
-	prompt   string       // Input prompt prefix string
-	prompter UserPrompter // Input prompter to allow interactive user feedback
-	histPath string       // Absolute path to the console scrollback history
-	history  []string     // Scroll history maintained by the console
-	printer  io.Writer    // Output writer to serialize any display strings to
+	client   *rpc.Client         // RPC client to execute Core requests through
+	jsre     *jsre.JSRE          // JavaScript runtime environment running the interpreter
+	prompt   string              // Input prompt prefix string
+	prompter prompt.UserPrompter // Input prompter to allow interactive user feedback
+	histPath string              // Absolute path to the console scrollback history
+	history  []string            // Scroll history maintained by the console
+	printer  io.Writer           // Output writer to serialize any display strings to
 }
 
 // New initializes a JavaScript interpreted runtime environment and sets defaults
@@ -80,7 +82,7 @@ type Console struct {
 func New(config Config) (*Console, error) {
 	// Handle unset config values gracefully
 	if config.Prompter == nil {
-		config.Prompter = Stdin
+		config.Prompter = prompt.Stdin
 	}
 	if config.Prompt == "" {
 		config.Prompt = DefaultPrompt
@@ -161,10 +163,8 @@ func (c *Console) initConsoleObject() {
 }
 
 func (c *Console) initWeb3(bridge *bridge) error {
-	bignumber, _ := deps.Asset("bignumber.js")
-	bnJS := string(bignumber)
-	web3, _ := deps.Asset("web3.js")
-	web3JS := string(web3)
+	bnJS := string(deps.MustAsset("bignumber.js"))
+	web3JS := string(deps.MustAsset("web3.js"))
 	if err := c.jsre.Compile("bignumber.js", bnJS); err != nil {
 		return fmt.Errorf("bignumber.js: %v", err)
 	}
@@ -325,6 +325,7 @@ func (c *Console) Welcome() {
 		sort.Strings(modules)
 		message += " modules: " + strings.Join(modules, " ") + "\n"
 	}
+	message += "\nTo exit, press ctrl-d"
 	fmt.Fprintln(c.printer, message)
 }
 
@@ -351,6 +352,7 @@ func (c *Console) Interactive() {
 		requestLine = make(chan string)    // requests a line of input
 		interrupt   = make(chan os.Signal, 1)
 	)
+
 	// Monitor Ctrl-C. While liner does turn on the relevant terminal mode bits to avoid
 	// the signal, a signal can still be received for unsupported terminals. Unfortunately
 	// there is no way to cancel the line reader when this happens. The readLines
@@ -372,7 +374,7 @@ func (c *Console) Interactive() {
 			return
 
 		case err := <-inputErr:
-			if err == liner.ErrPromptAborted && indents > 0 {
+			if err == liner.ErrPromptAborted {
 				// When prompting for multi-line input, the first Ctrl-C resets
 				// the multi-line state.
 				prompt, indents, input = c.prompt, 0, ""

@@ -16,7 +16,7 @@
 
 package params
 
-import "github.com/core-coin/go-core/common"
+import "github.com/core-coin/go-core/v2/common"
 
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
 // the main Core network.

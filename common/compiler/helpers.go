@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package compiler wraps the Solidity and Vyper compiler executables (ylem; vyper).
+// Package compiler wraps the Ylem compiler executable (ylem).
 package compiler
 
 import (

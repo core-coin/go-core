@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,10 +20,11 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // wipeSnapshot starts a goroutine to iterate over the entire key-value database
@@ -94,7 +95,7 @@ func wipeKeyRange(db xcbdb.KeyValueStore, kind string, prefix []byte, keylen int
 
 	it := db.NewIterator(prefix, nil)
 	for it.Next() {
-		// Skip any keys with the correct prefix but wrong lenth (trie nodes)
+		// Skip any keys with the correct prefix but wrong length (trie nodes)
 		key := it.Key()
 		if !bytes.HasPrefix(key, prefix) {
 			break

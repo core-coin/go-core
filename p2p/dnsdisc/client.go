@@ -26,13 +26,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/time/rate"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 // Client discovers nodes by querying DNS servers.
@@ -251,7 +252,7 @@ func (it *randomIterator) Next() bool {
 	return it.cur != nil
 }
 
-// addTree adds a enrtree:// URL to the iterator.
+// addTree adds an enrtree:// URL to the iterator.
 func (it *randomIterator) addTree(url string) error {
 	le, err := parseLink(url)
 	if err != nil {

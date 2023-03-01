@@ -20,39 +20,33 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
-	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 var (
-	testBankKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	testBankPub     = eddsa.Ed448DerivePublicKey(*testBankKey)
-	testBankAddress = crypto.PubkeyToAddress(testBankPub)
-	testBankFunds   = big.NewInt(100000000)
+	testBankKey, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
+	testBankFunds  = big.NewInt(100000000)
 
-	acc1Key, _ = crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
-	acc2Key, _ = crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-	acc1Pub    = eddsa.Ed448DerivePublicKey(*acc1Key)
-	acc2Pub    = eddsa.Ed448DerivePublicKey(*acc2Key)
-	acc1Addr   = crypto.PubkeyToAddress(acc1Pub)
-	acc2Addr   = crypto.PubkeyToAddress(acc2Pub)
+	acc1Key, _ = crypto.UnmarshalPrivateKeyHex("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
+	acc2Key, _ = crypto.UnmarshalPrivateKeyHex("c0b711eea422df26d5ffdcaae35fe0527cf647c5ce62d3efb5e09a0e14fc8afe57fac1a5daa330bc10bfa1d3db11e172a822dcfffb86a0b26d")
 
 	testContractCode = common.Hex2Bytes("606060405260cc8060106000396000f360606040526000357c01000000000000000000000000000000000000000000000000000000009004806360cd2685146041578063c16431b914606b57603f565b005b6055600480803590602001909190505060a9565b6040518082815260200191505060405180910390f35b60886004808035906020019091908035906020019091905050608a565b005b80600060005083606481101560025790900160005b50819055505b5050565b6000600060005082606481101560025790900160005b5054905060c7565b91905056")
 	testContractAddr common.Address
@@ -147,9 +141,9 @@ func TestOdrAccountsLes2(t *testing.T) { testChainOdr(t, 1, odrAccounts) }
 func odrAccounts(ctx context.Context, db xcbdb.Database, bc *core.BlockChain, lc *LightChain, bhash common.Hash) ([]byte, error) {
 	dummyAddr, err := common.HexToAddress("cb721234567812345678123456781234567812345678")
 	if err != nil {
-		util.Fatal(err.Error())
+		panic(err)
 	}
-	acc := []common.Address{testBankAddress, acc1Addr, acc2Addr, dummyAddr}
+	acc := []common.Address{testBankKey.Address(), acc1Key.Address(), acc2Key.Address(), dummyAddr}
 
 	var st *state.StateDB
 	if bc == nil {
@@ -201,10 +195,11 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain
 		}
 
 		// Perform read-only call.
-		st.SetBalance(testBankAddress, math.MaxBig256)
-		msg := callmsg{types.NewMessage(testBankAddress, &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false)}
-		context := core.NewCVMContext(msg, header, chain, nil)
-		vmenv := vm.NewCVM(context, st, config, vm.Config{})
+		st.SetBalance(testBankKey.Address(), math.MaxBig256)
+		msg := callmsg{types.NewMessage(testBankKey.Address(), &testContractAddr, 0, new(big.Int), 1000000, new(big.Int), data, false)}
+		txContext := core.NewCVMTxContext(msg)
+		context := core.NewCVMBlockContext(header, chain, nil)
+		vmenv := vm.NewCVM(context, txContext, st, config, vm.Config{})
 		gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
 		result, _ := core.ApplyMessage(vmenv, msg, gp)
 		res = append(res, result.Return()...)
@@ -216,31 +211,31 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain
 }
 
 func testChainGen(i int, block *core.BlockGen) {
-	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	signer := types.NewNucleusSigner(params.TestChainConfig.NetworkID)
 	switch i {
 	case 0:
 		// In block 1, the test bank sends account #1 some core.
-		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankAddress), acc1Addr, big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
+		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
 		block.AddTx(tx)
 	case 1:
 		// In block 2, the test bank sends some more core to account #1.
-		// acc1Addr passes it on to account #2.
-		// acc1Addr creates a test contract.
-		tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankAddress), acc1Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
-		nonce := block.TxNonce(acc1Addr)
-		tx2, _ := types.SignTx(types.NewTransaction(nonce, acc2Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
+		// acc1Key.Address() passes it on to account #2.
+		// acc1Key.Address() creates a test contract.
+		tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
+		nonce := block.TxNonce(acc1Key.Address())
+		tx2, _ := types.SignTx(types.NewTransaction(nonce, acc2Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
 		nonce++
 		tx3, _ := types.SignTx(types.NewContractCreation(nonce, big.NewInt(0), 1000000, big.NewInt(0), testContractCode), signer, acc1Key)
-		testContractAddr = crypto.CreateAddress(acc1Addr, nonce)
+		testContractAddr = crypto.CreateAddress(acc1Key.Address(), nonce)
 		block.AddTx(tx1)
 		block.AddTx(tx2)
 		block.AddTx(tx3)
 	case 2:
 		// Block 3 is empty but was mined by account #2.
-		block.SetCoinbase(acc2Addr)
+		block.SetCoinbase(acc2Key.Address())
 		block.SetExtra([]byte("yeehaw"))
 		data := common.Hex2Bytes("C16431B900000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001")
-		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankAddress), testContractAddr, big.NewInt(0), 100000, nil, data), signer, testBankKey)
+		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), testContractAddr, big.NewInt(0), 100000, nil, data), signer, testBankKey)
 		block.AddTx(tx)
 	case 3:
 		// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
@@ -251,7 +246,7 @@ func testChainGen(i int, block *core.BlockGen) {
 		b3.Extra = []byte("foo")
 		block.AddUncle(b3)
 		data := common.Hex2Bytes("C16431B900000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002")
-		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankAddress), testContractAddr, big.NewInt(0), 100000, nil, data), signer, testBankKey)
+		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), testContractAddr, big.NewInt(0), 100000, nil, data), signer, testBankKey)
 		block.AddTx(tx)
 	}
 }
@@ -260,7 +255,7 @@ func testChainOdr(t *testing.T, protocol int, fn odrTestFn) {
 	var (
 		sdb     = rawdb.NewMemoryDatabase()
 		ldb     = rawdb.NewMemoryDatabase()
-		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
+		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankKey.Address(): {Balance: testBankFunds}}}
 		genesis = gspec.MustCommit(sdb)
 	)
 	gspec.MustCommit(ldb)

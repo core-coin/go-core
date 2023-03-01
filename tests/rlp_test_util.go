@@ -24,7 +24,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // RLPTest is the JSON structure of a single RLP test.

@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -49,7 +49,7 @@ var (
 var invalidPrefix = errors.New("Invalid network id prefix in address")
 var invalidChecksum = errors.New("Invalid checksum in address")
 
-// Hash represents the 32 byte Keccak256 hash of arbitrary data.
+// Hash represents the 32 byte SHA3 hash of arbitrary data.
 type Hash [HashLength]byte
 
 // BytesToHash sets b to hash.
@@ -89,10 +89,34 @@ func (h Hash) String() string {
 	return h.Hex()
 }
 
-// Format implements fmt.Formatter, forcing the byte slice to be formatted as is,
-// without going through the stringer interface used for logging.
+// Format implements fmt.Formatter.
+// Hash supports the %v, %s, %v, %x, %X and %d format verbs.
 func (h Hash) Format(s fmt.State, c rune) {
-	fmt.Fprintf(s, "%"+string(c), h[:])
+	hexb := make([]byte, 2+len(h)*2)
+	copy(hexb, "0x")
+	hex.Encode(hexb[2:], h[:])
+
+	switch c {
+	case 'x', 'X':
+		if !s.Flag('#') {
+			hexb = hexb[2:]
+		}
+		if c == 'X' {
+			hexb = bytes.ToUpper(hexb)
+		}
+		fallthrough
+	case 'v', 's':
+		s.Write(hexb)
+	case 'q':
+		q := []byte{'"'}
+		s.Write(q)
+		s.Write(hexb)
+		s.Write(q)
+	case 'd':
+		fmt.Fprint(s, ([len(h)]byte)(h))
+	default:
+		fmt.Fprintf(s, "%%!%c(hash=%x)", c, h)
+	}
 }
 
 // UnmarshalText parses a hash in hex syntax.
@@ -177,12 +201,13 @@ func (h UnprefixedHash) MarshalText() ([]byte, error) {
 
 /////////// Address
 
-// Address represents the 20 byte address of an Core account.
+// Address represents the 22 byte address of an Core account.
 type Address [AddressLength]byte
 
 // PrecompiledContracts contains the default set of pre-compiled Core
 // contracts used in the release.
 var (
+	Addr0 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	Addr1 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
 	Addr2 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2})
 	Addr3 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3})
@@ -196,18 +221,10 @@ var (
 
 func isPrecompiledAddress(addr Address) bool {
 	switch addr {
-	case Addr1, Addr2, Addr3, Addr4, Addr5, Addr6, Addr7, Addr8, Addr9:
+	case Addr0, Addr1, Addr2, Addr3, Addr4, Addr5, Addr6, Addr7, Addr8, Addr9:
 		return true
 	}
 	return false
-}
-
-// BytesToAddress returns Address with value b.
-// If b is larger than len(h), b will be cropped from the left.
-func BytesToAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	return a
 }
 
 func CalculateChecksum(address, prefix []byte) string {
@@ -260,6 +277,14 @@ func verifyAddress(addr Address) (bool, error) {
 	return true, nil
 }
 
+// BytesToAddress returns Address with value b.
+// If b is larger than len(h), b will be cropped from the left.
+func BytesToAddress(b []byte) Address {
+	var a Address
+	a.SetBytes(b)
+	return a
+}
+
 // BigToAddress returns Address with byte values of b.
 // If b is larger than len(h), b will be cropped from the left.
 func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
@@ -267,7 +292,12 @@ func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
 func HexToAddress(s string) (Address, error) {
-	addr := BytesToAddress(FromHex(s))
+	hexS, err := Hex2BytesWithError(s)
+	if err != nil {
+		return Address{}, err
+	}
+	addr := BytesToAddress(hexS)
+
 	if ok, err := verifyAddress(addr); !ok {
 		return addr, err
 	}
@@ -280,11 +310,13 @@ func IsHexAddress(s string) bool {
 	if has0xPrefix(s) {
 		s = s[2:]
 	}
-	return (len(s) == 2*AddressLength) && isHex(s)
+	return len(s) == 2*AddressLength && isHex(s)
 }
 
 // Bytes gets the string representation of the underlying address.
-func (a Address) Bytes() []byte { return a[:] }
+func (a Address) Bytes() []byte {
+	return a[:]
+}
 
 // Hash converts an address to a hash by left-padding it with zeros.
 func (a Address) Hash() Hash { return BytesToHash(a[:]) }
@@ -302,11 +334,27 @@ func (a Address) String() string {
 // Format implements fmt.Formatter, forcing the byte slice to be formatted as is,
 // without going through the stringer interface used for logging.
 func (a Address) Format(s fmt.State, c rune) {
-	fmt.Fprintf(s, "%"+string(c), a[:])
+	switch c {
+	case 'v', 's':
+		s.Write([]byte(a.Hex()))
+	case 'q':
+		q := []byte{'"'}
+		s.Write(q)
+		s.Write([]byte(a.Hex()))
+		s.Write(q)
+	case 'x', 'X':
+		// %x disables the checksum.
+		hex := a.Hex()
+		s.Write([]byte(hex))
+	case 'd':
+		fmt.Fprint(s, ([len(a)]byte)(a))
+	default:
+		fmt.Fprintf(s, "%%!%c(address=%x)", c, a)
+	}
 }
 
 // SetBytes sets the address to the value of b.
-// If b is larger than len(a) it will panic.
+// If b is larger than len(a), b will be cropped from the left.
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]
@@ -316,26 +364,31 @@ func (a *Address) SetBytes(b []byte) {
 
 // MarshalText returns the hex representation of a.
 func (a Address) MarshalText() ([]byte, error) {
-	return []byte(Bytes2Hex(a[:])), nil
+	return []byte(a.Hex()), nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
 func (a *Address) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedText("Address", input, a[:])
+	addr, err := HexToAddress(Bytes2Hex(input))
+	if err != nil {
+		return err
+	}
+	copy(a[:], addr[:])
+	return nil
 }
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (a *Address) UnmarshalJSON(input []byte) error {
-	if err := hexutil.UnmarshalFixedJSON(addressT, input, a[:]); err != nil {
+	input = []byte(strings.Replace(string(input), `"`, "", -1))
+	addr, err := HexToAddress(string(input))
+	if err != nil {
 		return err
 	}
-	if ok, err := verifyAddress(*a); !ok {
-		return err
-	}
+	copy(a[:], addr[:])
 	return nil
 }
 
-// S n implements Scanner for database/sql.
+// Scan implements Scanner for database/sql.
 func (a *Address) Scan(src interface{}) error {
 	srcB, ok := src.([]byte)
 	if !ok {

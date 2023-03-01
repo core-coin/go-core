@@ -19,8 +19,8 @@ package runtime_test
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/vm/runtime"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/vm/runtime"
 )
 
 func ExampleExecute() {

@@ -19,14 +19,13 @@ package les
 import (
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 func TestULCAnnounceThresholdLes2(t *testing.T) { testULCAnnounceThreshold(t, 2) }
@@ -94,8 +93,8 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 	var id enode.ID
 	rand.Read(id[:])
 
-	peer1 := newServerPeer(protocol, DevNetworkId, true, p2p.NewPeer(serverId, "", nil), net) // Mark server as trusted
-	peer2 := newClientPeer(protocol, DevNetworkId, p2p.NewPeer(id, "", nil), app)
+	peer1 := newServerPeer(protocol, NetworkId, true, p2p.NewPeer(serverId, "", nil), net) // Mark server as trusted
+	peer2 := newClientPeer(protocol, NetworkId, p2p.NewPeer(id, "", nil), app)
 
 	// Start the peerLight on a new thread
 	errc1 := make(chan error, 1)
@@ -116,7 +115,7 @@ func connect(server *serverHandler, serverId enode.ID, client *clientHandler, pr
 	}()
 
 	select {
-	case <-time.After(time.Millisecond * 500):
+	case <-time.After(time.Millisecond * 100):
 	case err := <-errc1:
 		return nil, nil, fmt.Errorf("peerLight handshake error: %v", err)
 	case err := <-errc2:
@@ -133,8 +132,7 @@ func newTestServerPeer(t *testing.T, blocks int, protocol int) (*testServer, *en
 		t.Fatal("generate key err:", err)
 	}
 	s.handler.server.privateKey = key
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	n := enode.NewV4(&pub, net.ParseIP("127.0.0.1"), 35000, 35000)
+	n := enode.NewV4(key.PublicKey(), net.ParseIP("127.0.0.1"), 35000, 35000)
 	return s, n, teardown
 }
 

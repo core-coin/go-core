@@ -21,14 +21,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/bits"
-	"math/rand"
 	"net"
 	"strings"
 
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var errMissingPrefix = errors.New("missing 'enr:' prefix for base64-encoded record")
@@ -129,10 +128,10 @@ func (n *Node) TCP() int {
 	return int(port)
 }
 
-// Pubkey returns the secp256k1 public key of the node, if present.
-func (n *Node) Pubkey() *eddsa.PublicKey {
-	var key eddsa.PublicKey
-	if n.Load((*Secp256k1)(&key)) != nil {
+// Pubkey returns the ed448 public key of the node, if present.
+func (n *Node) Pubkey() *crypto.PublicKey {
+	var key crypto.PublicKey
+	if n.Load((*Ed448)(&key)) != nil {
 		return nil
 	}
 	return &key
@@ -159,7 +158,7 @@ func (n *Node) ValidateComplete() error {
 		return errors.New("invalid IP (multicast/unspecified)")
 	}
 	// Validate the node key (on curve, etc.).
-	var key Secp256k1
+	var key Ed448
 	return n.Load(&key)
 }
 
@@ -277,24 +276,4 @@ func LogDist(a, b ID) int {
 		}
 	}
 	return len(a)*8 - lz
-}
-
-// RandomID returns a random ID b such that logdist(a, b) == n.
-func RandomID(a ID, n int) (b ID) {
-	if n == 0 {
-		return a
-	}
-	// flip bit at position n, fill the rest with random bits
-	b = a
-	pos := len(a) - n/8 - 1
-	bit := byte(0x01) << (byte(n%8) - 1)
-	if bit == 0 {
-		pos++
-		bit = 0x80
-	}
-	b[pos] = a[pos]&^bit | ^a[pos]&bit // TODO: randomize end bits
-	for i := pos + 1; i < len(a); i++ {
-		b[i] = byte(rand.Intn(255))
-	}
-	return b
 }

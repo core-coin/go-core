@@ -17,11 +17,12 @@
 package vm
 
 import (
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
 	"github.com/core-coin/uint256"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func opAdd(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
@@ -39,7 +40,6 @@ func opSub(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byt
 func opMul(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	x, y := callContext.stack.pop(), callContext.stack.peek()
 	y.Mul(&x, y)
-
 	return nil, nil
 }
 
@@ -186,40 +186,37 @@ func opMulmod(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 }
 
 // opSHL implements Shift Left
-// The SHL instruction (shift left) pops 2 values from the callContext.stack, first arg1 and then arg2,
-// and pushes on the callContext.stack arg2 shifted to the left by arg1 number of bits.
+// The SHL instruction (shift left) pops 2 values from the stack, first arg1 and then arg2,
+// and pushes on the stack arg2 shifted to the left by arg1 number of bits.
 func opSHL(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// Note, second operand is left in the callContext.stack; accumulate result into it, and no need to push it afterwards
+	// Note, second operand is left in the stack; accumulate result into it, and no need to push it afterwards
 	shift, value := callContext.stack.pop(), callContext.stack.peek()
 	if shift.LtUint64(256) {
 		value.Lsh(value, uint(shift.Uint64()))
 	} else {
 		value.Clear()
 	}
-
 	return nil, nil
 }
 
 // opSHR implements Logical Shift Right
-// The SHR instruction (logical shift right) pops 2 values from the callContext.stack, first arg1 and then arg2,
-// and pushes on the callContext.stack arg2 shifted to the right by arg1 number of bits with zero fill.
+// The SHR instruction (logical shift right) pops 2 values from the stack, first arg1 and then arg2,
+// and pushes on the stack arg2 shifted to the right by arg1 number of bits with zero fill.
 func opSHR(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// Note, second operand is left in the callContext.stack; accumulate result into it, and no need to push it afterwards
+	// Note, second operand is left in the stack; accumulate result into it, and no need to push it afterwards
 	shift, value := callContext.stack.pop(), callContext.stack.peek()
 	if shift.LtUint64(256) {
 		value.Rsh(value, uint(shift.Uint64()))
 	} else {
 		value.Clear()
 	}
-
 	return nil, nil
 }
 
 // opSAR implements Arithmetic Shift Right
-// The SAR instruction (arithmetic shift right) pops 2 values from the callContext.stack, first arg1 and then arg2,
-// and pushes on the callContext.stack arg2 shifted to the right by arg1 number of bits with sign extension.
+// The SAR instruction (arithmetic shift right) pops 2 values from the stack, first arg1 and then arg2,
+// and pushes on the stack arg2 shifted to the right by arg1 number of bits with sign extension.
 func opSAR(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// Note, S256 returns (potentially) a new bigint, so we're popping, not peeking this one
 	shift, value := callContext.stack.pop(), callContext.stack.peek()
 	if shift.GtUint64(256) {
 		if value.Sign() >= 0 {
@@ -232,7 +229,6 @@ func opSAR(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byt
 	}
 	n := uint(shift.Uint64())
 	value.SRsh(value, n)
-
 	return nil, nil
 }
 
@@ -252,10 +248,10 @@ func opSha3(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]by
 	if cvm.vmConfig.EnablePreimageRecording {
 		cvm.StateDB.AddPreimage(interpreter.hasherBuf, data)
 	}
+
 	size.SetBytes(interpreter.hasherBuf[:])
 	return nil, nil
 }
-
 func opAddress(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	callContext.stack.push(new(uint256.Int).SetBytes(callContext.contract.Address().Bytes()))
 	return nil, nil
@@ -272,7 +268,6 @@ func opOrigin(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 	callContext.stack.push(new(uint256.Int).SetBytes(interpreter.cvm.Origin.Bytes()))
 	return nil, nil
 }
-
 func opCaller(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	callContext.stack.push(new(uint256.Int).SetBytes(callContext.contract.Caller().Bytes()))
 	return nil, nil
@@ -314,6 +309,7 @@ func opCallDataCopy(pc *uint64, interpreter *CVMInterpreter, callContext *callCt
 	memOffset64 := memOffset.Uint64()
 	length64 := length.Uint64()
 	callContext.memory.Set(memOffset64, length64, getData(callContext.contract.Input, dataOffset64, length64))
+
 	return nil, nil
 }
 
@@ -346,8 +342,7 @@ func opReturnDataCopy(pc *uint64, interpreter *CVMInterpreter, callContext *call
 
 func opExtCodeSize(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	slot := callContext.stack.peek()
-	slot.SetUint64(uint64(interpreter.cvm.StateDB.GetCodeSize(common.Address(slot.Bytes22()))))
-
+	slot.SetUint64(uint64(interpreter.cvm.StateDB.GetCodeSize(slot.Bytes22())))
 	return nil, nil
 }
 
@@ -355,7 +350,6 @@ func opCodeSize(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) (
 	l := new(uint256.Int)
 	l.SetUint64(uint64(len(callContext.contract.Code)))
 	callContext.stack.push(l)
-
 	return nil, nil
 }
 
@@ -377,10 +371,11 @@ func opCodeCopy(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) (
 
 func opExtCodeCopy(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	var (
-		a          = callContext.stack.pop()
-		memOffset  = callContext.stack.pop()
-		codeOffset = callContext.stack.pop()
-		length     = callContext.stack.pop()
+		stack      = callContext.stack
+		a          = stack.pop()
+		memOffset  = stack.pop()
+		codeOffset = stack.pop()
+		length     = stack.pop()
 	)
 	uint64CodeOffset, overflow := codeOffset.Uint64WithOverflow()
 	if overflow {
@@ -396,16 +391,21 @@ func opExtCodeCopy(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx
 // opExtCodeHash returns the code hash of a specified account.
 // There are several cases when the function is called, while we can relay everything
 // to `state.GetCodeHash` function to ensure the correctness.
-//   (1) Caller tries to get the code hash of a normal callContext.contract account, state
+//
+//	(1) Caller tries to get the code hash of a normal contract account, state
+//
 // should return the relative code hash and set it as the result.
 //
-//   (2) Caller tries to get the code hash of a non-existent account, state should
+//	(2) Caller tries to get the code hash of a non-existent account, state should
+//
 // return common.Hash{} and zero will be set as the result.
 //
-//   (3) Caller tries to get the code hash for an account without callContext.contract code,
+//	(3) Caller tries to get the code hash for an account without contract code,
+//
 // state should return emptyCodeHash(0xc5d246...) as the result.
 //
-//   (4) Caller tries to get the code hash of a precompiled account, the result
+//	(4) Caller tries to get the code hash of a precompiled account, the result
+//
 // should be zero or emptyCodeHash.
 //
 // It is worth noting that in order to avoid unnecessary create and clean,
@@ -414,10 +414,12 @@ func opExtCodeCopy(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx
 // If the precompile account is not transferred any amount on a private or
 // customized chain, the return value will be zero.
 //
-//   (5) Caller tries to get the code hash for an account which is marked as suicided
+//	(5) Caller tries to get the code hash for an account which is marked as suicided
+//
 // in the current transaction, the code hash of this account should be returned.
 //
-//   (6) Caller tries to get the code hash for an account which is marked as deleted,
+//	(6) Caller tries to get the code hash for an account which is marked as deleted,
+//
 // this account should be regarded as a non-existent account and zero should be returned.
 func opExtCodeHash(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	slot := callContext.stack.peek()
@@ -444,14 +446,14 @@ func opBlockhash(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) 
 		return nil, nil
 	}
 	var upper, lower uint64
-	upper = interpreter.cvm.BlockNumber.Uint64()
+	upper = interpreter.cvm.Context.BlockNumber.Uint64()
 	if upper < 257 {
 		lower = 0
 	} else {
 		lower = upper - 256
 	}
 	if num64 >= lower && num64 < upper {
-		num.SetBytes(interpreter.cvm.GetHash(num64).Bytes())
+		num.SetBytes(interpreter.cvm.Context.GetHash(num64).Bytes())
 	} else {
 		num.Clear()
 	}
@@ -459,30 +461,30 @@ func opBlockhash(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) 
 }
 
 func opCoinbase(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	callContext.stack.push(new(uint256.Int).SetBytes(interpreter.cvm.Coinbase.Bytes()))
+	callContext.stack.push(new(uint256.Int).SetBytes(interpreter.cvm.Context.Coinbase.Bytes()))
 	return nil, nil
 }
 
 func opTimestamp(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	v, _ := uint256.FromBig(interpreter.cvm.Time)
+	v, _ := uint256.FromBig(interpreter.cvm.Context.Time)
 	callContext.stack.push(v)
 	return nil, nil
 }
 
 func opNumber(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	v, _ := uint256.FromBig(interpreter.cvm.BlockNumber)
+	v, _ := uint256.FromBig(interpreter.cvm.Context.BlockNumber)
 	callContext.stack.push(v)
 	return nil, nil
 }
 
 func opDifficulty(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	v, _ := uint256.FromBig(interpreter.cvm.Difficulty)
+	v, _ := uint256.FromBig(interpreter.cvm.Context.Difficulty)
 	callContext.stack.push(v)
 	return nil, nil
 }
 
 func opEnergyLimit(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	callContext.stack.push(new(uint256.Int).SetUint64(interpreter.cvm.EnergyLimit))
+	callContext.stack.push(new(uint256.Int).SetUint64(interpreter.cvm.Context.EnergyLimit))
 	return nil, nil
 }
 
@@ -499,7 +501,7 @@ func opMload(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]b
 }
 
 func opMstore(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// pop value of the callContext.stack
+	// pop value of the stack
 	mStart, val := callContext.stack.pop(), callContext.stack.pop()
 	callContext.memory.Set32(mStart.Uint64(), &val)
 	return nil, nil
@@ -523,7 +525,7 @@ func opSstore(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 	loc := callContext.stack.pop()
 	val := callContext.stack.pop()
 	interpreter.cvm.StateDB.SetState(callContext.contract.Address(),
-		common.Hash(loc.Bytes32()), common.Hash(val.Bytes32()))
+		loc.Bytes32(), val.Bytes32())
 	return nil, nil
 }
 
@@ -533,7 +535,6 @@ func opJump(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]by
 		return nil, ErrInvalidJump
 	}
 	*pc = pos.Uint64()
-
 	return nil, nil
 }
 
@@ -547,7 +548,6 @@ func opJumpi(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]b
 	} else {
 		*pc++
 	}
-
 	return nil, nil
 }
 
@@ -609,9 +609,8 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 		input        = callContext.memory.GetCopy(int64(offset.Uint64()), int64(size.Uint64()))
 		energy       = callContext.contract.Energy
 	)
-
 	energy -= energy / 64
-	// reuse size int for callContext.stackvalue
+	// reuse size int for stackvalue
 	stackvalue := size
 
 	callContext.contract.UseEnergy(energy)
@@ -622,7 +621,9 @@ func opCreate(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]
 	}
 
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create(callContext.contract, input, energy, bigVal)
-	// Push item on the callContext.stack based on the returned error. We must
+	// Push item on the stack based on the returned error. If the ruleset is
+	// homestead we must check for CodeStoreOutOfEnergyError (homestead only
+	// rule) and treat as an error, if the ruleset is frontier we must
 	// ignore this error and pretend the operation was successful.
 	if suberr == ErrCodeStoreOutOfEnergy {
 		stackvalue.Clear()
@@ -652,7 +653,7 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 	// Apply CIP150
 	energy -= energy / 64
 	callContext.contract.UseEnergy(energy)
-	// reuse size int for callContext.stackvalue
+	// reuse size int for stackvalue
 	stackvalue := size
 	//TODO: use uint256.Int instead of converting with toBig()
 	bigEndowment := big0
@@ -661,7 +662,7 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 	}
 	res, addr, returnEnergy, suberr := interpreter.cvm.Create2(callContext.contract, input, energy,
 		bigEndowment, &salt)
-	// Push item on the callContext.stack based on the returned error.
+	// Push item on the stack based on the returned error.
 	if suberr != nil {
 		stackvalue.Clear()
 	} else {
@@ -677,19 +678,20 @@ func opCreate2(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 }
 
 func opCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
+	stack := callContext.stack
 	// Pop energy. The actual energy in interpreter.cvm.callEnergyTemp.
 	// We can use this as a temporary value
-	temp := callContext.stack.pop()
+	temp := stack.pop()
 	energy := interpreter.cvm.callEnergyTemp
 	// Pop other call parameters.
-	addr, value, inOffset, inSize, retOffset, retSize := callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop()
+	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes22())
-	// Get the arguments from the callContext.memory.
+	// Get the arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
-	// By using big0 here, we save an alloc for the most common case (non-ether-transferring contract calls),
+	// By using big0 here, we save an alloc for the most common case (non-core-transferring contract calls),
 	// but it would make more sense to extend the usage of uint256.Int
 	if !value.IsZero() {
 		energy += params.CallStipend
@@ -697,28 +699,31 @@ func opCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]by
 	}
 
 	ret, returnEnergy, err := interpreter.cvm.Call(callContext.contract, toAddr, args, energy, bigVal)
+
 	if err != nil {
 		temp.Clear()
 	} else {
 		temp.SetOne()
 	}
-	callContext.stack.push(&temp)
+	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	callContext.contract.Energy += returnEnergy
+
 	return ret, nil
 }
 
 func opCallCode(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	// Pop energy. The actual energy is in interpreter.cvm.callEnergyTemp.
+	stack := callContext.stack
 	// We use it as a temporary value
-	temp := callContext.stack.pop()
+	temp := stack.pop()
 	energy := interpreter.cvm.callEnergyTemp
 	// Pop other call parameters.
-	addr, value, inOffset, inSize, retOffset, retSize := callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop()
+	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes22())
-	// Get arguments from the callContext.memory.
+	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -734,23 +739,25 @@ func opCallCode(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) (
 	} else {
 		temp.SetOne()
 	}
-	callContext.stack.push(&temp)
+	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	callContext.contract.Energy += returnEnergy
+
 	return ret, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
+	stack := callContext.stack
 	// Pop energy. The actual energy is in interpreter.cvm.callEnergyTemp.
 	// We use it as a temporary value
-	temp := callContext.stack.pop()
+	temp := stack.pop()
 	energy := interpreter.cvm.callEnergyTemp
 	// Pop other call parameters.
-	addr, inOffset, inSize, retOffset, retSize := callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop()
+	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes22())
-	// Get arguments from the callContext.memory.
+	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	ret, returnEnergy, err := interpreter.cvm.DelegateCall(callContext.contract, toAddr, args, energy)
@@ -759,23 +766,25 @@ func opDelegateCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCt
 	} else {
 		temp.SetOne()
 	}
-	callContext.stack.push(&temp)
+	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	callContext.contract.Energy += returnEnergy
+
 	return ret, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	// Pop energy. The actual energy is in interpreter.cvm.callEnergyTemp.
+	stack := callContext.stack
 	// We use it as a temporary value
-	temp := callContext.stack.pop()
+	temp := stack.pop()
 	energy := interpreter.cvm.callEnergyTemp
 	// Pop other call parameters.
-	addr, inOffset, inSize, retOffset, retSize := callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop(), callContext.stack.pop()
+	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes22())
-	// Get arguments from the callContext.memory.
+	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	ret, returnEnergy, err := interpreter.cvm.StaticCall(callContext.contract, toAddr, args, energy)
@@ -784,23 +793,26 @@ func opStaticCall(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx)
 	} else {
 		temp.SetOne()
 	}
-	callContext.stack.push(&temp)
+	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	callContext.contract.Energy += returnEnergy
+
 	return ret, nil
 }
 
 func opReturn(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	offset, size := callContext.stack.pop(), callContext.stack.pop()
 	ret := callContext.memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
+
 	return ret, nil
 }
 
 func opRevert(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	offset, size := callContext.stack.pop(), callContext.stack.pop()
 	ret := callContext.memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
+
 	return ret, nil
 }
 
@@ -811,8 +823,7 @@ func opStop(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]by
 func opSuicide(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 	beneficiary := callContext.stack.pop()
 	balance := interpreter.cvm.StateDB.GetBalance(callContext.contract.Address())
-	interpreter.cvm.StateDB.AddBalance(common.Address(beneficiary.Bytes22()), balance)
-
+	interpreter.cvm.StateDB.AddBalance(beneficiary.Bytes22(), balance)
 	interpreter.cvm.StateDB.Suicide(callContext.contract.Address())
 	return nil, nil
 }
@@ -823,10 +834,11 @@ func opSuicide(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([
 func makeLog(size int) executionFunc {
 	return func(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error) {
 		topics := make([]common.Hash, size)
-		mStart, mSize := callContext.stack.pop(), callContext.stack.pop()
+		stack := callContext.stack
+		mStart, mSize := stack.pop(), stack.pop()
 		for i := 0; i < size; i++ {
-			addr := callContext.stack.pop()
-			topics[i] = common.Hash(addr.Bytes32())
+			addr := stack.pop()
+			topics[i] = addr.Bytes32()
 		}
 
 		d := callContext.memory.GetCopy(int64(mStart.Uint64()), int64(mSize.Uint64()))
@@ -836,7 +848,7 @@ func makeLog(size int) executionFunc {
 			Data:    d,
 			// This is a non-consensus field, but assigned here because
 			// core/state doesn't know the current block number.
-			BlockNumber: interpreter.cvm.BlockNumber.Uint64(),
+			BlockNumber: interpreter.cvm.Context.BlockNumber.Uint64(),
 		})
 
 		return nil, nil

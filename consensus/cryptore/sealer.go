@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -22,7 +22,6 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
-	"github.com/core-coin/go-randomy"
 	"math"
 	"math/big"
 	"math/rand"
@@ -31,10 +30,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-randomy"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 const (
@@ -122,7 +123,8 @@ func (cryptore *Cryptore) Seal(chain consensus.ChainHeaderReader, block *types.B
 				cryptore.config.Log.Error("Failed to restart sealing after update", "err", err)
 			}
 		}
-
+		// Wait for all miners to terminate and return the block
+		wg.Wait()
 	}(cryptore.miningVMs)
 	return nil
 }
@@ -249,7 +251,6 @@ type sealWork struct {
 
 func startRemoteSealer(cryptore *Cryptore, urls []string, noverify bool) *remoteSealer {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	s := &remoteSealer{
 		cryptore:     cryptore,
 		noverify:     noverify,
@@ -345,9 +346,10 @@ func (s *remoteSealer) loop() {
 // makeWork creates a work package for external miner.
 //
 // The work package consists of 3 strings:
-//   result[0], 32 bytes hex encoded current block header pow-hash
-//   result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
-//   result[3], hex encoded block number
+//
+//	result[0], 32 bytes hex encoded current block header pow-hash
+//	result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
+//	result[3], hex encoded block number
 func (s *remoteSealer) makeWork(block *types.Block) {
 	hash := s.cryptore.SealHash(block.Header())
 	s.currentWork[0] = hash.Hex()

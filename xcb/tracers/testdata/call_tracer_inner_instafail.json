@@ -5,7 +5,6 @@
     "energyLimit": "4712380",
     "hash": "0xe05db05eeb3f288041ecb10a787df121c0ed69499355716e17c307de313a4486",
     "miner": "0x0c062b329265c965deef1eede55183b3acb8f611",
-    "mixHash": "0xb669ae39118a53d2c65fd3b1e1d3850dd3f8c6842030698ed846a2762d68b61d",
     "nonce": "0x2b469722b8e28c45",
     "number": "24973",
     "stateRoot": "0x532a5c3f75453a696428db078e32ae283c85cb97e4d8560dbdf022adac6df369",
@@ -26,19 +25,8 @@
       }
     },
     "config": {
-      "chainId": 3,
-      "homesteadBlock": 0,
-      "daoForkSupport": true,
-      "eip150Block": 0,
-      "eip150Hash": "0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d",
-      "eip155Block": 10,
-      "eip158Block": 10,
-      "byzantiumBlock": 1700000,
-      "constantinopleBlock": 4230000,
-      "petersburgBlock": 4939394,
-      "istanbulBlock": 6485846,
-      "muirGlacierBlock": 7117117,
-      "ethash": {}
+      "networkId": 3,
+      "cryptore": {}
     }
   },
   "context": {

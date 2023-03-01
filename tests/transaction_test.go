@@ -19,7 +19,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func TestTransaction(t *testing.T) {

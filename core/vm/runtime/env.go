@@ -17,23 +17,25 @@
 package runtime
 
 import (
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 func NewEnv(cfg *Config) *vm.CVM {
-	context := vm.Context{
+	txContext := vm.TxContext{
+		Origin:      cfg.Origin,
+		EnergyPrice: cfg.EnergyPrice,
+	}
+	blockContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
 		GetHash:     cfg.GetHashFn,
-		Origin:      cfg.Origin,
 		Coinbase:    cfg.Coinbase,
 		BlockNumber: cfg.BlockNumber,
 		Time:        cfg.Time,
 		Difficulty:  cfg.Difficulty,
-		EnergyLimit:    cfg.EnergyLimit,
-		EnergyPrice:    cfg.EnergyPrice,
+		EnergyLimit: cfg.EnergyLimit,
 	}
 
-	return vm.NewCVM(context, cfg.State, cfg.ChainConfig, cfg.CVMConfig)
+	return vm.NewCVM(blockContext, txContext, cfg.State, cfg.ChainConfig, cfg.CVMConfig)
 }

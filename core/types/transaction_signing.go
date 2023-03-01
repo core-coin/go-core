@@ -20,13 +20,13 @@ import (
 	"errors"
 	"math/big"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
-var ErrInvalidNetworkId = errors.New("invalid network id for signer")
+var (
+	ErrInvalidNetworkId = errors.New("invalid network id for signer")
+)
 
 // sigCache is used to cache the derived sender and contains
 // the signer used to derive it.
@@ -35,14 +35,14 @@ type sigCache struct {
 	from   common.Address
 }
 
-// MakeSigner returns a Signer based on the given chain config and block number.
+// MakeSigner returns a Signer based on network ID.
 func MakeSigner(networkID *big.Int) Signer {
 	var signer = NewNucleusSigner(networkID)
 	return signer
 }
 
 // SignTx signs the transaction using the given signer and private key
-func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, error) {
+func SignTx(tx *Transaction, s Signer, prv *crypto.PrivateKey) (*Transaction, error) {
 	tx.data.NetworkID = uint(s.NetworkID())
 	h := s.Hash(tx)
 	sig, err := crypto.Sign(h[:], prv)
@@ -52,6 +52,10 @@ func SignTx(tx *Transaction, s Signer, prv *eddsa.PrivateKey) (*Transaction, err
 	return tx.WithSignature(s, sig)
 }
 
+// Sender returns the address derived from the signature (V, R, S) using ed448
+// elliptic curve and an error if it failed deriving or upon an incorrect
+// signature.
+//
 // Sender may cache the address, allowing it to be used regardless of
 // signing method. The cache is invalidated if the cached signer does
 // not match the signer used in the current call.
@@ -94,7 +98,7 @@ type NucleusSigner struct {
 
 func NewNucleusSigner(networkId *big.Int) NucleusSigner {
 	if networkId == nil {
-		networkId = new(big.Int)
+		panic("networkID must be set")
 	}
 	return NucleusSigner{
 		networkId: networkId,
@@ -141,5 +145,5 @@ func recoverPlain(signer Signer, tx *Transaction) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*pubk), nil
+	return crypto.PubkeyToAddress(pubk), nil
 }

@@ -1,4 +1,4 @@
-// Copyright 2022 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -21,14 +21,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // RPC packet types
@@ -119,7 +118,7 @@ const MaxNeighbors = 12
 // 	fmt.Println("maxNeighbors", maxNeighbors)
 // }
 
-// Pubkey represents an encoded 57 eddsa public key.
+// Pubkey represents an encoded 57-byte ed448 public key.
 type Pubkey [57]byte
 
 // ID returns the node ID corresponding to the public key.
@@ -247,7 +246,7 @@ func Decode(input []byte) (Packet, Pubkey, []byte, error) {
 }
 
 // Encode encodes a discovery packet.
-func Encode(priv *eddsa.PrivateKey, req Packet) (packet, hash []byte, err error) {
+func Encode(priv *crypto.PrivateKey, req Packet) (packet, hash []byte, err error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(req.Kind())
@@ -276,13 +275,16 @@ func recoverNodeKey(hash, sig []byte) (key Pubkey, err error) {
 	return key, nil
 }
 
-// EncodePubkey encodes a eddsa public key.
-func EncodePubkey(pub *eddsa.PublicKey) (key Pubkey) {
-	copy(key[:], pub[:])
-	return key
+// EncodePubkey encodes a ed448 public key.
+func EncodePubkey(key *crypto.PublicKey) Pubkey {
+	var e Pubkey
+	copy(e[:], key[:])
+	return e
 }
 
-// DecodePubkey reads an encoded eddsa public key.
-func DecodePubkey(e Pubkey) (*eddsa.PublicKey, error) {
-	return crypto.UnmarshalPubkey(e[:])
+// DecodePubkey reads an encoded ed448 public key.
+func DecodePubkey(e Pubkey) *crypto.PublicKey {
+	var key crypto.PublicKey
+	copy(key[:], e[:])
+	return &key
 }

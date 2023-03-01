@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,9 +17,10 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nodestate"
 	"sync"
+
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nodestate"
 )
 
 // QueueIterator returns nodes from the specified selectable set in the same order as

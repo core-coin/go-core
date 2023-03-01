@@ -22,10 +22,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/log"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/common/fdlimit"
+	"github.com/core-coin/go-core/v2/internal/flags"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 var (
@@ -38,7 +39,7 @@ var (
 var app *cli.App
 
 func init() {
-	app = utils.NewApp(gitTag, gitCommit, gitDate, "core checkpoint helper tool")
+	app = flags.NewApp(gitTag, gitCommit, gitDate, "core checkpoint helper tool")
 	app.Commands = []cli.Command{
 		commandStatus,
 		commandDeploy,
@@ -49,7 +50,7 @@ func init() {
 		oracleFlag,
 		nodeURLFlag,
 	}
-	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
+	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
 
 // Commonly used command line flags.

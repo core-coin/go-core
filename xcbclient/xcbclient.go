@@ -24,12 +24,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
+	core "github.com/core-coin/go-core/v2"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // Client defines typed wrappers for the Core RPC API.
@@ -61,8 +62,8 @@ func (ec *Client) Close() {
 
 // Blockchain Access
 
-// NetworkId retrieves the current network ID for transaction replay protection.
-func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
+// ChainID retrieves the current network ID for transaction replay protection.
+func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
 	err := ec.c.CallContext(ctx, &result, "xcb_networkId")
 	if err != nil {
@@ -91,7 +92,7 @@ func (ec *Client) BlockByNumber(ctx context.Context, number *big.Int) (*types.Bl
 // BlockNumber returns the most recent block number
 func (ec *Client) BlockNumber(ctx context.Context) (uint64, error) {
 	var result hexutil.Uint64
-	err := ec.c.CallContext(ctx, &result, "xcb_getBlockNumber", nil)
+	err := ec.c.CallContext(ctx, &result, "xcb_blockNumber")
 	return uint64(result), err
 }
 
@@ -285,6 +286,10 @@ func toBlockNumArg(number *big.Int) string {
 	if number == nil {
 		return "latest"
 	}
+	pending := big.NewInt(-1)
+	if number.Cmp(pending) == 0 {
+		return "pending"
+	}
 	return hexutil.EncodeBig(number)
 }
 
@@ -328,6 +333,19 @@ func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header)
 }
 
 // State Access
+
+// NetworkID returns the network ID (also known as the chain ID) for this chain.
+func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
+	version := new(big.Int)
+	var ver string
+	if err := ec.c.CallContext(ctx, &ver, "net_version"); err != nil {
+		return nil, err
+	}
+	if _, ok := version.SetString(ver, 10); !ok {
+		return nil, fmt.Errorf("invalid net_version result %q", ver)
+	}
+	return version, nil
+}
 
 // BalanceAt returns the ore balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.

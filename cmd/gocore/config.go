@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -20,18 +20,18 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/internal/xcbapi"
 	"os"
 	"reflect"
 	"unicode"
 
+	"github.com/naoina/toml"
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/naoina/toml"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 var (
@@ -103,6 +103,7 @@ func defaultNodeConfig() node.Config {
 	return cfg
 }
 
+// makeConfigNode loads gocore configuration and creates a blank node instance.
 func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	// Load defaults.
 	cfg := gocoreConfig{
@@ -135,6 +136,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gocoreConfig) {
 	return stack, cfg
 }
 
+// makeFullNode loads gocore configuration and creates the Core backend.
 func makeFullNode(ctx *cli.Context) (*node.Node, xcbapi.Backend) {
 	stack, cfg := makeConfigNode(ctx)
 

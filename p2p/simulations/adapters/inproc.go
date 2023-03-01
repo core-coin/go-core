@@ -24,14 +24,15 @@ import (
 	"net"
 	"sync"
 
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations/pipes"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/gorilla/websocket"
+
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations/pipes"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // SimAdapter is a NodeAdapter which creates in-memory simulation nodes and
@@ -99,8 +100,8 @@ func (s *SimAdapter) NewNode(config *NodeConfig) (Node, error) {
 			Dialer:          s,
 			EnableMsgEvents: config.EnableMsgEvents,
 		},
-		NoUSB:  true,
-		Logger: log.New("node.id", id.String()),
+		ExternalSigner: config.ExternalSigner,
+		Logger:         log.New("node.id", id.String()),
 	})
 	if err != nil {
 		return nil, err
@@ -263,12 +264,12 @@ func (sn *SimNode) Start(snapshots map[string][]byte) error {
 				continue
 			}
 			sn.running[name] = service
-			sn.node.RegisterLifecycle(service)
 		}
 	})
 	if regErr != nil {
 		return regErr
 	}
+
 	if err := sn.node.Start(); err != nil {
 		return err
 	}

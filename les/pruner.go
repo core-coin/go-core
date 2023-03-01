@@ -1,4 +1,4 @@
-// Copyright 2019 The Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,10 +20,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // pruner is responsible for pruning historical light chain data.

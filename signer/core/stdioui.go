@@ -19,9 +19,10 @@ package core
 import (
 	"context"
 
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 type StdIOUI struct {

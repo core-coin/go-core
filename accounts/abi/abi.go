@@ -21,10 +21,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/crypto"
 	"io"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // The ABI holds information about a contract's context and available
@@ -50,7 +50,6 @@ func JSON(reader io.Reader) (ABI, error) {
 	if err := dec.Decode(&abi); err != nil {
 		return ABI{}, err
 	}
-
 	return abi, nil
 }
 
@@ -81,39 +80,59 @@ func (abi ABI) Pack(name string, args ...interface{}) ([]byte, error) {
 	return append(method.ID, arguments...), nil
 }
 
-// Unpack output in v according to the abi specification
-func (abi ABI) Unpack(v interface{}, name string, data []byte) (err error) {
+func (abi ABI) getArguments(name string, data []byte) (Arguments, error) {
 	// since there can't be naming collisions with contracts and events,
 	// we need to decide whether we're calling a method or an event
+	var args Arguments
 	if method, ok := abi.Methods[name]; ok {
 		if len(data)%32 != 0 {
-			return fmt.Errorf("abi: improperly formatted output: %s - Bytes: [%+v]", string(data), data)
+			return nil, fmt.Errorf("abi: improperly formatted output: %s - Bytes: [%+v]", string(data), data)
 		}
-		return method.Outputs.Unpack(v, data)
+		args = method.Outputs
 	}
 	if event, ok := abi.Events[name]; ok {
-		return event.Inputs.Unpack(v, data)
+		args = event.Inputs
 	}
-	return fmt.Errorf("abi: could not locate named method or event")
+	if args == nil {
+		return nil, errors.New("abi: could not locate named method or event")
+	}
+	return args, nil
 }
 
-// UnpackIntoMap unpacks a log into the provided map[string]interface{}
+// Unpack unpacks the output according to the abi specification.
+func (abi ABI) Unpack(name string, data []byte) ([]interface{}, error) {
+	args, err := abi.getArguments(name, data)
+	if err != nil {
+		return nil, err
+	}
+	return args.Unpack(data)
+}
+
+// UnpackIntoInterface unpacks the output in v according to the abi specification.
+// It performs an additional copy. Please only use, if you want to unpack into a
+// structure that does not strictly conform to the abi structure (e.g. has additional arguments)
+func (abi ABI) UnpackIntoInterface(v interface{}, name string, data []byte) error {
+	args, err := abi.getArguments(name, data)
+	if err != nil {
+		return err
+	}
+	unpacked, err := args.Unpack(data)
+	if err != nil {
+		return err
+	}
+	return args.Copy(v, unpacked)
+}
+
+// UnpackIntoMap unpacks a log into the provided map[string]interface{}.
 func (abi ABI) UnpackIntoMap(v map[string]interface{}, name string, data []byte) (err error) {
-	// since there can't be naming collisions with contracts and events,
-	// we need to decide whether we're calling a method or an event
-	if method, ok := abi.Methods[name]; ok {
-		if len(data)%32 != 0 {
-			return fmt.Errorf("abi: improperly formatted output")
-		}
-		return method.Outputs.UnpackIntoMap(v, data)
+	args, err := abi.getArguments(name, data)
+	if err != nil {
+		return err
 	}
-	if event, ok := abi.Events[name]; ok {
-		return event.Inputs.UnpackIntoMap(v, data)
-	}
-	return fmt.Errorf("abi: could not locate named method or event")
+	return args.UnpackIntoMap(v, data)
 }
 
-// UnmarshalJSON implements json.Unmarshaler interface
+// UnmarshalJSON implements json.Unmarshaler interface.
 func (abi *ABI) UnmarshalJSON(data []byte) error {
 	var fields []struct {
 		Type    string
@@ -147,14 +166,14 @@ func (abi *ABI) UnmarshalJSON(data []byte) error {
 			abi.Methods[name] = NewMethod(name, field.Name, Function, field.StateMutability, field.Constant, field.Payable, field.Inputs, field.Outputs)
 		case "fallback":
 			// New introduced function type in v0.6.0, check more detail
-			// here https://solidity.readthedocs.io/en/v0.6.0/contracts.html#fallback-function
+			// here https://ylem.readthedocs.io/en/v0.6.0/contracts.html#fallback-function
 			if abi.HasFallback() {
 				return errors.New("only single fallback is allowed")
 			}
 			abi.Fallback = NewMethod("", "", Fallback, field.StateMutability, field.Constant, field.Payable, nil, nil)
 		case "receive":
 			// New introduced function type in v0.6.0, check more detail
-			// here https://solidity.readthedocs.io/en/v0.6.0/contracts.html#fallback-function
+			// here https://ylem.readthedocs.io/en/v0.6.0/contracts.html#fallback-function
 			if abi.HasReceive() {
 				return errors.New("only single receive is allowed")
 			}
@@ -169,7 +188,6 @@ func (abi *ABI) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("abi: could not recognize type %v of field %v", field.Type, field.Name)
 		}
 	}
-
 	return nil
 }
 
@@ -203,8 +221,8 @@ func (abi *ABI) overloadedEventName(rawName string) string {
 	return name
 }
 
-// MethodById looks up a method by the 4-byte id
-// returns nil if none found
+// MethodById looks up a method by the 4-byte id,
+// returns nil if none found.
 func (abi *ABI) MethodById(sigdata []byte) (*Method, error) {
 	if len(sigdata) < 4 {
 		return nil, fmt.Errorf("data too short (%d bytes) for abi method lookup", len(sigdata))
@@ -241,8 +259,8 @@ func (abi *ABI) HasReceive() bool {
 // revertSelector is a special function selector for revert reason unpacking.
 var revertSelector = crypto.SHA3([]byte("Error(string)"))[:4]
 
-// UnpackRevert resolves the abi-encoded revert reason. According to the solidity
-// spec https://solidity.readthedocs.io/en/latest/control-structures.html#revert,
+// UnpackRevert resolves the abi-encoded revert reason. According to the ylem
+// spec https://ylem.readthedocs.io/en/latest/control-structures.html#revert,
 // the provided revert reason is abi-encoded as if it were a call to a function
 // `Error(string)`. So it's a special tool for it.
 func UnpackRevert(data []byte) (string, error) {
@@ -252,10 +270,10 @@ func UnpackRevert(data []byte) (string, error) {
 	if !bytes.Equal(data[:4], revertSelector) {
 		return "", errors.New("invalid data for unpacking")
 	}
-	var reason string
 	typ, _ := NewType("string", "", nil)
-	if err := (Arguments{{Type: typ}}).Unpack(&reason, data[4:]); err != nil {
+	unpacked, err := (Arguments{{Type: typ}}).Unpack(data[4:])
+	if err != nil {
 		return "", err
 	}
-	return reason, nil
+	return unpacked[0].(string), nil
 }

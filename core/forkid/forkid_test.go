@@ -21,9 +21,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // TestCreation tests that different genesis and fork rule combinations result in
@@ -43,7 +43,7 @@ func TestCreation(t *testing.T) {
 			params.MainnetChainConfig,
 			params.MainnetGenesisHash,
 			[]testcase{
-				{0, ID{Hash: checksumToBytes(0x5b4bba60), Next: 0}},
+				{0, ID{Hash: checksumToBytes(0x5b4bba60), Next: 0}}, // Unsynced
 			},
 		},
 		// Devin test cases
@@ -57,7 +57,7 @@ func TestCreation(t *testing.T) {
 	}
 	for i, tt := range tests {
 		for j, ttt := range tt.cases {
-			if have := newID(tt.config, tt.genesis, ttt.head); have != ttt.want {
+			if have := NewID(tt.config, tt.genesis, ttt.head); have != ttt.want {
 				t.Errorf("test %d, case %d: fork ID mismatch: have %x, want %x", i, j, have, ttt.want)
 			}
 		}
@@ -72,8 +72,7 @@ func TestValidation(t *testing.T) {
 		id   ID
 		err  error
 	}{
-		{7987396, ID{Hash: checksumToBytes(0xa00bc324), Next: 0}, ErrLocalIncompatibleOrStale},
-
+		// Local is mainnet Petersburg, remote announces the same. No future fork is announced.
 		{7987396, ID{Hash: checksumToBytes(0x5cddc0e1), Next: 0}, ErrLocalIncompatibleOrStale},
 
 		{7279999, ID{Hash: checksumToBytes(0x5cddc0e1), Next: 0}, ErrLocalIncompatibleOrStale},

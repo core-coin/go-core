@@ -17,17 +17,19 @@
 package les
 
 import (
-	"github.com/core-coin/go-core/common/mclock"
-	lpc "github.com/core-coin/go-core/les/lespay/client"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/xcbdb"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
 	"math/rand"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	lpc "github.com/core-coin/go-core/v2/les/lespay/client"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 const (
@@ -286,7 +288,6 @@ func TestServerPool(t *testing.T)               { testServerPool(t, false, false
 func TestServerPoolWithPreNeg(t *testing.T)     { testServerPool(t, true, false) }
 func TestServerPoolWithPreNegFail(t *testing.T) { testServerPool(t, true, true) }
 func testServerPool(t *testing.T, preNeg, fail bool) {
-	t.Skip("skip long-running tests")
 	s := newServerPoolTest(preNeg, fail)
 	nodes := s.setNodes(100, 200, 200, true, false)
 	s.setNodes(100, 20, 20, false, false)
@@ -299,7 +300,6 @@ func testServerPool(t *testing.T, preNeg, fail bool) {
 func TestServerPoolChangedNodes(t *testing.T)           { testServerPoolChangedNodes(t, false) }
 func TestServerPoolChangedNodesWithPreNeg(t *testing.T) { testServerPoolChangedNodes(t, true) }
 func testServerPoolChangedNodes(t *testing.T, preNeg bool) {
-	t.Skip("skip long-running tests")
 	s := newServerPoolTest(preNeg, false)
 	nodes := s.setNodes(100, 200, 200, true, false)
 	s.setNodes(100, 20, 20, false, false)
@@ -318,7 +318,6 @@ func testServerPoolChangedNodes(t *testing.T, preNeg bool) {
 
 func TestServerPoolRestartNoDiscovery(t *testing.T) { testServerPoolRestartNoDiscovery(t, false) }
 func TestServerPoolRestartNoDiscoveryWithPreNeg(t *testing.T) {
-	t.Skip("skip long-running tests")
 	testServerPoolRestartNoDiscovery(t, true)
 }
 func testServerPoolRestartNoDiscovery(t *testing.T, preNeg bool) {

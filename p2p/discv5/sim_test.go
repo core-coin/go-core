@@ -27,9 +27,8 @@ import (
 	"testing"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // In this test, nodes try to randomly resolve each other.
@@ -275,8 +274,7 @@ func (s *simulation) launchNode(log bool) *Network {
 	var (
 		num = s.nodectr
 		key = newkey()
-		pub = eddsa.Ed448DerivePublicKey(*key)
-		id  = PubkeyID(&pub)
+		id  = PubkeyID(key.PublicKey())
 		ip  = make(net.IP, 4)
 	)
 	s.nodectr++
@@ -285,7 +283,7 @@ func (s *simulation) launchNode(log bool) *Network {
 	addr := &net.UDPAddr{IP: ip, Port: 30300}
 
 	transport := &simTransport{joinTime: time.Now(), sender: id, senderAddr: addr, sim: s, priv: key}
-	net, err := newNetwork(transport, pub, "<no database>", nil)
+	net, err := newNetwork(transport, *key.PublicKey(), "<no database>", nil)
 	if err != nil {
 		panic("cannot launch new node: " + err.Error())
 	}
@@ -303,7 +301,7 @@ type simTransport struct {
 	senderAddr *net.UDPAddr
 	sim        *simulation
 	hashctr    uint64
-	priv       *eddsa.PrivateKey
+	priv       *crypto.PrivateKey
 }
 
 func (st *simTransport) localAddr() *net.UDPAddr {

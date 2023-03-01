@@ -17,7 +17,7 @@
 package adapters
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -25,17 +25,16 @@ import (
 	"os"
 	"strconv"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/gorilla/websocket"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // Node represents a node in a simulation network which is created by a
@@ -44,7 +43,6 @@ import (
 // * SimNode    - An in-memory node
 // * ExecNode   - A child process node
 // * DockerNode - A Docker container node
-//
 type Node interface {
 	// Addr returns the node's address (e.g. an Enode URL)
 	Addr() []byte
@@ -87,7 +85,7 @@ type NodeConfig struct {
 
 	// PrivateKey is the node's private key which is used by the devp2p
 	// stack to encrypt communications
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey *crypto.PrivateKey
 
 	// Enable peer events for Msgs
 	EnableMsgEvents bool
@@ -109,6 +107,9 @@ type NodeConfig struct {
 	// These values need to be checked and acted upon by node Services
 	Properties []string
 
+	// ExternalSigner specifies an external URI for a clef-type signer
+	ExternalSigner string
+
 	// Enode
 	node *enode.Node
 
@@ -119,6 +120,17 @@ type NodeConfig struct {
 	Reachable func(id enode.ID) bool
 
 	Port uint16
+
+	// LogFile is the log file name of the p2p node at runtime.
+	//
+	// The default value is empty so that the default log writer
+	// is the system standard output.
+	LogFile string
+
+	// LogVerbosity is the log verbosity of the p2p node at runtime.
+	//
+	// The default verbosity is INFO.
+	LogVerbosity log.Lvl
 }
 
 // nodeConfigJSON is used to encode and decode NodeConfig as JSON by encoding
@@ -127,10 +139,12 @@ type nodeConfigJSON struct {
 	ID              string   `json:"id"`
 	PrivateKey      string   `json:"private_key"`
 	Name            string   `json:"name"`
-	Services        []string `json:"services"`
+	Lifecycles      []string `json:"lifecycles"`
 	Properties      []string `json:"properties"`
 	EnableMsgEvents bool     `json:"enable_msg_events"`
 	Port            uint16   `json:"port"`
+	LogFile         string   `json:"logfile"`
+	LogVerbosity    int      `json:"log_verbosity"`
 }
 
 // MarshalJSON implements the json.Marshaler interface by encoding the config
@@ -139,13 +153,15 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 	confJSON := nodeConfigJSON{
 		ID:              n.ID.String(),
 		Name:            n.Name,
-		Services:        n.Lifecycles,
+		Lifecycles:      n.Lifecycles,
 		Properties:      n.Properties,
 		Port:            n.Port,
 		EnableMsgEvents: n.EnableMsgEvents,
+		LogFile:         n.LogFile,
+		LogVerbosity:    int(n.LogVerbosity),
 	}
 	if n.PrivateKey != nil {
-		confJSON.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(n.PrivateKey))
+		confJSON.PrivateKey = hex.EncodeToString(crypto.MarshalPrivateKey(n.PrivateKey))
 	}
 	return json.Marshal(confJSON)
 }
@@ -169,7 +185,7 @@ func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		privKey, err := crypto.ToEDDSA(key)
+		privKey, err := crypto.UnmarshalPrivateKey(key)
 		if err != nil {
 			return err
 		}
@@ -177,10 +193,12 @@ func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	n.Name = confJSON.Name
-	n.Lifecycles = confJSON.Services
+	n.Lifecycles = confJSON.Lifecycles
 	n.Properties = confJSON.Properties
 	n.Port = confJSON.Port
 	n.EnableMsgEvents = confJSON.EnableMsgEvents
+	n.LogFile = confJSON.LogFile
+	n.LogVerbosity = log.Lvl(confJSON.LogVerbosity)
 
 	return nil
 }
@@ -193,7 +211,7 @@ func (n *NodeConfig) Node() *enode.Node {
 // RandomNodeConfig returns node configuration with a randomly generated ID and
 // PrivateKey
 func RandomNodeConfig() *NodeConfig {
-	prvkey, err := crypto.GenerateKey(rand.Reader)
+	prvkey, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("unable to generate key")
 	}
@@ -202,14 +220,15 @@ func RandomNodeConfig() *NodeConfig {
 	if err != nil {
 		panic("unable to assign tcp port")
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prvkey)
-	enodId := enode.PubkeyToIDV4(&pub)
+
+	enodId := enode.PubkeyToIDV4(prvkey.PublicKey())
 	return &NodeConfig{
 		PrivateKey:      prvkey,
 		ID:              enodId,
 		Name:            fmt.Sprintf("node_%s", enodId.String()),
 		Port:            port,
 		EnableMsgEvents: true,
+		LogVerbosity:    log.LvlInfo,
 	}
 }
 

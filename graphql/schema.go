@@ -147,14 +147,14 @@ const schema string = `
         parent: Block
         # Nonce is the block nonce, an 8 byte sequence determined by the miner.
         nonce: Bytes!
-        # TransactionsRoot is the keccak256 hash of the root of the trie of transactions in this block.
+        # TransactionsRoot is the SHA3 hash of the root of the trie of transactions in this block.
         transactionsRoot: Bytes32!
         # TransactionCount is the number of transactions in this block. if
         # transactions are not available for this block, this field will be null.
         transactionCount: Int
-        # StateRoot is the keccak256 hash of the state trie after this block was processed.
+        # StateRoot is the SHA3 hash of the state trie after this block was processed.
         stateRoot: Bytes32!
-        # ReceiptsRoot is the keccak256 hash of the trie of transaction receipts in this block.
+        # ReceiptsRoot is the SHA3 hash of the trie of transaction receipts in this block.
         receiptsRoot: Bytes32!
         # Miner is the account that mined this block.
         miner(block: Long): Account!
@@ -185,7 +185,7 @@ const schema string = `
         # OmmerAt returns the ommer (AKA uncle) at the specified index. If ommers
         # are unavailable, or the index is out of bounds, this field will be null.
         ommerAt(index: Int!): Block
-        # OmmerHash is the keccak256 hash of all the ommers (AKA uncles)
+        # OmmerHash is the SHA3 hash of all the ommers (AKA uncles)
         # associated with this block.
         ommerHash: Bytes32!
         # Transactions is a list of transactions associated with this block. If
@@ -309,6 +309,8 @@ const schema string = `
         protocolVersion: Int!
         # Syncing returns information on the current synchronisation state.
         syncing: SyncState
+        # NetworkID returns the current chain ID for transaction replay protection.
+        networkID: BigInt!
     }
 
     type Mutation {

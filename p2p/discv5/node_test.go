@@ -18,7 +18,6 @@ package discv5
 
 import (
 	"fmt"
-	eddsa2 "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"math/rand"
 	"net"
@@ -28,12 +27,12 @@ import (
 	"testing/quick"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func ExampleNewNode() {
-	id := MustHexID("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa")
+	id := MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992")
 
 	// Complete nodes contain UDP and TCP endpoints:
 	n1 := NewNode(id, net.ParseIP("2001:db8:3c4d:15::abcd:ef12"), 52150, 30300)
@@ -47,9 +46,9 @@ func ExampleNewNode() {
 	fmt.Println("n2.Incomplete() ->", n2.Incomplete())
 
 	// Output:
-	// n1: enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa@[2001:db8:3c4d:15::abcd:ef12]:30300?discport=52150
+	// n1: enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@[2001:db8:3c4d:15::abcd:ef12]:30300?discport=52150
 	// n1.Incomplete() -> false
-	// n2: enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f632aa
+	// n2: enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992
 	// n2.Incomplete() -> true
 }
 
@@ -68,48 +67,48 @@ var parseNodeTests = []struct {
 	},
 	// Complete nodes with IP address.
 	{
-		rawurl:    "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@hostname:3",
+		rawurl:    "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@hostname:3",
 		wantError: `invalid IP address`,
 	},
 	{
-		rawurl:    "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@127.0.0.1:foo",
+		rawurl:    "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@127.0.0.1:foo",
 		wantError: `invalid port`,
 	},
 	{
-		rawurl:    "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@127.0.0.1:3?discport=foo",
+		rawurl:    "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@127.0.0.1:3?discport=foo",
 		wantError: `invalid discport in query`,
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@127.0.0.1:52150",
+		rawurl: "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@127.0.0.1:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@[::]:52150",
+		rawurl: "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@[::]:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			net.ParseIP("::"),
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@[2001:db8:3c4d:15::abcd:ef12]:52150",
+		rawurl: "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@[2001:db8:3c4d:15::abcd:ef12]:52150",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa@127.0.0.1:52150?discport=22334",
+		rawurl: "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992@127.0.0.1:52150?discport=22334",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			22334,
 			52150,
@@ -117,16 +116,16 @@ var parseNodeTests = []struct {
 	},
 	// Incomplete nodes with no address.
 	{
-		rawurl: "43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa",
+		rawurl: "1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			nil, 0, 0,
 		),
 	},
 	{
-		rawurl: "enode://43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa",
+		rawurl: "enode://1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992",
 		wantResult: NewNode(
-			MustHexID("0x43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439aa"),
+			MustHexID("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363992"),
 			nil, 0, 0,
 		),
 	},
@@ -181,9 +180,9 @@ func TestNodeString(t *testing.T) {
 }
 
 func TestHexID(t *testing.T) {
-	ref := NodeID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 106, 217, 182, 31, 165, 174, 1, 67, 7, 235, 220, 150, 66, 83, 173, 205, 159, 44, 10, 57, 42, 161, 26, 188, 170}
-	id1 := MustHexID("0x00000000000000000000000000000000000000000000000000000000000000806ad9b61fa5ae014307ebdc964253adcd9f2c0a392aa11abcaa")
-	id2 := MustHexID("00000000000000000000000000000000000000000000000000000000000000806ad9b61fa5ae014307ebdc964253adcd9f2c0a392aa11abcaa")
+	ref := NodeID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 106, 217, 182, 31, 165, 174, 1, 67, 7, 235, 220, 150, 66, 83, 173, 205, 159}
+	id1 := MustHexID("0x000000000000000000000000000000000000000000000000000000000000000000000000000000806ad9b61fa5ae014307ebdc964253adcd9f")
+	id2 := MustHexID("000000000000000000000000000000000000000000000000000000000000000000000000000000806ad9b61fa5ae014307ebdc964253adcd9f")
 
 	if id1 != ref {
 		t.Errorf("wrong id1\ngot  %v\nwant %v", id1[:], ref[:])
@@ -200,8 +199,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Fatalf("signing error: %v", err)
 	}
-	p := eddsa2.Ed448DerivePublicKey(*prv)
-	pub := PubkeyID(&p)
+
+	pub := PubkeyID(prv.PublicKey())
 	recpub, err := recoverNodeID(hash, sig)
 	if err != nil {
 		t.Fatalf("recovery error: %v", err)
@@ -210,21 +209,21 @@ func TestNodeID_recover(t *testing.T) {
 		t.Errorf("recovered wrong pubkey:\ngot:  %v\nwant: %v", recpub, pub)
 	}
 
-	eddsa, err := pub.Pubkey()
+	ed448, err := pub.Pubkey()
 	if err != nil {
 		t.Errorf("Pubkey error: %v", err)
 	}
-	if !reflect.DeepEqual(eddsa, &p) {
-		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", eddsa, &p)
+	if !reflect.DeepEqual(ed448, prv.PublicKey()) {
+		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", ed448, prv.PublicKey())
 	}
 }
 
 func TestNodeID_pubkeyBad(t *testing.T) {
-	eddsa, err := NodeID{}.Pubkey()
+	ed448, err := NodeID{}.Pubkey()
 	if err == nil {
 		t.Error("expected error for zero ID")
 	}
-	if eddsa != nil {
+	if ed448 != nil {
 		t.Error("expected nil result")
 	}
 }

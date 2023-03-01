@@ -17,22 +17,23 @@
 package core
 
 import (
-	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	crand "crypto/rand"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func BenchmarkInsertChain_empty_memdb(b *testing.B) {
@@ -74,9 +75,7 @@ func BenchmarkInsertChain_ring1000_diskdb(b *testing.B) {
 
 var (
 	// This is the content of the genesis block used by the benchmarks.
-	benchRootKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	benchRootPub    = eddsa.Ed448DerivePublicKey(*benchRootKey)
-	benchRootAddr   = crypto.PubkeyToAddress(benchRootPub)
+	benchRootKey, _ = crypto.UnmarshalPrivateKeyHex("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
 	benchRootFunds  = math.BigPow(2, 100)
 )
 
@@ -88,23 +87,22 @@ func genValueTx(nbytes int) func(int, *BlockGen) {
 		toaddr := common.Address{}
 		data := make([]byte, nbytes)
 		energy, _ := IntrinsicEnergy(data, false)
-		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(benchRootAddr), toaddr, big.NewInt(1), energy, nil, data), types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), benchRootKey)
+		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(benchRootKey.Address()), toaddr, big.NewInt(1), energy, nil, data), types.NewNucleusSigner(big.NewInt(1)), benchRootKey)
 		gen.AddTx(tx)
 	}
 }
 
 var (
-	ringKeys  = make([]*eddsa.PrivateKey, 1000)
+	ringKeys  = make([]*crypto.PrivateKey, 1000)
 	ringAddrs = make([]common.Address, len(ringKeys))
 )
 
 func init() {
 	ringKeys[0] = benchRootKey
-	ringAddrs[0] = benchRootAddr
+	ringAddrs[0] = benchRootKey.Address()
 	for i := 1; i < len(ringKeys); i++ {
-		ringKeys[i], _ = crypto.GenerateKey(rand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*ringKeys[i])
-		ringAddrs[i] = crypto.PubkeyToAddress(pub)
+		ringKeys[i], _ = crypto.GenerateKey(crand.Reader)
+		ringAddrs[i] = ringKeys[i].Address()
 	}
 }
 
@@ -130,7 +128,7 @@ func genTxRing(naccounts int) func(int, *BlockGen) {
 				nil,
 				nil,
 			)
-			tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), ringKeys[from])
+			tx, _ = types.SignTx(tx, types.NewNucleusSigner(big.NewInt(1)), ringKeys[from])
 			gen.AddTx(tx)
 			from = to
 		}
@@ -171,7 +169,7 @@ func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 	// generator function.
 	gspec := Genesis{
 		Config: params.TestChainConfig,
-		Alloc:  GenesisAlloc{benchRootAddr: {Balance: benchRootFunds}},
+		Alloc:  GenesisAlloc{benchRootKey.Address(): {Balance: benchRootFunds}},
 	}
 	genesis := gspec.MustCommit(db)
 	chain, _ := GenerateChain(gspec.Config, genesis, cryptore.NewFaker(), db, b.N, gen)

@@ -17,8 +17,9 @@
 package cryptore
 
 import (
-	"golang.org/x/crypto/sha3"
 	"hash"
+
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -58,9 +59,9 @@ func seedHash(block uint64) []byte {
 	if block < epochLength {
 		return seed
 	}
-	keccak256 := makeHasher(sha3.New256())
+	SHA3 := makeHasher(sha3.New256())
 	for i := 0; i < int(block/epochLength); i++ {
-		keccak256(seed, seed)
+		SHA3(seed, seed)
 	}
 	return seed
 }

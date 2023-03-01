@@ -19,10 +19,10 @@ package clique
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // API is a user facing RPC API to allow controlling the signer and voting
@@ -170,7 +170,7 @@ func (api *API) Status() (*status, error) {
 		signStatus[sealer]++
 	}
 	return &status{
-		InturnPercent: float64((100 * optimals)) / float64(numBlocks),
+		InturnPercent: float64(100*optimals) / float64(numBlocks),
 		SigningStatus: signStatus,
 		NumBlocks:     numBlocks,
 	}, nil

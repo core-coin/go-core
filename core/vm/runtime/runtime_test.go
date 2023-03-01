@@ -18,23 +18,22 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/core/asm"
-	"github.com/hpcloud/tail/util"
 	"math/big"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/asm"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func TestDefaults(t *testing.T) {
@@ -210,7 +209,7 @@ func BenchmarkCVM_CREATE2_1200(bench *testing.B) {
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
 	coinbase, err := common.HexToAddress("cb8000000000000000000000000000000000deadbeef")
 	if err != nil {
-		util.Fatal(err.Error())
+		panic(err)
 	}
 	header := types.Header{
 		Coinbase:    coinbase,
@@ -347,7 +346,10 @@ func (s *stepCounter) CaptureEnd(output []byte, energyUsed uint64, t time.Durati
 
 func TestJumpSub1024Limit(t *testing.T) {
 	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
-	address, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+	address, err := common.HexToAddress("cb75000000000000000000000000000000000000000a")
+	if err != nil {
+		t.Error(err)
+	}
 	// Code is
 	// 0 beginsub
 	// 1 push 0
@@ -364,9 +366,9 @@ func TestJumpSub1024Limit(t *testing.T) {
 	})
 	tracer := stepCounter{inner: vm.NewJSONLogger(nil, os.Stdout)}
 	// Enable 2315
-	_, _, err := Call(address, nil, &Config{State: state,
+	_, _, err = Call(address, nil, &Config{State: state,
 		EnergyLimit: 20000,
-		ChainConfig: params.AllCryptoreProtocolChanges,
+		ChainConfig: params.MainnetChainConfig,
 		CVMConfig: vm.Config{
 			Debug: true,
 			//Tracer:    vm.NewJSONLogger(nil, os.Stdout),
@@ -383,7 +385,10 @@ func TestJumpSub1024Limit(t *testing.T) {
 
 func TestReturnSubShallow(t *testing.T) {
 	state, _ := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
-	address, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+	address, err := common.HexToAddress("cb75000000000000000000000000000000000000000a")
+	if err != nil {
+		t.Error(err)
+	}
 	// The code does returnsub without having anything on the returnstack.
 	// It should not panic, but just fail after one step
 	state.SetCode(address, []byte{
@@ -397,10 +402,9 @@ func TestReturnSubShallow(t *testing.T) {
 	})
 	tracer := stepCounter{}
 
-	// Enable 2315
-	_, _, err := Call(address, nil, &Config{State: state,
+	_, _, err = Call(address, nil, &Config{State: state,
 		EnergyLimit: 10000,
-		ChainConfig: params.AllCryptoreProtocolChanges,
+		ChainConfig: params.MainnetChainConfig,
 		CVMConfig: vm.Config{
 			Debug:  true,
 			Tracer: &tracer,
@@ -456,7 +460,7 @@ func DisabledTestReturnCases(t *testing.T) {
 }
 
 // DisabledTestEipExampleCases contains various testcases that are used for the
-// EIP examples
+// CIP examples
 // This test is disabled, as it's only used for generating markdown
 func DisabledTestEipExampleCases(t *testing.T) {
 	cfg := &Config{
@@ -483,7 +487,7 @@ func DisabledTestEipExampleCases(t *testing.T) {
 		Execute(code, nil, cfg)
 	}
 
-	{ // First eip testcase
+	{ // First cip testcase
 		code := []byte{
 			byte(vm.PUSH1), 4,
 			byte(vm.JUMPSUB),
@@ -508,7 +512,7 @@ func DisabledTestEipExampleCases(t *testing.T) {
 		}
 		prettyPrint("This should execute fine, going into one two depths of subroutines", code)
 	}
-	// TODO(@holiman) move this test into an actual test, which not only prints
+	// TODO(@raisty) move this test into an actual test, which not only prints
 	// out the trace.
 	{
 		code := []byte{
@@ -703,7 +707,7 @@ func BenchmarkSimpleLoop(b *testing.B) {
 
 	//tracer := vm.NewJSONLogger(nil, os.Stdout)
 	//Execute(loopingCode, nil, &Config{
-	//	EVMConfig: vm.Config{
+	//	CVMConfig: vm.Config{
 	//		Debug:  true,
 	//		Tracer: tracer,
 	//	}})

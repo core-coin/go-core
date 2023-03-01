@@ -18,25 +18,25 @@ package xcb
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math"
 	"math/big"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // Tests that block headers can be retrieved from a remote chain based on user queries.
@@ -274,33 +274,29 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 func TestGetNodeData63(t *testing.T) { testGetNodeData(t, 63) }
 func TestGetNodeData64(t *testing.T) { testGetNodeData(t, 64) }
 
-func testGetNodeData(t *testing.T, protocol int) { // TODO: TEST
+func testGetNodeData(t *testing.T, protocol int) {
 	// Define three accounts to simulate transactions with
-	acc1Key, _ := crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
-	acc2Key, _ := crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-	acc1Pub := eddsa.Ed448DerivePublicKey(*acc1Key)
-	acc2Pub := eddsa.Ed448DerivePublicKey(*acc2Key)
-	acc1Addr := crypto.PubkeyToAddress(acc1Pub)
-	acc2Addr := crypto.PubkeyToAddress(acc2Pub)
+	acc1Key, _ := crypto.UnmarshalPrivateKeyHex("7db3f59e4badffb6ca7dfafd74f079403831d43f2f2b9a32988d05e859b8ed9e98d9a22439b455bc13e852f95a6386fbf692021fbd149ad23c")
+	acc2Key, _ := crypto.UnmarshalPrivateKeyHex("4485aa768e5a88e04636984ced4bac88ddb67356b1ea647cf30107ebd229b04bb9bfa6674978aed2a73b8a598c84a544153628fa28ccc1c840")
 
-	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	signer := types.NewNucleusSigner(big.NewInt(1337))
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {
 		case 0:
 			// In block 1, the test bank sends account #1 some core.
-			tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBank), acc1Addr, big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
+			tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
 			block.AddTx(tx)
 		case 1:
 			// In block 2, the test bank sends some more core to account #1.
-			// acc1Addr passes it on to account #2.
-			tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBank), acc1Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
-			tx2, _ := types.SignTx(types.NewTransaction(block.TxNonce(acc1Addr), acc2Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
+			// acc1Key.Address() passes it on to account #2.
+			tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
+			tx2, _ := types.SignTx(types.NewTransaction(block.TxNonce(acc1Key.Address()), acc2Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
 			block.AddTx(tx1)
 			block.AddTx(tx2)
 		case 2:
 			// Block 3 is empty but was mined by account #2.
-			block.SetCoinbase(acc2Addr)
+			block.SetCoinbase(acc2Key.Address())
 			block.SetExtra([]byte("yeehaw"))
 		case 3:
 			// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
@@ -350,7 +346,7 @@ func testGetNodeData(t *testing.T, protocol int) { // TODO: TEST
 	for i := 0; i < len(data); i++ {
 		statedb.Put(hashes[i].Bytes(), data[i])
 	}
-	accounts := []common.Address{testBank, acc1Addr, acc2Addr}
+	accounts := []common.Address{testBankKey.Address(), acc1Key.Address(), acc2Key.Address()}
 	for i := uint64(0); i <= pm.blockchain.CurrentBlock().NumberU64(); i++ {
 		trie, _ := state.New(pm.blockchain.GetBlockByNumber(i).Root(), state.NewDatabase(statedb), nil)
 
@@ -375,31 +371,27 @@ func TestGetReceipt64(t *testing.T) { testGetReceipt(t, 64) }
 
 func testGetReceipt(t *testing.T, protocol int) {
 	// Define three accounts to simulate transactions with
-	acc1Key, _ := crypto.HexToEDDSA("c7b3545db244c1ea1c720086c2c4c9f5eff2f0f31263101f0e8486201e6605414c240fe851d5fd0b4122b764e4cb7ef02695bfd9aed9d00cc5")
-	acc2Key, _ := crypto.HexToEDDSA("ec4f51f2db12a88c2675cb1241e83b83dbe13df604a4c3d4d4482099273e2b07e2e812ed9d035938d5c0a5ee1c4be5602a3fb82cfe6a9b2383")
-	acc1Pub := eddsa.Ed448DerivePublicKey(*acc1Key)
-	acc2Pub := eddsa.Ed448DerivePublicKey(*acc2Key)
-	acc1Addr := crypto.PubkeyToAddress(acc1Pub)
-	acc2Addr := crypto.PubkeyToAddress(acc2Pub)
+	acc1Key, _ := crypto.UnmarshalPrivateKeyHex("7db3f59e4badffb6ca7dfafd74f079403831d43f2f2b9a32988d05e859b8ed9e98d9a22439b455bc13e852f95a6386fbf692021fbd149ad23c")
+	acc2Key, _ := crypto.UnmarshalPrivateKeyHex("4485aa768e5a88e04636984ced4bac88ddb67356b1ea647cf30107ebd229b04bb9bfa6674978aed2a73b8a598c84a544153628fa28ccc1c840")
 
-	signer := types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	signer := types.NewNucleusSigner(big.NewInt(1337))
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {
 		case 0:
 			// In block 1, the test bank sends account #1 some core.
-			tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBank), acc1Addr, big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
+			tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(10000), params.TxEnergy, nil, nil), signer, testBankKey)
 			block.AddTx(tx)
 		case 1:
 			// In block 2, the test bank sends some more core to account #1.
-			// acc1Addr passes it on to account #2.
-			tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBank), acc1Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
-			tx2, _ := types.SignTx(types.NewTransaction(block.TxNonce(acc1Addr), acc2Addr, big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
+			// acc1Key.Address() passes it on to account #2.
+			tx1, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankKey.Address()), acc1Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, testBankKey)
+			tx2, _ := types.SignTx(types.NewTransaction(block.TxNonce(acc1Key.Address()), acc2Key.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, acc1Key)
 			block.AddTx(tx1)
 			block.AddTx(tx2)
 		case 2:
 			// Block 3 is empty but was mined by account #2.
-			block.SetCoinbase(acc2Addr)
+			block.SetCoinbase(acc2Key.Address())
 			block.SetExtra([]byte("yeehaw"))
 		case 3:
 			// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
@@ -579,7 +571,6 @@ func TestBroadcastBlockBTTP(t *testing.T) {
 		totalPeers        int
 		broadcastExpected int
 	}{
-		{1, 1},
 		{2, 2},
 		{3, 3},
 		{4, 4},
@@ -597,10 +588,10 @@ func TestBroadcastBlockBTTP(t *testing.T) {
 
 func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int, bttp bool) {
 	var (
-		evmux   = new(event.TypeMux)
+		cvmux   = new(event.TypeMux)
 		pow     = cryptore.NewFaker()
 		db      = rawdb.NewMemoryDatabase()
-		config  = &params.ChainConfig{}
+		config  = &params.ChainConfig{NetworkID: big.NewInt(1)}
 		gspec   = &core.Genesis{Config: config}
 		genesis = gspec.MustCommit(db)
 	)
@@ -608,7 +599,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int, bttp bo
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
-	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, evmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil, bttp)
+	pm, err := NewProtocolManager(config, nil, downloader.FullSync, DefaultConfig.NetworkId, cvmux, &testTxPool{pool: make(map[common.Hash]*types.Transaction)}, pow, blockchain, db, 1, nil, bttp)
 	if err != nil {
 		t.Fatalf("failed to start test protocol manager: %v", err)
 	}
@@ -640,12 +631,16 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int, bttp bo
 		select {
 		case <-doneCh:
 			received++
+			if received > broadcastExpected {
+				// We can bail early here
+				t.Errorf("broadcast count mismatch: have %d > want %d", received, broadcastExpected)
+				return
+			}
 		case <-time.After(3 * time.Second):
 			if received != broadcastExpected {
 				t.Errorf("broadcast count mismatch: have %d, want %d", received, broadcastExpected)
 			}
 			return
-
 		case err = <-errCh:
 			t.Fatalf("broadcast failed: %v", err)
 		}

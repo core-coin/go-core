@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // Tests that batched bloom bits are correctly rotated from the input bloom

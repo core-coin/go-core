@@ -19,9 +19,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var commandStatus = cli.Command{

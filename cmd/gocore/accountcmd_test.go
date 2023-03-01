@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"runtime"
@@ -39,6 +40,7 @@ func tmpDatadirWithKeystore(t *testing.T) string {
 	if err := cp.CopyAll(keystore, source); err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println(keystore)
 	return datadir
 }
 
@@ -88,6 +90,42 @@ Path of the secret key file: .*UTC--.+--[0-9a-f]{44}
 `)
 }
 
+func TestAccountImport(t *testing.T) {
+	tests := []struct{ name, key, output string }{
+		{
+			name:   "correct account",
+			key:    "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e",
+			output: "Address: {fcad0b19bb29d4674531d6f115237e16afce377c}\n",
+		},
+		{
+			name:   "invalid character",
+			key:    "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e1",
+			output: "Fatal: Failed to load the private key: invalid character '1' at end of key file\n",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			importAccountWithExpect(t, test.key, test.output)
+		})
+	}
+}
+
+func importAccountWithExpect(t *testing.T, key string, expected string) {
+	dir := tmpdir(t)
+	keyfile := filepath.Join(dir, "key.prv")
+	if err := ioutil.WriteFile(keyfile, []byte(key), 0600); err != nil {
+		t.Error(err)
+	}
+	passwordFile := filepath.Join(dir, "password.txt")
+	if err := ioutil.WriteFile(passwordFile, []byte("foobar"), 0600); err != nil {
+		t.Error(err)
+	}
+	gocore := runGocore(t, "account", "import", keyfile, "-password", passwordFile)
+	defer gocore.ExpectExit()
+	gocore.Expect(expected)
+}
+
 func TestAccountNewBadRepeat(t *testing.T) {
 	gocore := runGocore(t, "account", "new", "--lightkdf")
 	defer gocore.ExpectExit()
@@ -104,10 +142,10 @@ func TestAccountUpdate(t *testing.T) {
 	datadir := tmpDatadirWithKeystore(t)
 	gocore := runGocore(t, "account", "update",
 		"--datadir", datadir, "--lightkdf",
-		"cb65e49851f010cd7d81b5b4969f3b0e8325c415359d")
+		"cb74db416ff2f9c53dabaf34f81142db30350ea7b144")
 	defer gocore.ExpectExit()
 	gocore.Expect(`
-Unlocking account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d | Attempt 1/3
+Unlocking account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
 Password: {{.InputLine "foobar"}}
 Please give a new password. Do not forget this password.
@@ -116,40 +154,11 @@ Repeat password: {{.InputLine "foobar"}}
 `)
 }
 
-func TestWalletImport(t *testing.T) {
-	t.Skip()
-	gocore := runGocore(t, "wallet", "import", "--lightkdf", "testdata/guswallet.json")
-	defer gocore.ExpectExit()
-	gocore.Expect(`
-!! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foo"}}
-Address: {d4584b5f6229b7be90727b0fc8c6b91bb427821f}
-`)
-
-	files, err := ioutil.ReadDir(filepath.Join(gocore.Datadir, "keystore"))
-	if len(files) != 1 {
-		t.Errorf("expected one key file in keystore directory, found %d files (error: %v)", len(files), err)
-	}
-}
-
-func TestWalletImportBadPassword(t *testing.T) {
-	gocore := runGocore(t, "wallet", "import", "--lightkdf", "testdata/guswallet.json")
-	defer gocore.ExpectExit()
-	gocore.Expect(`
-!! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "wrong"}}
-Fatal: could not decrypt key with given password
-`)
-}
-
 func TestUnlockFlag(t *testing.T) {
-	datadir := tmpDatadirWithKeystore(t)
-	gocore := runGocore(t,
-		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "cb65e49851f010cd7d81b5b4969f3b0e8325c415359d",
-		"js", "testdata/empty.js")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "js", "testdata/empty.js")
 	gocore.Expect(`
-Unlocking account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d | Attempt 1/3
+Unlocking account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
 Password: {{.InputLine "foobar"}}
 `)
@@ -157,7 +166,7 @@ Password: {{.InputLine "foobar"}}
 
 	wantMessages := []string{
 		"Unlocked account",
-		"=cb65e49851f010cd7d81b5b4969f3b0e8325c415359d",
+		"=cb74db416ff2f9c53dabaf34f81142db30350ea7b144",
 	}
 	for _, m := range wantMessages {
 		if !strings.Contains(gocore.StderrText(), m) {
@@ -167,30 +176,27 @@ Password: {{.InputLine "foobar"}}
 }
 
 func TestUnlockFlagWrongPassword(t *testing.T) {
-	datadir := tmpDatadirWithKeystore(t)
-	gocore := runGocore(t,
-		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "cb65e49851f010cd7d81b5b4969f3b0e8325c415359d")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "js", "testdata/empty.js")
+
 	defer gocore.ExpectExit()
 	gocore.Expect(`
-Unlocking account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d | Attempt 1/3
+Unlocking account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
-Password: {{.InputLine "foobar1"}}
-Unlocking account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d | Attempt 2/3
-Password: {{.InputLine "foobar1"}}
-Unlocking account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d | Attempt 3/3
-Password: {{.InputLine "foobar1"}}
-Fatal: Failed to unlock account cb65e49851f010cd7d81b5b4969f3b0e8325c415359d (could not decrypt key with given password)
+Password: {{.InputLine "wrong1"}}
+Unlocking account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 | Attempt 2/3
+Password: {{.InputLine "wrong2"}}
+Unlocking account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 | Attempt 3/3
+Password: {{.InputLine "wrong3"}}
+Fatal: Failed to unlock account cb74db416ff2f9c53dabaf34f81142db30350ea7b144 (could not decrypt key with given password)
 `)
 }
 
-// https://github.com/core-coin/go-core/issues/1785
+// https://github.com/core-coin/go-core/v2/issues/1785
 func TestUnlockFlagMultiIndex(t *testing.T) {
-	datadir := tmpDatadirWithKeystore(t)
-	gocore := runGocore(t,
-		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "0,2",
-		"js", "testdata/empty.js")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "--unlock", "0,2", "js", "testdata/empty.js")
+
 	gocore.Expect(`
 Unlocking account 0 | Attempt 1/3
 !! Unsupported terminal, password will be echoed.
@@ -213,11 +219,9 @@ Password: {{.InputLine "foobar"}}
 }
 
 func TestUnlockFlagPasswordFile(t *testing.T) {
-	datadir := tmpDatadirWithKeystore(t)
-	gocore := runGocore(t,
-		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--password", "testdata/passwords.txt", "--unlock", "0,2",
-		"js", "testdata/empty.js")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "--password", "testdata/passwords.txt", "--unlock", "0,2", "js", "testdata/empty.js")
+
 	gocore.ExpectExit()
 
 	wantMessages := []string{
@@ -233,10 +237,9 @@ func TestUnlockFlagPasswordFile(t *testing.T) {
 }
 
 func TestUnlockFlagPasswordFileWrongPassword(t *testing.T) {
-	datadir := tmpDatadirWithKeystore(t)
-	gocore := runGocore(t,
-		"--datadir", datadir, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--password", "testdata/wrong-passwords.txt", "--unlock", "0,2")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "--password",
+		"testdata/wrong-passwords.txt", "--unlock", "0,2")
 	defer gocore.ExpectExit()
 	gocore.Expect(`
 Fatal: Failed to unlock account 0 (could not decrypt key with given password)
@@ -245,9 +248,9 @@ Fatal: Failed to unlock account 0 (could not decrypt key with given password)
 
 func TestUnlockFlagAmbiguous(t *testing.T) {
 	store := filepath.Join("..", "..", "accounts", "keystore", "testdata", "dupes")
-	gocore := runGocore(t,
-		"--keystore", store, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144",
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "--keystore",
+		store, "--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144",
 		"js", "testdata/empty.js")
 	defer gocore.ExpectExit()
 
@@ -283,9 +286,10 @@ In order to avoid this warning, you need to remove the following duplicate key f
 
 func TestUnlockFlagAmbiguousWrongPassword(t *testing.T) {
 	store := filepath.Join("..", "..", "accounts", "keystore", "testdata", "dupes")
-	gocore := runGocore(t,
-		"--keystore", store, "--nat", "none", "--nodiscover", "--maxpeers", "0", "--port", "0",
-		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144")
+	gocore := runMinimalGocore(t, "--port", "0", "--ipcdisable", "--datadir", tmpDatadirWithKeystore(t),
+		"--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144", "--keystore",
+		store, "--unlock", "cb74db416ff2f9c53dabaf34f81142db30350ea7b144")
+
 	defer gocore.ExpectExit()
 
 	// Helper for the expect template, returns absolute keystore path.

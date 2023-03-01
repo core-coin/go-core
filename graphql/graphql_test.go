@@ -18,17 +18,24 @@ package graphql
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 func TestBuildSchema(t *testing.T) {
-	// Make sure the schema can be parsed and matched up to the object model.
 	stack, err := node.New(&node.DefaultConfig)
 	if err != nil {
 		t.Fatalf("could not create new node: %v", err)
@@ -61,6 +68,7 @@ func TestGraphQLHTTPOnSamePort_GQLRequest_Successful(t *testing.T) {
 		t.Fatalf("could not read from response body: %v", err)
 	}
 	expected := "{\"data\":{\"block\":{\"number\":\"0x0\"}}}"
+	assert.Equal(t, 200, resp.StatusCode)
 	assert.Equal(t, expected, string(bodyBytes))
 }
 
@@ -81,8 +89,39 @@ func TestGraphQLHTTPOnSamePort_GQLRequest_Unsuccessful(t *testing.T) {
 	gqlReq.Header.Set("Content-Type", "application/json")
 	// read from response
 	resp := doHTTPRequest(t, gqlReq)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("could not read from response body: %v", err)
+	}
 	// make sure the request is not handled successfully
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	assert.Equal(t, 404, resp.StatusCode)
+	assert.Equal(t, "404 page not found\n", string(bodyBytes))
+}
+
+// Tests that 400 is returned when an invalid RPC request is made.
+func TestGraphQL_BadRequest(t *testing.T) {
+	stack := createNode(t, true)
+	defer stack.Close()
+	// start node
+	if err := stack.Start(); err != nil {
+		t.Fatalf("could not start node: %v", err)
+	}
+	// create http request
+	body := strings.NewReader("{\"query\": \"{bleh{number}}\",\"variables\": null}")
+	gqlReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/graphql", "127.0.0.1:9393"), body)
+	if err != nil {
+		t.Error("could not issue new http request ", err)
+	}
+	gqlReq.Header.Set("Content-Type", "application/json")
+	// read from response
+	resp := doHTTPRequest(t, gqlReq)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("could not read from response body: %v", err)
+	}
+	expected := "{\"errors\":[{\"message\":\"Cannot query field \\\"bleh\\\" on type \\\"Query\\\".\",\"locations\":[{\"line\":1,\"column\":2}]}]}"
+	assert.Equal(t, expected, string(bodyBytes))
+	assert.Equal(t, 400, resp.StatusCode)
 }
 
 func createNode(t *testing.T, gqlEnabled bool) *node.Node {
@@ -105,8 +144,28 @@ func createNode(t *testing.T, gqlEnabled bool) *node.Node {
 }
 
 func createGQLService(t *testing.T, stack *node.Node, endpoint string) {
-	// create backend
-	xcbBackend, err := xcb.New(stack, &xcb.DefaultConfig)
+	addr, err := common.HexToAddress("cb27de521e43741cf785cbad450d5649187b9612018f")
+	if err != nil {
+		t.Error(err)
+	}
+	// create backend (use a config which is light on mem consumption)
+	xcbConf := &xcb.Config{
+		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
+		Miner: miner.Config{
+			Corebase: addr,
+		},
+		Cryptore: cryptore.Config{
+			PowMode: cryptore.ModeTest,
+		},
+		NetworkId:               1337,
+		TrieCleanCache:          5,
+		TrieCleanCacheJournal:   "triecache",
+		TrieCleanCacheRejournal: 60 * time.Minute,
+		TrieDirtyCache:          5,
+		TrieTimeout:             60 * time.Minute,
+		SnapshotCache:           5,
+	}
+	xcbBackend, err := xcb.New(stack, xcbConf)
 	if err != nil {
 		t.Fatalf("could not create xcb backend: %v", err)
 	}

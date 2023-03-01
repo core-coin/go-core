@@ -84,7 +84,7 @@ func faucetHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "faucet.html", size: 10361, mode: os.FileMode(0664), modTime: time.Unix(1653306979, 0)}
+	info := bindataFileInfo{name: "faucet.html", size: 10361, mode: os.FileMode(0664), modTime: time.Unix(1677532410, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4b, 0xf1, 0x71, 0x66, 0x62, 0x76, 0x8e, 0xce, 0xe7, 0xde, 0x64, 0xa4, 0x3f, 0xa0, 0xbb, 0xf9, 0xa6, 0xec, 0x3c, 0x54, 0x81, 0xcb, 0x7b, 0x4d, 0xce, 0xbd, 0x54, 0x12, 0x0, 0xf, 0x3b, 0xfa}}
 	return a, nil
 }
@@ -190,11 +190,13 @@ const AssetDebug = false
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//     data/
-//       foo.txt
-//       img/
-//         a.png
-//         b.png
+//
+//	data/
+//	  foo.txt
+//	  img/
+//	    a.png
+//	    b.png
+//
 // then AssetDir("data") would return []string{"foo.txt", "img"},
 // AssetDir("data/img") would return []string{"a.png", "b.png"},
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error, and

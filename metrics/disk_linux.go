@@ -21,11 +21,12 @@ package metrics
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/sys/unix"
 	"io"
 	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/sys/unix"
 )
 
 // ReadDiskStats retrieves the disk IO stats belonging to the current process.

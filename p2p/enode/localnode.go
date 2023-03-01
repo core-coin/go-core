@@ -18,7 +18,6 @@ package enode
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"reflect"
 	"strconv"
@@ -26,9 +25,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 type LocalNode struct {
 	cur atomic.Value // holds a non-nil node pointer while the record is up-to-date.
 	id  ID
-	key *eddsa.PrivateKey
+	key *crypto.PrivateKey
 	db  *DB
 
 	// everything below is protected by a lock
@@ -62,10 +62,9 @@ type lnEndpoint struct {
 }
 
 // NewLocalNode creates a local node.
-func NewLocalNode(db *DB, key *eddsa.PrivateKey) *LocalNode {
-	pub := eddsa.Ed448DerivePublicKey(*key)
+func NewLocalNode(db *DB, key *crypto.PrivateKey) *LocalNode {
 	ln := &LocalNode{
-		id:      PubkeyToIDV4(&pub),
+		id:      PubkeyToIDV4(key.PublicKey()),
 		db:      db,
 		key:     key,
 		entries: make(map[string]enr.Entry),

@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -20,8 +20,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/internal/flags"
 )
 
 const (
@@ -29,14 +30,14 @@ const (
 )
 
 // Git SHA1 commit hash of the release (set via linker flags)
-var gitTag    = ""
+var gitTag = ""
 var gitCommit = ""
-var gitDate   = ""
+var gitDate = ""
 
 var app *cli.App
 
 func init() {
-	app = utils.NewApp(gitTag, gitCommit, gitDate, "an Core key manager")
+	app = flags.NewApp(gitTag, gitCommit, gitDate, "an Core key manager")
 	app.Commands = []cli.Command{
 		commandGenerate,
 		commandInspect,
@@ -44,7 +45,7 @@ func init() {
 		commandSignMessage,
 		commandVerifyMessage,
 	}
-	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
+	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
 
 // Commonly used command line flags.

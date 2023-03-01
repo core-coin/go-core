@@ -1,4 +1,4 @@
 This package is an early prototype of Discovery v5. Do not use this code.
 
-See https://github.com/core-coin/devp2p/blob/master/discv5/discv5.md for the
+See https://github.com/core/devp2p/blob/master/discv5/discv5.md for the
 current Discovery v5 specification.

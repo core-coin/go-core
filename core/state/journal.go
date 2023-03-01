@@ -19,7 +19,7 @@ package state
 import (
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // journalEntry is a modification entry in the state change journal that can be

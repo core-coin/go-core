@@ -22,11 +22,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Test light syncing which will download all headers from genesis.
@@ -39,11 +39,11 @@ func TestLegacyCheckpointSyncingLes3(t *testing.T) { testCheckpointSyncing(t, 3,
 // Test checkpoint syncing which will download tail headers based
 // on a verified checkpoint.
 func TestCheckpointSyncingLes3(t *testing.T) {
-	t.Skip("sync_test.go line 85 trying to use `v` parameter in a new signature so it doesn't pass")
+	t.Skip("reimplement CheckpointOralce with ed448")
 	testCheckpointSyncing(t, 3, 2)
 }
 
-func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: TEST
+func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) {
 	config := light.TestServerIndexerConfig
 
 	waitIndexers := func(cIndexer, bIndexer, btIndexer *core.ChainIndexer) {
@@ -53,10 +53,10 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			if cs >= 1 && bts >= 1 {
 				break
 			}
-			time.Sleep(20 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
-	// Generate 512+4 blocks (totally 1 CHT sections)
+	// Generate 128+1 blocks (totally 1 CHT sections)
 	server, client, tearDown := newClientServerEnv(t, int(config.ChtSize+config.ChtConfirms), protocol, waitIndexers, nil, 0, false, false, true)
 	defer tearDown()
 
@@ -82,7 +82,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 
 			data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
 			sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
-			//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+			sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 			auth, _ := bind.NewKeyedTransactorWithNetworkID(signerKey, big.NewInt(1337))
 			if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(auth, cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 				t.Error("register checkpoint failed", err)
@@ -93,7 +93,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			for {
 				_, hash, _, err := server.handler.server.oracle.Contract().Contract().GetLatestCheckpoint(nil)
 				if err != nil || hash == [32]byte{} {
-					time.Sleep(20 * time.Millisecond)
+					time.Sleep(10 * time.Millisecond)
 					continue
 				}
 				break
@@ -126,7 +126,7 @@ func testCheckpointSyncing(t *testing.T, protocol int, syncMode int) { //TODO: T
 			t.Error("sync failed", err)
 		}
 		return
-	case <-time.NewTimer(25 * time.Second).C:
+	case <-time.NewTimer(10 * time.Second).C:
 		t.Error("checkpoint syncing timeout")
 	}
 }
@@ -135,7 +135,7 @@ func TestMissOracleBackend(t *testing.T)             { testMissOracleBackend(t, 
 func TestMissOracleBackendNoCheckpoint(t *testing.T) { testMissOracleBackend(t, false) }
 
 func testMissOracleBackend(t *testing.T, hasCheckpoint bool) {
-	t.Skip("sync_test.go line 168 trying to use `v` parameter in a new signature so it doesn't pass")
+	t.Skip("reimplement CheckpointOralce with ed448")
 	config := light.TestServerIndexerConfig
 
 	waitIndexers := func(cIndexer, bIndexer, btIndexer *core.ChainIndexer) {
@@ -166,7 +166,7 @@ func testMissOracleBackend(t *testing.T, hasCheckpoint bool) {
 
 	data := append([]byte{0x19, 0x00}, append(registrarAddr.Bytes(), append([]byte{0, 0, 0, 0, 0, 0, 0, 0}, cp.Hash().Bytes()...)...)...)
 	sig, _ := crypto.Sign(crypto.SHA3(data), signerKey)
-	//sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+	sig[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	auth, _ := bind.NewKeyedTransactorWithNetworkID(signerKey, big.NewInt(1337))
 	if _, err := server.handler.server.oracle.Contract().RegisterCheckpoint(auth, cp.SectionIndex, cp.Hash().Bytes(), new(big.Int).Sub(header.Number, big.NewInt(1)), header.ParentHash, [][]byte{sig}); err != nil {
 		t.Error("register checkpoint failed", err)
@@ -188,7 +188,7 @@ func testMissOracleBackend(t *testing.T, hasCheckpoint bool) {
 	// that user wants to unlock something which blocks the oracle backend
 	// initialisation. But at the same time syncing starts.
 	//
-	// See https://github.com/core-coin/go-core/issues/20097 for more detail.
+	// See https://github.com/core-coin/go-core/v2/issues/20097 for more detail.
 	//
 	// In this case, client should run light sync or legacy checkpoint sync
 	// if hardcoded checkpoint is configured.

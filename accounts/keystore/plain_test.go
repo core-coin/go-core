@@ -24,10 +24,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 func tmpKeyStoreIface(t *testing.T, encrypted bool) (dir string, ks keyStore) {
@@ -59,7 +58,7 @@ func TestKeyStorePlain(t *testing.T) {
 	if !reflect.DeepEqual(k1.Address, k2.Address) {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(k1.PrivateKey, k2.PrivateKey) {
+	if !reflect.DeepEqual(k1.PrivateKey.PrivateKey(), k2.PrivateKey.PrivateKey()) {
 		t.Fatal(err)
 	}
 }
@@ -99,32 +98,6 @@ func TestKeyStorePassphraseDecryptionFail(t *testing.T) {
 	}
 }
 
-func TestImportPreSaleKey(t *testing.T) {
-	t.Skip()
-	dir, ks := tmpKeyStoreIface(t, true)
-	defer os.RemoveAll(dir)
-
-	// file content of a presale key file generated with:
-	// python pyxcbsaletool.py genwallet
-	// with password "foo"
-	fileContent := "{\"encseed\": \"26d87f5f2bf9835f9a47eefae571bc09f9107bb13d54ff12a4ec095d01f83897494cf34f7bed2ed34126ecba9db7b62de56c9d7cd136520a0427bfb11b8954ba7ac39b90d4650d3448e31185affcd74226a68f1e94b1108e6e0a4a91cdd83eba\", \"xcbaddr\": \"d4584b5f6229b7be90727b0fc8c6b91bb427821f\", \"email\": \"gustav.simonsson@gmail.com\", \"btcaddr\": \"1EVknXyFC68kKNLkh6YnKzW41svSRoaAcx\"}"
-	pass := "foo"
-	account, _, err := importPreSaleKey(ks, []byte(fileContent), pass)
-	if err != nil {
-		t.Fatal(err)
-	}
-	matchAddr, err := common.HexToAddress("cbd4584b5f6229b7be90727b0fc8c6b91bb427821f")
-	if err != nil {
-		t.Error(err)
-	}
-	if account.Address != matchAddr {
-		t.Errorf("imported account has wrong address %x", account.Address)
-	}
-	if !strings.HasPrefix(account.URL.Path, dir) {
-		t.Errorf("imported account file not in keystore directory: %q", account.URL)
-	}
-}
-
 // Test and utils for the key store tests in the Core JSON tests;
 // testdataKeyStoreTests/basic_tests.json
 type KeyStoreTestV3 struct {
@@ -133,12 +106,39 @@ type KeyStoreTestV3 struct {
 	Priv     string
 }
 
+func TestV3_PBKDF2_1(t *testing.T) {
+	t.Parallel()
+	tests := loadKeyStoreTestV3("testdata/v3_test_vector.json", t)
+	testDecryptV3(tests["wikipage_test_vector_pbkdf2"], t)
+}
+
 var testsSubmodule = filepath.Join("..", "..", "tests", "testdata", "KeyStoreTests")
 
 func skipIfSubmoduleMissing(t *testing.T) {
 	if !common.FileExist(testsSubmodule) {
 		t.Skipf("can't find JSON tests from submodule at %s", testsSubmodule)
 	}
+}
+
+func TestV3_PBKDF2_2(t *testing.T) {
+	skipIfSubmoduleMissing(t)
+	t.Parallel()
+	tests := loadKeyStoreTestV3(filepath.Join(testsSubmodule, "basic_tests.json"), t)
+	testDecryptV3(tests["test1"], t)
+}
+
+func TestV3_PBKDF2_3(t *testing.T) {
+	skipIfSubmoduleMissing(t)
+	t.Parallel()
+	tests := loadKeyStoreTestV3(filepath.Join(testsSubmodule, "basic_tests.json"), t)
+	testDecryptV3(tests["python_generated_test_with_odd_iv"], t)
+}
+
+func TestV3_PBKDF2_4(t *testing.T) {
+	skipIfSubmoduleMissing(t)
+	t.Parallel()
+	tests := loadKeyStoreTestV3(filepath.Join(testsSubmodule, "basic_tests.json"), t)
+	testDecryptV3(tests["evilnonce"], t)
 }
 
 func TestV3_Scrypt_1(t *testing.T) {
@@ -172,4 +172,16 @@ func loadKeyStoreTestV3(file string, t *testing.T) map[string]KeyStoreTestV3 {
 		t.Fatal(err)
 	}
 	return tests
+}
+
+func TestV3_31_Byte_Key(t *testing.T) {
+	t.Parallel()
+	tests := loadKeyStoreTestV3("testdata/v3_test_vector.json", t)
+	testDecryptV3(tests["31_byte_key"], t)
+}
+
+func TestV3_30_Byte_Key(t *testing.T) {
+	t.Parallel()
+	tests := loadKeyStoreTestV3("testdata/v3_test_vector.json", t)
+	testDecryptV3(tests["30_byte_key"], t)
 }

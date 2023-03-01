@@ -17,14 +17,14 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 // UDPConn is a network connection on which discovery can operate.
@@ -38,7 +38,7 @@ type UDPConn interface {
 // Config holds settings for the discovery listener.
 type Config struct {
 	// These settings are required and configure the UDP listener:
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey *crypto.PrivateKey
 
 	// These settings are optional:
 	NetRestrict  *netutil.Netlist   // network whitelist

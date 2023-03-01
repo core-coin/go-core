@@ -84,7 +84,7 @@ func bignumberJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bignumber.js", size: 17314, mode: os.FileMode(0664), modTime: time.Unix(1653306979, 0)}
+	info := bindataFileInfo{name: "bignumber.js", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5b, 0x75, 0xfc, 0x15, 0x5e, 0x7d, 0x27, 0x1a, 0x9a, 0xb5, 0xfb, 0x16, 0x90, 0xf4, 0x93, 0xac, 0xcb, 0x6c, 0x9c, 0xcd, 0x68, 0xe6, 0xd0, 0x3a, 0xcf, 0xa3, 0x83, 0x5c, 0x20, 0x34, 0x66, 0x45}}
 	return a, nil
 }
@@ -190,11 +190,13 @@ const AssetDebug = false
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//     data/
-//       foo.txt
-//       img/
-//         a.png
-//         b.png
+//
+//	data/
+//	  foo.txt
+//	  img/
+//	    a.png
+//	    b.png
+//
 // then AssetDir("data") would return []string{"foo.txt", "img"},
 // AssetDir("data/img") would return []string{"a.png", "b.png"},
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error, and

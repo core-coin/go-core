@@ -30,15 +30,14 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/consensus/clique"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 type SigFormat struct {
@@ -99,7 +98,7 @@ func (t *Type) isReferenceType() bool {
 	if len(t.Type) == 0 {
 		return false
 	}
-	// Reference types must have a leading uppercase characer
+	// Reference types must have a leading uppercase character
 	return unicode.IsUpper([]rune(t.Type)[0])
 }
 
@@ -124,9 +123,9 @@ var typedDataReferenceTypeRegexp = regexp.MustCompile(`^[A-Z](\w*)(\[\])?$`)
 
 // sign receives a request and produces a signature
 //
-// Note, the produced signature conforms to the secp256k1 curve R, S and V values,
+// Note, the produced signature conforms to the ed448 curve R, S and V values,
 // where the V value will be 27 or 28 for legacy reasons, if legacyV==true.
-func (api *SignerAPI) sign(addr common.Address, req *SignDataRequest, legacyV bool) (hexutil.Bytes, error) {
+func (api *SignerAPI) sign(req *SignDataRequest, legacyV bool) (hexutil.Bytes, error) {
 	// We make the request prior to looking up if we actually have the account, to prevent
 	// account-enumeration via the API
 	res, err := api.UI.ApproveSignData(req)
@@ -137,7 +136,7 @@ func (api *SignerAPI) sign(addr common.Address, req *SignDataRequest, legacyV bo
 		return nil, ErrRequestDenied
 	}
 	// Look up the wallet containing the requested signer
-	account := accounts.Account{Address: addr}
+	account := accounts.Account{Address: req.Address}
 	wallet, err := api.am.Find(account)
 	if err != nil {
 		return nil, err
@@ -154,7 +153,7 @@ func (api *SignerAPI) sign(addr common.Address, req *SignDataRequest, legacyV bo
 		return nil, err
 	}
 	if legacyV {
-		//signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+		signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 	}
 	return signature, nil
 }
@@ -168,7 +167,7 @@ func (api *SignerAPI) SignData(ctx context.Context, contentType string, addr com
 	if err != nil {
 		return nil, err
 	}
-	signature, err := api.sign(addr, req, transformV)
+	signature, err := api.sign(req, transformV)
 	if err != nil {
 		api.UI.ShowError(err.Error())
 		return nil, err
@@ -261,7 +260,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
 	default: // also case TextPlain.Mime:
 		// Calculates an Core EDDSA signature for:
-		// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
+		// hash = SHA3("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 		// We expect it to be a string
 		if stringData, ok := data.(string); !ok {
 			return nil, useCoreV, fmt.Errorf("input for text/plain must be an hex-encoded string")
@@ -288,20 +287,22 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 
 // SignTextWithValidator signs the given message which can be further recovered
 // with the given validator.
-// hash = keccak256("\x19\x00"${address}${data}).
+// hash = SHA3("\x19\x00"${address}${data}).
 func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 	msg := fmt.Sprintf("\x19\x00%s%s", string(validatorData.Address.Bytes()), string(validatorData.Message))
 	return crypto.SHA3([]byte(msg)), msg
 }
 
 // cliqueHeaderHashAndRlp returns the hash which is used as input for the proof-of-authority
+// signing. It is the hash of the entire header apart from the 65 byte signature
+// contained at the end of the extra data.
 //
 // The method requires the extra data to be at least 65 bytes -- the original implementation
 // in clique.go panics if this is the case, thus it's been reimplemented here to avoid the panic
 // and simply return an error instead
 func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
 	if len(header.Extra) < crypto.ExtendedSignatureLength {
-		err = fmt.Errorf("clique header extradata too short, %d < %d", len(header.Extra), crypto.ExtendedSignatureLength)
+		err = fmt.Errorf("clique header extradata too short, %d < crypto.ExtendedSignatureLength", len(header.Extra))
 		return
 	}
 	rlp = clique.CliqueRLP(header)
@@ -310,32 +311,51 @@ func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) 
 }
 
 // SignTypedData signs CIP-712 conformant typed data
-// hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
+// hash = SHA3("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
+// It returns
+// - the signature,
+// - and/or any error
 func (api *SignerAPI) SignTypedData(ctx context.Context, addr common.Address, typedData TypedData) (hexutil.Bytes, error) {
+	signature, _, err := api.signTypedData(ctx, addr, typedData, nil)
+	return signature, err
+}
+
+// signTypedData is identical to the capitalized version, except that it also returns the hash (preimage)
+// - the signature preimage (hash)
+func (api *SignerAPI) signTypedData(ctx context.Context, addr common.Address,
+	typedData TypedData, validationMessages *ValidationMessages) (hexutil.Bytes, hexutil.Bytes, error) {
 	domainSeparator, err := typedData.HashStruct("CIP712Domain", typedData.Domain.Map())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
 	sighash := crypto.SHA3(rawData)
 	messages, err := typedData.Format()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	req := &SignDataRequest{ContentType: DataTyped.Mime, Rawdata: rawData, Messages: messages, Hash: sighash}
-	signature, err := api.sign(addr, req, true)
+	req := &SignDataRequest{
+		ContentType: DataTyped.Mime,
+		Rawdata:     rawData,
+		Messages:    messages,
+		Hash:        sighash,
+		Address:     addr}
+	if validationMessages != nil {
+		req.Callinfo = validationMessages.Messages
+	}
+	signature, err := api.sign(req, true)
 	if err != nil {
 		api.UI.ShowError(err.Error())
-		return nil, err
+		return nil, nil, err
 	}
-	return signature, nil
+	return signature, sighash, nil
 }
 
-// HashStruct generates a keccak256 hash of the encoding of the provided data
+// HashStruct generates a SHA3 hash of the encoding of the provided data
 func (typedData *TypedData) HashStruct(primaryType string, data TypedDataMessage) (hexutil.Bytes, error) {
 	encodedData, err := typedData.EncodeData(primaryType, data, 1)
 	if err != nil {
@@ -402,7 +422,7 @@ func (typedData *TypedData) EncodeType(primaryType string) hexutil.Bytes {
 	return buffer.Bytes()
 }
 
-// TypeHash creates the keccak256 hash  of the data
+// TypeHash creates the SHA3 hash  of the data
 func (typedData *TypedData) TypeHash(primaryType string) hexutil.Bytes {
 	return crypto.SHA3(typedData.EncodeType(primaryType))
 }
@@ -419,8 +439,8 @@ func (typedData *TypedData) EncodeData(primaryType string, data map[string]inter
 	buffer := bytes.Buffer{}
 
 	// Verify extra data
-	if len(typedData.Types[primaryType]) < len(data) {
-		return nil, errors.New("there is extra data provided in the message")
+	if exp, got := len(typedData.Types[primaryType]), len(data); exp < got {
+		return nil, fmt.Errorf("there is extra data provided in the message (%d < %d)", exp, got)
 	}
 
 	// Add typehash
@@ -486,7 +506,7 @@ func parseBytes(encType interface{}) ([]byte, bool) {
 	case []byte:
 		return v, true
 	case hexutil.Bytes:
-		return []byte(v), true
+		return v, true
 	case string:
 		bytes, err := hexutil.Decode(v)
 		if err != nil {
@@ -610,7 +630,7 @@ func (typedData *TypedData) EncodePrimitiveValue(encType string, encValue interf
 		if err != nil {
 			return nil, err
 		}
-		return abi.U256(b), nil
+		return math.U256Bytes(b), nil
 	}
 	return nil, fmt.Errorf("unrecognized type '%s'", encType)
 
@@ -629,15 +649,17 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	//
 	// Note, this function is compatible with xcb_sign and personal_sign. As such it recovers
 	// the address of:
-	// hash = keccak256("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
+	// hash = SHA3("\x19${byteVersion}Core Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
-	//
-	hash := accounts.TextHash(data)
-	rpk, err := crypto.SigToPub(hash, sig)
+	pubBytes, err := crypto.Ecrecover(data, sig)
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*rpk), nil
+	pub, err := crypto.UnmarshalPubKey(pubBytes)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return crypto.PubkeyToAddress(pub), nil
 }
 
 // UnmarshalValidatorData converts the bytes input to typed data
@@ -830,7 +852,11 @@ func (nvt *NameValueType) Pprint(depth int) string {
 			output.WriteString(sublevel)
 		}
 	} else {
-		output.WriteString(fmt.Sprintf("%q\n", nvt.Value))
+		if nvt.Value != nil {
+			output.WriteString(fmt.Sprintf("%q\n", nvt.Value))
+		} else {
+			output.WriteString("\n")
+		}
 	}
 	return output.String()
 }
@@ -843,23 +869,23 @@ func (t Types) validate() error {
 		}
 		for i, typeObj := range typeArr {
 			if len(typeObj.Type) == 0 {
-				return fmt.Errorf("type %v:%d: empty Type", typeKey, i)
+				return fmt.Errorf("type %q:%d: empty Type", typeKey, i)
 			}
 			if len(typeObj.Name) == 0 {
-				return fmt.Errorf("type %v:%d: empty Name", typeKey, i)
+				return fmt.Errorf("type %q:%d: empty Name", typeKey, i)
 			}
 			if typeKey == typeObj.Type {
-				return fmt.Errorf("type '%s' cannot reference itself", typeObj.Type)
+				return fmt.Errorf("type %q cannot reference itself", typeObj.Type)
 			}
 			if typeObj.isReferenceType() {
 				if _, exist := t[typeObj.typeName()]; !exist {
-					return fmt.Errorf("reference type '%s' is undefined", typeObj.Type)
+					return fmt.Errorf("reference type %q is undefined", typeObj.Type)
 				}
 				if !typedDataReferenceTypeRegexp.MatchString(typeObj.Type) {
-					return fmt.Errorf("unknown reference type '%s", typeObj.Type)
+					return fmt.Errorf("unknown reference type %q", typeObj.Type)
 				}
 			} else if !isPrimitiveTypeValid(typeObj.Type) {
-				return fmt.Errorf("unknown type '%s'", typeObj.Type)
+				return fmt.Errorf("unknown type %q", typeObj.Type)
 			}
 		}
 	}

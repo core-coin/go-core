@@ -73,7 +73,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			Transaction tx = new Transaction(
 				1, new Address("0x0000000000000000000000000000000000000000"),
 				new BigInt(0), 0, new BigInt(1), null); // Random empty transaction
-			BigInt chain = new BigInt(1); // Network identifier of the main net
+			BigInt chain = new BigInt(1); // Chain identifier of the main net
 
 			// Sign a transaction with a single authorization
 			Transaction signed = ks.signTxPassphrase(signer, "Signer password", tx, chain);
@@ -133,7 +133,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			Transaction postCIP155 = new Transaction(postCIP155RLP);
 
 			preCIP155.getFrom(null);           // Homestead should accept homestead
-			preCIP155.getFrom(new BigInt(4));  // CIP155 should accept homestead (missing network ID)
+			preCIP155.getFrom(new BigInt(4));  // CIP155 should accept homestead (missing chain ID)
 			postCIP155.getFrom(new BigInt(4)); // CIP155 should accept CIP 155
 
 			try {
@@ -208,7 +208,7 @@ func TestAndroid(t *testing.T) {
 		}
 	}
 	// Generate the mobile bindings for Gocore and add the tester class
-	gobind := exec.Command("gomobile", "bind", "-javapkg", "cc.coreblockchain", "github.com/core-coin/go-core/mobile")
+	gobind := exec.Command("gomobile", "bind", "-javapkg", "cc.coreblockchain", "github.com/core-coin/go-core/v2/mobile")
 	if output, err := gobind.CombinedOutput(); err != nil {
 		t.Logf("%s", output)
 		t.Fatalf("failed to run gomobile bind: %v", err)

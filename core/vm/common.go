@@ -19,8 +19,8 @@ package vm
 import (
 	"github.com/core-coin/uint256"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 // calcMemSize64 calculates the required memory size, and returns
@@ -71,4 +71,13 @@ func toWordSize(size uint64) uint64 {
 	}
 
 	return (size + 31) / 32
+}
+
+func allZero(b []byte) bool {
+	for _, byte := range b {
+		if byte != 0 {
+			return false
+		}
+	}
+	return true
 }

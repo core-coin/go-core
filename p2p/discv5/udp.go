@@ -20,15 +20,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/netutil"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 const Version = 4
@@ -136,7 +135,7 @@ type (
 var (
 	versionPrefix     = []byte("temporary discovery v5")
 	versionPrefixSize = len(versionPrefix)
-	sigSize           = 520 / 8
+	sigSize           = crypto.ExtendedSignatureLength
 	headSize          = versionPrefixSize + sigSize // space of packet frame data
 )
 
@@ -215,20 +214,19 @@ type conn interface {
 // udp implements the RPC protocol.
 type udp struct {
 	conn        conn
-	priv        *eddsa.PrivateKey
+	priv        *crypto.PrivateKey
 	ourEndpoint rpcEndpoint
 	net         *Network
 }
 
 // ListenUDP returns a new table that listens for UDP packets on laddr.
-func ListenUDP(priv *eddsa.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func ListenUDP(priv *crypto.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	transport, err := listenUDP(priv, conn, realaddr)
 	if err != nil {
 		return nil, err
 	}
-	pub := eddsa.Ed448DerivePublicKey(*priv)
-	net, err := newNetwork(transport, pub, nodeDBPath, netrestrict)
+	net, err := newNetwork(transport, *priv.PublicKey(), nodeDBPath, netrestrict)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +236,7 @@ func ListenUDP(priv *eddsa.PrivateKey, conn conn, nodeDBPath string, netrestrict
 	return net, nil
 }
 
-func listenUDP(priv *eddsa.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
+func listenUDP(priv *crypto.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
 	return &udp{conn: conn, priv: priv, ourEndpoint: makeEndpoint(realaddr, uint16(realaddr.Port))}, nil
 }
 
@@ -332,7 +330,7 @@ func (t *udp) sendPacket(toid NodeID, toaddr *net.UDPAddr, ptype byte, req inter
 // zeroed padding space for encodePacket.
 var headSpace = make([]byte, headSize)
 
-func encodePacket(priv *eddsa.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
+func encodePacket(priv *crypto.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)

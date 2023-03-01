@@ -16,7 +16,12 @@
 
 package utils
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+
+	"github.com/core-coin/go-core/v2/log"
+)
 
 type (
 	// WeightedRandomSelect is capable of weighted random selection from a set of items
@@ -52,6 +57,14 @@ func (w *WeightedRandomSelect) IsEmpty() bool {
 
 // setWeight sets an item's weight to a specific value (removes it if zero)
 func (w *WeightedRandomSelect) setWeight(item WrsItem, weight uint64) {
+	if weight > math.MaxInt64-w.root.sumWeight {
+		// old weight is still included in sumWeight, remove and check again
+		w.setWeight(item, 0)
+		if weight > math.MaxInt64-w.root.sumWeight {
+			log.Error("WeightedRandomSelect overflow", "sumWeight", w.root.sumWeight, "new weight", weight)
+			weight = math.MaxInt64 - w.root.sumWeight
+		}
+	}
 	idx, ok := w.idx[item]
 	if ok {
 		w.root.setWeight(idx, weight)

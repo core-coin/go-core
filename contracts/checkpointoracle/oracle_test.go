@@ -21,20 +21,19 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind/backends"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/contracts/checkpointoracle/contract"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
@@ -122,7 +121,7 @@ func validateEvents(target int, sink interface{}) (bool, []reflect.Value) {
 	return chose == 1, recv
 }
 
-func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uint64, hash common.Hash) []byte {
+func signCheckpoint(addr common.Address, privateKey *crypto.PrivateKey, index uint64, hash common.Hash) []byte {
 	// CIP 191 style signatures
 	//
 	// Arguments when calculating hash to validate
@@ -142,11 +141,11 @@ func signCheckpoint(addr common.Address, privateKey *eddsa.PrivateKey, index uin
 }
 
 // assertSignature verifies whether the recovered signers are equal with expected.
-func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]byte, v uint8, expect common.Address) bool {
+func assertSignature(addr common.Address, index uint64, hash [32]byte, expect common.Address) bool {
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, index)
 	data := append([]byte{0x19, 0x00}, append(addr.Bytes(), append(buf, hash[:]...)...)...)
-	pubkey, err := crypto.Ecrecover(crypto.SHA3(data), append(r[:], append(s[:], v-27)...))
+	pubkey, err := crypto.Ecrecover(crypto.SHA3(data), []byte{}) // pass signature
 	if err != nil {
 		return false
 	}
@@ -156,7 +155,7 @@ func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]
 }
 
 type Account struct {
-	key  *eddsa.PrivateKey
+	key  *crypto.PrivateKey
 	addr common.Address
 }
 type Accounts []Account
@@ -171,9 +170,7 @@ func TestCheckpointRegister(t *testing.T) {
 	var accounts Accounts
 	for i := 0; i < 3; i++ {
 		key, _ := crypto.GenerateKey(rand.Reader)
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		addr := crypto.PubkeyToAddress(pub)
-		accounts = append(accounts, Account{key: key, addr: addr})
+		accounts = append(accounts, Account{key: key, addr: key.Address()})
 	}
 	sort.Sort(accounts)
 
@@ -197,15 +194,12 @@ func TestCheckpointRegister(t *testing.T) {
 		return parentNumber, parentHash
 	}
 	// collectSig generates specified number signatures.
-	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *eddsa.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
+	collectSig := func(index uint64, hash common.Hash, n int, unauthorized *crypto.PrivateKey) (v []uint8, r [][32]byte, s [][32]byte) {
 		for i := 0; i < n; i++ {
 			_ = signCheckpoint(contractAddr, accounts[i].key, index, hash)
 			if unauthorized != nil {
 				_ = signCheckpoint(contractAddr, unauthorized, index, hash)
 			}
-			//r = append(r, common.BytesToHash(sig[:32]))
-			//s = append(s, common.BytesToHash(sig[32:64]))
-			//v = append(v, sig[64])
 		}
 		return v, r, s
 	}
@@ -285,7 +279,7 @@ func TestCheckpointRegister(t *testing.T) {
 		} else {
 			for i := 0; i < len(recv); i++ {
 				event := recv[i].Interface().(*contract.CheckpointOracleNewCheckpointVote)
-				if !assertSignature(contractAddr, event.Index, event.CheckpointHash, event.R, event.S, event.V, accounts[i].addr) {
+				if !assertSignature(contractAddr, event.Index, event.CheckpointHash, accounts[i].addr) {
 					return errors.New("recover signer failed")
 				}
 			}
@@ -308,7 +302,7 @@ func TestCheckpointRegister(t *testing.T) {
 		} else {
 			for i := 0; i < len(recv); i++ {
 				event := recv[i].Interface().(*contract.CheckpointOracleNewCheckpointVote)
-				if !assertSignature(contractAddr, event.Index, event.CheckpointHash, event.R, event.S, event.V, accounts[i].addr) {
+				if !assertSignature(contractAddr, event.Index, event.CheckpointHash, accounts[i].addr) {
 					return errors.New("recover signer failed")
 				}
 			}

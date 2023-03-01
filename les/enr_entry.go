@@ -17,10 +17,9 @@
 package les
 
 import (
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // lesEntry is the "les" ENR entry. This is set for LES servers only.
@@ -35,8 +34,8 @@ func (e lesEntry) ENRKey() string {
 }
 
 // setupDiscovery creates the node discovery source for the xcb protocol.
-func (xcb *LightCore) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
-	if /*cfg.NoDiscovery || */ len(xcb.config.DiscoveryURLs) == 0 {
+func (xcb *LightCore) setupDiscovery() (enode.Iterator, error) {
+	if len(xcb.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}
 	client := dnsdisc.NewClient(dnsdisc.Config{})

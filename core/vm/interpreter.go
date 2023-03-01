@@ -20,8 +20,8 @@ import (
 	"hash"
 	"sync/atomic"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 // Config are the configuration options for the Interpreter
@@ -35,8 +35,6 @@ type Config struct {
 
 	EWASMInterpreter string // External EWASM interpreter options
 	CVMInterpreter   string // External CVM interpreter options
-
-	ExtraCips []int // Additional CIPS that are to be enabled
 }
 
 // Interpreter is used to run Core based contracts and will utilise the
@@ -96,12 +94,7 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 	// the jump table was initialised. If it was not
 	// we'll set the default jump table.
 	if cfg.JumpTable[STOP] == nil {
-		var jt JumpTable
-		switch {
-		default:
-			jt = InstructionSet
-		}
-		cfg.JumpTable = jt
+		cfg.JumpTable = InstructionSet
 	}
 
 	return &CVMInterpreter{
@@ -117,6 +110,7 @@ func NewCVMInterpreter(cvm *CVM, cfg Config) *CVMInterpreter {
 // considered a revert-and-consume-all-energy operation except for
 // ErrExecutionReverted which means revert-and-keep-energy-left.
 func (in *CVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
+
 	// Increment the call depth which is restricted to 1024
 	in.cvm.depth++
 	defer func() { in.cvm.depth-- }()

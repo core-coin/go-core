@@ -18,21 +18,20 @@
 package main
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"flag"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/discover"
-	"github.com/core-coin/go-core/p2p/discv5"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/discover"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 func main() {
@@ -42,13 +41,13 @@ func main() {
 		writeAddr   = flag.Bool("writeaddress", false, "write out the node's public key and quit")
 		nodeKeyFile = flag.String("nodekey", "", "private key filename")
 		nodeKeyHex  = flag.String("nodekeyhex", "", "private key as hex (for testing)")
-		natdesc     = flag.String("nat", "none", "port mapping mechanism (any|auto|none|upnp|pmp|extip:<IP>)")
+		natdesc     = flag.String("nat", "none", "port mapping mechanism (any|none|upnp|pmp|extip:<IP>)")
 		netrestrict = flag.String("netrestrict", "", "restrict network communication to the given IP networks (CIDR masks)")
 		runv5       = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
-		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
+		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-5)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
 
-		nodeKey *eddsa.PrivateKey
+		nodeKey *crypto.PrivateKey
 		err     error
 	)
 	flag.Parse()
@@ -64,12 +63,15 @@ func main() {
 	}
 	switch {
 	case *genKey != "":
-		nodeKey, err = crypto.GenerateKey(rand.Reader)
+		nodeKey, err = crypto.GenerateKey(crand.Reader)
 		if err != nil {
 			utils.Fatalf("could not generate key: %v", err)
 		}
 		if err = crypto.SaveEDDSA(*genKey, nodeKey); err != nil {
 			utils.Fatalf("%v", err)
+		}
+		if !*writeAddr {
+			return
 		}
 	case *nodeKeyFile == "" && *nodeKeyHex == "":
 		utils.Fatalf("Use -nodekey or -nodekeyhex to specify a private key")
@@ -80,16 +82,14 @@ func main() {
 			utils.Fatalf("-nodekey: %v", err)
 		}
 	case *nodeKeyHex != "":
-		if nodeKey, err = crypto.HexToEDDSA(*nodeKeyHex); err != nil {
+		if nodeKey, err = crypto.UnmarshalPrivateKeyHex(*nodeKeyHex); err != nil {
 			utils.Fatalf("-nodekeyhex: %v", err)
 		}
 	}
 
-	if *genKey != "" || *writeAddr {
-		fmt.Printf("%x\n", crypto.FromEDDSA(nodeKey))
-		pub := eddsa.Ed448DerivePublicKey(*nodeKey)
-		fmt.Printf("%x\n", crypto.FromEDDSAPub(&pub))
-		return
+	if *writeAddr {
+		fmt.Printf("%x\n", nodeKey.PublicKey())
+		os.Exit(0)
 	}
 
 	var restrictList *netutil.Netlist
@@ -118,8 +118,8 @@ func main() {
 			realaddr = &net.UDPAddr{IP: ext, Port: realaddr.Port}
 		}
 	}
-	pub := eddsa.Ed448DerivePublicKey(*nodeKey)
-	printNotice(&pub, *realaddr)
+
+	printNotice(nodeKey.PublicKey(), *realaddr)
 
 	if *runv5 {
 		if _, err := discv5.ListenUDP(nodeKey, conn, "", restrictList); err != nil {
@@ -140,11 +140,11 @@ func main() {
 	select {}
 }
 
-func printNotice(nodeKey *eddsa.PublicKey, addr net.UDPAddr) {
+func printNotice(nodeKey *crypto.PublicKey, addr net.UDPAddr) {
 	if addr.IP.IsUnspecified() {
 		addr.IP = net.IP{127, 0, 0, 1}
 	}
-	n := enode.NewV4(nodeKey, addr.IP, addr.Port, addr.Port)
+	n := enode.NewV4(nodeKey, addr.IP, 0, addr.Port)
 	fmt.Println(n.URLv4())
 	fmt.Println("Note: you're using cmd/bootnode, a developer tool.")
 	fmt.Println("We recommend using a regular node as bootstrap node for production deployments.")

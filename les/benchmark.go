@@ -20,23 +20,22 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/les/flowcontrol"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/les/flowcontrol"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // requestBenchmark is an interface for different randomized request generators
@@ -172,15 +171,13 @@ type benchmarkTxSend struct {
 
 func (b *benchmarkTxSend) init(h *serverHandler, count int) error {
 	key, _ := crypto.GenerateKey(crand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	addr := crypto.PubkeyToAddress(pub)
 	signer := types.NewNucleusSigner(big.NewInt(18))
 	b.txs = make(types.Transactions, count)
 
 	for i := range b.txs {
 		data := make([]byte, txSizeCostLimit)
 		rand.Read(data)
-		tx, err := types.SignTx(types.NewTransaction(0, addr, new(big.Int), 0, new(big.Int), data), signer, key)
+		tx, err := types.SignTx(types.NewTransaction(0, key.Address(), new(big.Int), 0, new(big.Int), data), signer, key)
 		if err != nil {
 			panic(err)
 		}

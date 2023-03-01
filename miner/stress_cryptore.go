@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -21,27 +21,29 @@
 package main
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/fdlimit"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 func main() {
@@ -49,10 +51,13 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*eddsa.PrivateKey, 128)
+	faucets := make([]*goldilocks.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
-		faucets[i], _ = crypto.GenerateKey(rand.Reader)
+		faucets[i], _ = crypto.GenerateKey(crand.Reader)
 	}
+	// Pre-generate the cryptore mining DAG so we don't race
+	cryptore.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".cryptore"))
+
 	// Create an Cryptore network based off of the Devin config
 	genesis := makeGenesis(faucets)
 
@@ -75,7 +80,7 @@ func main() {
 		for _, n := range enodes {
 			stack.Server().AddPeer(n)
 		}
-		// Start tracking the node and it's enode
+		// Start tracking the node and its enode
 		nodes = append(nodes, xcbBackend)
 		enodes = append(enodes, stack.Server().Self())
 
@@ -101,8 +106,9 @@ func main() {
 		// Pick a random mining node
 		index := rand.Intn(len(faucets))
 		backend := nodes[index%len(nodes)]
+
 		// Create a self transaction and inject into the pool
-		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000+rand.Int63n(65536)), nil), types.NewNucleusSigner(genesis.Config.NetworkID), faucets[index])
+		tx, err := types.SignTx(types.NewTransaction(nonces[index], faucets[index].Address(), new(big.Int), 21000, big.NewInt(100000000000+rand.Int63n(65536)), nil), types.HomesteadSigner{}, faucets[index])
 		if err != nil {
 			panic(err)
 		}
@@ -120,7 +126,7 @@ func main() {
 
 // makeGenesis creates a custom Cryptore genesis block based on some pre-defined
 // faucet accounts.
-func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
+func makeGenesis(faucets []*goldilocks.PrivateKey) *core.Genesis {
 	genesis := core.DefaultDevinGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
 	genesis.EnergyLimit = 25000000
@@ -130,7 +136,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey) *core.Genesis {
 
 	genesis.Alloc = core.GenesisAlloc{}
 	for _, faucet := range faucets {
-		genesis.Alloc[crypto.PubkeyToAddress(faucet.PublicKey)] = core.GenesisAccount{
+		genesis.Alloc[faucet.Address()] = core.GenesisAccount{
 			Balance: new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil),
 		}
 	}
@@ -150,7 +156,6 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *xcb.Core, error) {
 			NoDiscovery: true,
 			MaxPeers:    25,
 		},
-		NoUSB:             true,
 		UseLightweightKDF: true,
 	}
 	// Create the node and configure a full Core node on it
@@ -166,7 +171,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *xcb.Core, error) {
 		DatabaseHandles: 256,
 		TxPool:          core.DefaultTxPoolConfig,
 		GPO:             xcb.DefaultConfig.GPO,
-		Ethash:          xcb.DefaultConfig.Cryptore,
+		Cryptore:        xcb.DefaultConfig.Cryptore,
 		Miner: miner.Config{
 			EnergyFloor: genesis.EnergyLimit * 9 / 10,
 			EnergyCeil:  genesis.EnergyLimit * 11 / 10,

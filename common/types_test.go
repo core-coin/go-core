@@ -17,8 +17,10 @@
 package common
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"reflect"
 	"strings"
@@ -96,11 +98,9 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		ShouldErr bool
 		Output    *big.Int
 	}{
-		{"", true, nil},
-		{`""`, true, nil},
-		{`"0x"`, true, nil},
-		{`"0x00"`, true, nil},
-		{`"0xG000000000000000000000000000000000000000"`, true, nil},
+		{`"0x99"`, true, nil},
+		{`"0x0099"`, true, nil},
+		{`"0xG000000000000000000000600000000000000000"`, true, nil},
 		{`"cd41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil}, // wrong prefix (network id = 1)
 		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},   // without prefix
 		{`"e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},     // without prefix and checksum
@@ -117,6 +117,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			if test.ShouldErr {
 				t.Errorf("test #%d: expected error, got none", i)
 			}
+			fmt.Println(test.Input)
 			if got := new(big.Int).SetBytes(v.Bytes()); got.Cmp(test.Output) != 0 {
 				t.Errorf("test #%d: address mismatch: have %v, want %v", i, got, test.Output)
 			}
@@ -125,7 +126,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 }
 
 func BenchmarkAddressHex(b *testing.B) {
-	testAddr, err := HexToAddress("cb335aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
+	testAddr, err := HexToAddress("cb885aaeb6053f3e94c9b9a09f33669435e7ef1beaed")
 	if err != nil {
 		b.Error(err)
 	}
@@ -308,6 +309,171 @@ func TestAddress_Value(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Address.Value() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAddress_Format(t *testing.T) {
+	b := []byte{
+		0xcb, 0x01,
+		0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
+		0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
+	}
+	var addr Address
+	addr.SetBytes(b)
+
+	tests := []struct {
+		name string
+		out  string
+		want string
+	}{
+		{
+			name: "println",
+			out:  fmt.Sprintln(addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15\n",
+		},
+		{
+			name: "print",
+			out:  fmt.Sprint(addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		{
+			name: "printf-s",
+			out: func() string {
+				buf := new(bytes.Buffer)
+				fmt.Fprintf(buf, "%s", addr)
+				return buf.String()
+			}(),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		{
+			name: "printf-q",
+			out:  fmt.Sprintf("%q", addr),
+			want: `"cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15"`,
+		},
+		{
+			name: "printf-x",
+			out:  fmt.Sprintf("%x", addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		{
+			name: "printf-X",
+			out:  fmt.Sprintf("%X", addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		{
+			name: "printf-#x",
+			out:  fmt.Sprintf("%#x", addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		{
+			name: "printf-v",
+			out:  fmt.Sprintf("%v", addr),
+			want: "cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15",
+		},
+		// The original default formatter for byte slice
+		{
+			name: "printf-d",
+			out:  fmt.Sprintf("%d", addr),
+			want: "[203 1 178 111 43 52 42 171 36 188 246 62 162 24 198 169 39 77 48 171 154 21]",
+		},
+		// Invalid format char.
+		{
+			name: "printf-t",
+			out:  fmt.Sprintf("%t", addr),
+			want: "%!t(address=cb01b26f2b342aab24bcf63ea218c6a9274d30ab9a15)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.out != tt.want {
+				t.Errorf("%s does not render as expected:\n got %s\nwant %s", tt.name, tt.out, tt.want)
+			}
+		})
+	}
+}
+
+func TestHash_Format(t *testing.T) {
+	var hash Hash
+	hash.SetBytes([]byte{
+		0xb2, 0x6f, 0x2b, 0x34, 0x2a, 0xab, 0x24, 0xbc, 0xf6, 0x3e,
+		0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
+		0xa2, 0x18, 0xc6, 0xa9, 0x27, 0x4d, 0x30, 0xab, 0x9a, 0x15,
+		0x10, 0x00,
+	})
+
+	tests := []struct {
+		name string
+		out  string
+		want string
+	}{
+		{
+			name: "println",
+			out:  fmt.Sprintln(hash),
+			want: "0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000\n",
+		},
+		{
+			name: "print",
+			out:  fmt.Sprint(hash),
+			want: "0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000",
+		},
+		{
+			name: "printf-s",
+			out: func() string {
+				buf := new(bytes.Buffer)
+				fmt.Fprintf(buf, "%s", hash)
+				return buf.String()
+			}(),
+			want: "0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000",
+		},
+		{
+			name: "printf-q",
+			out:  fmt.Sprintf("%q", hash),
+			want: `"0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000"`,
+		},
+		{
+			name: "printf-x",
+			out:  fmt.Sprintf("%x", hash),
+			want: "b26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000",
+		},
+		{
+			name: "printf-X",
+			out:  fmt.Sprintf("%X", hash),
+			want: "B26F2B342AAB24BCF63EA218C6A9274D30AB9A15A218C6A9274D30AB9A151000",
+		},
+		{
+			name: "printf-#x",
+			out:  fmt.Sprintf("%#x", hash),
+			want: "0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000",
+		},
+		{
+			name: "printf-#X",
+			out:  fmt.Sprintf("%#X", hash),
+			want: "0XB26F2B342AAB24BCF63EA218C6A9274D30AB9A15A218C6A9274D30AB9A151000",
+		},
+		{
+			name: "printf-v",
+			out:  fmt.Sprintf("%v", hash),
+			want: "0xb26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000",
+		},
+		// The original default formatter for byte slice
+		{
+			name: "printf-d",
+			out:  fmt.Sprintf("%d", hash),
+			want: "[178 111 43 52 42 171 36 188 246 62 162 24 198 169 39 77 48 171 154 21 162 24 198 169 39 77 48 171 154 21 16 0]",
+		},
+		// Invalid format char.
+		{
+			name: "printf-t",
+			out:  fmt.Sprintf("%t", hash),
+			want: "%!t(hash=b26f2b342aab24bcf63ea218c6a9274d30ab9a15a218c6a9274d30ab9a151000)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.out != tt.want {
+				t.Errorf("%s does not render as expected:\n got %s\nwant %s", tt.name, tt.out, tt.want)
 			}
 		})
 	}

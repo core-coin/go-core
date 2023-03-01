@@ -17,14 +17,15 @@
 package enode
 
 import (
-	"math/rand"
 	crand "crypto/rand"
+	"math/rand"
 	"net"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 func newLocalNodeForTesting() (*LocalNode, *DB) {

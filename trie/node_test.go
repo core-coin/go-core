@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 func newTestFullNode(v []byte) []interface{} {

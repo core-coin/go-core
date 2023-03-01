@@ -23,12 +23,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rlp"
 	mapset "github.com/deckarep/golang-set"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -134,6 +135,7 @@ func (p *peer) broadcastBlocks(removePeer func(string)) {
 		select {
 		case prop := <-p.queuedBlocks:
 			if err := p.SendNewBlock(prop.block, prop.td); err != nil {
+				removePeer(p.id)
 				return
 			}
 			p.Log().Trace("Propagated block", "number", prop.block.Number(), "hash", prop.block.Hash(), "td", prop.td)
@@ -261,7 +263,7 @@ func (p *peer) announceTransactions(removePeer func(string)) {
 			queue = append(queue, hashes...)
 			if len(queue) > maxQueuedTxAnns {
 				// Fancy copy and resize to ensure buffer doesn't grow indefinitely
-				queue = queue[:copy(queue, queue[len(queue)-maxQueuedTxs:])]
+				queue = queue[:copy(queue, queue[len(queue)-maxQueuedTxAnns:])]
 			}
 
 		case <-done:
@@ -723,8 +725,9 @@ func (ps *peerSet) Register(p *peer, removePeer func(string)) error {
 
 	go p.broadcastBlocks(removePeer)
 	go p.broadcastTransactions(removePeer)
-	go p.announceTransactions(removePeer)
-
+	if p.version >= xcb65 {
+		go p.announceTransactions(removePeer)
+	}
 	return nil
 }
 

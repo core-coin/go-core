@@ -26,12 +26,14 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -98,6 +100,11 @@ type rawNode []byte
 
 func (n rawNode) cache() (hashNode, bool)   { panic("this should never end up in a live trie") }
 func (n rawNode) fstring(ind string) string { panic("this should never end up in a live trie") }
+
+func (n rawNode) EncodeRLP(w io.Writer) error {
+	_, err := w.Write(n)
+	return err
+}
 
 // rawFullNode represents only the useful data content of a full node, with the
 // caches and flags stripped out to minimize its data storage. This type honors
@@ -199,7 +206,7 @@ func forGatherChildren(n node, onChild func(hash common.Hash)) {
 		}
 	case hashNode:
 		onChild(common.BytesToHash(n))
-	case valueNode, nil:
+	case valueNode, nil, rawNode:
 	default:
 		panic(fmt.Sprintf("unknown node type: %T", n))
 	}
@@ -267,33 +274,43 @@ func expandNode(hash hashNode, n node) node {
 	}
 }
 
+// Config defines all necessary options for database.
+type Config struct {
+	Cache     int    // Memory allowance (MB) to use for caching trie nodes in memory
+	Journal   string // Journal of clean cache to survive node restarts
+	Preimages bool   // Flag whether the preimage of trie key is recorded
+}
+
 // NewDatabase creates a new trie database to store ephemeral trie content before
 // its written out to disk or garbage collected. No read cache is created, so all
 // data retrievals will hit the underlying disk database.
 func NewDatabase(diskdb xcbdb.KeyValueStore) *Database {
-	return NewDatabaseWithCache(diskdb, 0, "")
+	return NewDatabaseWithConfig(diskdb, nil)
 }
 
-// NewDatabaseWithCache creates a new trie database to store ephemeral trie content
+// NewDatabaseWithConfig creates a new trie database to store ephemeral trie content
 // before its written out to disk or garbage collected. It also acts as a read cache
 // for nodes loaded from disk.
-func NewDatabaseWithCache(diskdb xcbdb.KeyValueStore, cache int, journal string) *Database {
+func NewDatabaseWithConfig(diskdb xcbdb.KeyValueStore, config *Config) *Database {
 	var cleans *fastcache.Cache
-	if cache > 0 {
-		if journal == "" {
-			cleans = fastcache.New(cache * 1024 * 1024)
+	if config != nil && config.Cache > 0 {
+		if config.Journal == "" {
+			cleans = fastcache.New(config.Cache * 1024 * 1024)
 		} else {
-			cleans = fastcache.LoadFromFileOrNew(journal, cache*1024*1024)
+			cleans = fastcache.LoadFromFileOrNew(config.Journal, config.Cache*1024*1024)
 		}
 	}
-	return &Database{
+	db := &Database{
 		diskdb: diskdb,
 		cleans: cleans,
 		dirties: map[common.Hash]*cachedNode{{}: {
 			children: make(map[common.Hash]uint16),
 		}},
-		preimages: make(map[common.Hash][]byte),
 	}
+	if config == nil || config.Preimages { // TODO(raisty): Flip to default off in the future
+		db.preimages = make(map[common.Hash][]byte)
+	}
+	return db
 }
 
 // DiskDB retrieves the persistent storage backing the trie database.
@@ -335,14 +352,20 @@ func (db *Database) insert(hash common.Hash, size int, node node) {
 }
 
 // insertPreimage writes a new trie node pre-image to the memory database if it's
-// yet unknown. The method will make a copy of the slice.
+// yet unknown. The method will NOT make a copy of the slice,
+// only use if the preimage will NOT be changed later on.
 //
 // Note, this method assumes that the database's lock is held!
 func (db *Database) insertPreimage(hash common.Hash, preimage []byte) {
+	// Short circuit if preimage collection is disabled
+	if db.preimages == nil {
+		return
+	}
+	// Track the preimage if a yet unknown one
 	if _, ok := db.preimages[hash]; ok {
 		return
 	}
-	db.preimages[hash] = common.CopyBytes(preimage)
+	db.preimages[hash] = preimage
 	db.preimagesSize += common.StorageSize(common.HashLength + len(preimage))
 }
 
@@ -385,7 +408,7 @@ func (db *Database) node(hash common.Hash) node {
 // Node retrieves an encoded cached trie node from memory. If it cannot be found
 // cached, the method queries the persistent database for the content.
 func (db *Database) Node(hash common.Hash) ([]byte, error) {
-	// It doens't make sense to retrieve the metaroot
+	// It doesn't make sense to retrieve the metaroot
 	if hash == (common.Hash{}) {
 		return nil, errors.New("not found")
 	}
@@ -425,6 +448,10 @@ func (db *Database) Node(hash common.Hash) ([]byte, error) {
 // preimage retrieves a cached trie node pre-image from memory. If it cannot be
 // found cached, the method queries the persistent database for the content.
 func (db *Database) preimage(hash common.Hash) []byte {
+	// Short circuit if preimage collection is disabled
+	if db.preimages == nil {
+		return nil
+	}
 	// Retrieve the node from cache if available
 	db.lock.RLock()
 	preimage := db.preimages[hash]
@@ -582,12 +609,16 @@ func (db *Database) Cap(limit common.StorageSize) error {
 	// leave for later to deduplicate writes.
 	flushPreimages := db.preimagesSize > 4*1024*1024
 	if flushPreimages {
-		rawdb.WritePreimages(batch, db.preimages)
-		if batch.ValueSize() > xcbdb.IdealBatchSize {
-			if err := batch.Write(); err != nil {
-				return err
+		if db.preimages == nil {
+			log.Error("Attempted to write preimages whilst disabled")
+		} else {
+			rawdb.WritePreimages(batch, db.preimages)
+			if batch.ValueSize() > xcbdb.IdealBatchSize {
+				if err := batch.Write(); err != nil {
+					return err
+				}
+				batch.Reset()
 			}
-			batch.Reset()
 		}
 	}
 	// Keep committing nodes from the flush-list until we're below allowance
@@ -624,7 +655,11 @@ func (db *Database) Cap(limit common.StorageSize) error {
 	defer db.lock.Unlock()
 
 	if flushPreimages {
-		db.preimages, db.preimagesSize = make(map[common.Hash][]byte), 0
+		if db.preimages == nil {
+			log.Error("Attempted to reset preimage cache whilst disabled")
+		} else {
+			db.preimages, db.preimagesSize = make(map[common.Hash][]byte), 0
+		}
 	}
 	for db.oldest != oldest {
 		node := db.dirties[db.oldest]
@@ -668,20 +703,21 @@ func (db *Database) Commit(node common.Hash, report bool, callback func(common.H
 	batch := db.diskdb.NewBatch()
 
 	// Move all of the accumulated preimages into a write batch
-	rawdb.WritePreimages(batch, db.preimages)
-	if batch.ValueSize() > xcbdb.IdealBatchSize {
+	if db.preimages != nil {
+		rawdb.WritePreimages(batch, db.preimages)
+		if batch.ValueSize() > xcbdb.IdealBatchSize {
+			if err := batch.Write(); err != nil {
+				return err
+			}
+			batch.Reset()
+		}
+		// Since we're going to replay trie node writes into the clean cache, flush out
+		// any batched pre-images before continuing.
 		if err := batch.Write(); err != nil {
 			return err
 		}
 		batch.Reset()
 	}
-	// Since we're going to replay trie node writes into the clean cache, flush out
-	// any batched pre-images before continuing.
-	if err := batch.Write(); err != nil {
-		return err
-	}
-	batch.Reset()
-
 	// Move the trie itself into the batch, flushing if enough data is accumulated
 	nodes, storage := len(db.dirties), db.dirtiesSize
 
@@ -703,8 +739,9 @@ func (db *Database) Commit(node common.Hash, report bool, callback func(common.H
 	batch.Reset()
 
 	// Reset the storage counters and bumpd metrics
-	db.preimages, db.preimagesSize = make(map[common.Hash][]byte), 0
-
+	if db.preimages != nil {
+		db.preimages, db.preimagesSize = make(map[common.Hash][]byte), 0
+	}
 	memcacheCommitTimeTimer.Update(time.Since(start))
 	memcacheCommitSizeMeter.Mark(int64(storage - db.dirtiesSize))
 	memcacheCommitNodesMeter.Mark(int64(nodes - len(db.dirties)))
@@ -739,14 +776,11 @@ func (db *Database) commit(hash common.Hash, batch xcbdb.Batch, uncacher *cleane
 	if err != nil {
 		return err
 	}
-	if err := batch.Put(hash[:], node.rlp()); err != nil {
-		return err
-	}
+	// If we've reached an optimal batch size, commit and start over
+	rawdb.WriteTrieNode(batch, hash, node.rlp())
 	if callback != nil {
 		callback(hash)
 	}
-	// If we've reached an optimal batch size, commit and start over
-	rawdb.WriteTrieNode(batch, hash, node.rlp())
 	if batch.ValueSize() >= xcbdb.IdealBatchSize {
 		if err := batch.Write(); err != nil {
 			return err

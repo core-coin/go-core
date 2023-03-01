@@ -18,26 +18,27 @@ package miner
 
 import (
 	crand "crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"math/rand"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/consensus/clique"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 const (
@@ -56,14 +57,10 @@ var (
 	cliqueChainConfig   *params.ChainConfig
 
 	// Test accounts
-	testBankKey, _  = crypto.GenerateKey(crand.Reader)
-	testBankPub     = eddsa.Ed448DerivePublicKey(*testBankKey)
-	testBankAddress = crypto.PubkeyToAddress(testBankPub)
-	testBankFunds   = big.NewInt(1000000000000000000)
+	testBankKey, _ = crypto.GenerateKey(crand.Reader)
+	testBankFunds  = big.NewInt(1000000000000000000)
 
-	testUserKey, _  = crypto.GenerateKey(crand.Reader)
-	testUserPub     = eddsa.Ed448DerivePublicKey(*testUserKey)
-	testUserAddress = crypto.PubkeyToAddress(testUserPub)
+	testUserKey, _ = crypto.GenerateKey(crand.Reader)
 
 	// Test transactions
 	pendingTxs []*types.Transaction
@@ -85,9 +82,9 @@ func init() {
 		Period: 10,
 		Epoch:  30000,
 	}
-	tx1, _ := types.SignTx(types.NewTransaction(0, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.NetworkID), testBankKey)
+	tx1, _ := types.SignTx(types.NewTransaction(0, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
 	pendingTxs = append(pendingTxs, tx1)
-	tx2, _ := types.SignTx(types.NewTransaction(1, testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(cliqueChainConfig.NetworkID), testBankKey)
+	tx2, _ := types.SignTx(types.NewTransaction(1, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
 	newTxs = append(newTxs, tx2)
 	rand.Seed(time.Now().UnixNano())
 }
@@ -105,14 +102,14 @@ type testWorkerBackend struct {
 func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db xcbdb.Database, n int) *testWorkerBackend {
 	var gspec = core.Genesis{
 		Config: chainConfig,
-		Alloc:  core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}},
+		Alloc:  core.GenesisAlloc{testBankKey.Address(): {Balance: testBankFunds}},
 	}
 
 	switch e := engine.(type) {
 	case *clique.Clique:
 		gspec.ExtraData = make([]byte, 32+common.AddressLength+crypto.ExtendedSignatureLength)
-		copy(gspec.ExtraData[32:32+common.AddressLength], testBankAddress.Bytes())
-		e.Authorize(testBankAddress, func(account accounts.Account, s string, data []byte) ([]byte, error) {
+		copy(gspec.ExtraData[32:32+common.AddressLength], testBankKey.Address().Bytes())
+		e.Authorize(testBankKey.Address(), func(account accounts.Account, s string, data []byte) ([]byte, error) {
 			return crypto.Sign(crypto.SHA3(data), testBankKey)
 		})
 	case *cryptore.Cryptore:
@@ -127,7 +124,7 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 	// Generate a small n-block chain and an uncle block for it
 	if n > 0 {
 		blocks, _ := core.GenerateChain(chainConfig, genesis, engine, db, n, func(i int, gen *core.BlockGen) {
-			gen.SetCoinbase(testBankAddress)
+			gen.SetCoinbase(testBankKey.Address())
 		})
 		if _, err := chain.InsertChain(blocks); err != nil {
 			t.Fatalf("failed to insert origin chain: %v", err)
@@ -138,7 +135,7 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 		parent = chain.GetBlockByHash(chain.CurrentBlock().ParentHash())
 	}
 	blocks, _ := core.GenerateChain(chainConfig, parent, engine, db, 1, func(i int, gen *core.BlockGen) {
-		gen.SetCoinbase(testUserAddress)
+		gen.SetCoinbase(testUserKey.Address())
 	})
 
 	return &testWorkerBackend{
@@ -172,9 +169,9 @@ func (b *testWorkerBackend) newRandomUncle() *types.Block {
 func (b *testWorkerBackend) newRandomTx(creation bool) *types.Transaction {
 	var tx *types.Transaction
 	if creation {
-		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankAddress), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(b.chain.Config().NetworkID), testBankKey)
+		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankKey.Address()), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
 	} else {
-		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankAddress), testUserAddress, big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(b.chain.Config().NetworkID), testBankKey)
+		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankKey.Address()), testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
 	}
 	return tx
 }
@@ -183,7 +180,7 @@ func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consens
 	backend := newTestWorkerBackend(t, chainConfig, engine, db, blocks)
 	backend.txPool.AddLocals(pendingTxs)
 	w := newWorker(testConfig, chainConfig, engine, backend, new(event.TypeMux), nil, false)
-	w.setCorebase(testBankAddress)
+	w.setCorebase(testBankKey.Address())
 	return w, backend
 }
 
@@ -202,11 +199,11 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 		db          = rawdb.NewMemoryDatabase()
 	)
 	if isClique {
-		chainConfig = params.AllCliqueProtocolChanges
+		chainConfig = params.TestChainConfig
 		chainConfig.Clique = &params.CliqueConfig{Period: 1, Epoch: 30000}
 		engine = clique.New(chainConfig.Clique, db)
 	} else {
-		chainConfig = params.AllCryptoreProtocolChanges
+		chainConfig = params.TestChainConfig
 		engine = cryptore.NewFaker()
 	}
 
@@ -276,8 +273,8 @@ func testEmptyWork(t *testing.T, chainConfig *params.ChainConfig, engine consens
 		if len(task.receipts) != receiptLen {
 			t.Fatalf("receipt number mismatch: have %d, want %d", len(task.receipts), receiptLen)
 		}
-		if task.state.GetBalance(testUserAddress).Cmp(balance) != 0 {
-			t.Fatalf("account balance mismatch: have %d, want %d", task.state.GetBalance(testUserAddress), balance)
+		if task.state.GetBalance(testUserKey.Address()).Cmp(balance) != 0 {
+			t.Fatalf("account balance mismatch: have %d, want %d", task.state.GetBalance(testUserKey.Address()), balance)
 		}
 	}
 	w.newTaskHook = func(task *task) {
@@ -378,8 +375,8 @@ func testRegenerateMiningBlock(t *testing.T, chainConfig *params.ChainConfig, en
 				if len(task.receipts) != receiptLen {
 					t.Errorf("receipt number mismatch: have %d, want %d", len(task.receipts), receiptLen)
 				}
-				if task.state.GetBalance(testUserAddress).Cmp(balance) != 0 {
-					t.Errorf("account balance mismatch: have %d, want %d", task.state.GetBalance(testUserAddress), balance)
+				if task.state.GetBalance(testUserKey.Address()).Cmp(balance) != 0 {
+					t.Errorf("account balance mismatch: have %d, want %d", task.state.GetBalance(testUserKey.Address()), balance)
 				}
 			}
 			taskCh <- struct{}{}

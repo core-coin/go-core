@@ -516,10 +516,10 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
     }, {}], 4: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeAddress is a prootype that represents address type
+         * YlemTypeAddress is a prootype that represents address type
          * It matches:
          * address
          * address[]
@@ -528,26 +528,26 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * address[3][]
          * address[][6][], ...
          */
-        var SolidityTypeAddress = function () {
+        var YlemTypeAddress = function () {
             this._inputFormatter = f.formatInputInt;
             this._outputFormatter = f.formatOutputAddress;
         };
 
-        SolidityTypeAddress.prototype = new SolidityType({});
-        SolidityTypeAddress.prototype.constructor = SolidityTypeAddress;
+        YlemTypeAddress.prototype = new YlemType({});
+        YlemTypeAddress.prototype.constructor = YlemTypeAddress;
 
-        SolidityTypeAddress.prototype.isType = function (name) {
+        YlemTypeAddress.prototype.isType = function (name) {
             return !!name.match(/address(\[([0-9]*)\])?/);
         };
 
-        module.exports = SolidityTypeAddress;
+        module.exports = YlemTypeAddress;
 
     }, { "./formatters": 9, "./type": 14 }], 5: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeBool is a prootype that represents bool type
+         * YlemTypeBool is a prootype that represents bool type
          * It matches:
          * bool
          * bool[]
@@ -556,26 +556,26 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * bool[3][]
          * bool[][6][], ...
          */
-        var SolidityTypeBool = function () {
+        var YlemTypeBool = function () {
             this._inputFormatter = f.formatInputBool;
             this._outputFormatter = f.formatOutputBool;
         };
 
-        SolidityTypeBool.prototype = new SolidityType({});
-        SolidityTypeBool.prototype.constructor = SolidityTypeBool;
+        YlemTypeBool.prototype = new YlemType({});
+        YlemTypeBool.prototype.constructor = YlemTypeBool;
 
-        SolidityTypeBool.prototype.isType = function (name) {
+        YlemTypeBool.prototype.isType = function (name) {
             return !!name.match(/^bool(\[([0-9]*)\])*$/);
         };
 
-        module.exports = SolidityTypeBool;
+        module.exports = YlemTypeBool;
 
     }, { "./formatters": 9, "./type": 14 }], 6: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeBytes is a prototype that represents the bytes type.
+         * YlemTypeBytes is a prototype that represents the bytes type.
          * It matches:
          * bytes
          * bytes[]
@@ -587,34 +587,34 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * bytes8[4]
          * bytes[3][]
          */
-        var SolidityTypeBytes = function () {
+        var YlemTypeBytes = function () {
             this._inputFormatter = f.formatInputBytes;
             this._outputFormatter = f.formatOutputBytes;
         };
 
-        SolidityTypeBytes.prototype = new SolidityType({});
-        SolidityTypeBytes.prototype.constructor = SolidityTypeBytes;
+        YlemTypeBytes.prototype = new YlemType({});
+        YlemTypeBytes.prototype.constructor = YlemTypeBytes;
 
-        SolidityTypeBytes.prototype.isType = function (name) {
+        YlemTypeBytes.prototype.isType = function (name) {
             return !!name.match(/^bytes([0-9]{1,})(\[([0-9]*)\])*$/);
         };
 
-        module.exports = SolidityTypeBytes;
+        module.exports = YlemTypeBytes;
 
     }, { "./formatters": 9, "./type": 14 }], 7: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -626,46 +626,46 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
         var f = require('./formatters');
 
-        var SolidityTypeAddress = require('./address');
-        var SolidityTypeBool = require('./bool');
-        var SolidityTypeInt = require('./int');
-        var SolidityTypeUInt = require('./uint');
-        var SolidityTypeDynamicBytes = require('./dynamicbytes');
-        var SolidityTypeString = require('./string');
-        var SolidityTypeReal = require('./real');
-        var SolidityTypeUReal = require('./ureal');
-        var SolidityTypeBytes = require('./bytes');
+        var YlemTypeAddress = require('./address');
+        var YlemTypeBool = require('./bool');
+        var YlemTypeInt = require('./int');
+        var YlemTypeUInt = require('./uint');
+        var YlemTypeDynamicBytes = require('./dynamicbytes');
+        var YlemTypeString = require('./string');
+        var YlemTypeReal = require('./real');
+        var YlemTypeUReal = require('./ureal');
+        var YlemTypeBytes = require('./bytes');
 
-        var isDynamic = function (solidityType, type) {
-            return solidityType.isDynamicType(type) ||
-                solidityType.isDynamicArray(type);
+        var isDynamic = function (ylemType, type) {
+            return ylemType.isDynamicType(type) ||
+                ylemType.isDynamicArray(type);
         };
 
         /**
-         * SolidityCoder prototype should be used to encode/decode solidity params of any type
+         * YlemCoder prototype should be used to encode/decode ylem params of any type
          */
-        var SolidityCoder = function (types) {
+        var YlemCoder = function (types) {
             this._types = types;
         };
 
         /**
-         * This method should be used to transform type to SolidityType
+         * This method should be used to transform type to YlemType
          *
          * @method _requireType
          * @param {String} type
-         * @returns {SolidityType}
+         * @returns {YlemType}
          * @throws {Error} throws if no matching type is found
          */
-        SolidityCoder.prototype._requireType = function (type) {
-            var solidityType = this._types.filter(function (t) {
+        YlemCoder.prototype._requireType = function (type) {
+            var ylemType = this._types.filter(function (t) {
                 return t.isType(type);
             })[0];
 
-            if (!solidityType) {
-                throw Error('invalid solidity type!: ' + type);
+            if (!ylemType) {
+                throw Error('invalid ylem type!: ' + type);
             }
 
-            return solidityType;
+            return ylemType;
         };
 
         /**
@@ -676,7 +676,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {Object} plain param
          * @return {String} encoded plain param
          */
-        SolidityCoder.prototype.encodeParam = function (type, param) {
+        YlemCoder.prototype.encodeParam = function (type, param) {
             return this.encodeParams([type], [param]);
         };
 
@@ -688,47 +688,47 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {Array} params
          * @return {String} encoded list of params
          */
-        SolidityCoder.prototype.encodeParams = function (types, params) {
-            var solidityTypes = this.getSolidityTypes(types);
+        YlemCoder.prototype.encodeParams = function (types, params) {
+            var ylemTypes = this.getYlemTypes(types);
 
-            var encodeds = solidityTypes.map(function (solidityType, index) {
-                return solidityType.encode(params[index], types[index]);
+            var encodeds = ylemTypes.map(function (ylemType, index) {
+                return ylemType.encode(params[index], types[index]);
             });
 
-            var dynamicOffset = solidityTypes.reduce(function (acc, solidityType, index) {
-                var staticPartLength = solidityType.staticPartLength(types[index]);
+            var dynamicOffset = ylemTypes.reduce(function (acc, ylemType, index) {
+                var staticPartLength = ylemType.staticPartLength(types[index]);
                 var roundedStaticPartLength = Math.floor((staticPartLength + 31) / 32) * 32;
 
-                return acc + (isDynamic(solidityTypes[index], types[index]) ?
+                return acc + (isDynamic(ylemTypes[index], types[index]) ?
                     32 :
                     roundedStaticPartLength);
             }, 0);
 
-            var result = this.encodeMultiWithOffset(types, solidityTypes, encodeds, dynamicOffset);
+            var result = this.encodeMultiWithOffset(types, ylemTypes, encodeds, dynamicOffset);
 
             return result;
         };
 
-        SolidityCoder.prototype.encodeMultiWithOffset = function (types, solidityTypes, encodeds, dynamicOffset) {
+        YlemCoder.prototype.encodeMultiWithOffset = function (types, ylemTypes, encodeds, dynamicOffset) {
             var result = "";
             var self = this;
 
             types.forEach(function (type, i) {
-                if (isDynamic(solidityTypes[i], types[i])) {
+                if (isDynamic(ylemTypes[i], types[i])) {
                     result += f.formatInputInt(dynamicOffset).encode();
-                    var e = self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                    var e = self.encodeWithOffset(types[i], ylemTypes[i], encodeds[i], dynamicOffset);
                     dynamicOffset += e.length / 2;
                 } else {
                     // don't add length to dynamicOffset. it's already counted
-                    result += self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                    result += self.encodeWithOffset(types[i], ylemTypes[i], encodeds[i], dynamicOffset);
                 }
 
                 // TODO: figure out nested arrays
             });
 
             types.forEach(function (type, i) {
-                if (isDynamic(solidityTypes[i], types[i])) {
-                    var e = self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                if (isDynamic(ylemTypes[i], types[i])) {
+                    var e = self.encodeWithOffset(types[i], ylemTypes[i], encodeds[i], dynamicOffset);
                     dynamicOffset += e.length / 2;
                     result += e;
                 }
@@ -737,18 +737,18 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
         };
 
         // TODO: refactor whole encoding!
-        SolidityCoder.prototype.encodeWithOffset = function (type, solidityType, encoded, offset) {
+        YlemCoder.prototype.encodeWithOffset = function (type, ylemType, encoded, offset) {
             var self = this;
-            if (solidityType.isDynamicArray(type)) {
+            if (ylemType.isDynamicArray(type)) {
                 return (function () {
                     // offset was already set
-                    var nestedName = solidityType.nestedName(type);
-                    var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
+                    var nestedName = ylemType.nestedName(type);
+                    var nestedStaticPartLength = ylemType.staticPartLength(nestedName);
                     var result = encoded[0];
 
                     (function () {
                         var previousLength = 2; // in int
-                        if (solidityType.isDynamicArray(nestedName)) {
+                        if (ylemType.isDynamicArray(nestedName)) {
                             for (var i = 1; i < encoded.length; i++) {
                                 previousLength += +(encoded[i - 1])[0] || 0;
                                 result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
@@ -760,21 +760,21 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
                     (function () {
                         for (var i = 0; i < encoded.length - 1; i++) {
                             var additionalOffset = result / 2;
-                            result += self.encodeWithOffset(nestedName, solidityType, encoded[i + 1], offset + additionalOffset);
+                            result += self.encodeWithOffset(nestedName, ylemType, encoded[i + 1], offset + additionalOffset);
                         }
                     })();
 
                     return result;
                 })();
 
-            } else if (solidityType.isStaticArray(type)) {
+            } else if (ylemType.isStaticArray(type)) {
                 return (function () {
-                    var nestedName = solidityType.nestedName(type);
-                    var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
+                    var nestedName = ylemType.nestedName(type);
+                    var nestedStaticPartLength = ylemType.staticPartLength(nestedName);
                     var result = "";
 
 
-                    if (solidityType.isDynamicArray(nestedName)) {
+                    if (ylemType.isDynamicArray(nestedName)) {
                         (function () {
                             var previousLength = 0; // in int
                             for (var i = 0; i < encoded.length; i++) {
@@ -788,7 +788,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
                     (function () {
                         for (var i = 0; i < encoded.length; i++) {
                             var additionalOffset = result / 2;
-                            result += self.encodeWithOffset(nestedName, solidityType, encoded[i], offset + additionalOffset);
+                            result += self.encodeWithOffset(nestedName, ylemType, encoded[i], offset + additionalOffset);
                         }
                     })();
 
@@ -807,7 +807,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} bytes
          * @return {Object} plain param
          */
-        SolidityCoder.prototype.decodeParam = function (type, bytes) {
+        YlemCoder.prototype.decodeParam = function (type, bytes) {
             return this.decodeParams([type], bytes)[0];
         };
 
@@ -819,18 +819,18 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} bytes
          * @return {Array} array of plain params
          */
-        SolidityCoder.prototype.decodeParams = function (types, bytes) {
-            var solidityTypes = this.getSolidityTypes(types);
-            var offsets = this.getOffsets(types, solidityTypes);
+        YlemCoder.prototype.decodeParams = function (types, bytes) {
+            var ylemTypes = this.getYlemTypes(types);
+            var offsets = this.getOffsets(types, ylemTypes);
 
-            return solidityTypes.map(function (solidityType, index) {
-                return solidityType.decode(bytes, offsets[index], types[index], index);
+            return ylemTypes.map(function (ylemType, index) {
+                return ylemType.decode(bytes, offsets[index], types[index], index);
             });
         };
 
-        SolidityCoder.prototype.getOffsets = function (types, solidityTypes) {
-            var lengths = solidityTypes.map(function (solidityType, index) {
-                return solidityType.staticPartLength(types[index]);
+        YlemCoder.prototype.getOffsets = function (types, ylemTypes) {
+            var lengths = ylemTypes.map(function (ylemType, index) {
+                return ylemType.staticPartLength(types[index]);
             });
 
             for (var i = 1; i < lengths.length; i++) {
@@ -840,68 +840,68 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
             return lengths.map(function (length, index) {
                 // remove the current length, so the length is sum of previous elements
-                var staticPartLength = solidityTypes[index].staticPartLength(types[index]);
+                var staticPartLength = ylemTypes[index].staticPartLength(types[index]);
                 return length - staticPartLength;
             });
         };
 
-        SolidityCoder.prototype.getSolidityTypes = function (types) {
+        YlemCoder.prototype.getYlemTypes = function (types) {
             var self = this;
             return types.map(function (type) {
                 return self._requireType(type);
             });
         };
 
-        var coder = new SolidityCoder([
-            new SolidityTypeAddress(),
-            new SolidityTypeBool(),
-            new SolidityTypeInt(),
-            new SolidityTypeUInt(),
-            new SolidityTypeDynamicBytes(),
-            new SolidityTypeBytes(),
-            new SolidityTypeString(),
-            new SolidityTypeReal(),
-            new SolidityTypeUReal()
+        var coder = new YlemCoder([
+            new YlemTypeAddress(),
+            new YlemTypeBool(),
+            new YlemTypeInt(),
+            new YlemTypeUInt(),
+            new YlemTypeDynamicBytes(),
+            new YlemTypeBytes(),
+            new YlemTypeString(),
+            new YlemTypeReal(),
+            new YlemTypeUReal()
         ]);
 
         module.exports = coder;
 
     }, { "./address": 4, "./bool": 5, "./bytes": 6, "./dynamicbytes": 8, "./formatters": 9, "./int": 10, "./real": 12, "./string": 13, "./uint": 15, "./ureal": 16 }], 8: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
-        var SolidityTypeDynamicBytes = function () {
+        var YlemTypeDynamicBytes = function () {
             this._inputFormatter = f.formatInputDynamicBytes;
             this._outputFormatter = f.formatOutputDynamicBytes;
         };
 
-        SolidityTypeDynamicBytes.prototype = new SolidityType({});
-        SolidityTypeDynamicBytes.prototype.constructor = SolidityTypeDynamicBytes;
+        YlemTypeDynamicBytes.prototype = new YlemType({});
+        YlemTypeDynamicBytes.prototype.constructor = YlemTypeDynamicBytes;
 
-        SolidityTypeDynamicBytes.prototype.isType = function (name) {
+        YlemTypeDynamicBytes.prototype.isType = function (name) {
             return !!name.match(/^bytes(\[([0-9]*)\])*$/);
         };
 
-        SolidityTypeDynamicBytes.prototype.isDynamicType = function () {
+        YlemTypeDynamicBytes.prototype.isDynamicType = function () {
             return true;
         };
 
-        module.exports = SolidityTypeDynamicBytes;
+        module.exports = YlemTypeDynamicBytes;
 
     }, { "./formatters": 9, "./type": 14 }], 9: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -914,7 +914,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
         var BigNumber = require('bignumber.js');
         var utils = require('../utils/utils');
         var c = require('../utils/config');
-        var SolidityParam = require('./param');
+        var YlemParam = require('./param');
 
 
         /**
@@ -924,12 +924,12 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatInputInt
          * @param {String|Number|BigNumber} value that needs to be formatted
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputInt = function (value) {
             BigNumber.config(c.XCB_BIGNUMBER_ROUNDING_MODE);
             var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
-            return new SolidityParam(result);
+            return new YlemParam(result);
         };
 
         /**
@@ -937,13 +937,13 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatInputBytes
          * @param {String}
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputBytes = function (value) {
             var result = utils.toHex(value).substr(2);
             var l = Math.floor((result.length + 63) / 64);
             result = utils.padRight(result, l * 64);
-            return new SolidityParam(result);
+            return new YlemParam(result);
         };
 
         /**
@@ -951,14 +951,14 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatDynamicInputBytes
          * @param {String}
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputDynamicBytes = function (value) {
             var result = utils.toHex(value).substr(2);
             var length = result.length / 2;
             var l = Math.floor((result.length + 63) / 64);
             result = utils.padRight(result, l * 64);
-            return new SolidityParam(formatInputInt(length).value + result);
+            return new YlemParam(formatInputInt(length).value + result);
         };
 
         /**
@@ -966,14 +966,14 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatInputString
          * @param {String}
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputString = function (value) {
             var result = utils.fromUtf8(value).substr(2);
             var length = result.length / 2;
             var l = Math.floor((result.length + 63) / 64);
             result = utils.padRight(result, l * 64);
-            return new SolidityParam(formatInputInt(length).value + result);
+            return new YlemParam(formatInputInt(length).value + result);
         };
 
         /**
@@ -981,11 +981,11 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatInputBool
          * @param {Boolean}
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputBool = function (value) {
             var result = '000000000000000000000000000000000000000000000000000000000000000' + (value ?  '1' : '0');
-            return new SolidityParam(result);
+            return new YlemParam(result);
         };
 
         /**
@@ -994,7 +994,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          *
          * @method formatInputReal
          * @param {String|Number|BigNumber}
-         * @returns {SolidityParam}
+         * @returns {YlemParam}
          */
         var formatInputReal = function (value) {
             return formatInputInt(new BigNumber(value).times(new BigNumber(2).pow(128)));
@@ -1015,7 +1015,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Formats right-aligned output bytes to int
          *
          * @method formatOutputInt
-         * @param {SolidityParam} param
+         * @param {YlemParam} param
          * @returns {BigNumber} right-aligned output bytes formatted to big number
          */
         var formatOutputInt = function (param) {
@@ -1033,7 +1033,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Formats right-aligned output bytes to uint
          *
          * @method formatOutputUInt
-         * @param {SolidityParam}
+         * @param {YlemParam}
          * @returns {BigNumeber} right-aligned output bytes formatted to uint
          */
         var formatOutputUInt = function (param) {
@@ -1045,7 +1045,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Formats right-aligned output bytes to real
          *
          * @method formatOutputReal
-         * @param {SolidityParam}
+         * @param {YlemParam}
          * @returns {BigNumber} input bytes formatted to real
          */
         var formatOutputReal = function (param) {
@@ -1056,7 +1056,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Formats right-aligned output bytes to ureal
          *
          * @method formatOutputUReal
-         * @param {SolidityParam}
+         * @param {YlemParam}
          * @returns {BigNumber} input bytes formatted to ureal
          */
         var formatOutputUReal = function (param) {
@@ -1067,7 +1067,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Should be used to format output bool
          *
          * @method formatOutputBool
-         * @param {SolidityParam}
+         * @param {YlemParam}
          * @returns {Boolean} right-aligned input bytes formatted to bool
          */
         var formatOutputBool = function (param) {
@@ -1078,7 +1078,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Should be used to format output bytes
          *
          * @method formatOutputBytes
-         * @param {SolidityParam} left-aligned hex representation of string
+         * @param {YlemParam} left-aligned hex representation of string
          * @param {String} name type name
          * @returns {String} hex string
          */
@@ -1092,7 +1092,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Should be used to format output bytes
          *
          * @method formatOutputDynamicBytes
-         * @param {SolidityParam} left-aligned hex representation of string
+         * @param {YlemParam} left-aligned hex representation of string
          * @returns {String} hex string
          */
         var formatOutputDynamicBytes = function (param) {
@@ -1104,7 +1104,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Should be used to format output string
          *
          * @method formatOutputString
-         * @param {SolidityParam} left-aligned hex representation of string
+         * @param {YlemParam} left-aligned hex representation of string
          * @returns {String} ascii string
          */
         var formatOutputString = function (param) {
@@ -1116,7 +1116,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * Should be used to format output address
          *
          * @method formatOutputAddress
-         * @param {SolidityParam} right-aligned input bytes
+         * @param {YlemParam} right-aligned input bytes
          * @returns {String} address
          */
         var formatOutputAddress = function (param) {
@@ -1144,10 +1144,10 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
     }, { "../utils/config": 18, "../utils/utils": 20, "./param": 11, "bignumber.js": "bignumber.js" }], 10: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeInt is a prootype that represents int type
+         * YlemTypeInt is a prootype that represents int type
          * It matches:
          * int
          * int[]
@@ -1162,38 +1162,38 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * int[3][]
          * int64[][6][], ...
          */
-        var SolidityTypeInt = function () {
+        var YlemTypeInt = function () {
             this._inputFormatter = f.formatInputInt;
             this._outputFormatter = f.formatOutputInt;
         };
 
-        SolidityTypeInt.prototype = new SolidityType({});
-        SolidityTypeInt.prototype.constructor = SolidityTypeInt;
+        YlemTypeInt.prototype = new YlemType({});
+        YlemTypeInt.prototype.constructor = YlemTypeInt;
 
-        SolidityTypeInt.prototype.isType = function (name) {
+        YlemTypeInt.prototype.isType = function (name) {
             return !!name.match(/^int([0-9]*)?(\[([0-9]*)\])*$/);
         };
 
-        module.exports = SolidityTypeInt;
+        module.exports = YlemTypeInt;
 
     }, { "./formatters": 9, "./type": 14 }], 11: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file param.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -1202,45 +1202,45 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
         var utils = require('../utils/utils');
 
         /**
-         * SolidityParam object prototype.
-         * Should be used when encoding, decoding solidity bytes
+         * YlemParam object prototype.
+         * Should be used when encoding, decoding ylem bytes
          */
-        var SolidityParam = function (value, offset) {
+        var YlemParam = function (value, offset) {
             this.value = value || '';
             this.offset = offset; // offset in bytes
         };
 
         /**
          * This method should be used to get length of params's dynamic part
-         * 
+         *
          * @method dynamicPartLength
          * @returns {Number} length of dynamic part (in bytes)
          */
-        SolidityParam.prototype.dynamicPartLength = function () {
+        YlemParam.prototype.dynamicPartLength = function () {
             return this.dynamicPart().length / 2;
         };
 
         /**
-         * This method should be used to create copy of solidity param with different offset
+         * This method should be used to create copy of ylem param with different offset
          *
          * @method withOffset
          * @param {Number} offset length in bytes
-         * @returns {SolidityParam} new solidity param with applied offset
+         * @returns {YlemParam} new ylem param with applied offset
          */
-        SolidityParam.prototype.withOffset = function (offset) {
-            return new SolidityParam(this.value, offset);
+        YlemParam.prototype.withOffset = function (offset) {
+            return new YlemParam(this.value, offset);
         };
 
         /**
-         * This method should be used to combine solidity params together
+         * This method should be used to combine ylem params together
          * eg. when appending an array
          *
          * @method combine
-         * @param {SolidityParam} param with which we should combine
-         * @param {SolidityParam} result of combination
+         * @param {YlemParam} param with which we should combine
+         * @param {YlemParam} result of combination
          */
-        SolidityParam.prototype.combine = function (param) {
-            return new SolidityParam(this.value + param.value);
+        YlemParam.prototype.combine = function (param) {
+            return new YlemParam(this.value + param.value);
         };
 
         /**
@@ -1250,7 +1250,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @method isDynamic
          * @returns {Boolean}
          */
-        SolidityParam.prototype.isDynamic = function () {
+        YlemParam.prototype.isDynamic = function () {
             return this.offset !== undefined;
         };
 
@@ -1260,7 +1260,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @method offsetAsBytes
          * @returns {String} bytes representation of offset
          */
-        SolidityParam.prototype.offsetAsBytes = function () {
+        YlemParam.prototype.offsetAsBytes = function () {
             return !this.isDynamic() ? '' : utils.padLeft(utils.toTwosComplement(this.offset).toString(16), 64);
         };
 
@@ -1270,7 +1270,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @method staticPart
          * @returns {String} offset if it is a dynamic param, otherwise value
          */
-        SolidityParam.prototype.staticPart = function () {
+        YlemParam.prototype.staticPart = function () {
             if (!this.isDynamic()) {
                 return this.value;
             }
@@ -1283,7 +1283,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @method dynamicPart
          * @returns {String} returns a value if it is a dynamic param, otherwise empty string
          */
-        SolidityParam.prototype.dynamicPart = function () {
+        YlemParam.prototype.dynamicPart = function () {
             return this.isDynamic() ? this.value : '';
         };
 
@@ -1293,7 +1293,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @method encode
          * @returns {String}
          */
-        SolidityParam.prototype.encode = function () {
+        YlemParam.prototype.encode = function () {
             return this.staticPart() + this.dynamicPart();
         };
 
@@ -1301,10 +1301,10 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * This method should be called to encode array of params
          *
          * @method encodeList
-         * @param {Array[SolidityParam]} params
+         * @param {Array[YlemParam]} params
          * @returns {String}
          */
-        SolidityParam.encodeList = function (params) {
+        YlemParam.encodeList = function (params) {
 
             // updating offsets
             var totalOffset = params.length * 32;
@@ -1327,15 +1327,15 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
 
 
-        module.exports = SolidityParam;
+        module.exports = YlemParam;
 
 
     }, { "../utils/utils": 20 }], 12: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeReal is a prootype that represents real type
+         * YlemTypeReal is a prootype that represents real type
          * It matches:
          * real
          * real[]
@@ -1350,62 +1350,62 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * real[3][]
          * real64[][6][], ...
          */
-        var SolidityTypeReal = function () {
+        var YlemTypeReal = function () {
             this._inputFormatter = f.formatInputReal;
             this._outputFormatter = f.formatOutputReal;
         };
 
-        SolidityTypeReal.prototype = new SolidityType({});
-        SolidityTypeReal.prototype.constructor = SolidityTypeReal;
+        YlemTypeReal.prototype = new YlemType({});
+        YlemTypeReal.prototype.constructor = YlemTypeReal;
 
-        SolidityTypeReal.prototype.isType = function (name) {
+        YlemTypeReal.prototype.isType = function (name) {
             return !!name.match(/real([0-9]*)?(\[([0-9]*)\])?/);
         };
 
-        module.exports = SolidityTypeReal;
+        module.exports = YlemTypeReal;
 
     }, { "./formatters": 9, "./type": 14 }], 13: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
-        var SolidityTypeString = function () {
+        var YlemTypeString = function () {
             this._inputFormatter = f.formatInputString;
             this._outputFormatter = f.formatOutputString;
         };
 
-        SolidityTypeString.prototype = new SolidityType({});
-        SolidityTypeString.prototype.constructor = SolidityTypeString;
+        YlemTypeString.prototype = new YlemType({});
+        YlemTypeString.prototype.constructor = YlemTypeString;
 
-        SolidityTypeString.prototype.isType = function (name) {
+        YlemTypeString.prototype.isType = function (name) {
             return !!name.match(/^string(\[([0-9]*)\])*$/);
         };
 
-        SolidityTypeString.prototype.isDynamicType = function () {
+        YlemTypeString.prototype.isDynamicType = function () {
             return true;
         };
 
-        module.exports = SolidityTypeString;
+        module.exports = YlemTypeString;
 
     }, { "./formatters": 9, "./type": 14 }], 14: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityParam = require('./param');
+        var YlemParam = require('./param');
 
         /**
-         * SolidityType prototype is used to encode/decode solidity params of certain type
+         * YlemType prototype is used to encode/decode ylem params of certain type
          */
-        var SolidityType = function (config) {
+        var YlemType = function (config) {
             this._inputFormatter = config.inputFormatter;
             this._outputFormatter = config.outputFormatter;
         };
 
         /**
-         * Should be used to determine if this SolidityType do match given name
+         * Should be used to determine if this YlemType do match given name
          *
          * @method isType
          * @param {String} name
-         * @return {Bool} true if type match this SolidityType, otherwise false
+         * @return {Bool} true if type match this YlemType, otherwise false
          */
-        SolidityType.prototype.isType = function (name) {
+        YlemType.prototype.isType = function (name) {
             throw "this method should be overrwritten for type " + name;
         };
 
@@ -1416,7 +1416,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Number} length of static part in bytes
          */
-        SolidityType.prototype.staticPartLength = function (name) {
+        YlemType.prototype.staticPartLength = function (name) {
             // If name isn't an array then treat it like a single element array.
             return (this.nestedTypes(name) || ['[1]'])
                 .map(function (type) {
@@ -1439,7 +1439,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Bool} true if the type is dynamic array
          */
-        SolidityType.prototype.isDynamicArray = function (name) {
+        YlemType.prototype.isDynamicArray = function (name) {
             var nestedTypes = this.nestedTypes(name);
             return !!nestedTypes && !nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
         };
@@ -1454,7 +1454,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Bool} true if the type is static array
          */
-        SolidityType.prototype.isStaticArray = function (name) {
+        YlemType.prototype.isStaticArray = function (name) {
             var nestedTypes = this.nestedTypes(name);
             return !!nestedTypes && !!nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
         };
@@ -1473,7 +1473,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Number} static array length
          */
-        SolidityType.prototype.staticArrayLength = function (name) {
+        YlemType.prototype.staticArrayLength = function (name) {
             var nestedTypes = this.nestedTypes(name);
             if (nestedTypes) {
                 return parseInt(nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g) || 1);
@@ -1494,7 +1494,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {String} nested name
          */
-        SolidityType.prototype.nestedName = function (name) {
+        YlemType.prototype.nestedName = function (name) {
             // remove last [] in name
             var nestedTypes = this.nestedTypes(name);
             if (!nestedTypes) {
@@ -1512,7 +1512,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Bool} true if is dynamic, otherwise false
          */
-        SolidityType.prototype.isDynamicType = function () {
+        YlemType.prototype.isDynamicType = function () {
             return false;
         };
 
@@ -1527,7 +1527,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {Array} array of nested types
          */
-        SolidityType.prototype.nestedTypes = function (name) {
+        YlemType.prototype.nestedTypes = function (name) {
             // return list of strings eg. "[]", "[3]", "[]", "[2]"
             return name.match(/(\[[0-9]*\])/g);
         };
@@ -1540,7 +1540,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name
          * @return {String} encoded value
          */
-        SolidityType.prototype.encode = function (value, name) {
+        YlemType.prototype.encode = function (value, name) {
             var self = this;
             if (this.isDynamicArray(name)) {
 
@@ -1586,7 +1586,7 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * @param {String} name type name
          * @returns {Object} decoded value
          */
-        SolidityType.prototype.decode = function (bytes, offset, name) {
+        YlemType.prototype.decode = function (bytes, offset, name) {
             var self = this;
 
             if (this.isDynamicArray(name)) {
@@ -1631,24 +1631,24 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
                     var dynamicOffset = parseInt('0x' + bytes.substr(offset * 2, 64));      // in bytes
                     var length = parseInt('0x' + bytes.substr(dynamicOffset * 2, 64));      // in bytes
                     var roundedLength = Math.floor((length + 31) / 32);                     // in int
-                    var param = new SolidityParam(bytes.substr(dynamicOffset * 2, (1 + roundedLength) * 64), 0);
+                    var param = new YlemParam(bytes.substr(dynamicOffset * 2, (1 + roundedLength) * 64), 0);
                     return self._outputFormatter(param, name);
                 })();
             }
 
             var length = this.staticPartLength(name);
-            var param = new SolidityParam(bytes.substr(offset * 2, length * 2));
+            var param = new YlemParam(bytes.substr(offset * 2, length * 2));
             return this._outputFormatter(param, name);
         };
 
-        module.exports = SolidityType;
+        module.exports = YlemType;
 
     }, { "./formatters": 9, "./param": 11 }], 15: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeUInt is a prootype that represents uint type
+         * YlemTypeUInt is a prootype that represents uint type
          * It matches:
          * uint
          * uint[]
@@ -1663,26 +1663,26 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * uint[3][]
          * uint64[][6][], ...
          */
-        var SolidityTypeUInt = function () {
+        var YlemTypeUInt = function () {
             this._inputFormatter = f.formatInputInt;
             this._outputFormatter = f.formatOutputUInt;
         };
 
-        SolidityTypeUInt.prototype = new SolidityType({});
-        SolidityTypeUInt.prototype.constructor = SolidityTypeUInt;
+        YlemTypeUInt.prototype = new YlemType({});
+        YlemTypeUInt.prototype.constructor = YlemTypeUInt;
 
-        SolidityTypeUInt.prototype.isType = function (name) {
+        YlemTypeUInt.prototype.isType = function (name) {
             return !!name.match(/^uint([0-9]*)?(\[([0-9]*)\])*$/);
         };
 
-        module.exports = SolidityTypeUInt;
+        module.exports = YlemTypeUInt;
 
     }, { "./formatters": 9, "./type": 14 }], 16: [function (require, module, exports) {
         var f = require('./formatters');
-        var SolidityType = require('./type');
+        var YlemType = require('./type');
 
         /**
-         * SolidityTypeUReal is a prootype that represents ureal type
+         * YlemTypeUReal is a prootype that represents ureal type
          * It matches:
          * ureal
          * ureal[]
@@ -1697,19 +1697,19 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
          * ureal[3][]
          * ureal64[][6][], ...
          */
-        var SolidityTypeUReal = function () {
+        var YlemTypeUReal = function () {
             this._inputFormatter = f.formatInputReal;
             this._outputFormatter = f.formatOutputUReal;
         };
 
-        SolidityTypeUReal.prototype = new SolidityType({});
-        SolidityTypeUReal.prototype.constructor = SolidityTypeUReal;
+        YlemTypeUReal.prototype = new YlemType({});
+        YlemTypeUReal.prototype.constructor = YlemTypeUReal;
 
-        SolidityTypeUReal.prototype.isType = function (name) {
+        YlemTypeUReal.prototype.isType = function (name) {
             return !!name.match(/^ureal([0-9]*)?(\[([0-9]*)\])*$/);
         };
 
-        module.exports = SolidityTypeUReal;
+        module.exports = YlemTypeUReal;
 
     }, { "./formatters": 9, "./type": 14 }], 17: [function (require, module, exports) {
         'use strict';
@@ -1725,17 +1725,17 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
     }, {}], 18: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -1747,70 +1747,70 @@ require = (function () { function r(e, n, t) { function o(i, f) { if (!n[i]) { i
 
         /**
          * Utils
-         * 
+         *
          * @module utils
          */
 
         /**
          * Utility functions
-         * 
+         *
          * @class [utils] config
          * @constructor
          */
 
 
-       
+
 /// required to define XCB_BIGNUMBER_ROUNDING_MODE
-var BigNumber = require('bignumber.js');
+        var BigNumber = require('bignumber.js');
 
-var XCB_UNITS = [
-    'ore',
-    'fecore',
-    'picore',
-    'nacore',
-    'μcore',
-    'micore',
-    'core',
-    'kicore',
-    'Mecore',
-    'Gicore',
-    'Tecore',
-    'Pecore',
-    'Excore',
-    'Zecore',
-    'Yocore',
-];
+        var XCB_UNITS = [
+            'ore',
+            'fecore',
+            'picore',
+            'nacore',
+            'μcore',
+            'micore',
+            'core',
+            'kicore',
+            'Mecore',
+            'Gicore',
+            'Tecore',
+            'Pecore',
+            'Excore',
+            'Zecore',
+            'Yocore',
+        ];
 
-module.exports = {
-    XCB_PADDING: 32,
-    XCB_SIGNATURE_LENGTH: 4,
-    XCB_UNITS: XCB_UNITS,
-    XCB_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    XCB_POLLING_TIMEOUT: 1000/2,
-    defaultBlock: 'latest',
-    defaultAccount: undefined
-};
+        module.exports = {
+            XCB_PADDING: 32,
+            XCB_SIGNATURE_LENGTH: 4,
+            XCB_UNITS: XCB_UNITS,
+            XCB_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+            XCB_POLLING_TIMEOUT: 1000/2,
+            defaultBlock: 'latest',
+            defaultAccount: undefined
+        };
 
 
 
     }, { "bignumber.js": "bignumber.js" }], 19: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file sha3.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -1834,17 +1834,17 @@ module.exports = {
     }, { "crypto-js": 59, "js-sha3": 85 }], 20: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -1889,81 +1889,81 @@ module.exports = {
             'Excore',
             'Zecore',
             'Yocore',
-          ];
-      
-      var unitMap = {
-          'nocore':     '0',
-          'ore':        '1',
-      
-          'fecore':     '1000',
-          'Fecore':     '1000',
-          'Wav':        '1000',
-          'wav':        '1000',
-      
-          'picore':     '1000000',
-          'Picore':     '1000000',
-          'Grav':       '1000000',
-          'grav':       '1000000',
-      
-          'nacore':     '1000000000',
-          'Nacore':     '1000000000',
-          'Nucle':      '1000000000',
-          'nucle':      '1000000000',
-      
-          'μcore':      '1000000000000',
-          'Μcore':      '1000000000000',
-          'Atom':       '1000000000000',
-          'atom':       '1000000000000',
-      
-          'micore':     '1000000000000000',
-          'Micore':     '1000000000000000',
-          'Moli':       '1000000000000000',
-          'moli':       '1000000000000000',
-      
-          'core':       '1000000000000000000',
-          'Core':       '1000000000000000000',
-      
-          'kicore':     '1000000000000000000000',
-          'Kicore':     '1000000000000000000000',
-          'Aer':        '1000000000000000000000',
-          'aer':        '1000000000000000000000',
-      
-          'mecore':     '1000000000000000000000000',
-          'Mecore':     '1000000000000000000000000',
-          'Orb':        '1000000000000000000000000',
-          'orb':        '1000000000000000000000000',
-      
-          'gicore':     '1000000000000000000000000000',
-          'Gicore':     '1000000000000000000000000000',
-          'Plano':      '1000000000000000000000000000',
-          'plano':      '1000000000000000000000000000',
-      
-          'tecore':     '1000000000000000000000000000000',
-          'Tecore':     '1000000000000000000000000000000',
-          'Tera':       '1000000000000000000000000000000',
-          'tera':       '1000000000000000000000000000000',
-      
-          'pecore':     '1000000000000000000000000000000000',
-          'Pecore':     '1000000000000000000000000000000000',
-          'Sola':       '1000000000000000000000000000000000',
-          'sola':       '1000000000000000000000000000000000',
-      
-          'excore':     '1000000000000000000000000000000000000',
-          'Excore':     '1000000000000000000000000000000000000',
-          'Galx':       '1000000000000000000000000000000000000',
-          'galx':       '1000000000000000000000000000000000000',
-      
-          'zecore':     '1000000000000000000000000000000000000000',
-          'Zecore':     '1000000000000000000000000000000000000000',
-          'Cluster':    '1000000000000000000000000000000000000000',
-          'cluster':    '1000000000000000000000000000000000000000',
-      
-          'yocore':     '1000000000000000000000000000000000000000000',
-          'Yocore':     '1000000000000000000000000000000000000000000',
-          'Supermatter':'1000000000000000000000000000000000000000000',
-          'supermatter':'1000000000000000000000000000000000000000000',
-      };
-      
+        ];
+
+        var unitMap = {
+            'nocore':     '0',
+            'ore':        '1',
+
+            'fecore':     '1000',
+            'Fecore':     '1000',
+            'Wav':        '1000',
+            'wav':        '1000',
+
+            'picore':     '1000000',
+            'Picore':     '1000000',
+            'Grav':       '1000000',
+            'grav':       '1000000',
+
+            'nacore':     '1000000000',
+            'Nacore':     '1000000000',
+            'Nucle':      '1000000000',
+            'nucle':      '1000000000',
+
+            'μcore':      '1000000000000',
+            'Μcore':      '1000000000000',
+            'Atom':       '1000000000000',
+            'atom':       '1000000000000',
+
+            'micore':     '1000000000000000',
+            'Micore':     '1000000000000000',
+            'Moli':       '1000000000000000',
+            'moli':       '1000000000000000',
+
+            'core':       '1000000000000000000',
+            'Core':       '1000000000000000000',
+
+            'kicore':     '1000000000000000000000',
+            'Kicore':     '1000000000000000000000',
+            'Aer':        '1000000000000000000000',
+            'aer':        '1000000000000000000000',
+
+            'mecore':     '1000000000000000000000000',
+            'Mecore':     '1000000000000000000000000',
+            'Orb':        '1000000000000000000000000',
+            'orb':        '1000000000000000000000000',
+
+            'gicore':     '1000000000000000000000000000',
+            'Gicore':     '1000000000000000000000000000',
+            'Plano':      '1000000000000000000000000000',
+            'plano':      '1000000000000000000000000000',
+
+            'tecore':     '1000000000000000000000000000000',
+            'Tecore':     '1000000000000000000000000000000',
+            'Tera':       '1000000000000000000000000000000',
+            'tera':       '1000000000000000000000000000000',
+
+            'pecore':     '1000000000000000000000000000000000',
+            'Pecore':     '1000000000000000000000000000000000',
+            'Sola':       '1000000000000000000000000000000000',
+            'sola':       '1000000000000000000000000000000000',
+
+            'excore':     '1000000000000000000000000000000000000',
+            'Excore':     '1000000000000000000000000000000000000',
+            'Galx':       '1000000000000000000000000000000000000',
+            'galx':       '1000000000000000000000000000000000000',
+
+            'zecore':     '1000000000000000000000000000000000000000',
+            'Zecore':     '1000000000000000000000000000000000000000',
+            'Cluster':    '1000000000000000000000000000000000000000',
+            'cluster':    '1000000000000000000000000000000000000000',
+
+            'yocore':     '1000000000000000000000000000000000000000000',
+            'Yocore':     '1000000000000000000000000000000000000000000',
+            'Supermatter':'1000000000000000000000000000000000000000000',
+            'supermatter':'1000000000000000000000000000000000000000000',
+        };
+
         /**
          * Should be called to pad string to expected length
          *
@@ -1997,23 +1997,23 @@ module.exports = {
          * @param {String} string in hex
          * @returns {String} ascii string representation of hex value
          */
-         var toUtf8 = function(hex) {
+        var toUtf8 = function(hex) {
             // Find termination
-                var str = "";
-                var i = 0, l = hex.length;
-                if (hex.substring(0, 2) === '0x') {
-                    i = 2;
-                }
-                for (; i < l; i+=2) {
-                    var code = parseInt(hex.substr(i, 2), 16);
-                    if (code === 0)
-                        break;
-                    str += String.fromCharCode(code);
-                }
-            
-                return utf8.decode(str);
-            };
-            
+            var str = "";
+            var i = 0, l = hex.length;
+            if (hex.substring(0, 2) === '0x') {
+                i = 2;
+            }
+            for (; i < l; i+=2) {
+                var code = parseInt(hex.substr(i, 2), 16);
+                if (code === 0)
+                    break;
+                str += String.fromCharCode(code);
+            }
+
+            return utf8.decode(str);
+        };
+
 
         /**
          * Should be called to get ascii from it's hex representation
@@ -2172,113 +2172,113 @@ module.exports = {
             return fromDecimal(val);
         };
 
-/**
- * Returns value of unit in Ore
- *
- * @method getValueOfUnit
- * @param {String} unit the unit to convert to, default core
- * @returns {BigNumber} value of the unit (in Ore)
- * @throws error if the unit is not correct:w
- */
- var getValueOfUnit = function (unit) {
-    unit = unit ? unit.toLowerCase() : 'core';
-    var unitValue = unitMap[unit];
-    if (unitValue === undefined) {
-        throw new Error('This unit doesn\'t exists, please use the one of the following units' + JSON.stringify(unitMap, null, 2));
-    }
-    return new BigNumber(unitValue, 10);
-};
-/**
- * Takes a number of ore and converts it to any other core unit.
- *
- * Possible units are:
- *   SI Short        SI Full        Other
- * - wav             fecore         femto
- * - grav            picore         pico
- * - nucle           nacore         nano
- * - atom            μcore          micro
- * - moli            millicore      mili
- * - core            Core
- * - aer             kicore         kilo
- * - orb             Mecore         mega
- * - Plano           Gicore         giga
- * - Tera            Tecore         tera
- * - Sola            Pecore         peta
- * - Galx            Excore         exa
- * - Cluster         Zecore         zetta
- * - Supermatter     Yocore         yotta
- *
- * @method fromOre
- * @param {Number|String} number can be a number, number string or a HEX of a decimal
- * @param {String} unit the unit to convert to, default core
- * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
-*/
-var fromOre = function(number, unit) {
-    var returnValue = toBigNumber(number).dividedBy(getValueOfUnit(unit));
+        /**
+         * Returns value of unit in Ore
+         *
+         * @method getValueOfUnit
+         * @param {String} unit the unit to convert to, default core
+         * @returns {BigNumber} value of the unit (in Ore)
+         * @throws error if the unit is not correct:w
+         */
+        var getValueOfUnit = function (unit) {
+            unit = unit ? unit.toLowerCase() : 'core';
+            var unitValue = unitMap[unit];
+            if (unitValue === undefined) {
+                throw new Error('This unit doesn\'t exists, please use the one of the following units' + JSON.stringify(unitMap, null, 2));
+            }
+            return new BigNumber(unitValue, 10);
+        };
+        /**
+         * Takes a number of ore and converts it to any other core unit.
+         *
+         * Possible units are:
+         *   SI Short        SI Full        Other
+         * - wav             fecore         femto
+         * - grav            picore         pico
+         * - nucle           nacore         nano
+         * - atom            μcore          micro
+         * - moli            millicore      mili
+         * - core            Core
+         * - aer             kicore         kilo
+         * - orb             Mecore         mega
+         * - Plano           Gicore         giga
+         * - Tera            Tecore         tera
+         * - Sola            Pecore         peta
+         * - Galx            Excore         exa
+         * - Cluster         Zecore         zetta
+         * - Supermatter     Yocore         yotta
+         *
+         * @method fromOre
+         * @param {Number|String} number can be a number, number string or a HEX of a decimal
+         * @param {String} unit the unit to convert to, default core
+         * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
+         */
+        var fromOre = function(number, unit) {
+            var returnValue = toBigNumber(number).dividedBy(getValueOfUnit(unit));
 
-    return isBigNumber(number) ? returnValue : returnValue.toString(10);
-};
+            return isBigNumber(number) ? returnValue : returnValue.toString(10);
+        };
 
-/**
- * Takes a number of a unit and converts it to ore.
- *
- * Possible units are:
- *   SI Short        SI Full        Other
- * - wav             fecore         femto
- * - grav            picore         pico
- * - nucle           nacore         nano
- * - atom            μcore          micro
- * - moli            millicore      mili
- * - core            Core
- * - aer             kicore         kilo
- * - orb             Mecore         mega
- * - Plano           Gicore         giga
- * - Tera            Tecore         tera
- * - Sola            Pecore         peta
- * - Galx            Excore         exa
- * - Cluster         Zecore         zetta
- * - Supermatter     Yocore         yotta
- *
- * @method toOre
- * @param {Number|String|BigNumber} number can be a number, number string or a HEX of a decimal
- * @param {String} unit the unit to convert from, default core
- * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
-*/
-var toOre = function(number, unit) {
-    var returnValue = toBigNumber(number).times(getValueOfUnit(unit));
+        /**
+         * Takes a number of a unit and converts it to ore.
+         *
+         * Possible units are:
+         *   SI Short        SI Full        Other
+         * - wav             fecore         femto
+         * - grav            picore         pico
+         * - nucle           nacore         nano
+         * - atom            μcore          micro
+         * - moli            millicore      mili
+         * - core            Core
+         * - aer             kicore         kilo
+         * - orb             Mecore         mega
+         * - Plano           Gicore         giga
+         * - Tera            Tecore         tera
+         * - Sola            Pecore         peta
+         * - Galx            Excore         exa
+         * - Cluster         Zecore         zetta
+         * - Supermatter     Yocore         yotta
+         *
+         * @method toOre
+         * @param {Number|String|BigNumber} number can be a number, number string or a HEX of a decimal
+         * @param {String} unit the unit to convert from, default core
+         * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
+         */
+        var toOre = function(number, unit) {
+            var returnValue = toBigNumber(number).times(getValueOfUnit(unit));
 
-    return isBigNumber(number) ? returnValue : returnValue.toString(10);
-};
+            return isBigNumber(number) ? returnValue : returnValue.toString(10);
+        };
 
-/**
- * Takes an input and transforms it into a bignumber
+        /**
+         * Takes an input and transforms it into a bignumber
 
          *
          * @method toBigNumber
          * @param {Number|String|BigNumber} a number, string, HEX string or BigNumber
          * @return {BigNumber} BigNumber
-*/
-var toBigNumber = function(number) {
-    /*jshint maxcomplexity:5 */
-    number = number || 0;
-    if (isBigNumber(number))
-        return number;
+         */
+        var toBigNumber = function(number) {
+            /*jshint maxcomplexity:5 */
+            number = number || 0;
+            if (isBigNumber(number))
+                return number;
 
-    if (isString(number) && (number.indexOf('0x') === 0 || number.indexOf('-0x') === 0)) {
-        return new BigNumber(number.replace('0x',''), 16);
-    }
-    if (isString(number) && (number.indexOf('ce') === 0 || number.indexOf('-ce') === 0)) {
-        return new BigNumber(number, 16);
-    }
-    if (isString(number) && (number.indexOf('cb') === 0 || number.indexOf('-cb') === 0)) {
-        return new BigNumber(number, 16);
-    }
-    if (isString(number) && (number.indexOf('ab') === 0 || number.indexOf('-ab') === 0)) {
-        return new BigNumber(number, 16);
-    }
+            if (isString(number) && (number.indexOf('0x') === 0 || number.indexOf('-0x') === 0)) {
+                return new BigNumber(number.replace('0x',''), 16);
+            }
+            if (isString(number) && (number.indexOf('ce') === 0 || number.indexOf('-ce') === 0)) {
+                return new BigNumber(number, 16);
+            }
+            if (isString(number) && (number.indexOf('cb') === 0 || number.indexOf('-cb') === 0)) {
+                return new BigNumber(number, 16);
+            }
+            if (isString(number) && (number.indexOf('ab') === 0 || number.indexOf('-ab') === 0)) {
+                return new BigNumber(number, 16);
+            }
 
-    return new BigNumber(number.toString(10), 10);
-};
+            return new BigNumber(number.toString(10), 10);
+        };
 
 
         /**
@@ -2300,9 +2300,9 @@ var toBigNumber = function(number) {
          * Checks if the given string is strictly an address
          *
          * @method isStrictAddress
- * @param {String} address the given HEX address
+         * @param {String} address the given HEX address
          * @return {Boolean}
-        */
+         */
         var isStrictAddress = function (address) {
             return /^[0-9a-f]{44}$/i.test(address);
         };
@@ -2311,16 +2311,16 @@ var toBigNumber = function(number) {
          * Checks if the given string is an address
          *
          * @method isAddress
- * @param {String} address the given HEX address
+         * @param {String} address the given HEX address
          * @return {Boolean}
-        */
+         */
         var isAddress = function (address) {
             if (!/^[0-9a-f]{44}$/i.test(address)) {
                 // check if it has the basic requirements of an address
                 return false;
             } else if (/^[0-9a-f]{44}$/.test(address) || /^[0-9A-F]{44}$/.test(address)) {
                 // If it's all small caps or all caps, return true
-                        return true;
+                return true;
             } else {
                 // Otherwise check each case
                 return isChecksumAddress(address);
@@ -2331,9 +2331,9 @@ var toBigNumber = function(number) {
          * Checks if the given string is a checksummed address
          *
          * @method isChecksumAddress
- * @param {String} address the given HEX address
+         * @param {String} address the given HEX address
          * @return {Boolean}
-        */
+         */
         var isChecksumAddress = function (address) {
             // Check each case
             address = address.replace('0x','');
@@ -2354,9 +2354,9 @@ var toBigNumber = function(number) {
          * Makes a checksum address
          *
          * @method toChecksumAddress
- * @param {String} address the given HEX address
+         * @param {String} address the given HEX address
          * @return {String}
-        */
+         */
         var toChecksumAddress = function (address) {
             if (typeof address === 'undefined') return '';
 
@@ -2390,7 +2390,7 @@ var toBigNumber = function(number) {
             if (/^[0-9a-f]{44}$/.test(address)) {
                 return address;
             }
-        
+
             return padLeft(toHex(address), 44);
         };
 
@@ -2478,7 +2478,7 @@ var toBigNumber = function(number) {
         };
 
         /**
- * Returns true if given string is a valid Core block header bloom.
+         * Returns true if given string is a valid Core block header bloom.
          *
          * @method isBloom
          * @param {String} hex encoded bloom filter
@@ -2550,17 +2550,17 @@ var toBigNumber = function(number) {
     }, {}], 22: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -2646,7 +2646,7 @@ var toBigNumber = function(number) {
         Web3.prototype.toBigNumber = utils.toBigNumber;
         Web3.prototype.toOre = utils.toOre;
         Web3.prototype.fromOre = utils.fromOre;
-         Web3.prototype.isAddress = utils.isAddress;
+        Web3.prototype.isAddress = utils.isAddress;
         Web3.prototype.isChecksumAddress = utils.isChecksumAddress;
         Web3.prototype.toChecksumAddress = utils.toChecksumAddress;
         Web3.prototype.isIBAN = utils.isIBAN;
@@ -2704,17 +2704,17 @@ var toBigNumber = function(number) {
     }, { "./utils/sha3": 19, "./utils/utils": 20, "./version.json": 21, "./web3/batch": 24, "./web3/extend": 28, "./web3/httpprovider": 32, "./web3/iban": 33, "./web3/ipcprovider": 34, "./web3/methods/db": 37, "./web3/methods/xcb": 38, "./web3/methods/net": 39, "./web3/methods/personal": 40, "./web3/methods/shh": 41, "./web3/methods/swarm": 42, "./web3/property": 45, "./web3/requestmanager": 46, "./web3/settings": 47, "bignumber.js": "bignumber.js" }], 23: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -2725,19 +2725,19 @@ var toBigNumber = function(number) {
          */
 
         var sha3 = require('../utils/sha3');
-        var SolidityEvent = require('./event');
+        var YlemEvent = require('./event');
         var formatters = require('./formatters');
         var utils = require('../utils/utils');
         var Filter = require('./filter');
         var watches = require('./methods/watches');
 
-        var AllSolidityEvents = function (requestManager, json, address) {
+        var AllYlemEvents = function (requestManager, json, address) {
             this._requestManager = requestManager;
             this._json = json;
             this._address = address;
         };
 
-        AllSolidityEvents.prototype.encode = function (options) {
+        AllYlemEvents.prototype.encode = function (options) {
             options = options || {};
             var result = {};
 
@@ -2752,7 +2752,7 @@ var toBigNumber = function(number) {
             return result;
         };
 
-        AllSolidityEvents.prototype.decode = function (data) {
+        AllYlemEvents.prototype.decode = function (data) {
             data.data = data.data || '';
             data.topics = data.topics || [];
 
@@ -2766,11 +2766,11 @@ var toBigNumber = function(number) {
                 return data;
             }
 
-            var event = new SolidityEvent(this._requestManager, match, this._address);
+            var event = new YlemEvent(this._requestManager, match, this._address);
             return event.decode(data);
         };
 
-        AllSolidityEvents.prototype.execute = function (options, callback) {
+        AllYlemEvents.prototype.execute = function (options, callback) {
 
             if (utils.isFunction(arguments[arguments.length - 1])) {
                 callback = arguments[arguments.length - 1];
@@ -2783,32 +2783,32 @@ var toBigNumber = function(number) {
             return new Filter(o, 'xcb', this._requestManager, watches.xcb(), formatter, callback);
         };
 
-        AllSolidityEvents.prototype.attachToContract = function (contract) {
+        AllYlemEvents.prototype.attachToContract = function (contract) {
             var execute = this.execute.bind(this);
             contract.allEvents = execute;
         };
 
-        module.exports = AllSolidityEvents;
+        module.exports = AllYlemEvents;
 
 
     }, { "../utils/sha3": 19, "../utils/utils": 20, "./event": 27, "./filter": 29, "./formatters": 30, "./methods/watches": 43 }], 24: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file batch.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -2862,17 +2862,17 @@ var toBigNumber = function(number) {
     }, { "./errors": 26, "./jsonrpc": 35 }], 25: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -2883,9 +2883,9 @@ var toBigNumber = function(number) {
          */
 
         var utils = require('../utils/utils');
-        var coder = require('../solidity/coder');
-        var SolidityEvent = require('./event');
-        var SolidityFunction = require('./function');
+        var coder = require('../ylem/coder');
+        var YlemEvent = require('./event');
+        var YlemFunction = require('./function');
         var AllEvents = require('./allevents');
 
         /**
@@ -2918,7 +2918,7 @@ var toBigNumber = function(number) {
             contract.abi.filter(function (json) {
                 return json.type === 'function';
             }).map(function (json) {
-                return new SolidityFunction(contract._xcb, json, contract.address);
+                return new YlemFunction(contract._xcb, json, contract.address);
             }).forEach(function (f) {
                 f.attachToContract(contract);
             });
@@ -2940,7 +2940,7 @@ var toBigNumber = function(number) {
             All.attachToContract(contract);
 
             events.map(function (json) {
-                return new SolidityEvent(contract._xcb._requestManager, json, contract.address);
+                return new YlemEvent(contract._xcb._requestManager, json, contract.address);
             }).forEach(function (e) {
                 e.attachToContract(contract);
             });
@@ -2980,13 +2980,13 @@ var toBigNumber = function(number) {
 
                         contract._xcb.getTransactionReceipt(contract.transactionHash, function(e, receipt){
                             if(receipt && !callbackFired) {
-        
+
                                 contract._xcb.getCode(receipt.contractAddress, function(e, code){
                                     /*jshint maxcomplexity: 6 */
-        
+
                                     if(callbackFired || !code)
                                         return;
-        
+
                                     filter.stopWatching(function() {});
                                     callbackFired = true;
 
@@ -3006,9 +3006,9 @@ var toBigNumber = function(number) {
 
                                     } else {
                                         if(callback)
-                                        callback(new Error('The contract code couldn\'t be stored, please check your energy amount.'));
-                                    else
-                                        throw new Error('The contract code couldn\'t be stored, please check your energy amount.');
+                                            callback(new Error('The contract code couldn\'t be stored, please check your energy amount.'));
+                                        else
+                                            throw new Error('The contract code couldn\'t be stored, please check your energy amount.');
                                     }
                                 });
                             }
@@ -3171,32 +3171,32 @@ var toBigNumber = function(number) {
 
         module.exports = ContractFactory;
 
-    }, { "../solidity/coder": 7, "../utils/utils": 20, "./allevents": 23, "./event": 27, "./function": 31 }], 26: [function (require, module, exports) {
+    }, { "../ylem/coder": 7, "../utils/utils": 20, "./allevents": 23, "./event": 27, "./function": 31 }], 26: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file errors.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
          */
 
         module.exports = {
-            InvalidNumberOfSolidityArgs: function () {
-                return new Error('Invalid number of arguments to Solidity function');
+            InvalidNumberOfYlemArgs: function () {
+                return new Error('Invalid number of arguments to Ylem function');
             },
             InvalidNumberOfRPCParams: function () {
                 return new Error('Invalid number of input parameters to RPC method');
@@ -3219,17 +3219,17 @@ var toBigNumber = function(number) {
     }, {}], 27: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -3240,7 +3240,7 @@ var toBigNumber = function(number) {
          */
 
         var utils = require('../utils/utils');
-        var coder = require('../solidity/coder');
+        var coder = require('../ylem/coder');
         var formatters = require('./formatters');
         var sha3 = require('../utils/sha3');
         var Filter = require('./filter');
@@ -3249,7 +3249,7 @@ var toBigNumber = function(number) {
         /**
          * This prototype should be used to create event filters
          */
-        var SolidityEvent = function (requestManager, json, address) {
+        var YlemEvent = function (requestManager, json, address) {
             this._requestManager = requestManager;
             this._params = json.inputs;
             this._name = utils.transformToFullName(json);
@@ -3264,7 +3264,7 @@ var toBigNumber = function(number) {
          * @param {Bool} decide if returned typed should be indexed
          * @return {Array} array of types
          */
-        SolidityEvent.prototype.types = function (indexed) {
+        YlemEvent.prototype.types = function (indexed) {
             return this._params.filter(function (i) {
                 return i.indexed === indexed;
             }).map(function (i) {
@@ -3278,7 +3278,7 @@ var toBigNumber = function(number) {
          * @method displayName
          * @return {String} event display name
          */
-        SolidityEvent.prototype.displayName = function () {
+        YlemEvent.prototype.displayName = function () {
             return utils.extractDisplayName(this._name);
         };
 
@@ -3288,7 +3288,7 @@ var toBigNumber = function(number) {
          * @method typeName
          * @return {String} event type name
          */
-        SolidityEvent.prototype.typeName = function () {
+        YlemEvent.prototype.typeName = function () {
             return utils.extractTypeName(this._name);
         };
 
@@ -3298,7 +3298,7 @@ var toBigNumber = function(number) {
          * @method signature
          * @return {String} event signature
          */
-        SolidityEvent.prototype.signature = function () {
+        YlemEvent.prototype.signature = function () {
             return sha3(this._name);
         };
 
@@ -3310,7 +3310,7 @@ var toBigNumber = function(number) {
          * @param {Object} options
          * @return {Object} everything combined together and encoded
          */
-        SolidityEvent.prototype.encode = function (indexed, options) {
+        YlemEvent.prototype.encode = function (indexed, options) {
             indexed = indexed || {};
             options = options || {};
             var result = {};
@@ -3356,7 +3356,7 @@ var toBigNumber = function(number) {
          * @param {Object} data
          * @return {Object} result object with decoded indexed && not indexed params
          */
-        SolidityEvent.prototype.decode = function (data) {
+        YlemEvent.prototype.decode = function (data) {
 
             data.data = data.data || '';
             data.topics = data.topics || [];
@@ -3391,7 +3391,7 @@ var toBigNumber = function(number) {
          * @param {Object} options
          * @return {Object} filter object
          */
-        SolidityEvent.prototype.execute = function (indexed, options, callback) {
+        YlemEvent.prototype.execute = function (indexed, options, callback) {
 
             if (utils.isFunction(arguments[arguments.length - 1])) {
                 callback = arguments[arguments.length - 1];
@@ -3414,7 +3414,7 @@ var toBigNumber = function(number) {
          * @method attachToContract
          * @param {Contract}
          */
-        SolidityEvent.prototype.attachToContract = function (contract) {
+        YlemEvent.prototype.attachToContract = function (contract) {
             var execute = this.execute.bind(this);
             var displayName = this.displayName();
             if (!contract[displayName]) {
@@ -3423,10 +3423,10 @@ var toBigNumber = function(number) {
             contract[displayName][this.typeName()] = this.execute.bind(this, contract);
         };
 
-        module.exports = SolidityEvent;
+        module.exports = YlemEvent;
 
 
-    }, { "../solidity/coder": 7, "../utils/sha3": 19, "../utils/utils": 20, "./filter": 29, "./formatters": 30, "./methods/watches": 43 }], 28: [function (require, module, exports) {
+    }, { "../ylem/coder": 7, "../utils/sha3": 19, "../utils/utils": 20, "./filter": 29, "./formatters": 30, "./methods/watches": 43 }], 28: [function (require, module, exports) {
         var formatters = require('./formatters');
         var utils = require('./../utils/utils');
         var Method = require('./method');
@@ -3479,17 +3479,17 @@ var toBigNumber = function(number) {
     }, { "./../utils/utils": 20, "./formatters": 30, "./method": 36, "./property": 45 }], 29: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -3507,11 +3507,11 @@ var toBigNumber = function(number) {
         var utils = require('../utils/utils');
 
         /**
-        * Converts a given topic to a hex string, but also allows null values.
-        *
-        * @param {Mixed} value
-        * @return {String}
-        */
+         * Converts a given topic to a hex string, but also allows null values.
+         *
+         * @param {Mixed} value
+         * @return {String}
+         */
         var toTopic = function (value) {
 
             if (value === null || typeof value === 'undefined')
@@ -3561,12 +3561,12 @@ var toBigNumber = function(number) {
         };
 
         /**
-        Adds the callback and sets up the methods, to iterate over the results.
-        
-        @method getLogsAtStart
-        @param {Object} self
-        @param {function} callback
-        */
+         Adds the callback and sets up the methods, to iterate over the results.
+
+         @method getLogsAtStart
+         @param {Object} self
+         @param {function} callback
+         */
         var getLogsAtStart = function (self, callback) {
             // call getFilterLogs for the first watch callback start
             if (!utils.isString(self.options)) {
@@ -3586,11 +3586,11 @@ var toBigNumber = function(number) {
         };
 
         /**
-        Adds the callback and sets up the methods, to iterate over the results.
-        
-        @method pollFilter
-        @param {Object} self
-        */
+         Adds the callback and sets up the methods, to iterate over the results.
+
+         @method pollFilter
+         @param {Object} self
+         */
         var pollFilter = function (self) {
 
             var onMessage = function (error, messages) {
@@ -3728,17 +3728,17 @@ var toBigNumber = function(number) {
 
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -3790,7 +3790,7 @@ var toBigNumber = function(number) {
          * @method inputCallFormatter
          * @param {Object} transaction options
          * @returns object
-        */
+         */
         var inputCallFormatter = function (options) {
 
             options.from = options.from || config.defaultAccount;
@@ -3818,7 +3818,7 @@ var toBigNumber = function(number) {
          * @method inputTransactionFormatter
          * @param {Object} transaction options
          * @returns object
-        */
+         */
         var inputTransactionFormatter = function (options) {
 
             options.from = options.from || config.defaultAccount;
@@ -3843,8 +3843,8 @@ var toBigNumber = function(number) {
          * @method outputTransactionFormatter
          * @param {Object} tx
          * @returns {Object}
-        */
-         var outputTransactionFormatter = function (tx){
+         */
+        var outputTransactionFormatter = function (tx){
             if(tx.blockNumber !== null)
                 tx.blockNumber = utils.toDecimal(tx.blockNumber);
             if(tx.transactionIndex !== null)
@@ -3852,7 +3852,7 @@ var toBigNumber = function(number) {
             tx.nonce = utils.toDecimal(tx.nonce);
             tx.energy = utils.toDecimal(tx.energy);
             tx.energyPrice = utils.toBigNumber(tx.energyPrice);
-                     tx.value = utils.toBigNumber(tx.value);
+            tx.value = utils.toBigNumber(tx.value);
             return tx;
         };
 
@@ -3862,18 +3862,18 @@ var toBigNumber = function(number) {
          * @method outputTransactionReceiptFormatter
          * @param {Object} receipt
          * @returns {Object}
-        */
-         var outputTransactionReceiptFormatter = function (receipt){
+         */
+        var outputTransactionReceiptFormatter = function (receipt){
             if(receipt.blockNumber !== null)
                 receipt.blockNumber = utils.toDecimal(receipt.blockNumber);
             if(receipt.transactionIndex !== null)
                 receipt.transactionIndex = utils.toDecimal(receipt.transactionIndex);
             receipt.cumulativeEnergyUsed = utils.toDecimal(receipt.cumulativeEnergyUsed);
             receipt.energyUsed = utils.toDecimal(receipt.energyUsed);
-        
+
             if(utils.isArray(receipt.logs)) {
                 receipt.logs = receipt.logs.map(function(log){
-                           return outputLogFormatter(log);
+                    return outputLogFormatter(log);
                 });
             }
 
@@ -3886,8 +3886,8 @@ var toBigNumber = function(number) {
          * @method outputBlockFormatter
          * @param {Object} block
          * @returns {Object}
-        */
-         var outputBlockFormatter = function(block) {
+         */
+        var outputBlockFormatter = function(block) {
 
             // transform to number
             block.energyLimit = utils.toDecimal(block.energyLimit);
@@ -3896,17 +3896,17 @@ var toBigNumber = function(number) {
             block.timestamp = utils.toDecimal(block.timestamp);
             if(block.number !== null)
                 block.number = utils.toDecimal(block.number);
-        
+
             block.difficulty = utils.toBigNumber(block.difficulty);
             block.totalDifficulty = utils.toBigNumber(block.totalDifficulty);
-        
+
             if (utils.isArray(block.transactions)) {
                 block.transactions.forEach(function(item){
                     if(!utils.isString(item))
                         return outputTransactionFormatter(item);
                 });
             }
-        
+
             return block;
         };
 
@@ -3916,14 +3916,14 @@ var toBigNumber = function(number) {
          * @method outputLogFormatter
          * @param {Object} log object
          * @returns {Object} log
-        */
-         var outputLogFormatter = function(log) {
+         */
+        var outputLogFormatter = function(log) {
             if(log.blockNumber)
                 log.blockNumber = utils.toDecimal(log.blockNumber);
             if(log.transactionIndex)
                 log.transactionIndex = utils.toDecimal(log.transactionIndex);
             if(log.logIndex)
-                        log.logIndex = utils.toDecimal(log.logIndex);
+                log.logIndex = utils.toDecimal(log.logIndex);
 
             return log;
         };
@@ -3934,8 +3934,8 @@ var toBigNumber = function(number) {
          * @method inputPostFormatter
          * @param {Object} transaction object
          * @returns {Object}
-        */
-         var inputPostFormatter = function(post) {
+         */
+        var inputPostFormatter = function(post) {
 
             // post.payload = utils.toHex(post.payload);
             post.ttl = utils.fromDecimal(post.ttl);
@@ -4036,17 +4036,17 @@ var toBigNumber = function(number) {
     }, { "../utils/config": 18, "../utils/utils": 20, "./iban": 33 }], 31: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -4056,16 +4056,16 @@ var toBigNumber = function(number) {
          * @date 2015
          */
 
-        var coder = require('../solidity/coder');
+        var coder = require('../ylem/coder');
         var utils = require('../utils/utils');
         var errors = require('./errors');
         var formatters = require('./formatters');
         var sha3 = require('../utils/sha3');
 
         /**
-         * This prototype should be used to call/sendTransaction to solidity functions
+         * This prototype should be used to call/sendTransaction to ylem functions
          */
-        var SolidityFunction = function (xcb, json, address) {
+        var YlemFunction = function (xcb, json, address) {
             this._xcb = xcb;
             this._inputTypes = json.inputs.map(function (i) {
                 return i.type;
@@ -4079,13 +4079,13 @@ var toBigNumber = function(number) {
             this._address = address;
         };
 
-        SolidityFunction.prototype.extractCallback = function (args) {
+        YlemFunction.prototype.extractCallback = function (args) {
             if (utils.isFunction(args[args.length - 1])) {
                 return args.pop(); // modify the args array!
             }
         };
 
-        SolidityFunction.prototype.extractDefaultBlock = function (args) {
+        YlemFunction.prototype.extractDefaultBlock = function (args) {
             if (args.length > this._inputTypes.length && !utils.isObject(args[args.length - 1])) {
                 return formatters.inputDefaultBlockNumberFormatter(args.pop()); // modify the args array!
             }
@@ -4098,7 +4098,7 @@ var toBigNumber = function(number) {
          * @param {Array} arguments
          * @throws {Error} if it is not
          */
-        SolidityFunction.prototype.validateArgs = function (args) {
+        YlemFunction.prototype.validateArgs = function (args) {
             var inputArgs = args.filter(function (a) {
                 // filter the options object but not arguments that are arrays
                 return !((utils.isObject(a) === true) &&
@@ -4107,7 +4107,7 @@ var toBigNumber = function(number) {
                 );
             });
             if (inputArgs.length !== this._inputTypes.length) {
-                throw errors.InvalidNumberOfSolidityArgs();
+                throw errors.InvalidNumberOfYlemArgs();
             }
         };
 
@@ -4115,10 +4115,10 @@ var toBigNumber = function(number) {
          * Should be used to create payload from arguments
          *
          * @method toPayload
-         * @param {Array} solidity function params
+         * @param {Array} ylem function params
          * @param {Object} optional payload options
          */
-        SolidityFunction.prototype.toPayload = function (args) {
+        YlemFunction.prototype.toPayload = function (args) {
             var options = {};
             if (args.length > this._inputTypes.length && utils.isObject(args[args.length - 1])) {
                 options = args[args.length - 1];
@@ -4135,12 +4135,12 @@ var toBigNumber = function(number) {
          * @method signature
          * @return {String} function signature
          */
-        SolidityFunction.prototype.signature = function () {
+        YlemFunction.prototype.signature = function () {
             return sha3(this._name).slice(0, 8);
         };
 
 
-        SolidityFunction.prototype.unpackOutput = function (output) {
+        YlemFunction.prototype.unpackOutput = function (output) {
             if (!output) {
                 return;
             }
@@ -4160,7 +4160,7 @@ var toBigNumber = function(number) {
          *   error and result.
          * @return {String} output bytes
          */
-        SolidityFunction.prototype.call = function () {
+        YlemFunction.prototype.call = function () {
             var args = Array.prototype.slice.call(arguments).filter(function (a) {return a !== undefined; });
             var callback = this.extractCallback(args);
             var defaultBlock = this.extractDefaultBlock(args);
@@ -4189,11 +4189,11 @@ var toBigNumber = function(number) {
         };
 
         /**
-         * Should be used to sendTransaction to solidity function
+         * Should be used to sendTransaction to ylem function
          *
          * @method sendTransaction
          */
-        SolidityFunction.prototype.sendTransaction = function () {
+        YlemFunction.prototype.sendTransaction = function () {
             var args = Array.prototype.slice.call(arguments).filter(function (a) {return a !== undefined; });
             var callback = this.extractCallback(args);
             var payload = this.toPayload(args);
@@ -4209,22 +4209,22 @@ var toBigNumber = function(number) {
             this._xcb.sendTransaction(payload, callback);
         };
 
-/**
- * Should be used to estimateEnergy of solidity function
- *
- * @method estimateEnergy
- */
- SolidityFunction.prototype.estimateEnergy = function () {
-    var args = Array.prototype.slice.call(arguments);
-    var callback = this.extractCallback(args);
-    var payload = this.toPayload(args);
+        /**
+         * Should be used to estimateEnergy of ylem function
+         *
+         * @method estimateEnergy
+         */
+        YlemFunction.prototype.estimateEnergy = function () {
+            var args = Array.prototype.slice.call(arguments);
+            var callback = this.extractCallback(args);
+            var payload = this.toPayload(args);
 
-    if (!callback) {
-        return this._xcb.estimateEnergy(payload);
-    }
+            if (!callback) {
+                return this._xcb.estimateEnergy(payload);
+            }
 
-    this._xcb.estimateEnergy(payload, callback);
-};
+            this._xcb.estimateEnergy(payload, callback);
+        };
 
         /**
          * Return the encoded data of the call
@@ -4232,7 +4232,7 @@ var toBigNumber = function(number) {
          * @method getData
          * @return {String} the encoded data
          */
-        SolidityFunction.prototype.getData = function () {
+        YlemFunction.prototype.getData = function () {
             var args = Array.prototype.slice.call(arguments);
             var payload = this.toPayload(args);
 
@@ -4245,7 +4245,7 @@ var toBigNumber = function(number) {
          * @method displayName
          * @return {String} display name of the function
          */
-        SolidityFunction.prototype.displayName = function () {
+        YlemFunction.prototype.displayName = function () {
             return utils.extractDisplayName(this._name);
         };
 
@@ -4255,17 +4255,17 @@ var toBigNumber = function(number) {
          * @method typeName
          * @return {String} type name of the function
          */
-        SolidityFunction.prototype.typeName = function () {
+        YlemFunction.prototype.typeName = function () {
             return utils.extractTypeName(this._name);
         };
 
         /**
-         * Should be called to get rpc requests from solidity function
+         * Should be called to get rpc requests from ylem function
          *
          * @method request
          * @returns {Object}
          */
-        SolidityFunction.prototype.request = function () {
+        YlemFunction.prototype.request = function () {
             var args = Array.prototype.slice.call(arguments);
             var callback = this.extractCallback(args);
             var payload = this.toPayload(args);
@@ -4284,7 +4284,7 @@ var toBigNumber = function(number) {
          *
          * @method execute
          */
-        SolidityFunction.prototype.execute = function () {
+        YlemFunction.prototype.execute = function () {
             var transaction = !this._constant;
 
             // send transaction
@@ -4302,7 +4302,7 @@ var toBigNumber = function(number) {
          * @method attachToContract
          * @param {Contract}
          */
-        SolidityFunction.prototype.attachToContract = function (contract) {
+        YlemFunction.prototype.attachToContract = function (contract) {
             var execute = this.execute.bind(this);
             execute.request = this.request.bind(this);
             execute.call = this.call.bind(this);
@@ -4316,22 +4316,22 @@ var toBigNumber = function(number) {
             contract[displayName][this.typeName()] = execute; // circular!!!!
         };
 
-        module.exports = SolidityFunction;
+        module.exports = YlemFunction;
 
-    }, { "../solidity/coder": 7, "../utils/sha3": 19, "../utils/utils": 20, "./errors": 26, "./formatters": 30 }], 32: [function (require, module, exports) {
+    }, { "../ylem/coder": 7, "../utils/sha3": 19, "../utils/utils": 20, "./errors": 26, "./formatters": 30 }], 32: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -4480,21 +4480,21 @@ var toBigNumber = function(number) {
     }, { "./errors": 26, "xhr2": 87, "xmlhttprequest": 17 }], 33: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file iban.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -4627,7 +4627,7 @@ var toBigNumber = function(number) {
          */
         Iban.prototype.isValid = function () {
             return /^XE[0-9]{2}(XCB[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
-            mod9710(iso13616Prepare(this._iban)) === 1;
+                mod9710(iso13616Prepare(this._iban)) === 1;
         };
 
         /**
@@ -4709,17 +4709,17 @@ var toBigNumber = function(number) {
     }, { "bignumber.js": "bignumber.js" }], 34: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -4780,28 +4780,28 @@ var toBigNumber = function(number) {
         };
 
         /**
-        Will parse the response and make an array out of it.
-        
-        @method _parseResponse
-        @param {String} data
-        */
+         Will parse the response and make an array out of it.
+
+         @method _parseResponse
+         @param {String} data
+         */
         IpcProvider.prototype._parseResponse = function (data) {
             var _this = this,
                 returnValues = [];
 
             // DE-CHUNKER
             var dechunkedData = data
-            .replace(/\}[\n\r]?\{/g,'}|--|{') // }{
-            .replace(/\}\][\n\r]?\[\{/g,'}]|--|[{') // }][{
-            .replace(/\}[\n\r]?\[\{/g,'}|--|[{') // }[{
-            .replace(/\}\][\n\r]?\{/g,'}]|--|{') // }]{
-            .split('|--|');
-    
-        dechunkedData.forEach(function(data){
-    
-            // prepend the last chunk
-            if(_this.lastChunk)
-                     data = _this.lastChunk + data;
+                .replace(/\}[\n\r]?\{/g,'}|--|{') // }{
+                .replace(/\}\][\n\r]?\[\{/g,'}]|--|[{') // }][{
+                .replace(/\}[\n\r]?\[\{/g,'}|--|[{') // }[{
+                .replace(/\}\][\n\r]?\{/g,'}]|--|{') // }]{
+                .split('|--|');
+
+            dechunkedData.forEach(function(data){
+
+                // prepend the last chunk
+                if(_this.lastChunk)
+                    data = _this.lastChunk + data;
 
                 var result = null;
 
@@ -4835,11 +4835,11 @@ var toBigNumber = function(number) {
 
 
         /**
-        Get the adds a callback to the responseCallbacks object,
-        which will be called if a response matching the response Id will arrive.
-        
-        @method _addResponseCallback
-        */
+         Get the adds a callback to the responseCallbacks object,
+         which will be called if a response matching the response Id will arrive.
+
+         @method _addResponseCallback
+         */
         IpcProvider.prototype._addResponseCallback = function (payload, callback) {
             var id = payload.id || payload[0].id;
             var method = payload.method || payload[0].method;
@@ -4849,10 +4849,10 @@ var toBigNumber = function(number) {
         };
 
         /**
-        Timeout all requests when the end/error event is fired
-        
-        @method _timeout
-        */
+         Timeout all requests when the end/error event is fired
+
+         @method _timeout
+         */
         IpcProvider.prototype._timeout = function () {
             for (var key in this.responseCallbacks) {
                 if (this.responseCallbacks.hasOwnProperty(key)) {
@@ -4864,10 +4864,10 @@ var toBigNumber = function(number) {
 
 
         /**
-        Check if the current connection is still valid.
-        
-        @method isConnected
-        */
+         Check if the current connection is still valid.
+
+         @method isConnected
+         */
         IpcProvider.prototype.isConnected = function () {
             var _this = this;
 
@@ -4918,17 +4918,17 @@ var toBigNumber = function(number) {
     }, { "../utils/utils": 20, "./errors": 26 }], 35: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -4939,10 +4939,10 @@ var toBigNumber = function(number) {
          * @date 2015
          */
 
-        // Initialize Jsonrpc as a simple object with utility functions.
+            // Initialize Jsonrpc as a simple object with utility functions.
         var Jsonrpc = {
-            messageId: 0
-        };
+                messageId: 0
+            };
 
         /**
          * Should be called to valid json create payload object
@@ -5005,17 +5005,17 @@ var toBigNumber = function(number) {
     }, {}], 36: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5067,7 +5067,7 @@ var toBigNumber = function(number) {
 
         /**
          * Should be called to check if the number of arguments is correct
-         * 
+         *
          * @method validateArgs
          * @param {Array} arguments
          * @throws {Error} if it is not
@@ -5080,7 +5080,7 @@ var toBigNumber = function(number) {
 
         /**
          * Should be called to format input args of method
-         * 
+         *
          * @method formatInput
          * @param {Array}
          * @return {Array}
@@ -5171,17 +5171,17 @@ var toBigNumber = function(number) {
     }, { "../utils/utils": 20, "./errors": 26 }], 37: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5239,17 +5239,17 @@ var toBigNumber = function(number) {
     }, { "../method": 36 }], 38: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5573,17 +5573,17 @@ var toBigNumber = function(number) {
             var factory = new Contract(this, abi);
             return factory;
         };
-        
+
         Xcb.prototype.filter = function (options, callback, filterCreationErrorCallback) {
             return new Filter(options, 'xcb', this._requestManager, watches.xcb(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
         };
-        
+
         Xcb.prototype.namereg = function () {
             return this.contract(namereg.global.abi).at(namereg.global.address);
         };
-        
-            Xcb.prototype.icapNamereg = function () {
-                return this.contract(namereg.icap.abi).at(namereg.icap.address);
+
+        Xcb.prototype.icapNamereg = function () {
+            return this.contract(namereg.icap.abi).at(namereg.icap.address);
         };
 
         Xcb.prototype.isSyncing = function (callback) {
@@ -5595,17 +5595,17 @@ var toBigNumber = function(number) {
     }, { "../../utils/config": 18, "../../utils/utils": 20, "../contract": 25, "../filter": 29, "../formatters": 30, "../iban": 33, "../method": 36, "../namereg": 44, "../property": 45, "../syncing": 48, "../transfer": 49, "./watches": 43 }], 39: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5649,17 +5649,17 @@ var toBigNumber = function(number) {
     }, { "../../utils/utils": 20, "../property": 45 }], 40: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5766,17 +5766,17 @@ var toBigNumber = function(number) {
     }, { "../formatters": 30, "../method": 36, "../property": 45 }], 41: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5912,17 +5912,17 @@ var toBigNumber = function(number) {
     }, { "../filter": 29, "../method": 36, "./watches": 43 }], 42: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -5931,7 +5931,7 @@ var toBigNumber = function(number) {
          * @author Alex Beregszaszi <alex@rtfs.hu>
          * @date 2016
          *
- * Reference: https://github.com/core-coin/go-core/blob/swarm/internal/web3ext/web3ext.go#L33
+         * Reference: https://github.com/core-coin/go-core/blob/swarm/internal/web3ext/web3ext.go#L33
          */
 
         "use strict";
@@ -6059,17 +6059,17 @@ var toBigNumber = function(number) {
     }, { "../method": 36, "../property": 45 }], 43: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -6168,21 +6168,21 @@ var toBigNumber = function(number) {
     }, { "../method": 36 }], 44: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file namereg.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -6209,17 +6209,17 @@ var toBigNumber = function(number) {
     }, { "../contracts/GlobalRegistrar.json": 1, "../contracts/ICAPRegistrar.json": 2 }], 45: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -6355,21 +6355,21 @@ var toBigNumber = function(number) {
     }, { "../utils/utils": 20 }], 46: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file requestmanager.js
          * @author Jeffrey Wilcke <jeff@ethdev.com>
          * @author Marek Kotewicz <marek@ethdev.com>
@@ -6633,17 +6633,17 @@ var toBigNumber = function(number) {
     }, {}], 48: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
@@ -6659,11 +6659,11 @@ var toBigNumber = function(number) {
         var count = 1;
 
         /**
-        Adds the callback and sets up the methods, to iterate over the results.
-        
-        @method pollSyncing
-        @param {Object} self
-        */
+         Adds the callback and sets up the methods, to iterate over the results.
+
+         @method pollSyncing
+         @param {Object} self
+         */
         var pollSyncing = function (self) {
 
             var onMessage = function (error, sync) {
@@ -6728,21 +6728,21 @@ var toBigNumber = function(number) {
     }, { "../utils/utils": 20, "./formatters": 30 }], 49: [function (require, module, exports) {
         /*
             This file is part of web3.js.
-        
+
             web3.js is free software: you can redistribute it and/or modify
             it under the terms of the GNU Lesser General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        
+
             web3.js is distributed in the hope that it will be useful,
             but WITHOUT ANY WARRANTY; without even the implied warranty of
             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
             GNU Lesser General Public License for more details.
-        
+
             You should have received a copy of the GNU Lesser General Public License
             along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
         */
-        /** 
+        /**
          * @file transfer.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -10112,7 +10112,7 @@ var toBigNumber = function(number) {
 
                     // Pad
                     data.concat(CryptoJS.lib.WordArray.random(nPaddingBytes - 1)).
-                        concat(CryptoJS.lib.WordArray.create([nPaddingBytes << 24], 1));
+                    concat(CryptoJS.lib.WordArray.create([nPaddingBytes << 24], 1));
                 },
 
                 unpad: function (data) {
@@ -10933,15 +10933,15 @@ var toBigNumber = function(number) {
         }(this, function (CryptoJS) {
 
             /** @preserve
-            (c) 2012 by Cédric Mesnil. All rights reserved.
-        
-            Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-        
-                - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-                - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-        
-            THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-            */
+             (c) 2012 by Cédric Mesnil. All rights reserved.
+
+             Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+             - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+             - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+             THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+             */
 
             (function (Math) {
                 // Shortcuts
@@ -14349,4 +14349,4 @@ var toBigNumber = function(number) {
 
     }, { "./lib/web3": 22 }]
 }, {}, ["web3"])
-    //# sourceMappingURL=web3-light.js.map
+//# sourceMappingURL=web3-light.js.map

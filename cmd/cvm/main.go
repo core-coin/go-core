@@ -19,12 +19,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/cmd/cvm/t8ntool"
 	"math/big"
 	"os"
 
-	"github.com/core-coin/go-core/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/cmd/cvm/internal/t8ntool"
+
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/internal/flags"
 )
 
 var gitTag = ""
@@ -32,7 +35,7 @@ var gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
 var gitDate = ""
 
 var (
-	app = utils.NewApp(gitTag, gitCommit, gitDate, "the cvm command line interface")
+	app = flags.NewApp(gitTag, gitCommit, gitDate, "the cvm command line interface")
 
 	DebugFlag = cli.BoolFlag{
 		Name:  "debug",
@@ -146,11 +149,13 @@ var stateTransitionCommand = cli.Command{
 		t8ntool.TraceDisableMemoryFlag,
 		t8ntool.TraceDisableStackFlag,
 		t8ntool.TraceDisableReturnDataFlag,
+		t8ntool.OutputBasedir,
 		t8ntool.OutputAllocFlag,
 		t8ntool.OutputResultFlag,
 		t8ntool.InputAllocFlag,
 		t8ntool.InputEnvFlag,
 		t8ntool.InputTxsFlag,
+		t8ntool.ForknameFlag,
 		t8ntool.NetworkIDFlag,
 		t8ntool.RewardFlag,
 		t8ntool.VerbosityFlag,
@@ -183,6 +188,7 @@ func init() {
 		DisableStorageFlag,
 		DisableReturnDataFlag,
 		CVMInterpreterFlag,
+		utils.NetworkIdFlag,
 	}
 	app.Commands = []cli.Command{
 		compileCommand,
@@ -191,7 +197,7 @@ func init() {
 		stateTestCommand,
 		stateTransitionCommand,
 	}
-	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
+	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
 
 func main() {

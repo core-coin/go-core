@@ -23,10 +23,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 func TestLegacyReceiptDecoding(t *testing.T) {
@@ -49,7 +49,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 	}
 	addr, err := common.HexToAddress("cb270000000000000000000000000000000000000001")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	tx := NewTransaction(1, addr, big.NewInt(1), 1, big.NewInt(1), nil)
 	receipt := &Receipt{
@@ -156,14 +156,14 @@ func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 
 // Tests that receipt data can be correctly derived from the contextual infos
 func TestDeriveFields(t *testing.T) {
-	address, err := common.HexToAddress("cb970000000000000000000000000000000000000002")
-	if err != nil {
-		t.Error(err)
-	}
 	// Create a few transactions to have receipts for
+	addr, err := common.HexToAddress("cb970000000000000000000000000000000000000002")
+	if err != nil {
+		t.Fatal(err)
+	}
 	txs := Transactions{
 		NewContractCreation(1, big.NewInt(1), 1, big.NewInt(1), nil),
-		NewTransaction(2, address, big.NewInt(2), 2, big.NewInt(2), nil),
+		NewTransaction(2, addr, big.NewInt(2), 2, big.NewInt(2), nil),
 	}
 	// Create the corresponding receipts
 	receipts := Receipts{

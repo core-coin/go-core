@@ -29,7 +29,7 @@ var (
 	ErrNoGenesis = errors.New("genesis not found in chain")
 )
 
-// List of cvm-call-message pre-checking errors. All state transtion messages will
+// List of cvm-call-message pre-checking errors. All state transition messages will
 // be pre-checked before execution. If any invalidation detected, the corresponding
 // error should be returned which is defined here.
 //

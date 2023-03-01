@@ -21,9 +21,9 @@ package gocore
 import (
 	"encoding/json"
 
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/p2p/discv5"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // MainnetGenesis returns the JSON spec to use for the main Core network. It
@@ -32,7 +32,7 @@ func MainnetGenesis() string {
 	return ""
 }
 
-// DevinGenesis returns the JSON spec to use for the Core test network.
+// DevinGenesis returns the JSON spec to use for the Devin test network.
 func DevinGenesis() string {
 	enc, err := json.Marshal(core.DefaultDevinGenesisBlock())
 	if err != nil {
@@ -44,8 +44,8 @@ func DevinGenesis() string {
 // FoundationBootnodes returns the enode URLs of the P2P bootstrap nodes operated
 // by the foundation running the V5 discovery protocol.
 func FoundationBootnodes() *Enodes {
-	nodes := &Enodes{nodes: make([]*discv5.Node, len(params.DiscoveryV5Bootnodes))}
-	for i, url := range params.DiscoveryV5Bootnodes {
+	nodes := &Enodes{nodes: make([]*discv5.Node, len(params.MainnetBootnodes))}
+	for i, url := range params.MainnetBootnodes {
 		nodes.nodes[i] = discv5.MustParseNode(url)
 	}
 	return nodes

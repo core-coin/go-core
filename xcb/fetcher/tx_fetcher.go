@@ -23,13 +23,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
 	mapset "github.com/deckarep/golang-set"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
 )
 
 const (
@@ -434,7 +435,7 @@ func (f *TxFetcher) loop() {
 			// If this peer is new and announced something already queued, maybe
 			// request transactions from them
 			if !oldPeer && len(f.announces[ann.origin]) > 0 {
-				f.scheduleFetches(timeoutTimer, timeoutTrigger, map[string]struct{}{ann.origin: struct{}{}})
+				f.scheduleFetches(timeoutTimer, timeoutTrigger, map[string]struct{}{ann.origin: {}})
 			}
 
 		case <-waitTrigger:
@@ -515,7 +516,7 @@ func (f *TxFetcher) loop() {
 			// Schedule a new transaction retrieval
 			f.scheduleFetches(timeoutTimer, timeoutTrigger, nil)
 
-			// No idea if we sheduled something or not, trigger the timer if needed
+			// No idea if we scheduled something or not, trigger the timer if needed
 			// TODO(raisty): this is kind of lame, can't we dump it into scheduleFetches somehow?
 			f.rescheduleTimeout(timeoutTimer, timeoutTrigger)
 

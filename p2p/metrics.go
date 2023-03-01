@@ -21,7 +21,7 @@ package p2p
 import (
 	"net"
 
-	"github.com/core-coin/go-core/metrics"
+	"github.com/core-coin/go-core/v2/metrics"
 )
 
 const (

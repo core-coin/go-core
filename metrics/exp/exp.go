@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/metrics/prometheus"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/metrics/prometheus"
 )
 
 type exp struct {
@@ -50,6 +51,20 @@ func Exp(r metrics.Registry) {
 func ExpHandler(r metrics.Registry) http.Handler {
 	e := exp{sync.Mutex{}, r}
 	return http.HandlerFunc(e.expHandler)
+}
+
+// Setup starts a dedicated metrics server at the given address.
+// This function enables metrics reporting separate from pprof.
+func Setup(address string) {
+	m := http.NewServeMux()
+	m.Handle("/debug/metrics", ExpHandler(metrics.DefaultRegistry))
+	m.Handle("/debug/metrics/prometheus", prometheus.Handler(metrics.DefaultRegistry))
+	log.Info("Starting metrics server", "addr", fmt.Sprintf("http://%s/debug/metrics", address))
+	go func() {
+		if err := http.ListenAndServe(address, m); err != nil {
+			log.Error("Failure in running metrics server", "err", err)
+		}
+	}()
 }
 
 func (exp *exp) getInt(name string) *expvar.Int {

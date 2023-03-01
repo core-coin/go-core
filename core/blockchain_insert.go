@@ -19,16 +19,16 @@ package core
 import (
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // insertStats tracks and reports on block insertion.
 type insertStats struct {
 	queued, processed, ignored int
-	usedEnergy                    uint64
+	usedEnergy                 uint64
 	lastIndex                  int
 	startTime                  mclock.AbsTime
 }
@@ -43,7 +43,7 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 	// Fetch the timings for the batch
 	var (
 		now     = mclock.Now()
-		elapsed = time.Duration(now) - time.Duration(st.startTime)
+		elapsed = now.Sub(st.startTime)
 	)
 	// If we're at the last block of the batch or report period reached, log
 	if index == len(chain)-1 || elapsed >= statsReportLimit {

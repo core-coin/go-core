@@ -21,11 +21,12 @@ import (
 	"fmt"
 	"math/big"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
 	"golang.org/x/crypto/sha3"
+
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 // Account represents an Core account located at a specific location defined
@@ -88,7 +89,7 @@ type Wallet interface {
 	// to discover non zero accounts and automatically add them to list of tracked
 	// accounts.
 	//
-	// Note, self derivaton will increment the last component of the specified path
+	// Note, self derivation will increment the last component of the specified path
 	// opposed to decending into a child path to allow discovering accounts starting
 	// from non zero components.
 	//
@@ -129,6 +130,8 @@ type Wallet interface {
 	// about which fields or actions are needed. The user may retry by providing
 	// the needed details via SignHashWithPassphrase, or by other means (e.g. unlock
 	// the account in a keystore).
+	//
+	// This method should return the signature in 'canonical' format, with v 0 or 1
 	SignText(account Account, text []byte) ([]byte, error)
 
 	// SignTextWithPassphrase is identical to Signtext, but also takes a password
@@ -175,7 +178,8 @@ type Backend interface {
 // safely used to calculate a signature from.
 //
 // The hash is calulcated as
-//   keccak256("\x19Core Signed Message:\n"${message length}${message}).
+//
+//	SHA3("\x19Core Signed Message:\n"${message length}${message}).
 //
 // This gives context to the signed message and prevents signing of transactions.
 func TextHash(data []byte) []byte {
@@ -187,7 +191,8 @@ func TextHash(data []byte) []byte {
 // safely used to calculate a signature from.
 //
 // The hash is calulcated as
-//   keccak256("\x19Core Signed Message:\n"${message length}${message}).
+//
+//	SHA3("\x19Core Signed Message:\n"${message length}${message}).
 //
 // This gives context to the signed message and prevents signing of transactions.
 func TextAndHash(data []byte) ([]byte, string) {
@@ -202,7 +207,7 @@ func TextAndHash(data []byte) ([]byte, string) {
 type WalletEventType int
 
 const (
-	// WalletArrived is fired when a new wallet is detected either via USB or via
+	// WalletArrived is fired when a new wallet is detected either via
 	// a filesystem event in the keystore.
 	WalletArrived WalletEventType = iota
 
