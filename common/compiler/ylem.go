@@ -155,7 +155,8 @@ func (s *Ylem) run(cmd *exec.Cmd, source string) (map[string]*Contract, error) {
 func ParseCombinedJSON(combinedJSON []byte, source string, languageVersion string, compilerVersion string, compilerOptions string) (map[string]*Contract, error) {
 	var output ylemOutput
 	if err := json.Unmarshal(combinedJSON, &output); err != nil {
-		return nil, err
+		// Try to parse the output with the new ylem v.0.8.0 rules
+		return parseCombinedJSONV8(combinedJSON, source, languageVersion, compilerVersion, compilerOptions)
 	}
 	// Compilation succeeded, assemble and return the contracts.
 	contracts := make(map[string]*Contract)
@@ -163,8 +164,8 @@ func ParseCombinedJSON(combinedJSON []byte, source string, languageVersion strin
 		// Parse the individual compilation results.
 		var abi interface{}
 		if err := json.Unmarshal([]byte(info.Abi), &abi); err != nil {
-			// Try to parse the output with the new ylem v.0.8.0 rules
-			return parseCombinedJSONV8(combinedJSON, source, languageVersion, compilerVersion, compilerOptions)
+			return nil, fmt.Errorf("ylem: error reading abi definition (%v)", err)
+
 		}
 		var userdoc, devdoc interface{}
 		json.Unmarshal([]byte(info.Userdoc), &userdoc)
