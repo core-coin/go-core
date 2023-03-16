@@ -80,6 +80,9 @@ func Hex2Bytes(str string) []byte {
 
 // Hex2BytesWithError returns the bytes represented by the hexadecimal string str or string.
 func Hex2BytesWithError(str string) ([]byte, error) {
+	if len(str) > 2 && str[:2] == "0x" {
+		str = str[2:]
+	}
 	h, err := hex.DecodeString(str)
 	if err != nil {
 		return nil, err

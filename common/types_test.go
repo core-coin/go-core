@@ -105,6 +105,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"41e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},   // without prefix
 		{`"e8cf4629acb360350399b6cff367a97cf36e62b9"`, true, nil},     // without prefix and checksum
 		{`"cb35348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
+		{`"0xcb35348d6db8bfe52ab1199deeacbc4c1ffa0686d149"`, false, secondValue},
 		{`"cb72e8cf4629acb360350399b6cff367a97cf36e62b9"`, false, firstValue},
 	}
 	for i, test := range tests {
