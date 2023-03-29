@@ -21,16 +21,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"net"
 	"sort"
 	"sync"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 var nullNode *enode.Node
@@ -146,7 +145,6 @@ func (t *pingRecorder) updateRecord(n *enode.Node) {
 func (t *pingRecorder) Self() *enode.Node           { return nullNode }
 func (t *pingRecorder) lookupSelf() []*enode.Node   { return nil }
 func (t *pingRecorder) lookupRandom() []*enode.Node { return nil }
-func (t *pingRecorder) close()                      {}
 
 // ping simulates a ping request.
 func (t *pingRecorder) ping(n *enode.Node) (seq uint64, err error) {
@@ -188,15 +186,16 @@ func hasDuplicates(slice []*node) bool {
 	return false
 }
 
+// checkNodesEqual checks whether the two given node lists contain the same nodes.
 func checkNodesEqual(got, want []*enode.Node) error {
 	if len(got) == len(want) {
 		for i := range got {
 			if !nodeEqual(got[i], want[i]) {
 				goto NotEqual
 			}
-			return nil
 		}
 	}
+	return nil
 
 NotEqual:
 	output := new(bytes.Buffer)
@@ -227,18 +226,20 @@ func sortedByDistanceTo(distbase enode.ID, slice []*node) bool {
 	})
 }
 
-func hexEncPrivkey(h string) *eddsa.PrivateKey {
+// hexEncPrivkey decodes h as a private key.
+func hexEncPrivkey(h string) *crypto.PrivateKey {
 	b, err := hex.DecodeString(h)
 	if err != nil {
 		panic(err)
 	}
-	key, err := crypto.ToEDDSA(b)
+	key, err := crypto.UnmarshalPrivateKey(b)
 	if err != nil {
 		panic(err)
 	}
 	return key
 }
 
+// hexEncPubkey decodes h as a public key.
 func hexEncPubkey(h string) (ret encPubkey) {
 	b, err := hex.DecodeString(h)
 	if err != nil {

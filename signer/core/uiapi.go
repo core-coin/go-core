@@ -24,11 +24,11 @@ import (
 	"io/ioutil"
 	"math/big"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // SignerUIAPI implements methods Clef provides for a UI to query, in the bidirectional communication
@@ -109,7 +109,7 @@ func (s *UIServerAPI) DeriveAccount(url string, path string, pin *bool) (account
 	return wallet.Derive(derivPath, *pin)
 }
 
-// fetchKeystore retrives the encrypted keystore from the account manager.
+// fetchKeystore retrieves the encrypted keystore from the account manager.
 func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
@@ -119,7 +119,7 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 // Example call (should fail on password too short)
 // {"jsonrpc":"2.0","method":"clef_importRawKey","params":["1111111111111111111111111111111111111111111111111111111111111111","test"], "id":6}
 func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Account, error) {
-	key, err := crypto.HexToEDDSA(privkey)
+	key, err := crypto.UnmarshalPrivateKeyHex(privkey)
 	if err != nil {
 		return accounts.Account{}, err
 	}
@@ -132,7 +132,7 @@ func (s *UIServerAPI) ImportRawKey(privkey string, password string) (accounts.Ac
 
 // OpenWallet initiates a hardware wallet opening procedure, establishing a USB
 // connection and attempting to authenticate via the provided passphrase. Note,
-// the method may return an extra challenge requiring a second open.
+// the method may return an extra challenge requiring a second open
 // Example
 // {"jsonrpc":"2.0","method":"clef_openWallet","params":["ledger://",""], "id":6}
 func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {
@@ -147,14 +147,14 @@ func (s *UIServerAPI) OpenWallet(url string, passphrase *string) error {
 	return wallet.Open(pass)
 }
 
-// NetworkId returns the networkid in use for Cip-155 replay protection
+// NetworkId returns the networkId in use for Eip-155 replay protection
 // Example call
 // {"jsonrpc":"2.0","method":"clef_networkId","params":[], "id":8}
 func (s *UIServerAPI) NetworkId() math.HexOrDecimal64 {
 	return (math.HexOrDecimal64)(s.extApi.networkID.Uint64())
 }
 
-// SetNetworkId sets the network id to use when signing transactions.
+// SetNetworkId sets the chain id to use when signing transactions.
 // Example call to set Devin:
 // {"jsonrpc":"2.0","method":"clef_setNetworkId","params":["3"], "id":8}
 func (s *UIServerAPI) SetNetworkId(id math.HexOrDecimal64) math.HexOrDecimal64 {

@@ -24,15 +24,15 @@ import (
 	"sort"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state/snapshot"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state/snapshot"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 type revision struct {
@@ -56,7 +56,7 @@ func (n *proofList) Delete(key []byte) error {
 	panic("not supported")
 }
 
-// StateDBs within the core protocol are used to store anything
+// StateDB structs within the core protocol are used to store anything
 // within the merkle trie. StateDBs take care of caching and storing
 // nested states. It's the general query interface to retrieve:
 // * Contracts
@@ -113,7 +113,7 @@ type StateDB struct {
 	SnapshotCommits      time.Duration
 }
 
-// Create a new state from a given trie.
+// New creates a new state from a given trie.
 func New(root common.Hash, db Database, snaps *snapshot.Tree) (*StateDB, error) {
 	tr, err := db.OpenTrie(root)
 	if err != nil {
@@ -248,7 +248,7 @@ func (s *StateDB) Empty(addr common.Address) bool {
 	return so == nil || so.empty()
 }
 
-// Retrieve the balance from the given address or 0 if object not found
+// GetBalance retrieves the balance from the given address or 0 if object not found
 func (s *StateDB) GetBalance(addr common.Address) *big.Int {
 	stateObject := s.getStateObject(addr)
 	if stateObject != nil {
@@ -286,17 +286,10 @@ func (s *StateDB) GetCode(addr common.Address) []byte {
 
 func (s *StateDB) GetCodeSize(addr common.Address) int {
 	stateObject := s.getStateObject(addr)
-	if stateObject == nil {
-		return 0
+	if stateObject != nil {
+		return stateObject.CodeSize(s.db)
 	}
-	if stateObject.code != nil {
-		return len(stateObject.code)
-	}
-	size, err := s.db.ContractCodeSize(stateObject.addrHash, common.BytesToHash(stateObject.CodeHash()))
-	if err != nil {
-		s.setError(err)
-	}
-	return size
+	return 0
 }
 
 func (s *StateDB) GetCodeHash(addr common.Address) common.Hash {
@@ -320,10 +313,10 @@ func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
 func (s *StateDB) GetProof(a common.Address) ([][]byte, error) {
 	var proof proofList
 	err := s.trie.Prove(crypto.SHA3(a.Bytes()), 0, &proof)
-	return [][]byte(proof), err
+	return proof, err
 }
 
-// GetProof returns the StorageProof for given key
+// GetStorageProof returns the StorageProof for given key
 func (s *StateDB) GetStorageProof(a common.Address, key common.Hash) ([][]byte, error) {
 	var proof proofList
 	trie := s.StorageTrie(a)
@@ -331,7 +324,7 @@ func (s *StateDB) GetStorageProof(a common.Address, key common.Hash) ([][]byte, 
 		return proof, errors.New("storage trie for requested address does not exist")
 	}
 	err := trie.Prove(crypto.SHA3(key.Bytes()), 0, &proof)
-	return [][]byte(proof), err
+	return proof, err
 }
 
 // GetCommittedState retrieves a value from the given account's committed storage trie.
@@ -463,14 +456,16 @@ func (s *StateDB) updateStateObject(obj *stateObject) {
 	if err != nil {
 		panic(fmt.Errorf("can't encode object at %x: %v", addr[:], err))
 	}
-	s.setError(s.trie.TryUpdate(addr[:], data))
+	if err = s.trie.TryUpdate(addr[:], data); err != nil {
+		s.setError(fmt.Errorf("updateStateObject (%x) error: %v", addr[:], err))
+	}
 
 	// If state snapshotting is active, cache the data til commit. Note, this
 	// update mechanism is not symmetric to the deletion, because whereas it is
 	// enough to track account updates at commit time, deletions need tracking
 	// at transaction boundary level to ensure we capture state clearing.
 	if s.snap != nil {
-		s.snapAccounts[obj.addrHash] = snapshot.AccountRLP(obj.data.Nonce, obj.data.Balance, obj.data.Root, obj.data.CodeHash)
+		s.snapAccounts[obj.addrHash] = snapshot.SlimAccountRLP(obj.data.Nonce, obj.data.Balance, obj.data.Root, obj.data.CodeHash)
 	}
 }
 
@@ -482,7 +477,9 @@ func (s *StateDB) deleteStateObject(obj *stateObject) {
 	}
 	// Delete the account from the trie
 	addr := obj.Address()
-	s.setError(s.trie.TryDelete(addr[:]))
+	if err := s.trie.TryDelete(addr[:]); err != nil {
+		s.setError(fmt.Errorf("deleteStateObject (%x) error: %v", addr[:], err))
+	}
 }
 
 // getStateObject retrieves a state object given by the address, returning nil if
@@ -538,8 +535,11 @@ func (s *StateDB) getDeletedStateObject(addr common.Address) *stateObject {
 			defer func(start time.Time) { s.AccountReads += time.Since(start) }(time.Now())
 		}
 		enc, err := s.trie.TryGet(addr.Bytes())
+		if err != nil {
+			s.setError(fmt.Errorf("getDeleteStateObject (%x) error: %v", addr.Bytes(), err))
+			return nil
+		}
 		if len(enc) == 0 {
-			s.setError(err)
 			return nil
 		}
 		data = new(Account)
@@ -558,7 +558,7 @@ func (s *StateDB) setStateObject(object *stateObject) {
 	s.stateObjects[object.Address()] = object
 }
 
-// Retrieve a state object or create a new state object if nil.
+// GetOrNewStateObject retrieves a state object or create a new state object if nil.
 func (s *StateDB) GetOrNewStateObject(addr common.Address) *stateObject {
 	stateObject := s.getStateObject(addr)
 	if stateObject == nil {
@@ -599,8 +599,8 @@ func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) 
 // CreateAccount is called during the CVM CREATE operation. The situation might arise that
 // a contract does the following:
 //
-//   1. sends funds to sha(account ++ (nonce + 1))
-//   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
+//  1. sends funds to sha(account ++ (nonce + 1))
+//  2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
 // Carrying over the balance ensures that Core doesn't disappear.
 func (s *StateDB) CreateAccount(addr common.Address) {
@@ -657,7 +657,7 @@ func (s *StateDB) Copy() *StateDB {
 	}
 	// Copy the dirty states, logs, and preimages
 	for addr := range s.journal.dirties {
-		// As documented [here](https://github.com/core-coin/go-core/pull/16485#issuecomment-380438527),
+		// As documented [here](https://github.com/core-coin/go-core/v2/pull/16485#issuecomment-380438527),
 		// and in the Finalise-method, there is a case where an object is in the journal but not
 		if object, exist := s.stateObjects[addr]; exist {
 			// Even though the original object is dirty, we are not copying the journal,
@@ -808,6 +808,9 @@ func (s *StateDB) clearJournalAndRefund() {
 
 // Commit writes the state to the underlying in-memory trie database.
 func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error) {
+	if s.dbErr != nil {
+		return common.Hash{}, fmt.Errorf("commit aborted due to earlier error: %v", s.dbErr)
+	}
 	// Finalize any pending changes and merge everything into the tries
 	s.IntermediateRoot(deleteEmptyObjects)
 
@@ -842,7 +845,7 @@ func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error) {
 	// The onleaf func is called _serially_, so we can reuse the same account
 	// for unmarshalling every time.
 	var account Account
-	root, err := s.trie.Commit(func(leaf []byte, parent common.Hash) error {
+	root, err := s.trie.Commit(func(path []byte, leaf []byte, parent common.Hash) error {
 		if err := rlp.DecodeBytes(leaf, &account); err != nil {
 			return nil
 		}

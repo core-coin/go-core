@@ -24,14 +24,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/prque"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/prque"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 const (
@@ -71,7 +71,7 @@ var (
 	// maximum allowance of the current block.
 	ErrEnergyLimit = errors.New("exceeds block energy limit")
 
-	// ErrNegativeValue is a sanity error to ensure noone is able to specify a
+	// ErrNegativeValue is a sanity error to ensure no one is able to specify a
 	// transaction with a negative value.
 	ErrNegativeValue = errors.New("negative value")
 
@@ -531,11 +531,11 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
-		return err
+		return ErrInvalidSender
 	}
 	// Drop non-local transactions under our own minimal accepted energy price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
-	if !local && pool.energyPrice.Cmp(tx.EnergyPrice()) > 0 {
+	if !local && tx.EnergyPriceIntCmp(pool.energyPrice) < 0 {
 		return ErrUnderpriced
 	}
 	// Ensure the transaction adheres to nonce ordering
@@ -596,10 +596,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 		}
 	}
 	// Try to replace an existing transaction in the pending pool
-	from, errSender := types.Sender(pool.signer, tx) // already validated
-	if errSender != nil {
-		return false, errSender
-	}
+	from, _ := types.Sender(pool.signer, tx) // already validated
 	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
 		// Nonce already pending, check if required price bump is met
 		inserted, old := list.Add(tx, pool.config.PriceBump)
@@ -649,10 +646,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 // Note, this method assumes the pool lock is held!
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, error) {
 	// Try to insert the transaction into the future queue
-	from, errSender := types.Sender(pool.signer, tx) // already validated
-	if errSender != nil {
-		return false, errSender
-	}
+	from, _ := types.Sender(pool.signer, tx) // already validated
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -771,15 +765,6 @@ func (pool *TxPool) addRemoteSync(tx *types.Transaction) error {
 	return errs[0]
 }
 
-// AddRemote enqueues a single transaction into the pool if it is valid. This is a convenience
-// wrapper around AddRemotes.
-//
-// Deprecated: use AddRemotes
-func (pool *TxPool) AddRemote(tx *types.Transaction) error {
-	errs := pool.AddRemotes([]*types.Transaction{tx})
-	return errs[0]
-}
-
 // addTxs attempts to queue a batch of transactions if they are valid.
 func (pool *TxPool) addTxs(txs []*types.Transaction, local, sync bool) []error {
 	// Filter out known ones without obtaining the pool lock or recovering signatures
@@ -794,16 +779,22 @@ func (pool *TxPool) addTxs(txs []*types.Transaction, local, sync bool) []error {
 			knownTxMeter.Mark(1)
 			continue
 		}
+		// Exclude transactions with invalid signatures as soon as
+		// possible and cache senders in transactions before
+		// obtaining lock
+		_, err := types.Sender(pool.signer, tx)
+		if err != nil {
+			errs[i] = ErrInvalidSender
+			invalidTxMeter.Mark(1)
+			continue
+		}
 		// Accumulate all unknown transactions for deeper processing
 		news = append(news, tx)
 	}
 	if len(news) == 0 {
 		return errs
 	}
-	// Cache senders in transactions before obtaining lock (pool.signer is immutable)
-	for _, tx := range news {
-		types.Sender(pool.signer, tx)
-	}
+
 	// Process all the new transaction and merge any errors into the original slice
 	pool.mu.Lock()
 	newErrs, dirtyAddrs := pool.addTxsLocked(news, local)
@@ -883,10 +874,8 @@ func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
 	if tx == nil {
 		return
 	}
-	addr, errSender := types.Sender(pool.signer, tx)
-	if errSender != nil {
-		return
-	}
+	addr, _ := types.Sender(pool.signer, tx) // already validated during insertion
+
 	// Remove it from the list of known transactions
 	pool.all.Remove(hash)
 	if outofbound {
@@ -1059,13 +1048,7 @@ func (pool *TxPool) runReorg(done chan struct{}, reset *txpoolResetRequest, dirt
 	}
 	// Check for pending transactions for every account that sent new ones
 	promoted := pool.promoteExecutables(promoteAddrs)
-	for _, tx := range promoted {
-		addr, _ := types.Sender(pool.signer, tx)
-		if _, ok := events[addr]; !ok {
-			events[addr] = newTxSortedMap()
-		}
-		events[addr].Put(tx)
-	}
+
 	// If a new block appeared, validate the pool of pending transactions. This will
 	// remove any transaction that has been included in the block or was invalidated
 	// because of another transaction (e.g. higher energy price).
@@ -1084,6 +1067,13 @@ func (pool *TxPool) runReorg(done chan struct{}, reset *txpoolResetRequest, dirt
 	pool.mu.Unlock()
 
 	// Notify subsystems for newly added transactions
+	for _, tx := range promoted {
+		addr, _ := types.Sender(pool.signer, tx)
+		if _, ok := events[addr]; !ok {
+			events[addr] = newTxSortedMap()
+		}
+		events[addr].Put(tx)
+	}
 	if len(events) > 0 {
 		var txs []*types.Transaction
 		for _, set := range events {
@@ -1195,15 +1185,15 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 		for _, tx := range forwards {
 			hash := tx.Hash()
 			pool.all.Remove(hash)
-			log.Trace("Removed old queued transaction", "hash", hash)
 		}
+		log.Trace("Removed old queued transactions", "count", len(forwards))
 		// Drop all transactions that are too costly (low balance or out of energy)
 		drops, _ := list.Filter(pool.currentState.GetBalance(addr), pool.currentMaxEnergy)
 		for _, tx := range drops {
 			hash := tx.Hash()
 			pool.all.Remove(hash)
-			log.Trace("Removed unpayable queued transaction", "hash", hash)
 		}
+		log.Trace("Removed unpayable queued transactions", "count", len(drops))
 		queuedNofundsMeter.Mark(int64(len(drops)))
 
 		// Gather all executable transactions and promote them
@@ -1211,10 +1201,10 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 		for _, tx := range readies {
 			hash := tx.Hash()
 			if pool.promoteTx(addr, hash, tx) {
-				log.Trace("Promoting queued transaction", "hash", hash)
 				promoted = append(promoted, tx)
 			}
 		}
+		log.Trace("Promoted queued transactions", "count", len(promoted))
 		queuedGauge.Dec(int64(len(readies)))
 
 		// Drop all transactions over the allowed limit

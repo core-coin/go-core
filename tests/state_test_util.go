@@ -20,25 +20,27 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/state/snapshot"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/core/state/snapshot"
+
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // StateTest checks transaction processing without block context.
@@ -114,8 +116,8 @@ type stTransactionMarshaling struct {
 
 // GetChainConfig takes a fork definition and returns a chain config.
 // The fork definition can be
-// - a plain forkname, e.g. `Nucleus`,
-// - a fork basename, and a list of CIPs to enable; e.g. `Nucleus+1884+1283`.
+// - a plain forkname, e.g. `Byzantium`,
+// - a fork basename, and a list of CIPs to enable; e.g. `Byzantium+1884+1283`.
 func GetChainConfig(forkString string) (baseConfig *params.ChainConfig, cips []int, err error) {
 	var (
 		splitForks            = strings.Split(forkString, "+")
@@ -147,41 +149,41 @@ func (t *StateTest) Subtests() []StateSubtest {
 }
 
 // Run executes a specific subtest and verifies the post-state and logs
-func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*state.StateDB, error) {
-	statedb, root, err := t.RunNoVerify(subtest, vmconfig, snapshotter)
+func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, error) {
+	snaps, statedb, root, err := t.RunNoVerify(subtest, vmconfig, snapshotter)
 	if err != nil {
-		return statedb, err
+		return snaps, statedb, err
 	}
 	post := t.json.Post[subtest.Fork][subtest.Index]
 	// N.B: We need to do this in a two-step process, because the first Commit takes care
 	// of suicides, and we need to touch the coinbase _after_ it has potentially suicided.
 	if root != common.Hash(post.Root) {
-		return statedb, fmt.Errorf("post state root mismatch: got %x, want %x", root, post.Root)
+		return snaps, statedb, fmt.Errorf("post state root mismatch: got %x, want %x", root, post.Root)
 	}
 	if logs := rlpHash(statedb.Logs()); logs != common.Hash(post.Logs) {
-		return statedb, fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, post.Logs)
+		return snaps, statedb, fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, post.Logs)
 	}
-	return statedb, nil
+	return snaps, statedb, nil
 }
 
 // RunNoVerify runs a specific subtest and returns the statedb and post-state root
-func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*state.StateDB, common.Hash, error) {
-	config, cips, err := GetChainConfig(subtest.Fork)
+func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, common.Hash, error) {
+	config, _, err := GetChainConfig(subtest.Fork)
 	if err != nil {
-		return nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
+		return nil, nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
 	}
-	vmconfig.ExtraCips = cips
 	block := t.genesis(config).ToBlock(nil)
-	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
+	snaps, statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
 
 	post := t.json.Post[subtest.Fork][subtest.Index]
 	msg, err := t.json.Tx.toMessage(post)
 	if err != nil {
-		return nil, common.Hash{}, err
+		return nil, nil, common.Hash{}, err
 	}
-	context := core.NewCVMContext(msg, block.Header(), nil, &t.json.Env.Coinbase)
+	txContext := core.NewCVMTxContext(msg)
+	context := core.NewCVMBlockContext(block.Header(), nil, &t.json.Env.Coinbase)
 	context.GetHash = vmTestBlockHash
-	cvm := vm.NewCVM(context, statedb, config, vmconfig)
+	cvm := vm.NewCVM(context, txContext, statedb, config, vmconfig)
 
 	energypool := new(core.EnergyPool)
 	energypool.AddEnergy(block.EnergyLimit())
@@ -199,14 +201,14 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapsh
 	statedb.AddBalance(block.Coinbase(), new(big.Int))
 	// And _now_ get the state root
 	root := statedb.IntermediateRoot(true)
-	return statedb, root, nil
+	return snaps, statedb, root, nil
 }
 
 func (t *StateTest) energyLimit(subtest StateSubtest) uint64 {
 	return t.json.Tx.EnergyLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Energy]
 }
 
-func MakePreState(db xcbdb.Database, accounts core.GenesisAlloc, snapshotter bool) *state.StateDB {
+func MakePreState(db xcbdb.Database, accounts core.GenesisAlloc, snapshotter bool) (*snapshot.Tree, *state.StateDB) {
 	sdb := state.NewDatabase(db)
 	statedb, _ := state.New(common.Hash{}, sdb, nil)
 	for addr, a := range accounts {
@@ -222,10 +224,10 @@ func MakePreState(db xcbdb.Database, accounts core.GenesisAlloc, snapshotter boo
 
 	var snaps *snapshot.Tree
 	if snapshotter {
-		snaps = snapshot.New(db, sdb.TrieDB(), 1, root, false)
+		snaps = snapshot.New(db, sdb.TrieDB(), 1, root, false, false)
 	}
 	statedb, _ = state.New(root, sdb, snaps)
-	return statedb
+	return snaps, statedb
 }
 
 func (t *StateTest) genesis(config *params.ChainConfig) *core.Genesis {
@@ -244,12 +246,11 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	// Derive sender from private key if present.
 	var from common.Address
 	if len(tx.PrivateKey) > 0 {
-		key, err := crypto.ToEDDSA(tx.PrivateKey)
+		key, err := crypto.UnmarshalPrivateKey(tx.PrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("invalid private key: %v", err)
 		}
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		from = crypto.PubkeyToAddress(pub)
+		from = key.Address()
 	}
 	// Parse recipient if present.
 	var to *common.Address
@@ -273,7 +274,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	dataHex := tx.Data[ps.Indexes.Data]
 	valueHex := tx.Value[ps.Indexes.Value]
 	energyLimit := tx.EnergyLimit[ps.Indexes.Energy]
-	// Value, Data hex encoding is messy: https://github.com/core-coin/tests/issues/203
+	// Value, Data hex encoding is messy: https://github.com/core/tests/issues/203
 	value := new(big.Int)
 	if valueHex != "0x" {
 		v, ok := math.ParseBig256(valueHex)

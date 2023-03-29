@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -22,8 +22,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/core-coin/go-core/core/asm"
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/core/asm"
 )
 
 var disasmCommand = cli.Command{

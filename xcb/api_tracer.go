@@ -28,19 +28,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcb/tracers"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/trie"
+	"github.com/core-coin/go-core/v2/xcb/tracers"
 )
 
 const (
@@ -64,7 +65,7 @@ type TraceConfig struct {
 
 // StdTraceConfig holds extra parameters to standard-json trace functions.
 type StdTraceConfig struct {
-	*vm.LogConfig
+	vm.LogConfig
 	Reexec *uint64
 	TxHash common.Hash
 }
@@ -147,7 +148,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 
 	// Ensure we have a valid starting state before doing any work
 	origin := start.NumberU64()
-	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16, "") // Chain tracing will probably start at genesis
+	database := state.NewDatabaseWithConfig(api.xcb.ChainDb(), &trie.Config{Cache: 16, Preimages: true})
 
 	if number := start.NumberU64(); number > 0 {
 		start = api.xcb.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
@@ -202,13 +203,11 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 			// Fetch and execute the next block trace tasks
 			for task := range tasks {
 				signer := types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
-
+				blockCtx := core.NewCVMBlockContext(task.block.Header(), api.xcb.blockchain, nil)
 				// Trace all the transactions contained within
 				for i, tx := range task.block.Transactions() {
 					msg, _ := tx.AsMessage(signer)
-					vmctx := core.NewCVMContext(msg, task.block.Header(), api.xcb.blockchain, nil)
-
-					res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
+					res, err := api.traceTx(ctx, msg, blockCtx, task.statedb, config)
 					if err != nil {
 						task.results[i] = &txTraceResult{Error: err.Error()}
 						log.Warn("Tracing failed", "hash", tx.Hash(), "block", task.block.NumberU64(), "err", err)
@@ -400,7 +399,7 @@ func (api *PrivateDebugAPI) TraceBlockFromFile(ctx context.Context, file string,
 	return api.TraceBlock(ctx, blob, config)
 }
 
-// TraceBadBlockByHash returns the structured logs created during the execution of
+// TraceBadBlock returns the structured logs created during the execution of
 // CVM against a block pulled from the pool of bad ones and returns them as a JSON
 // object.
 func (api *PrivateDebugAPI) TraceBadBlock(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
@@ -471,17 +470,15 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 	if threads > len(txs) {
 		threads = len(txs)
 	}
+	blockCtx := core.NewCVMBlockContext(block.Header(), api.xcb.blockchain, nil)
 	for th := 0; th < threads; th++ {
 		pend.Add(1)
 		go func() {
 			defer pend.Done()
-
 			// Fetch and execute the next transaction trace tasks
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer)
-				vmctx := core.NewCVMContext(msg, block.Header(), api.xcb.blockchain, nil)
-
-				res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
+				res, err := api.traceTx(ctx, msg, blockCtx, task.statedb, config)
 				if err != nil {
 					results[task.index] = &txTraceResult{Error: err.Error()}
 					continue
@@ -498,14 +495,15 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 
 		// Generate the next state snapshot fast without tracing
 		msg, _ := tx.AsMessage(signer)
-		vmctx := core.NewCVMContext(msg, block.Header(), api.xcb.blockchain, nil)
+		txContext := core.NewCVMTxContext(msg)
 
-		vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewCVM(blockCtx, txContext, statedb, api.xcb.blockchain.Config(), vm.Config{})
 		if _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy())); err != nil {
 			failed = err
 			break
 		}
 		// Finalize the state so any modifications are written to the trie
+
 		statedb.Finalise(true)
 	}
 	close(jobs)
@@ -550,9 +548,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 		txHash    common.Hash
 	)
 	if config != nil {
-		if config.LogConfig != nil {
-			logConfig = *config.LogConfig
-		}
+		logConfig = config.LogConfig
 		txHash = config.TxHash
 	}
 	logConfig.Debug = true
@@ -561,23 +557,22 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 	var (
 		signer = types.MakeSigner(api.xcb.blockchain.Config().NetworkID)
 		dumps  []string
+		vmctx  = core.NewCVMBlockContext(block.Header(), api.xcb.blockchain, nil)
 	)
 	for i, tx := range block.Transactions() {
 		// Prepare the trasaction for un-traced execution
 		var (
-			msg, _ = tx.AsMessage(signer)
-			vmctx  = core.NewCVMContext(msg, block.Header(), api.xcb.blockchain, nil)
-
-			vmConf vm.Config
-			dump   *os.File
-			writer *bufio.Writer
-			err    error
+			msg, _    = tx.AsMessage(signer)
+			txContext = core.NewCVMTxContext(msg)
+			vmConf    vm.Config
+			dump      *os.File
+			writer    *bufio.Writer
+			err       error
 		)
 		// If the transaction needs tracing, swap out the configs
 		if tx.Hash() == txHash || txHash == (common.Hash{}) {
 			// Generate a unique temporary file to dump it into
 			prefix := fmt.Sprintf("block_%#x-%d-%#x-", block.Hash().Bytes()[:4], i, tx.Hash().Bytes()[:4])
-
 			dump, err = ioutil.TempFile(os.TempDir(), prefix)
 			if err != nil {
 				return nil, err
@@ -593,7 +588,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 			}
 		}
 		// Execute the transaction and flush any traces to disk
-		vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vmConf)
+		vmenv := vm.NewCVM(vmctx, txContext, statedb, api.xcb.blockchain.Config(), vmConf)
 		_, err = core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(msg.Energy()))
 		if writer != nil {
 			writer.Flush()
@@ -606,6 +601,7 @@ func (api *PrivateDebugAPI) standardTraceBlockToFile(ctx context.Context, block 
 			return dumps, err
 		}
 		// Finalize the state so any modifications are written to the trie
+
 		statedb.Finalise(true)
 
 		// If we've traced the transaction we were looking for, abort
@@ -638,7 +634,7 @@ func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*
 	}
 	// Otherwise try to reexec blocks until we find a state or reach our limit
 	origin := block.NumberU64()
-	database := state.NewDatabaseWithCache(api.xcb.ChainDb(), 16, "")
+	database := state.NewDatabaseWithConfig(api.xcb.ChainDb(), &trie.Config{Cache: 16, Preimages: true})
 
 	for i := uint64(0); i < reexec; i++ {
 		block = api.xcb.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
@@ -751,18 +747,19 @@ func (api *PrivateDebugAPI) TraceCall(ctx context.Context, args xcbapi.CallArgs,
 
 	// Execute the trace
 	msg := args.ToMessage(api.xcb.APIBackend.RPCEnergyCap())
-	vmctx := core.NewCVMContext(msg, header, api.xcb.blockchain, nil)
+	vmctx := core.NewCVMBlockContext(header, api.xcb.blockchain, nil)
 	return api.traceTx(ctx, msg, vmctx, statedb, config)
 }
 
 // traceTx configures a new tracer according to the provided configuration, and
 // executes the given message in the provided environment. The return value will
 // be tracer dependent.
-func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, vmctx vm.Context, statedb *state.StateDB, config *TraceConfig) (interface{}, error) {
+func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, vmctx vm.BlockContext, statedb *state.StateDB, config *TraceConfig) (interface{}, error) {
 	// Assemble the structured logger or the JavaScript tracer
 	var (
-		tracer vm.Tracer
-		err    error
+		tracer    vm.Tracer
+		err       error
+		txContext = core.NewCVMTxContext(message)
 	)
 	switch {
 	case config != nil && config.Tracer != nil:
@@ -792,7 +789,7 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 		tracer = vm.NewStructLogger(config.LogConfig)
 	}
 	// Run the transaction with tracing enabled.
-	vmenv := vm.NewCVM(vmctx, statedb, api.xcb.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer})
+	vmenv := vm.NewCVM(vmctx, txContext, statedb, api.xcb.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer})
 
 	result, err := core.ApplyMessage(vmenv, message, new(core.EnergyPool).AddEnergy(message.Energy()))
 	if err != nil {
@@ -822,19 +819,19 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 }
 
 // computeTxEnv returns the execution environment of a certain transaction.
-func (api *PrivateDebugAPI) computeTxEnv(block *types.Block, txIndex int, reexec uint64) (core.Message, vm.Context, *state.StateDB, error) {
+func (api *PrivateDebugAPI) computeTxEnv(block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, error) {
 	// Create the parent state database
 	parent := api.xcb.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
-		return nil, vm.Context{}, nil, fmt.Errorf("parent %#x not found", block.ParentHash())
+		return nil, vm.BlockContext{}, nil, fmt.Errorf("parent %#x not found", block.ParentHash())
 	}
 	statedb, err := api.computeStateDB(parent, reexec)
 	if err != nil {
-		return nil, vm.Context{}, nil, err
+		return nil, vm.BlockContext{}, nil, err
 	}
 
 	if txIndex == 0 && len(block.Transactions()) == 0 {
-		return nil, vm.Context{}, statedb, nil
+		return nil, vm.BlockContext{}, statedb, nil
 	}
 
 	// Recompute transactions up to the target index.
@@ -843,17 +840,19 @@ func (api *PrivateDebugAPI) computeTxEnv(block *types.Block, txIndex int, reexec
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
-		context := core.NewCVMContext(msg, block.Header(), api.xcb.blockchain, nil)
+		txContext := core.NewCVMTxContext(msg)
+		context := core.NewCVMBlockContext(block.Header(), api.xcb.blockchain, nil)
 		if idx == txIndex {
 			return msg, context, statedb, nil
 		}
 		// Not yet the searched for transaction, execute on top of the current state
-		vmenv := vm.NewCVM(context, statedb, api.xcb.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewCVM(context, txContext, statedb, api.xcb.blockchain.Config(), vm.Config{})
 		if _, err := core.ApplyMessage(vmenv, msg, new(core.EnergyPool).AddEnergy(tx.Energy())); err != nil {
-			return nil, vm.Context{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
+			return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 		}
 		// Ensure any modifications are committed to the state
+
 		statedb.Finalise(true)
 	}
-	return nil, vm.Context{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, block.Hash())
+	return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, block.Hash())
 }

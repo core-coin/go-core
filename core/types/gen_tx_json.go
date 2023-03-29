@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 var _ = (*txdataMarshaling)(nil)
@@ -19,7 +19,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  hexutil.Uint64  `json:"energy"      gencodec:"required"`
-		NetworkID    hexutil.Uint64  `json:"chain_id" gencodec:"required"`
+		NetworkID    hexutil.Uint64  `json:"network_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
@@ -45,7 +45,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		Price        *hexutil.Big    `json:"energyPrice" gencodec:"required"`
 		EnergyLimit  *hexutil.Uint64 `json:"energy"      gencodec:"required"`
-		NetworkID    *hexutil.Uint64 `json:"chain_id" gencodec:"required"`
+		NetworkID    *hexutil.Uint64 `json:"network_id" gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
@@ -69,7 +69,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	}
 	t.EnergyLimit = uint64(*dec.EnergyLimit)
 	if dec.NetworkID == nil {
-		return errors.New("missing required field 'chain_id' for txdata")
+		return errors.New("missing required field 'network_id' for txdata")
 	}
 	t.NetworkID = uint(*dec.NetworkID)
 	if dec.Recipient != nil {

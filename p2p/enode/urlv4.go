@@ -20,14 +20,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"net/url"
 	"regexp"
 	"strconv"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 var (
@@ -53,12 +52,12 @@ func MustParseV4(rawurl string) *Node {
 //
 // For incomplete nodes, the designator must look like one of these
 //
-//    enode://<hex node id>
-//    <hex node id>
+//	enode://<hex node id>
+//	<hex node id>
 //
 // For complete nodes, the node ID is encoded in the username portion
 // of the URL, separated from the host by an @ sign. The hostname can
-// only be given as an IP address, DNS domain names are not allowed.
+// only be given as an IP address or using DNS domain name.
 // The port in the host name section is the TCP listening port. If the
 // TCP and UDP (discovery) ports differ, the UDP port is specified as
 // query parameter "discport".
@@ -67,7 +66,7 @@ func MustParseV4(rawurl string) *Node {
 // a node with IP address 10.3.58.6, TCP listening port 30300
 // and UDP discovery port 30330.
 //
-//    enode://<hex node id>@10.3.58.6:30300?discport=30330
+//	enode://<hex node id>@10.3.58.6:30300?discport=30330
 func ParseV4(rawurl string) (*Node, error) {
 	if m := incompleteNodeURL.FindStringSubmatch(rawurl); m != nil {
 		id, err := parsePubkey(m[1])
@@ -81,7 +80,7 @@ func ParseV4(rawurl string) (*Node, error) {
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey *eddsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey *crypto.PublicKey, ip net.IP, tcp, udp int) *Node {
 	var r enr.Record
 	if len(ip) > 0 {
 		r.Set(enr.IP(ip))
@@ -102,13 +101,13 @@ func NewV4(pubkey *eddsa.PublicKey, ip net.IP, tcp, udp int) *Node {
 
 // isNewV4 returns true for nodes created by NewV4.
 func isNewV4(n *Node) bool {
-	var k s256raw
+	var k ed448raw
 	return n.r.IdentityScheme() == "" && n.r.Load(&k) == nil && len(n.r.Signature()) == 0
 }
 
 func parseComplete(rawurl string) (*Node, error) {
 	var (
-		id               *eddsa.PublicKey
+		id               *crypto.PublicKey
 		tcpPort, udpPort uint64
 	)
 	u, err := url.Parse(rawurl)
@@ -153,30 +152,28 @@ func parseComplete(rawurl string) (*Node, error) {
 	return NewV4(id, ip, int(tcpPort), int(udpPort)), nil
 }
 
-// parsePubkey parses a hex-encoded secp256k1 public key.
-func parsePubkey(in string) (*eddsa.PublicKey, error) {
+// parsePubkey parses a hex-encoded ed448 public key.
+func parsePubkey(in string) (*crypto.PublicKey, error) {
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
 	} else if len(b) != crypto.PubkeyLength {
 		return nil, fmt.Errorf("wrong length, want %d hex chars", crypto.PubkeyLength*2)
 	}
-	return crypto.UnmarshalPubkey(b)
+	return crypto.UnmarshalPubKey(b)
 }
 
 func (n *Node) URLv4() string {
 	var (
 		scheme enr.ID
 		nodeid string
-		key    eddsa.PublicKey
+		key    crypto.PublicKey
 	)
 	n.Load(&scheme)
-	n.Load((*Secp256k1)(&key))
+	n.Load((*Ed448)(&key))
 	switch {
-	case scheme == "v4":
-		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key)[:])
-	case scheme == "":
-		nodeid = fmt.Sprintf("%x", crypto.FromEDDSAPub(&key))
+	case scheme == "v4" || key != crypto.PublicKey{}:
+		nodeid = fmt.Sprintf("%x", key[:])
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
@@ -195,7 +192,6 @@ func (n *Node) URLv4() string {
 }
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
-func PubkeyToIDV4(key *eddsa.PublicKey) ID {
-	e := key[:]
-	return ID(crypto.SHA3Hash(e))
+func PubkeyToIDV4(key *crypto.PublicKey) ID {
+	return ID(crypto.SHA3Hash(key[:]))
 }

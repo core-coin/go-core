@@ -21,8 +21,8 @@ package gocore
 import (
 	"errors"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // Subscription represents an event subscription where events are

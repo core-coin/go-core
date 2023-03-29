@@ -29,13 +29,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // DefaultClient is the default simulation API client which expects the API
@@ -698,7 +699,7 @@ func (s *Server) JSON(w http.ResponseWriter, status int, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-// wrapHandler returns a httprouter.Handle which wraps a http.HandlerFunc by
+// wrapHandler returns an httprouter.Handle which wraps an http.HandlerFunc by
 // populating request.Context with any objects from the URL params
 func (s *Server) wrapHandler(handler http.HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {

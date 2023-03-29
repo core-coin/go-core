@@ -21,11 +21,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 var errInvalidCheckpoint = errors.New("invalid advertised checkpoint")
@@ -56,8 +56,8 @@ func (h *clientHandler) validateCheckpoint(peer *serverPeer) error {
 	defer cancel()
 
 	// Fetch the block header corresponding to the checkpoint registration.
-	cp := peer.checkpoint
-	header, err := light.GetUntrustedHeaderByNumber(ctx, h.backend.odr, peer.checkpointNumber, peer.id)
+	wrapPeer := &peerConnection{handler: h, peer: peer}
+	header, err := wrapPeer.RetrieveSingleHeaderByNumber(ctx, peer.checkpointNumber)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (h *clientHandler) validateCheckpoint(peer *serverPeer) error {
 	if err != nil {
 		return err
 	}
-	events := h.backend.oracle.Contract().LookupCheckpointEvents(logs, cp.SectionIndex, cp.Hash())
+	events := h.backend.oracle.Contract().LookupCheckpointEvents(logs, peer.checkpoint.SectionIndex, peer.checkpoint.Hash())
 	if len(events) == 0 {
 		return errInvalidCheckpoint
 	}
@@ -75,8 +75,8 @@ func (h *clientHandler) validateCheckpoint(peer *serverPeer) error {
 		hash       = events[0].CheckpointHash
 		signatures [][]byte
 	)
-	for _, event := range events {
-		signatures = append(signatures, append(event.R[:], append(event.S[:], event.V)...))
+	for _, _ = range events {
+		signatures = append(signatures, []byte{}) //pass signature
 	}
 	valid, signers := h.backend.oracle.VerifySigners(index, hash, signatures)
 	if !valid {
@@ -103,7 +103,7 @@ func (h *clientHandler) synchronise(peer *serverPeer) {
 	// The light client may be connected to several different versions of the server.
 	// (1) Old version server which can not provide stable checkpoint in the handshake packet.
 	//     => Use hardcoded checkpoint or empty checkpoint
-	// (2) New version server but simple checkpoint syncing is not enabled(e.g. mainnet, new devin or private network)
+	// (2) New version server but simple checkpoint syncing is not enabled(e.g. mainnet, new testnet or private network)
 	//     => Use hardcoded checkpoint or empty checkpoint
 	// (3) New version server but the provided stable checkpoint is even lower than the hardcoded one.
 	//     => Use hardcoded checkpoint

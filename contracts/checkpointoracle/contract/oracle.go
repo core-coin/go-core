@@ -7,20 +7,19 @@ import (
 	"math/big"
 	"strings"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
 	_ = big.NewInt
 	_ = strings.NewReader
-	_ = core.NotFound
-	_ = abi.U256
+	_ = c.NotFound
 	_ = bind.Bind
 	_ = common.Big1
 	_ = types.BloomLookup
@@ -32,13 +31,13 @@ const CheckpointOracleABI = "[{\"inputs\":[{\"internalType\":\"address[]\",\"nam
 
 // CheckpointOracleFuncSigs maps the 4-byte function signature to its string representation.
 var CheckpointOracleFuncSigs = map[string]string{
-	"516efdd2": "GetAllAdmin()",
-	"b5a5b4b4": "GetLatestCheckpoint()",
-	"1af4ddf7": "SetCheckpoint(uint256,bytes32,bytes32,uint64,uint8[],bytes32[],bytes32[])",
+	"45848dfc": "GetAllAdmin()",
+	"4d6a304c": "GetLatestCheckpoint()",
+	"d459fc46": "SetCheckpoint(uint256,bytes32,bytes32,uint64,uint8[],bytes32[],bytes32[])",
 }
 
 // CheckpointOracleBin is the compiled bytecode used for deploying new contracts.
-var CheckpointOracleBin = "0x608060405234801561001057600080fd5b506040516108923803806108928339818101604052608081101561003357600080fd5b810190808051604051939291908464010000000082111561005357600080fd5b90830190602082018581111561006857600080fd5b825186602082028301116401000000008211171561008557600080fd5b82525081516020918201928201910280838360005b838110156100b257818101518382015260200161009a565b50505050919091016040908152602083015190830151606090930151909450919250600090505b84518110156101855760016000808784815181106100f357fe5b60200260200101516001600160b01b03166001600160b01b0316815260200190815260200160002060006101000a81548160ff021916908315150217905550600185828151811061014057fe5b60209081029190910181015182546001808201855560009485529290932090920180546001600160b01b0319166001600160b01b0390931692909217909155016100d9565b50600592909255600655600755506106f0806101a26000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80631af4ddf714610046578063516efdd214610227578063b5a5b4b41461027f575b600080fd5b610213600480360360e081101561005c57600080fd5b81359160208101359160408201359167ffffffffffffffff6060820135169181019060a08101608082013564010000000081111561009957600080fd5b8201836020820111156100ab57600080fd5b803590602001918460208302840111640100000000831117156100cd57600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929594936020810193503591505064010000000081111561011d57600080fd5b82018360208201111561012f57600080fd5b8035906020019184602083028401116401000000008311171561015157600080fd5b91908080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525092959493602081019350359150506401000000008111156101a157600080fd5b8201836020820111156101b357600080fd5b803590602001918460208302840111640100000000831117156101d557600080fd5b9190808060200260200160405190810160405280939291908181526020018383602002808284376000920191909152509295506102b0945050505050565b604080519115158252519081900360200190f35b61022f6105c5565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561026b578181015183820152602001610253565b505050509050019250505060405180910390f35b61028761067a565b6040805167ffffffffffffffff9094168452602084019290925282820152519081900360600190f35b3360009081526020819052604081205460ff166102cc57600080fd5b868840146102d957600080fd5b82518451146102e757600080fd5b81518451146102f557600080fd5b6006546005548660010167ffffffffffffffff16020143101561031a575060006105ba565b60025467ffffffffffffffff908116908616101561033a575060006105ba565b60025467ffffffffffffffff868116911614801561036c575067ffffffffffffffff851615158061036c575060035415155b15610379575060006105ba565b85610386575060006105ba565b60408051601960f81b6020808301919091526000602183018190523060501b60228401526001600160c01b031960c08a901b1660388401528284018a90528351808403850181526060909301909352815191012090805b86518110156105b45760006001848984815181106103f757fe5b602002602001015189858151811061040b57fe5b602002602001015189868151811061041f57fe5b602002602001015160405160008152602001604052604051808581526020018460ff1660ff1681526020018381526020018281526020019450505050506020604051602081039080840390855afa15801561047e573d6000803e3d6000fd5b505060408051601f1901516001600160b01b03811660009081526020819052919091205490925060ff1690506104b357600080fd5b826001600160b01b0316816001600160b01b0316116104d157600080fd5b8092508867ffffffffffffffff167fd56bf7d37e3bd51f99a826e0ea2b9b6daecb97af843ba5101a26f5ca3bd3f68d8b8a858151811061050d57fe5b60200260200101518a868151811061052157fe5b60200260200101518a878151811061053557fe5b6020026020010151604051808581526020018460ff1660ff16815260200183815260200182815260200194505050505060405180910390a260075482600101106105ab5750505060048790555050436003556002805467ffffffffffffffff191667ffffffffffffffff861617905560016105ba565b506001016103dd565b50600080fd5b979650505050505050565b600154606090819067ffffffffffffffff811180156105e357600080fd5b5060405190808252806020026020018201604052801561060d578160200160208202803683370190505b50905060005b600154811015610674576001818154811061062a57fe5b9060005260206000200160009054906101000a90046001600160b01b031682828151811061065457fe5b6001600160b01b0390921660209283029190910190910152600101610613565b50905090565b60025460045460035467ffffffffffffffff9092169190919256fea264697066735822122014fe08ac9e16407178fb79d06c0b6148072563918ce15f4d72923a16073724bb64736f6c637827302e362e392d646576656c6f702e323032302e372e32372b636f6d6d69742e33633832373333370058"
+var CheckpointOracleBin = "0x608060405234801561001057600080fd5b506040516108703803806108708339818101604052608081101561003357600080fd5b810190808051604051939291908464010000000082111561005357600080fd5b90830190602082018581111561006857600080fd5b825186602082028301116401000000008211171561008557600080fd5b82525081516020918201928201910280838360005b838110156100b257818101518382015260200161009a565b50505050919091016040908152602083015190830151606090930151909450919250600090505b84518110156101855760016000808784815181106100f357fe5b60200260200101516001600160a01b03166001600160a01b0316815260200190815260200160002060006101000a81548160ff021916908315150217905550600185828151811061014057fe5b60209081029190910181015182546001808201855560009485529290932090920180546001600160a01b0319166001600160a01b0390931692909217909155016100d9565b50600592909255600655600755506106ce806101a26000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c806345848dfc146100465780634d6a304c1461009e578063d459fc46146100cf575b600080fd5b61004e6102b0565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561008a578181015183820152602001610072565b505050509050019250505060405180910390f35b6100a6610365565b6040805167ffffffffffffffff9094168452602084019290925282820152519081900360600190f35b61029c600480360360e08110156100e557600080fd5b81359160208101359160408201359167ffffffffffffffff6060820135169181019060a08101608082013564010000000081111561012257600080fd5b82018360208201111561013457600080fd5b8035906020019184602083028401116401000000008311171561015657600080fd5b91908080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525092959493602081019350359150506401000000008111156101a657600080fd5b8201836020820111156101b857600080fd5b803590602001918460208302840111640100000000831117156101da57600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929594936020810193503591505064010000000081111561022a57600080fd5b82018360208201111561023c57600080fd5b8035906020019184602083028401116401000000008311171561025e57600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610380945050505050565b604080519115158252519081900360200190f35b600154606090819067ffffffffffffffff811180156102ce57600080fd5b506040519080825280602002602001820160405280156102f8578160200160208202803683370190505b50905060005b60015481101561035f576001818154811061031557fe5b9060005260206000200160009054906101000a90046001600160a01b031682828151811061033f57fe5b6001600160a01b03909216602092830291909101909101526001016102fe565b50905090565b60025460045460035467ffffffffffffffff90921691909192565b3360009081526020819052604081205460ff1661039c57600080fd5b868840146103a957600080fd5b82518451146103b757600080fd5b81518451146103c557600080fd5b6006546005548660010167ffffffffffffffff1602014310156103ea5750600061068d565b60025467ffffffffffffffff908116908616101561040a5750600061068d565b60025467ffffffffffffffff868116911614801561043c575067ffffffffffffffff851615158061043c575060035415155b156104495750600061068d565b856104565750600061068d565b60408051601960f81b6020808301919091526000602183018190523060601b60228401526001600160c01b031960c08a901b166036840152603e8084018b905284518085039091018152605e909301909352815191012090805b86518110156106875760006001848984815181106104ca57fe5b60200260200101518985815181106104de57fe5b60200260200101518986815181106104f257fe5b602002602001015160405160008152602001604052604051808581526020018460ff1660ff1681526020018381526020018281526020019450505050506020604051602081039080840390855afa158015610551573d6000803e3d6000fd5b505060408051601f1901516001600160a01b03811660009081526020819052919091205490925060ff16905061058657600080fd5b826001600160a01b0316816001600160a01b0316116105a457600080fd5b8092508867ffffffffffffffff167fce51ffa16246bcaf0899f6504f473cd0114f430f566cef71ab7e03d3dde42a418b8a85815181106105e057fe5b60200260200101518a86815181106105f457fe5b60200260200101518a878151811061060857fe5b6020026020010151604051808581526020018460ff1660ff16815260200183815260200182815260200194505050505060405180910390a2600754826001011061067e5750505060048790555050436003556002805467ffffffffffffffff191667ffffffffffffffff8616179055600161068d565b506001016104b0565b50600080fd5b97965050505050505056fea26469706673582212202ddf9eda76bf59c0fc65584c0b22d84ecef2c703765de60439596d6ac34c2b7264736f6c634300060b0033"
 
 // DeployCheckpointOracle deploys a new Core contract, binding an instance of CheckpointOracle to it.
 func DeployCheckpointOracle(auth *bind.TransactOpts, backend bind.ContractBackend, _adminlist []common.Address, _sectionSize *big.Int, _processConfirms *big.Int, _threshold *big.Int) (common.Address, *types.Transaction, *CheckpointOracle, error) {
@@ -162,7 +161,7 @@ func bindCheckpointOracle(address common.Address, caller bind.ContractCaller, tr
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_CheckpointOracle *CheckpointOracleRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_CheckpointOracle *CheckpointOracleRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _CheckpointOracle.Contract.CheckpointOracleCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -181,7 +180,7 @@ func (_CheckpointOracle *CheckpointOracleRaw) Transact(opts *bind.TransactOpts, 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_CheckpointOracle *CheckpointOracleCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_CheckpointOracle *CheckpointOracleCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _CheckpointOracle.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -196,81 +195,87 @@ func (_CheckpointOracle *CheckpointOracleTransactorRaw) Transact(opts *bind.Tran
 	return _CheckpointOracle.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetAllAdmin is a free data retrieval call binding the contract method 0x516efdd2.
+// GetAllAdmin is a free data retrieval call binding the contract method 0x45848dfc.
 //
-// Solidity: function GetAllAdmin() constant returns(address[])
+// Ylem: function GetAllAdmin() view returns(address[])
 func (_CheckpointOracle *CheckpointOracleCaller) GetAllAdmin(opts *bind.CallOpts) ([]common.Address, error) {
-	var (
-		ret0 = new([]common.Address)
-	)
-	out := ret0
-	err := _CheckpointOracle.contract.Call(opts, out, "GetAllAdmin")
-	return *ret0, err
+	var out []interface{}
+	err := _CheckpointOracle.contract.Call(opts, &out, "GetAllAdmin")
+
+	if err != nil {
+		return *new([]common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
 }
 
-// GetAllAdmin is a free data retrieval call binding the contract method 0x516efdd2.
+// GetAllAdmin is a free data retrieval call binding the contract method 0x45848dfc.
 //
-// Solidity: function GetAllAdmin() constant returns(address[])
+// Ylem: function GetAllAdmin() view returns(address[])
 func (_CheckpointOracle *CheckpointOracleSession) GetAllAdmin() ([]common.Address, error) {
 	return _CheckpointOracle.Contract.GetAllAdmin(&_CheckpointOracle.CallOpts)
 }
 
-// GetAllAdmin is a free data retrieval call binding the contract method 0x516efdd2.
+// GetAllAdmin is a free data retrieval call binding the contract method 0x45848dfc.
 //
-// Solidity: function GetAllAdmin() constant returns(address[])
+// Ylem: function GetAllAdmin() view returns(address[])
 func (_CheckpointOracle *CheckpointOracleCallerSession) GetAllAdmin() ([]common.Address, error) {
 	return _CheckpointOracle.Contract.GetAllAdmin(&_CheckpointOracle.CallOpts)
 }
 
-// GetLatestCheckpoint is a free data retrieval call binding the contract method 0xb5a5b4b4.
+// GetLatestCheckpoint is a free data retrieval call binding the contract method 0x4d6a304c.
 //
-// Solidity: function GetLatestCheckpoint() constant returns(uint64, bytes32, uint256)
+// Ylem: function GetLatestCheckpoint() view returns(uint64, bytes32, uint256)
 func (_CheckpointOracle *CheckpointOracleCaller) GetLatestCheckpoint(opts *bind.CallOpts) (uint64, [32]byte, *big.Int, error) {
-	var (
-		ret0 = new(uint64)
-		ret1 = new([32]byte)
-		ret2 = new(*big.Int)
-	)
-	out := &[]interface{}{
-		ret0,
-		ret1,
-		ret2,
+	var out []interface{}
+	err := _CheckpointOracle.contract.Call(opts, &out, "GetLatestCheckpoint")
+
+	if err != nil {
+		return *new(uint64), *new([32]byte), *new(*big.Int), err
 	}
-	err := _CheckpointOracle.contract.Call(opts, out, "GetLatestCheckpoint")
-	return *ret0, *ret1, *ret2, err
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+	out1 := *abi.ConvertType(out[1], new([32]byte)).(*[32]byte)
+	out2 := *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+
+	return out0, out1, out2, err
+
 }
 
-// GetLatestCheckpoint is a free data retrieval call binding the contract method 0xb5a5b4b4.
+// GetLatestCheckpoint is a free data retrieval call binding the contract method 0x4d6a304c.
 //
-// Solidity: function GetLatestCheckpoint() constant returns(uint64, bytes32, uint256)
+// Ylem: function GetLatestCheckpoint() view returns(uint64, bytes32, uint256)
 func (_CheckpointOracle *CheckpointOracleSession) GetLatestCheckpoint() (uint64, [32]byte, *big.Int, error) {
 	return _CheckpointOracle.Contract.GetLatestCheckpoint(&_CheckpointOracle.CallOpts)
 }
 
-// GetLatestCheckpoint is a free data retrieval call binding the contract method 0xb5a5b4b4.
+// GetLatestCheckpoint is a free data retrieval call binding the contract method 0x4d6a304c.
 //
-// Solidity: function GetLatestCheckpoint() constant returns(uint64, bytes32, uint256)
+// Ylem: function GetLatestCheckpoint() view returns(uint64, bytes32, uint256)
 func (_CheckpointOracle *CheckpointOracleCallerSession) GetLatestCheckpoint() (uint64, [32]byte, *big.Int, error) {
 	return _CheckpointOracle.Contract.GetLatestCheckpoint(&_CheckpointOracle.CallOpts)
 }
 
-// SetCheckpoint is a paid mutator transaction binding the contract method 0x1af4ddf7.
+// SetCheckpoint is a paid mutator transaction binding the contract method 0xd459fc46.
 //
-// Solidity: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
+// Ylem: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
 func (_CheckpointOracle *CheckpointOracleTransactor) SetCheckpoint(opts *bind.TransactOpts, _recentNumber *big.Int, _recentHash [32]byte, _hash [32]byte, _sectionIndex uint64, v []uint8, r [][32]byte, s [][32]byte) (*types.Transaction, error) {
 	return _CheckpointOracle.contract.Transact(opts, "SetCheckpoint", _recentNumber, _recentHash, _hash, _sectionIndex, v, r, s)
 }
 
-// SetCheckpoint is a paid mutator transaction binding the contract method 0x1af4ddf7.
+// SetCheckpoint is a paid mutator transaction binding the contract method 0xd459fc46.
 //
-// Solidity: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
+// Ylem: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
 func (_CheckpointOracle *CheckpointOracleSession) SetCheckpoint(_recentNumber *big.Int, _recentHash [32]byte, _hash [32]byte, _sectionIndex uint64, v []uint8, r [][32]byte, s [][32]byte) (*types.Transaction, error) {
 	return _CheckpointOracle.Contract.SetCheckpoint(&_CheckpointOracle.TransactOpts, _recentNumber, _recentHash, _hash, _sectionIndex, v, r, s)
 }
 
-// SetCheckpoint is a paid mutator transaction binding the contract method 0x1af4ddf7.
+// SetCheckpoint is a paid mutator transaction binding the contract method 0xd459fc46.
 //
-// Solidity: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
+// Ylem: function SetCheckpoint(uint256 _recentNumber, bytes32 _recentHash, bytes32 _hash, uint64 _sectionIndex, uint8[] v, bytes32[] r, bytes32[] s) returns(bool)
 func (_CheckpointOracle *CheckpointOracleTransactorSession) SetCheckpoint(_recentNumber *big.Int, _recentHash [32]byte, _hash [32]byte, _sectionIndex uint64, v []uint8, r [][32]byte, s [][32]byte) (*types.Transaction, error) {
 	return _CheckpointOracle.Contract.SetCheckpoint(&_CheckpointOracle.TransactOpts, _recentNumber, _recentHash, _hash, _sectionIndex, v, r, s)
 }
@@ -282,10 +287,10 @@ type CheckpointOracleNewCheckpointVoteIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log    // Log channel receiving the found contract events
-	sub  core.Subscription // Subscription for errors, completion and termination
-	done bool              // Whether the subscription completed delivering logs
-	fail error             // Occurred error to stop iteration
+	logs chan types.Log // Log channel receiving the found contract events
+	sub  c.Subscription // Subscription for errors, completion and termination
+	done bool           // Whether the subscription completed delivering logs
+	fail error          // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -346,15 +351,12 @@ func (it *CheckpointOracleNewCheckpointVoteIterator) Close() error {
 type CheckpointOracleNewCheckpointVote struct {
 	Index          uint64
 	CheckpointHash [32]byte
-	V              uint8
-	R              [32]byte
-	S              [32]byte
 	Raw            types.Log // Blockchain specific contextual infos
 }
 
-// FilterNewCheckpointVote is a free log retrieval operation binding the contract event 0xd56bf7d37e3bd51f99a826e0ea2b9b6daecb97af843ba5101a26f5ca3bd3f68d.
+// FilterNewCheckpointVote is a free log retrieval operation binding the contract event 0xce51ffa16246bcaf0899f6504f473cd0114f430f566cef71ab7e03d3dde42a41.
 //
-// Solidity: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
+// Ylem: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
 func (_CheckpointOracle *CheckpointOracleFilterer) FilterNewCheckpointVote(opts *bind.FilterOpts, index []uint64) (*CheckpointOracleNewCheckpointVoteIterator, error) {
 
 	var indexRule []interface{}
@@ -369,9 +371,9 @@ func (_CheckpointOracle *CheckpointOracleFilterer) FilterNewCheckpointVote(opts 
 	return &CheckpointOracleNewCheckpointVoteIterator{contract: _CheckpointOracle.contract, event: "NewCheckpointVote", logs: logs, sub: sub}, nil
 }
 
-// WatchNewCheckpointVote is a free log subscription operation binding the contract event 0xd56bf7d37e3bd51f99a826e0ea2b9b6daecb97af843ba5101a26f5ca3bd3f68d.
+// WatchNewCheckpointVote is a free log subscription operation binding the contract event 0xce51ffa16246bcaf0899f6504f473cd0114f430f566cef71ab7e03d3dde42a41.
 //
-// Solidity: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
+// Ylem: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
 func (_CheckpointOracle *CheckpointOracleFilterer) WatchNewCheckpointVote(opts *bind.WatchOpts, sink chan<- *CheckpointOracleNewCheckpointVote, index []uint64) (event.Subscription, error) {
 
 	var indexRule []interface{}
@@ -411,9 +413,9 @@ func (_CheckpointOracle *CheckpointOracleFilterer) WatchNewCheckpointVote(opts *
 	}), nil
 }
 
-// ParseNewCheckpointVote is a log parse operation binding the contract event 0xd56bf7d37e3bd51f99a826e0ea2b9b6daecb97af843ba5101a26f5ca3bd3f68d.
+// ParseNewCheckpointVote is a log parse operation binding the contract event 0xce51ffa16246bcaf0899f6504f473cd0114f430f566cef71ab7e03d3dde42a41.
 //
-// Solidity: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
+// Ylem: event NewCheckpointVote(uint64 indexed index, bytes32 checkpointHash, uint8 v, bytes32 r, bytes32 s)
 func (_CheckpointOracle *CheckpointOracleFilterer) ParseNewCheckpointVote(log types.Log) (*CheckpointOracleNewCheckpointVote, error) {
 	event := new(CheckpointOracleNewCheckpointVote)
 	if err := _CheckpointOracle.contract.UnpackLog(event, "NewCheckpointVote", log); err != nil {

@@ -23,12 +23,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/flowcontrol"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/les/flowcontrol"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 const makeCostStats = false // make request cost statistics during operation

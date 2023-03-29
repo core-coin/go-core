@@ -20,13 +20,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/bitutil"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/bitutil"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 const (
@@ -137,7 +138,7 @@ func (b *BloomIndexer) Commit() error {
 	return batch.Write()
 }
 
-// PruneSections returns an empty error since we don't support pruning here.
+// Prune returns an empty error since we don't support pruning here.
 func (b *BloomIndexer) Prune(threshold uint64) error {
 	return nil
 }

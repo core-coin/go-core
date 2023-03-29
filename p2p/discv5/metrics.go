@@ -16,7 +16,7 @@
 
 package discv5
 
-import "github.com/core-coin/go-core/metrics"
+import "github.com/core-coin/go-core/v2/metrics"
 
 var (
 	ingressTrafficMeter = metrics.NewRegisteredMeter("discv5/InboundTraffic", nil)

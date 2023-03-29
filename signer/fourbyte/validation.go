@@ -22,7 +22,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core/signer/core"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/signer/core"
 )
 
 // ValidateTransaction does a number of checks on the supplied transaction, and
@@ -48,7 +49,7 @@ func (db *Database) ValidateTransaction(selector *string, tx *core.SendTxArgs) (
 	if tx.To == nil {
 		// Contract creation should contain sufficient data to deploy a contract. A
 		// typical error is omitting sender due to some quirk in the javascript call
-		// e.g. https://github.com/core-coin/go-core/issues/16106.
+		// e.g. https://github.com/core-coin/go-core/v2/issues/16106.
 		if len(data) == 0 {
 			// Prevent sending core into black hole (show stopper)
 			if tx.Value.ToInt().Cmp(big.NewInt(0)) > 0 {
@@ -65,7 +66,8 @@ func (db *Database) ValidateTransaction(selector *string, tx *core.SendTxArgs) (
 		}
 		return messages, nil
 	}
-	if tx.To.Hex() == "970000000000000000000000000000000000000000" {
+	// Not a contract creation, validate as a plain transaction
+	if bytes.Equal(tx.To.Bytes(), common.Address{}.Bytes()) {
 		messages.Crit("Transaction recipient is the zero address")
 	}
 	// Semantic fields validated, try to make heads or tails of the call data
@@ -93,7 +95,7 @@ func (db *Database) ValidateCallData(selector *string, data []byte, messages *co
 		if info, err := verifySelector(*selector, data); err != nil {
 			messages.Warn(fmt.Sprintf("Transaction contains data, but provided ABI signature could not be matched: %v", err))
 		} else {
-			messages.Info(info.String())
+			messages.Info(fmt.Sprintf("Transaction invokes the following method: %q", info.String()))
 			db.AddSelector(*selector, data[:4])
 		}
 		return
@@ -107,6 +109,6 @@ func (db *Database) ValidateCallData(selector *string, data []byte, messages *co
 	if info, err := verifySelector(embedded, data); err != nil {
 		messages.Warn(fmt.Sprintf("Transaction contains data, but provided ABI signature could not be verified: %v", err))
 	} else {
-		messages.Info(info.String())
+		messages.Info(fmt.Sprintf("Transaction invokes the following method: %q", info.String()))
 	}
 }

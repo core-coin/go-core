@@ -19,12 +19,12 @@ package core
 import (
 	"sync/atomic"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // statePrefetcher is a basic Prefetcher, which blindly executes a block on top
@@ -78,8 +78,9 @@ func precacheTransaction(config *params.ChainConfig, bc ChainContext, author *co
 		return err
 	}
 	// Create the CVM and execute the transaction
-	context := NewCVMContext(msg, header, bc, author)
-	vm := vm.NewCVM(context, statedb, config, cfg)
+	context := NewCVMBlockContext(header, bc, author)
+	txContext := NewCVMTxContext(msg)
+	vm := vm.NewCVM(context, txContext, statedb, config, cfg)
 
 	_, err = ApplyMessage(vm, msg, energypool)
 	return err

@@ -21,10 +21,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 var toAddr = common.BytesToAddress
@@ -93,7 +94,7 @@ func TestNull(t *testing.T) {
 	s := newStateTest()
 	address, err := common.HexToAddress("cb9300000000823140710bf13990e4500136726d8b55")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	s.state.CreateAccount(address)
 	//value := common.FromHex("0x823140710bf13990e4500136726d8b55")

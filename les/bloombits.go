@@ -19,8 +19,8 @@ package les
 import (
 	"time"
 
-	"github.com/core-coin/go-core/common/bitutil"
-	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/v2/common/bitutil"
+	"github.com/core-coin/go-core/v2/light"
 )
 
 const (

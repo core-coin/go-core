@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Enabled is checked by the constructor functions for all of the
@@ -121,7 +121,7 @@ func CollectProcessMetrics(refresh time.Duration) {
 
 			diskReadBytesCounter.Inc(diskstats[location1].ReadBytes - diskstats[location2].ReadBytes)
 			diskWriteBytesCounter.Inc(diskstats[location1].WriteBytes - diskstats[location2].WriteBytes)
-			discFreeSpace.Mark(int64(diskstats[location1].FreeSpaceGB - diskstats[location2].FreeSpaceGB))
+			discFreeSpace.Mark(diskstats[location1].FreeSpaceGB - diskstats[location2].FreeSpaceGB)
 		}
 		time.Sleep(refresh)
 	}

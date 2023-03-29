@@ -17,18 +17,19 @@
 package main
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/pborman/uuid"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 type outputGenerate struct {
@@ -48,7 +49,6 @@ If you want to encrypt an existing private key, it can be specified by setting
 `,
 	Flags: []cli.Flag{
 		passphraseFlag,
-		utils.NetworkIdFlag,
 		jsonFlag,
 		cli.StringFlag{
 			Name:  "privatekey",
@@ -58,15 +58,17 @@ If you want to encrypt an existing private key, it can be specified by setting
 			Name:  "lightkdf",
 			Usage: "use less secure scrypt parameters",
 		},
+		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
+		if ctx.IsSet(utils.NetworkIdFlag.Name) {
+			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
+
 		// Check if keyfile path given and make sure it doesn't already exist.
 		keyfilepath := ctx.Args().First()
 		if keyfilepath == "" {
 			keyfilepath = defaultKeyfileName
-		}
-		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 		if _, err := os.Stat(keyfilepath); err == nil {
 			utils.Fatalf("Keyfile already exists at %s.", keyfilepath)
@@ -74,7 +76,7 @@ If you want to encrypt an existing private key, it can be specified by setting
 			utils.Fatalf("Error checking if keyfile exists: %v", err)
 		}
 
-		var privateKey *eddsa.PrivateKey
+		var privateKey *crypto.PrivateKey
 		var err error
 		if file := ctx.String("privatekey"); file != "" {
 			// Load private key from file.
@@ -84,7 +86,7 @@ If you want to encrypt an existing private key, it can be specified by setting
 			}
 		} else {
 			// If not loaded, generate random.
-			privateKey, err = crypto.GenerateKey(rand.Reader)
+			privateKey, err = crypto.GenerateKey(crand.Reader)
 			if err != nil {
 				utils.Fatalf("Failed to generate random private key: %v", err)
 			}
@@ -92,10 +94,9 @@ If you want to encrypt an existing private key, it can be specified by setting
 
 		// Create the keyfile object with a random UUID.
 		id := uuid.NewRandom()
-		pub := eddsa.Ed448DerivePublicKey(*privateKey)
 		key := &keystore.Key{
 			Id:         id,
-			Address:    crypto.PubkeyToAddress(pub),
+			Address:    privateKey.Address(),
 			PrivateKey: privateKey,
 		}
 

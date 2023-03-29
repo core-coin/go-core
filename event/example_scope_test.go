@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 // This example demonstrates how SubscriptionScope can be used to control the lifetime of

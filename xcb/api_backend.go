@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -19,24 +19,26 @@ package xcb
 import (
 	"context"
 	"errors"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/miner"
 	"math/big"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcb/energyprice"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcb/energyprice"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // XcbAPIBackend implements xcbapi.Backend for full nodes
@@ -194,8 +196,9 @@ func (b *XcbAPIBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
 func (b *XcbAPIBackend) GetCVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header) (*vm.CVM, func() error, error) {
 	vmError := func() error { return nil }
 
-	context := core.NewCVMContext(msg, header, b.xcb.BlockChain(), nil)
-	return vm.NewCVM(context, state, b.xcb.blockchain.Config(), *b.xcb.blockchain.GetVMConfig()), vmError, nil
+	txContext := core.NewCVMTxContext(msg)
+	context := core.NewCVMBlockContext(header, b.xcb.BlockChain(), nil)
+	return vm.NewCVM(context, txContext, state, b.xcb.blockchain.Config(), *b.xcb.blockchain.GetVMConfig()), vmError, nil
 }
 
 func (b *XcbAPIBackend) SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription {
@@ -295,7 +298,7 @@ func (b *XcbAPIBackend) ExtRPCEnabled() bool {
 	return b.extRPCEnabled
 }
 
-func (b *XcbAPIBackend) RPCEnergyCap() *big.Int {
+func (b *XcbAPIBackend) RPCEnergyCap() uint64 {
 	return b.xcb.config.RPCEnergyCap
 }
 

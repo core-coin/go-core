@@ -17,6 +17,7 @@
 package core_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -25,12 +26,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/signer/core"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/signer/core"
 )
 
 var typesStandard = core.Types{
@@ -133,17 +134,17 @@ var jsonTypedData = `
         "name": "Core Mail",
         "version": "1",
         "networkId": "1",
-        "verifyingContract": "cb10cccccccccccccccccccccccccccccccccccccccc"
+        "verifyingContract": "cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba"
       },
       "message": {
         "from": {
           "name": "Cow",
 		  "test": 3,
-          "wallet": "cb40cd2a3d9f938e13cd947ec05abc7fe734df8dd826"
+          "wallet": "cb76a631db606f1452ddc2432931d611f1d5b126f848"
         },
         "to": {
           "name": "Bob",
-          "wallet": "cb46bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "wallet": "cb27de521e43741cf785cbad450d5649187b9612018f"
         },
         "contents": "Hello, Bob!"
       }
@@ -156,18 +157,18 @@ var domainStandard = core.TypedDataDomain{
 	"Core Mail",
 	"1",
 	math.NewHexOrDecimal256(1),
-	"cb10cccccccccccccccccccccccccccccccccccccccc",
+	"cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba",
 	"",
 }
 
 var messageStandard = map[string]interface{}{
 	"from": map[string]interface{}{
 		"name":   "Cow",
-		"wallet": "cb40cd2a3d9f938e13cd947ec05abc7fe734df8dd826",
+		"wallet": "cb76a631db606f1452ddc2432931d611f1d5b126f848",
 	},
 	"to": map[string]interface{}{
 		"name":   "Bob",
-		"wallet": "cb46bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		"wallet": "cb27de521e43741cf785cbad450d5649187b9612018f",
 	},
 	"contents": "Hello, Bob!",
 }
@@ -216,7 +217,7 @@ func TestSignData(t *testing.T) {
 		t.Fatal(err)
 	}
 	if signature == nil || len(signature) != crypto.ExtendedSignatureLength {
-		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.ExtendedSignatureLength, len(signature))
+		t.Errorf("Expected crypto.ExtendedSignatureLength byte signature (got %d bytes)", len(signature))
 	}
 	// data/typed
 	control.approveCh <- "Y"
@@ -226,7 +227,7 @@ func TestSignData(t *testing.T) {
 		t.Fatal(err)
 	}
 	if signature == nil || len(signature) != crypto.ExtendedSignatureLength {
-		t.Errorf("Expected %d byte signature (got %d bytes)", crypto.ExtendedSignatureLength, len(signature))
+		t.Errorf("Expected crypto.ExtendedSignatureLength byte signature (got %d bytes)", len(signature))
 	}
 }
 
@@ -277,7 +278,7 @@ func TestHashStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	mainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if mainHash != "0x5c513419f6053d7a63a33a96f9ec9d128e65493aa12b66e14b35d6dd944ab181" {
+	if mainHash != "0xef6fddde45efef4974d865911ed95b5713bad9416a70aefe6f1c9cf7cf2effdb" {
 		t.Errorf("Expected different hashStruct result (got %s)", mainHash)
 	}
 
@@ -286,7 +287,7 @@ func TestHashStruct(t *testing.T) {
 		t.Error(err)
 	}
 	domainHash := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if domainHash != "0x82450d3ce36ab620172792e1fc62599eeabbe23c07b1095ff997408b227533c8" {
+	if domainHash != "0x453039a903a6cb0751f4b709f858d104351ba885a17a7daf98d7e6442d9f324d" {
 		t.Errorf("Expected different domain hashStruct result (got %s)", domainHash)
 	}
 }
@@ -316,7 +317,7 @@ func TestEncodeData(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataEncoding := fmt.Sprintf("0x%s", common.Bytes2Hex(hash))
-	if dataEncoding != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622ba56a5419af7340cf23543fb910856638ec205e247b0f32b3da40a09cea1b8b9b590926d67b65dc4fc8f86dc47a946434defc177afc9a5b2e0ee36e7108b857ceb58543c145f315ad2c9210b45c29c13e6c9fc5396a140d3b07f766925fda360e" {
+	if dataEncoding != "0xda8b122f9405015467a4c2d2b5d72f976d0dcd07f39d640df998cb582f24622bb5a2006b708c2c1a6ecb8e7e28b588a0c0f1cc91e1ad7f834b1b85a8b04fbc31b7287cdbb157715c966c50826f17d51a9311dec62c8957819d6b4de0bbc55b9cb58543c145f315ad2c9210b45c29c13e6c9fc5396a140d3b07f766925fda360e" {
 		t.Errorf("Expected different encodeData result (got %s)", dataEncoding)
 	}
 }
@@ -412,5 +413,121 @@ func TestFuzzerFiles(t *testing.T) {
 			t.Logf("%d, EncodeData[2] err: %v\n", i, err)
 		}
 		typedData.Format()
+	}
+}
+
+var gnosisTypedData = `
+{
+	"types": {
+		"CIP712Domain": [
+			{ "type": "address", "name": "verifyingContract" }
+		],
+		"SafeTx": [
+			{ "type": "address", "name": "to" },
+			{ "type": "uint256", "name": "value" },
+			{ "type": "bytes", "name": "data" },
+			{ "type": "uint8", "name": "operation" },
+			{ "type": "uint256", "name": "safeTxEnergy" },
+			{ "type": "uint256", "name": "baseEnergy" },
+			{ "type": "uint256", "name": "energyPrice" },
+			{ "type": "address", "name": "energyToken" },
+			{ "type": "address", "name": "refundReceiver" },
+			{ "type": "uint256", "name": "nonce" }
+		]
+	},
+	"domain": {
+		"verifyingContract": "cb45f23d9ab6aefb2c22dfff511e29703435a3b50f50"
+	},
+	"primaryType": "SafeTx",
+	"message": {
+		"to": "cb65e49851f010cd7d81b5b4969f3b0e8325c415359d",
+		"value": "20000000000000000",
+		"data": "0x",
+		"operation": 0,
+		"safeTxEnergy": 27845,
+		"baseEnergy": 0,
+		"energyPrice": "0",
+		"energyToken": "cb540000000000000000000000000000000000000000",
+		"refundReceiver": "cb540000000000000000000000000000000000000000",
+		"nonce": 3
+	}
+}`
+
+var gnosisTx = `
+{
+      "safe": "cb45f23d9ab6aefb2c22dfff511e29703435a3b50f50",
+      "to": "cb65e49851f010cd7d81b5b4969f3b0e8325c415359d",
+      "value": "20000000000000000",
+      "data": null,
+      "operation": 0,
+      "energyToken": "cb540000000000000000000000000000000000000000",
+      "safeTxEnergy": 27845,
+      "baseEnergy": 0,
+      "energyPrice": "0",
+      "refundReceiver": "cb540000000000000000000000000000000000000000",
+      "nonce": 3,
+      "executionDate": null,
+      "submissionDate": "2020-09-15T21:59:23.815748Z",
+      "modified": "2020-09-15T21:59:23.815748Z",
+      "blockNumber": null,
+      "transactionHash": null,
+      "safeTxHash": "0x28bae2bd58d894a1d9b69e5e9fde3570c4b98a6fc5499aefb54fb830137e831f",
+      "executor": null,
+      "isExecuted": false,
+      "isSuccessful": null,
+      "xcbEnergyPrice": null,
+      "energyUsed": null,
+      "fee": null,
+      "origin": null,
+      "dataDecoded": null,
+      "confirmationsRequired": null,
+      "confirmations": [
+        {
+          "owner": "0xAd2e180019FCa9e55CADe76E4487F126Fd08DA34",
+          "submissionDate": "2020-09-15T21:59:28.281243Z",
+          "transactionHash": null,
+          "confirmationType": "CONFIRMATION",
+          "signature": "0x5e562065a0cb15d766dac0cd49eb6d196a41183af302c4ecad45f1a81958d7797753f04424a9b0aa1cb0448e4ec8e189540fbcdda7530ef9b9d95dfc2d36cb521b",
+          "signatureType": "EOA"
+        }
+      ],
+      "signatures": null
+    }
+`
+
+// TestGnosisTypedData tests the scenario where a user submits a full CIP-712
+// struct without using the gnosis-specific endpoint
+func TestGnosisTypedData(t *testing.T) {
+	var td core.TypedData
+	err := json.Unmarshal([]byte(gnosisTypedData), &td)
+	if err != nil {
+		t.Fatalf("unmarshalling failed '%v'", err)
+	}
+	_, sighash, err := sign(td)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expSigHash := common.FromHex("0x402d167803f194fe5e448757cbac9a9c17fb4674a7da5c061233f49118c379b7")
+	if !bytes.Equal(expSigHash, sighash) {
+		t.Fatalf("Error, got %x, wanted %x", sighash, expSigHash)
+	}
+}
+
+// TestGnosisCustomData tests the scenario where a user submits only the gnosis-safe
+// specific data, and we fill the TypedData struct on our side
+func TestGnosisCustomData(t *testing.T) {
+	var tx core.GnosisSafeTx
+	err := json.Unmarshal([]byte(gnosisTx), &tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var td = tx.ToTypedData()
+	_, sighash, err := sign(td)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expSigHash := common.FromHex("0x402d167803f194fe5e448757cbac9a9c17fb4674a7da5c061233f49118c379b7")
+	if !bytes.Equal(expSigHash, sighash) {
+		t.Fatalf("Error, got %x, wanted %x", sighash, expSigHash)
 	}
 }

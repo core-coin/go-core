@@ -29,14 +29,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/mattn/go-colorable"
+
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 func TestMain(m *testing.M) {

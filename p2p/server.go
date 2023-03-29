@@ -28,19 +28,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/discover"
-	"github.com/core-coin/go-core/p2p/discv5"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/discover"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 const (
@@ -70,8 +68,8 @@ var errServerStopped = errors.New("server stopped")
 
 // Config holds Server options.
 type Config struct {
-	// This field must be set to a valid secp256k1 private key.
-	PrivateKey *eddsa.PrivateKey `toml:"-"`
+	// This field must be set to a valid ed448 private key.
+	PrivateKey *crypto.PrivateKey `toml:"-"`
 
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.
@@ -167,7 +165,7 @@ type Server struct {
 
 	// Hooks for testing. These are useful because we can inhibit
 	// the whole protocol stack.
-	newTransport func(net.Conn) transport
+	newTransport func(net.Conn, *crypto.PublicKey) transport
 	newPeerHook  func(*Peer)
 	listenFunc   func(network, addr string) (net.Listener, error)
 
@@ -232,7 +230,7 @@ type conn struct {
 
 type transport interface {
 	// The two handshakes.
-	doEncHandshake(prv *eddsa.PrivateKey, dialDest *eddsa.PublicKey) (*eddsa.PublicKey, error)
+	doEncHandshake(prv *crypto.PrivateKey) (*crypto.PublicKey, error)
 	doProtoHandshake(our *protoHandshake) (*protoHandshake, error)
 	// The MsgReadWriter can only be used after the encryption
 	// handshake has completed. The code uses conn.id to track this
@@ -384,8 +382,7 @@ func (srv *Server) Self() *enode.Node {
 	srv.lock.Unlock()
 
 	if ln == nil {
-		pub := eddsa.Ed448DerivePublicKey(*srv.PrivateKey)
-		return enode.NewV4(&pub, net.ParseIP("0.0.0.0"), 0, 0)
+		return enode.NewV4(srv.PrivateKey.PublicKey(), net.ParseIP("0.0.0.0"), 0, 0)
 	}
 	return ln.Node()
 }
@@ -493,9 +490,8 @@ func (srv *Server) Start() (err error) {
 
 func (srv *Server) setupLocalNode() error {
 	// Create the devp2p handshake.
-	pub := eddsa.Ed448DerivePublicKey(*srv.PrivateKey)
-	pubkey := crypto.FromEDDSAPub(&pub)
-	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey}
+	pubkey := srv.PrivateKey.PublicKey()
+	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey[:]}
 	for _, p := range srv.Protocols {
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
 	}
@@ -857,13 +853,18 @@ func (srv *Server) listenLoop() {
 		<-slots
 
 		var (
-			fd  net.Conn
-			err error
+			fd      net.Conn
+			err     error
+			lastLog time.Time
 		)
 		for {
 			fd, err = srv.listener.Accept()
 			if netutil.IsTemporaryError(err) {
-				srv.log.Debug("Temporary read error", "err", err)
+				if time.Since(lastLog) > 1*time.Second {
+					srv.log.Debug("Temporary read error", "err", err)
+					lastLog = time.Now()
+				}
+				time.Sleep(time.Millisecond * 200)
 				continue
 			} else if err != nil {
 				srv.log.Debug("Read error", "err", err)
@@ -917,7 +918,13 @@ func (srv *Server) checkInboundConn(fd net.Conn, remoteIP net.IP) error {
 // as a peer. It returns when the connection has been added as a peer
 // or the handshakes have failed.
 func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Node) error {
-	c := &conn{fd: fd, transport: srv.newTransport(fd), flags: flags, cont: make(chan error)}
+	c := &conn{fd: fd, flags: flags, cont: make(chan error)}
+	if dialDest == nil {
+		c.transport = srv.newTransport(fd, nil)
+	} else {
+		c.transport = srv.newTransport(fd, dialDest.Pubkey())
+	}
+
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
 		c.close(err)
@@ -935,27 +942,23 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	}
 
 	// If dialing, figure out the remote public key.
-	var dialPubkey *eddsa.PublicKey
+	var dialPubkey *crypto.PublicKey
 	if dialDest != nil {
-		dialPubkey = new(eddsa.PublicKey)
-		if err := dialDest.Load((*enode.Secp256k1)(dialPubkey)); err != nil {
-			err = errors.New("dial destination doesn't have a secp256k1 public key")
+		dialPubkey = new(crypto.PublicKey)
+		if err := dialDest.Load((*enode.Ed448)(dialPubkey)); err != nil {
+			err = errors.New("dial destination doesn't have a ed448 public key")
 			srv.log.Trace("Setting up connection failed", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 			return err
 		}
 	}
 
 	// Run the RLPx handshake.
-	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)
+	remotePubkey, err := c.doEncHandshake(srv.PrivateKey)
 	if err != nil {
 		srv.log.Trace("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		return err
 	}
 	if dialDest != nil {
-		// For dialed connections, check that the remote public key matches.
-		if bytes.Compare(dialPubkey[:], remotePubkey[:]) != 0 {
-			return DiscUnexpectedIdentity
-		}
 		c.node = dialDest
 	} else {
 		c.node = nodeFromConn(remotePubkey, c.fd)
@@ -987,7 +990,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	return nil
 }
 
-func nodeFromConn(pubkey *eddsa.PublicKey, conn net.Conn) *enode.Node {
+func nodeFromConn(pubkey *crypto.PublicKey, conn net.Conn) *enode.Node {
 	var ip net.IP
 	var port int
 	if tcp, ok := conn.RemoteAddr().(*net.TCPAddr); ok {

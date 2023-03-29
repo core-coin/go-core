@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,14 +23,15 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
 	"github.com/core-coin/go-randomy"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 
 	mapset "github.com/deckarep/golang-set"
 	"golang.org/x/crypto/sha3"
@@ -288,10 +289,7 @@ func (cryptore *Cryptore) CalcDifficulty(chain consensus.ChainHeaderReader, time
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
 func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
-	switch {
-	default:
-		return calcDifficulty(time, parent)
-	}
+	return calcDifficulty(time, parent)
 }
 
 // Some weird constants to avoid constant memory allocs for them.
@@ -308,9 +306,8 @@ var (
 func makeDifficultyCalculator() func(time uint64, parent *types.Header) *big.Int {
 	// Note, the calculations below looks at the parent number, which is 1 below
 	// the block number. Thus we remove one from the delay given
-
 	return func(time uint64, parent *types.Header) *big.Int {
-		// https://github.com/core-coin/CIPs/issues/100.
+		// https://github.com/core/CIPs/issues/100.
 		// algorithm:
 		// diff = (parent_diff +
 		//         (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
@@ -344,7 +341,6 @@ func makeDifficultyCalculator() func(time uint64, parent *types.Header) *big.Int
 		if x.Cmp(params.MinimumDifficulty) < 0 {
 			x.Set(params.MinimumDifficulty)
 		}
-
 		return x
 	}
 }

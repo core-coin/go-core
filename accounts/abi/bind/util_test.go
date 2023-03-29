@@ -18,22 +18,22 @@ package bind_test
 
 import (
 	"context"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"errors"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind/backends"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
-var testKey, _ = crypto.HexToEDDSA("c0b711eea422df26d5ffdcaae35fe0527cf647c5ce62d3efb5e09a0e14fc8afe57fac1a5daa330bc10bfa1d3db11e172a822dcfffb86a0b26d")
+var testKey, _ = crypto.UnmarshalPrivateKeyHex("c0b711eea422df26d5ffdcaae35fe0527cf647c5ce62d3efb5e09a0e14fc8afe57fac1a5daa330bc10bfa1d3db11e172a822dcfffb86a0b26d")
 
-var addr, addrErr = common.HexToAddress("cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba")
+var addr, _ = common.HexToAddress("cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba")
 
 var waitDeployedTests = map[string]struct {
 	code        string
@@ -55,14 +55,10 @@ var waitDeployedTests = map[string]struct {
 }
 
 func TestWaitDeployed(t *testing.T) {
-	if addrErr != nil {
-		t.Error(addrErr)
-	}
 	for name, test := range waitDeployedTests {
-		pub := eddsa.Ed448DerivePublicKey(*testKey)
 		backend := backends.NewSimulatedBackend(
 			core.GenesisAlloc{
-				crypto.PubkeyToAddress(pub): {Balance: big.NewInt(10000000000)},
+				testKey.Address(): {Balance: big.NewInt(10000000000)},
 			},
 			10000000,
 		)
@@ -91,7 +87,7 @@ func TestWaitDeployed(t *testing.T) {
 		select {
 		case <-mined:
 			if err != test.wantErr {
-				t.Errorf("test %q: error mismatch: got %q, want %q", name, err, test.wantErr)
+				t.Errorf("test %q: error mismatch: want %q, got %q", name, test.wantErr, err)
 			}
 			if address != test.wantAddress {
 				t.Errorf("test %q: unexpected contract address %s", name, address.Hex())
@@ -100,4 +96,42 @@ func TestWaitDeployed(t *testing.T) {
 			t.Errorf("test %q: timeout", name)
 		}
 	}
+}
+
+func TestWaitDeployedCornerCases(t *testing.T) {
+	backend := backends.NewSimulatedBackend(
+		core.GenesisAlloc{
+			testKey.Address(): {Balance: big.NewInt(10000000000)},
+		},
+		10000000,
+	)
+	defer backend.Close()
+
+	addr, _ := common.HexToAddress("cb270000000000000000000000000000000000000001")
+	// Create a transaction to an account.
+	code := "6060604052600a8060106000396000f360606040526008565b00"
+	tx := types.NewTransaction(0, addr, big.NewInt(0), 3000000, big.NewInt(1), common.FromHex(code))
+	tx, _ = types.SignTx(tx, types.NewNucleusSigner(backend.Blockchain().Config().NetworkID), testKey)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	backend.SendTransaction(ctx, tx)
+	backend.Commit()
+	notContentCreation := errors.New("tx is not contract creation")
+	if _, err := bind.WaitDeployed(ctx, backend, tx); err.Error() != notContentCreation.Error() {
+		t.Errorf("error missmatch: want %q, got %q, ", notContentCreation, err)
+	}
+
+	// Create a transaction that is not mined.
+	tx = types.NewContractCreation(1, big.NewInt(0), 3000000, big.NewInt(1), common.FromHex(code))
+	tx, _ = types.SignTx(tx, types.NewNucleusSigner(backend.Blockchain().Config().NetworkID), testKey)
+
+	go func() {
+		contextCanceled := errors.New("context canceled")
+		if _, err := bind.WaitDeployed(ctx, backend, tx); err.Error() != contextCanceled.Error() {
+			t.Errorf("error missmatch: want %q, got %q, ", contextCanceled, err)
+		}
+	}()
+
+	backend.SendTransaction(ctx, tx)
+	cancel()
 }

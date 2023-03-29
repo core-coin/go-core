@@ -34,7 +34,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Handler is the global debugging handler.
@@ -196,7 +196,7 @@ func (*HandlerT) Stacks() string {
 	return buf.String()
 }
 
-// FreeOSMemory returns unused memory to the OS.
+// FreeOSMemory forces a garbage collection.
 func (*HandlerT) FreeOSMemory() {
 	debug.FreeOSMemory()
 }

@@ -17,10 +17,10 @@
 package discv5
 
 import (
+	"bytes"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"net"
 	"net/url"
@@ -28,8 +28,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Node represents a host on the network.
@@ -114,8 +115,8 @@ var incompleteNodeURL = regexp.MustCompile("(?i)^(?:enode://)?([0-9a-f]+)$")
 //
 // For incomplete nodes, the designator must look like one of these
 //
-//    enode://<hex node id>
-//    <hex node id>
+//	enode://<hex node id>
+//	<hex node id>
 //
 // For complete nodes, the node ID is encoded in the username portion
 // of the URL, separated from the host by an @ sign. The hostname can
@@ -128,7 +129,7 @@ var incompleteNodeURL = regexp.MustCompile("(?i)^(?:enode://)?([0-9a-f]+)$")
 // a node with IP address 10.3.58.6, TCP listening port 30300
 // and UDP discovery port 30330.
 //
-//    enode://<hex node id>@10.3.58.6:30300?discport=30330
+//	enode://<hex node id>@10.3.58.6:30300?discport=30330
 func ParseNode(rawurl string) (*Node, error) {
 	if m := incompleteNodeURL.FindStringSubmatch(rawurl); m != nil {
 		id, err := HexID(m[1])
@@ -191,7 +192,7 @@ func parseComplete(rawurl string) (*Node, error) {
 func MustParseNode(rawurl string) *Node {
 	n, err := ParseNode(rawurl)
 	if err != nil {
-		panic("invalid node URL: " + err.Error())
+		log.Error("invalid node URL: " + err.Error())
 	}
 	return n
 }
@@ -284,7 +285,7 @@ func MustHexID(in string) NodeID {
 }
 
 // PubkeyID returns a marshaled representation of the given public key.
-func PubkeyID(pub *eddsa.PublicKey) NodeID {
+func PubkeyID(pub *crypto.PublicKey) NodeID {
 	var id NodeID
 	if len(pub) != len(id) {
 		panic("id len != pub len")
@@ -295,11 +296,11 @@ func PubkeyID(pub *eddsa.PublicKey) NodeID {
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
-func (n NodeID) Pubkey() (*eddsa.PublicKey, error) {
-	if n.String() == "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" {
+func (n NodeID) Pubkey() (*crypto.PublicKey, error) {
+	if bytes.Equal(n[:], (&crypto.PublicKey{})[:]) {
 		return nil, errors.New("invalid node id")
 	}
-	return crypto.UnmarshalPubkey(n[:])
+	return crypto.UnmarshalPubKey(n[:])
 }
 
 // recoverNodeID computes the public key used to sign the

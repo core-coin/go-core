@@ -19,22 +19,22 @@ package les
 import (
 	"bytes"
 	"context"
-	"github.com/hpcloud/tail/util"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 type odrTestFn func(ctx context.Context, db xcbdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte
@@ -83,9 +83,9 @@ func TestOdrAccountsLes3(t *testing.T) { testOdr(t, 3, 1, true, odrAccounts) }
 func odrAccounts(ctx context.Context, db xcbdb.Database, config *params.ChainConfig, bc *core.BlockChain, lc *light.LightChain, bhash common.Hash) []byte {
 	dummyAddr, err := common.HexToAddress("cb721234567812345678123456781234567812345678")
 	if err != nil {
-		util.Fatal(err.Error())
+		panic(err)
 	}
-	acc := []common.Address{bankAddr, userAddr1, userAddr2, dummyAddr}
+	acc := []common.Address{bankKey.Address(), userKey1.Address(), userKey2.Address(), dummyAddr}
 
 	var (
 		res []byte
@@ -128,13 +128,14 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, config *params.Chai
 			statedb, err := state.New(header.Root, state.NewDatabase(db), nil)
 
 			if err == nil {
-				from := statedb.GetOrNewStateObject(bankAddr)
+				from := statedb.GetOrNewStateObject(bankKey.Address())
 				from.SetBalance(math.MaxBig256)
 
 				msg := callmsg{types.NewMessage(from.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
 
-				context := core.NewCVMContext(msg, header, bc, nil)
-				vmenv := vm.NewCVM(context, statedb, config, vm.Config{})
+				context := core.NewCVMBlockContext(header, bc, nil)
+				txContext := core.NewCVMTxContext(msg)
+				vmenv := vm.NewCVM(context, txContext, statedb, config, vm.Config{})
 
 				//vmenv := core.NewEnv(statedb, config, bc, msg, header, vm.Config{})
 				gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
@@ -144,10 +145,11 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, config *params.Chai
 		} else {
 			header := lc.GetHeaderByHash(bhash)
 			state := light.NewState(ctx, header, lc.Odr())
-			state.SetBalance(bankAddr, math.MaxBig256)
-			msg := callmsg{types.NewMessage(bankAddr, &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
-			context := core.NewCVMContext(msg, header, lc, nil)
-			vmenv := vm.NewCVM(context, state, config, vm.Config{})
+			state.SetBalance(bankKey.Address(), math.MaxBig256)
+			msg := callmsg{types.NewMessage(bankKey.Address(), &testContractAddr, 0, new(big.Int), 100000, new(big.Int), data, false)}
+			context := core.NewCVMBlockContext(header, lc, nil)
+			txContext := core.NewCVMTxContext(msg)
+			vmenv := vm.NewCVM(context, txContext, state, config, vm.Config{})
 			gp := new(core.EnergyPool).AddEnergy(math.MaxUint64)
 			result, _ := core.ApplyMessage(vmenv, msg, gp)
 			if state.Error() == nil {
@@ -208,7 +210,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 
 			// Set the timeout as 1 second here, ensure there is enough time
 			// for travis to make the action.
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			b2 := fn(ctx, client.db, client.handler.backend.chainConfig, nil, client.handler.backend.blockchain, bhash)
 			cancel()
 
@@ -238,7 +240,7 @@ func testOdr(t *testing.T, protocol int, expFail uint64, checkCached bool, fn od
 	// still expect all retrievals to pass, now data should be cached locally
 	if checkCached {
 		client.handler.backend.peers.unregister(client.peer.speer.id)
-		time.Sleep(time.Second * 3) // ensure that all peerSetNotify callbacks are executed
+		time.Sleep(time.Millisecond * 10) // ensure that all peerSetNotify callbacks are executed
 		test(5)
 	}
 }

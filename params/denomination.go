@@ -19,8 +19,7 @@ package params
 // These are the multipliers for core denominations.
 // Example: To get the ore value of an amount in 'nucle', use
 //
-//    new(big.Int).Mul(value, big.NewInt(params.Nucle))
-//
+//	new(big.Int).Mul(value, big.NewInt(params.Nucle))
 const (
 	Ore         = 1
 	Wav         = 1e3

@@ -21,11 +21,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -95,6 +96,7 @@ var filterFlags = map[string]nodeFilterC{
 	"-min-age":     {1, minAgeFilter},
 	"-xcb-network": {1, xcbFilter},
 	"-les-server":  {0, lesFilter},
+	"-snap":        {0, snapFilter},
 }
 
 func parseFilters(args []string) ([]nodeFilter, error) {
@@ -104,15 +106,15 @@ func parseFilters(args []string) ([]nodeFilter, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid filter %q", args[0])
 		}
-		if len(args) < fc.narg {
-			return nil, fmt.Errorf("filter %q wants %d arguments, have %d", args[0], fc.narg, len(args))
+		if len(args)-1 < fc.narg {
+			return nil, fmt.Errorf("filter %q wants %d arguments, have %d", args[0], fc.narg, len(args)-1)
 		}
-		filter, err := fc.fn(args[1:])
+		filter, err := fc.fn(args[1 : 1+fc.narg])
 		if err != nil {
 			return nil, fmt.Errorf("%s: %v", args[0], err)
 		}
 		filters = append(filters, filter)
-		args = args[fc.narg+1:]
+		args = args[1+fc.narg:]
 	}
 	return filters, nil
 }
@@ -184,6 +186,16 @@ func lesFilter(args []string) (nodeFilter, error) {
 			_ []rlp.RawValue `rlp:"tail"`
 		}
 		return n.N.Load(enr.WithEntry("les", &les)) == nil
+	}
+	return f, nil
+}
+
+func snapFilter(args []string) (nodeFilter, error) {
+	f := func(n nodeJSON) bool {
+		var snap struct {
+			_ []rlp.RawValue `rlp:"tail"`
+		}
+		return n.N.Load(enr.WithEntry("snap", &snap)) == nil
 	}
 	return f, nil
 }

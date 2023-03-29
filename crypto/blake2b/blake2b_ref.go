@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !amd64 || appengine || gccgo
 // +build !amd64 appengine gccgo
 
 package blake2b

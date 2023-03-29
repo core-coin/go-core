@@ -17,10 +17,11 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/nodestate"
 	"sync"
+
+	"github.com/core-coin/go-core/v2/les/utils"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nodestate"
 )
 
 // WrsIterator returns nodes from the specified selectable set with a weighted random

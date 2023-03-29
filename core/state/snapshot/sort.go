@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ package snapshot
 import (
 	"bytes"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 // hashes is a helper to implement sort.Interface.

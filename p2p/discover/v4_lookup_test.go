@@ -18,16 +18,14 @@ package discover
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/p2p/discover/v4wire"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"sort"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/discover/v4wire"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 func TestUDPv4_Lookup(t *testing.T) {
@@ -35,13 +33,13 @@ func TestUDPv4_Lookup(t *testing.T) {
 	test := newUDPTest(t)
 
 	// Lookup on empty table returns no nodes.
-	targetKey, _ := decodePubkey(lookupDevin.target)
+	targetKey, _ := decodePubkey(lookupTestnet.target[:])
 	if results := test.udp.LookupPubkey(targetKey); len(results) > 0 {
 		t.Fatalf("lookup on empty table returned %d results: %#v", len(results), results)
 	}
 
 	// Seed table with initial node.
-	fillTable(test.table, []*node{wrapNode(lookupDevin.node(256, 0))})
+	fillTable(test.table, []*node{wrapNode(lookupTestnet.node(256, 0))})
 
 	// Start the lookup.
 	resultC := make(chan []*enode.Node, 1)
@@ -51,18 +49,18 @@ func TestUDPv4_Lookup(t *testing.T) {
 	}()
 
 	// Answer lookup packets.
-	serveDevin(test, lookupDevin)
+	serveTestnet(test, lookupTestnet)
 
 	// Verify result nodes.
 	results := <-resultC
 	t.Logf("results:")
 	for _, e := range results {
-		t.Logf("  ld=%d, %x, %v", enode.LogDist(lookupDevin.target.id(), e.ID()), e.ID().Bytes(), common.Bytes2Hex(e.Pubkey()[:]))
+		t.Logf("  ld=%d, %x", enode.LogDist(lookupTestnet.target.id(), e.ID()), e.ID().Bytes())
 	}
 	if len(results) != bucketSize {
 		t.Errorf("wrong number of results: got %d, want %d", len(results), bucketSize)
 	}
-	checkLookupResults(t, lookupDevin, results)
+	checkLookupResults(t, lookupTestnet, results)
 }
 
 func TestUDPv4_LookupIterator(t *testing.T) {
@@ -71,28 +69,28 @@ func TestUDPv4_LookupIterator(t *testing.T) {
 	defer test.close()
 
 	// Seed table with initial nodes.
-	bootnodes := make([]*node, len(lookupDevin.dists[256]))
-	for i := range lookupDevin.dists[256] {
-		bootnodes[i] = wrapNode(lookupDevin.node(256, i))
+	bootnodes := make([]*node, len(lookupTestnet.dists[256]))
+	for i := range lookupTestnet.dists[256] {
+		bootnodes[i] = wrapNode(lookupTestnet.node(256, i))
 	}
 	fillTable(test.table, bootnodes)
-	go serveDevin(test, lookupDevin)
+	go serveTestnet(test, lookupTestnet)
 
 	// Create the iterator and collect the nodes it yields.
 	iter := test.udp.RandomNodes()
 	seen := make(map[enode.ID]*enode.Node)
-	for limit := lookupDevin.len(); iter.Next() && len(seen) < limit; {
+	for limit := lookupTestnet.len(); iter.Next() && len(seen) < limit; {
 		seen[iter.Node().ID()] = iter.Node()
 	}
 	iter.Close()
 
-	// Check that all nodes in lookupDevin were seen by the iterator.
+	// Check that all nodes in lookupTestnet were seen by the iterator.
 	results := make([]*enode.Node, 0, len(seen))
 	for _, n := range seen {
 		results = append(results, n)
 	}
 	sortByID(results)
-	want := lookupDevin.nodes()
+	want := lookupTestnet.nodes()
 	if err := checkNodesEqual(results, want); err != nil {
 		t.Fatal(err)
 	}
@@ -106,12 +104,12 @@ func TestUDPv4_LookupIteratorClose(t *testing.T) {
 	defer test.close()
 
 	// Seed table with initial nodes.
-	bootnodes := make([]*node, len(lookupDevin.dists[256]))
-	for i := range lookupDevin.dists[256] {
-		bootnodes[i] = wrapNode(lookupDevin.node(256, i))
+	bootnodes := make([]*node, len(lookupTestnet.dists[256]))
+	for i := range lookupTestnet.dists[256] {
+		bootnodes[i] = wrapNode(lookupTestnet.node(256, i))
 	}
 	fillTable(test.table, bootnodes)
-	go serveDevin(test, lookupDevin)
+	go serveTestnet(test, lookupTestnet)
 
 	it := test.udp.RandomNodes()
 	if ok := it.Next(); !ok || it.Node() == nil {
@@ -135,16 +133,16 @@ func TestUDPv4_LookupIteratorClose(t *testing.T) {
 	}
 }
 
-func serveDevin(test *udpTest, devin *preminedDevin) {
+func serveTestnet(test *udpTest, testnet *preminedTestnet) {
 	for done := false; !done; {
 		done = test.waitPacketOut(func(p v4wire.Packet, to *net.UDPAddr, hash []byte) {
-			n, key := devin.nodeByAddr(to)
+			n, key := testnet.nodeByAddr(to)
 			switch p.(type) {
 			case *v4wire.Ping:
 				test.packetInFrom(nil, key, to, &v4wire.Pong{Expiration: futureExp, ReplyTok: hash})
 			case *v4wire.Findnode:
-				dist := enode.LogDist(n.ID(), devin.target.id())
-				nodes := devin.nodesAtDistance(dist - 1)
+				dist := enode.LogDist(n.ID(), testnet.target.id())
+				nodes := testnet.nodesAtDistance(dist - 1)
 				test.packetInFrom(nil, key, to, &v4wire.Neighbors{Expiration: futureExp, Nodes: nodes})
 			}
 		})
@@ -153,7 +151,7 @@ func serveDevin(test *udpTest, devin *preminedDevin) {
 
 // checkLookupResults verifies that the results of a lookup are the closest nodes to
 // the testnet's target.
-func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) {
+func checkLookupResults(t *testing.T, tn *preminedTestnet, results []*enode.Node) {
 	t.Helper()
 	t.Logf("results:")
 	for _, e := range results {
@@ -172,71 +170,69 @@ func checkLookupResults(t *testing.T, tn *preminedDevin, results []*enode.Node) 
 }
 
 // This is the test network for the Lookup test.
-// The nodes were obtained by running lookupDevin.mine with a random NodeID as target.
-var lookupDevin = &preminedDevin{
-	target: hexEncPubkey("8e3646849ec3232a7a73aef657f05ae9437c0b7960919e9d2c41760ba1fb8fa81970339ef20ffded54da1c7c1a48698d56ea6cda5fa4535f60"),
-	dists: [257][]*eddsa.PrivateKey{
-		251: {
-			hexEncPrivkey("4ec11de85d5eae2185956f08e214dad13b77643cc68fdc78cd91d6f7a641ab8f4e3ec37d0a58aaafb77fd37723e021b2303b45f42f848b17e8"),
-			hexEncPrivkey("8572729f472bd32f4e4cfdca7d8d9c1d1869cd24c4bfee25f3d80033aba409bfddc37a2a7d41b5df7af7acbf8efe64bbbbd320f268faf929f6"),
-			hexEncPrivkey("02476279c874e251a436da90658741aab2abc70c13dce1fb1f760fc15a33134c6632dec8b3efaf7d104fbed699cd0a6c0b4c18a6cbb509148a"),
-			hexEncPrivkey("7be4205cc11c06f7cd5229b97c5cfd1520857b5324ea94d081af3d0f5d45cb2a9b18af6c0347f4b93df8d0f3fa2abc100bd324dd3649fb305f"),
-			hexEncPrivkey("29018630edb797f47a0bd266e2b7d20acb87563ee299e0a9fc93ef9d74823655c2bb06495901e584cb97e6b5c0c5640f1525ff063e2f6422e6"),
-			hexEncPrivkey("c58a2e28d4f6b636073ba2f7743e6b339580d673a3bd7912e2d3fbcbef916bc87f8a7135f9385035c169b1b5254d6f46f9fec5a578e0be0616"),
-			hexEncPrivkey("4e0fa28ffcc38dde53d62cae67296a409dbac36abc5b77242a1e36f9569cf5073fc4dbb8cbf656b2219e173071bc46eb52c3788b92635430ab"),
-		},
+// The nodes were obtained by running lookupTestnet.mine with a random NodeID as target.
+var lookupTestnet = &preminedTestnet{
+	target: hexEncPubkey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991"),
+	dists: [257][]*crypto.PrivateKey{
 		252: {
-			hexEncPrivkey("de76ffa137c42a6907d7ec018c7c396edbbc7e7381d0694bc0735ecb4c2a678d9ba1557d7b7cd55fb5e15caa36effba76cbb092e78bfae2aac"),
-			hexEncPrivkey("a5c81bd0cb63b0e7c8115661736fda9bfd00a1dbedbc992d7e29672420410f3a68f6bfd9e3198411d1646984a2c71a2664010bf98d486f0429"),
-			hexEncPrivkey("8f262dcbadd8e8473874491ebf27603f76e899a58934701f656ab98de1e704a84e31dbf72168026456d85a58aec626e593946d23b750723c5f"),
-			hexEncPrivkey("6d2fbdfaf77ce9faf47349e8c67f786036a9cb30ca44853567c474d35d6a12a28fdcb909e2f08793e40060ce84524496913b43c7bfcb0502bf"),
-			hexEncPrivkey("823a8b9e05d8ae96d270e1a45d9f65ec5e339ae34bb4d6d4a72fd65878a79a71575b443288a967e4c05edde1d12bd68794961f74129b1b359e"),
+			hexEncPrivkey("bebf794fd362a6792e3d7067f3de2617a1d5e88476665c446ec8e935411c2af0a118f9daa577d29ca9354d40929d074368347d13bba4260011"),
+			hexEncPrivkey("d66e4f8a6710394d176f7d8c5c7d2d670f46604f08dd087c7c3209826f7632f2150555c66263c5a10468696b754d3197a12f45be589bce8f47"),
+			hexEncPrivkey("fd3a176f84fea182cd8f26a0266320a078dfb4ed301bf934968cfedbd381046b01c985c11c406da95fbdbd6935cff506c44dc9c946ee994922"),
+			hexEncPrivkey("6c6f07be1b0a5f5c9f7ccc0baafa2a7bec1613edd65ca626e1ca9e3c083bf5be9a4250385cae574b48bd639328751ee4edb63bb8f34c6c4260"),
+			hexEncPrivkey("51e312adda9f0e79b10230ebe2291f883516cf58ae1484fd5114622aaf55df51da4e4a0436679a99175ee9bbe9a10d74bcc181faaa97aa663f"),
+			hexEncPrivkey("827cc2fad638bff047eac8fe72a8014772ddb1afbf7ead026c9bba79ae37fcf435d299885656bf8a7188c9237f0760cb20480b4274945f8c38"),
+			hexEncPrivkey("a6b70ebf683daf2a45d35b8f11b3ff4b862a6ddbcb0abd8e84a143223c30fc8f189a29e89c1879797773f36a27f80b1d1dde1789c9228af67c"),
+			hexEncPrivkey("27cf27280654c003d01cd9bef5ce6229076b47b3d8cdc8961fc51aa01e81930c2c3c874f3f41b4e2075f09227ef5ea885bf74d6a23b18b485d"),
 		},
 		253: {
-			hexEncPrivkey("e8ddff19e703d8fc127f84804368f3206d07cbeb9b52329e12facafc57b33c45806513d1200976749955d460d4ffcaf1e89932f54fd08929a9"),
-			hexEncPrivkey("dc7f83393ee14d76fc172916a97b2fae99c1e519254e22e5496b3fc1e141d294655f659af388aa39185bfc5edbbe477d2fca276b742d400ac6"),
-			hexEncPrivkey("86554af46fb8bef12c7c2b692de76d40faf3763c777d73c2a9e8d75fc45762e4486df4367223d5b21dd8a16f6e82eb93dc2cba22ab984c3163"),
-			hexEncPrivkey("3d3c1ecc8d3d24dfe57e87667752304a98e54aa9ae930bb8fcc54a72db74779633233fca7cbf3accf660ee9797252de3744ea10e713d8216e9"),
-			hexEncPrivkey("838a6a651b88046811642af151a11c92bf7bcea94f3501b2dc640464a0826594e00cb263d048d336f486b7377ac6a1cc316596412a35922d4b"),
-			hexEncPrivkey("db25870ff65a850f906b651ef5269134173a83780c6208efd32da1163545472fba7b1ca36941d14a7bf35ad513d54483ef1cd90eda70c631f3"),
-			hexEncPrivkey("efb928b925f75f788d8a7608673cff2491a545a229f8dd3317cef12dd1e01a1513b4f32548ef2857709a0dfaf1e7608e5d2405bd459b4d2c3f"),
-			hexEncPrivkey("cd68374c9e3563e783a64d1c4e8e10374ee683d02db3b8abda8d95344e2309defb2b6b8d6beea7534c662a5b015f62ef52b84f2a79024a3cc4"),
-			hexEncPrivkey("62b9528842ef9c6718174d08fe2885c5986be762df7f9b9b79a6197541af9d254bff702993f0d8838fb73fef9f65d8d4973696eccb25d21020"),
+			hexEncPrivkey("4081b41fcdcd6b37516600587e988f4163fdc62b3be481fb59484be0f64d7f2b6c61ac0c1a3a08276d1aeff4d730fca53f880865868b44070d"),
+			hexEncPrivkey("a9ffa5a151b0c2c3322a87a996ca53aee1913585b6f8da1536a8159c6ff8181d6151a0b3a94bd91c98d2bcc6e2e955495696be3c0ac677bd63"),
+			hexEncPrivkey("4e17d8213d936d55ecf74dac615cdb1c8c027b8ed6c17d1be8d218f9e6a537c7198a80db4d5cf1bbdedb2db390859d7506a9285b5f027ae87c"),
+			hexEncPrivkey("13a04805c5520d94a2ba0d1ef1a569d07dcc4c755581facb78b9bb978e1cd1bdc1063c0b21ac60cab6468a4cede008fe68db06397daafd4709"),
+			hexEncPrivkey("9aa7545a4a02d674a75e7bd28cd05c40fb741b6afe8a3f413ba9e0fcf45244baa9e86ef66e49056a2bdbda78cc833a105f5d37c77b79072426"),
+			hexEncPrivkey("1fe288abdde49133b1b326248364cce118e5c65315497232f2dde6fe7e699d362b31128667de573038285eb9db1af8132fa0805a08083f5d0a"),
+			hexEncPrivkey("8644b2e1bc1156ddd45cc1baba9277177ea395f12255280e1ca17e8023704a1aed46e65c166e190f608ba36bb8a4e0b98536d72b0f075af902"),
+			hexEncPrivkey("56ebbea0e8e6359ec7346c8b4788305be98a52d3f1a51718a426616df4d9706b579db36287d1a5c7dba9d06aee91f0dd46f401afb7760bf15e"),
 		},
 		254: {
-			hexEncPrivkey("b3e39098d5b41d7d9d306068213e7312540335ef1cfd3bbaab5457790c093739aa488185129892f315a5b998700f5c87b3b43fcee00c111881"),
-			hexEncPrivkey("01f201e25338f6527680b108383719167522e2f47c327e024fd4fc07d297160540ab6f390729dc344ddb439fb089d4a144a9abc2c047fb128a"),
-			hexEncPrivkey("c9ac39684fa2a736a3a2d3dcecf381e49d051fe1af2491324790474d0968d7e8d17d85cc7ddb99443e67b8bca53447851c047340407d2705c6"),
-			hexEncPrivkey("703d57c414280bd8a37c9b1006bbc9688029d381d2f7923670af9b6b5b75d5cffbb41fc48e9d4dc1b2dacfa236d90de006e1cb23cbbd710d7c"),
-			hexEncPrivkey("d57bc206235847a6054e7094a6bdce137fdd8c8d991a312ddec7ebbb10ca9378dfaca0f2cb44e05143d868829add5c44c09d4ab6d224563e9e"),
-			hexEncPrivkey("c89f9b6bbd5243ca9d42619b72fc0b65b3f1f913af1f23d71f3efab4e56ec69019a3a71bd8ebf0f68316c2e88fb826208bd432186967ba3dd3"),
-			hexEncPrivkey("45252d43d8ac130d31abf0c3b7f461b72d21e8749f811533ca9bfac2cde74e914ee480e9e293913df6a8cf13e99c1eabafbd92cca9fffb0041"),
-			hexEncPrivkey("1a13fc973e88ef8cfebb7504e8e9ecc025ad39c3be9e93b6e6997a426aababa32c1bba38e1c51231a12917e6b04b4826117ffddd6ffc2500bc"),
-			hexEncPrivkey("4c58b93a9273b11b0ea9d2918c0d5c43b34ea26e35492816d13b981a4a6e6e57588b5449dc00487b34eb2687cf6715933ad6704b3821093886"),
-			hexEncPrivkey("d1f02c0d56ce58bb7b086a1da55cabb14ca29368d46c84d91a047dd8e16b97ea37ee8937e139d2fcfbfb6fef08f2a2f824e3aa700e820b214b"),
+			hexEncPrivkey("1f41987fb42a7f2bae3ce3f8e307978d284bb97187055e7188399b0a8ae11f94b77a5996b0f0cdcfb23e2cb73ea3304e0b42d659fb5c0e467e"),
+			hexEncPrivkey("3db577f0081c659d29a50a9dcbb0fbeafeb7c6802f6c2133dd46b2509e7815609586d12150290d32e9c0d0d0281f1f3a82187dca72826e510a"),
+			hexEncPrivkey("99a1e743ecec28c7f6113260d9c7b1caba3f7af1cbef356c022b407d4bda91b37c83fdc27ba3b0754355dc868dcb6d764346830e5250737f7e"),
+			hexEncPrivkey("54e2df17fc6f6f587e205a694424b773fac19423ea80d7d8c89a0dbb3e5a007fea913e93cc6cd348e2e301aaa3ea32b55b9bd0e95d44065669"),
+			hexEncPrivkey("e95b80812a230beb081880619c1b87e3d066b57594308edc33b26cb70a433f6195e236808ddb7999af61c401d912557a63495868e60397717e"),
+			hexEncPrivkey("c28a0283131c5e86f67089ce609f67981105a149425670898019c0cb62af39bdf7a29a1f64dace8858b304c4560e612718d50d1d8ed523b21a"),
+			hexEncPrivkey("0428d8bfbfa899c9ac4a200cadc557965dbf339c632582ef32a77621d8313316cf377203bc61793f2ce557ff3c23db77b80d44b26774807b0b"),
+			hexEncPrivkey("4f12886917556baa4d946a4957a64860c9a7411a69fd092c4a7f2e5f24edd5e94f2775565506dd6c6f9fc10be41980d0e8b78380ac7d086120"),
 		},
 		255: {
-			hexEncPrivkey("6a8bd432989c7b9da111ba0ee260884b196b802a3afccccf7faaeb76974d830e9095f3b8f9f30ed961b23be06cd5013ce7a60ecc1831c9105a"),
-			hexEncPrivkey("8dcde5e7e89f70a14e512f0f8044689739d983de63b26b887a454c227db43202a17afb37cb4d0176470e319ab0ad0d74e38ba10335e8c0184a"),
-			hexEncPrivkey("5355491fedbb2faee68a855a4b562ad19e187e84df8ec52a827c71c7f8cf30aee16a9511c339d1f330c397caa184db5d7d80ab7b29e0313cbc"),
-			hexEncPrivkey("e7ccb1c830a74568e02512f9e2fdc8c09bb93ab4302781c040f1b4b0ac3b4bb0ab73c898a6ba30bec3d936f48493fc6a4fc2c6a6b7c04734ab"),
+			hexEncPrivkey("2fc8bd43bfd3135ad641a9cd210051e99e02cefd36035b7aa1b5719ff0a2d08dccf3b3eebfc9da9637f6cf6d9adb1abff30e47137f249f6527"),
+			hexEncPrivkey("24c32a500364ebc9d788d2f835dcc3eb5a366618252211a63ac4b34c79f37c575d9f4af0c0be39b1d6da2f129b4be3fba2f2bea40a1b718046"),
+			hexEncPrivkey("8a49050a9a2bbf2770bb81dc8d24d441c872a2b3d705c36ec9e790bd9ba901e466c0fc928a8aeb5c6a5855413a4d4353c23111a599de5daf16"),
+			hexEncPrivkey("eec97595492c8dd546d547ec5e89f88995f88de7502c3e8bab9f12c69beeabe4a7118d71bede4d0585ae626dabad34a0a8b3ef250cf952d311"),
+			hexEncPrivkey("5dfab09f5711258141f0911162e9b6e45058444dbf14fb30b3b7cf8008060ff9af4c8a204a2b1775328db0a6893ff22691da8875b5ca600b01"),
+			hexEncPrivkey("c0c59cd75ef165fe9efeb18d1174a501d20be2807dad3f78b154cc6da674c3ccb0f7eb86e2478eefb1c47de93edc39ad714acc58a6bfad8272"),
+			hexEncPrivkey("e8c0bbbff285d0c52174a7d3369b322bc32fc3c9c4f1f4076dd4ff7f8cbab3578654fb2cad1b4b73df7e274be32ceff8e364e6c55542bc2550"),
+			hexEncPrivkey("dc1415311d36f9d679d9420e47573a60b32378743f95a103f9601bc2009eaa937384cd759338fa69875043c1b98d4c0cedc7de63872e3c4803"),
 		},
 		256: {
-			hexEncPrivkey("f01db2e896243ebeae26224f1e7cf431f9b7ed42cef4891786a56bce00913058402a957a55170677d6bacdfd3ed9d477b7a475d1f01ae70a36"),
-			hexEncPrivkey("2e0b546595b30da4686cb0de2a297f784790cf9e464e5148ef5fb17073daab62fc49a0db9fb85ceaa5b57694e7595fd4b1e871c49f21f53fb2"),
-			hexEncPrivkey("3182b70f6a9005a84d20ea90b3c4c4e349dd1af41cbdd616e8c6d5bf19bf5b913d4882ca1afac2a1ff5e3bf243d95603f26a8322f5930e35a6"),
-			hexEncPrivkey("f77933ae3d48cb6dff8d102db4b96258cba5d2695f9f9f23384fa08f666a50558ed58ec402742d39da5507b9700a0a12758bda6530290a2e1d"),
-			hexEncPrivkey("5a60fa5213ae61a87286d64483fffc850691437014e478841f17538d8cc612a4d1664e3d1e8ef3bde5e75b7edb1fc137370f2630f7211734cb"),
+			hexEncPrivkey("e8be3ec0aeaead80a4083359c8a701b6763a057c1d404e23c9fe126a2e1a82c91164b2d1c4212109e0d3e282f07ffbc55f0681006ac68dfd23"),
+			hexEncPrivkey("b8c107152f99567ef59a79172812b98dbd18f4f0ea2742461dcabf5a6b68e2248f72186510edb72e456456ed7d581287ddcb49cec944f19e16"),
+			hexEncPrivkey("a6755841a42a0335e548ef0669f660aae85795883671f6cc6aedbda7b99e13c0da91a73d04aedf735870a016eafac8d47c32c6fdc20db0f12c"),
+			hexEncPrivkey("738dafc9e041a91195a06bbc6605f6feb7d885c0e1637d3bc84144ea5c03e2a0397fe3b7b7d1487751b4e4f861bfed8cbee1100c2dc4ee5b2f"),
+			hexEncPrivkey("4835941961ecbe18e3409cd8321ddb4c8af298311ad4264e48d8a792e1bc3732569544fa190893fcff5a3706a18334f64e9e15474f92f0dc30"),
+			hexEncPrivkey("556e3483f534b5f142522bcbf7678a3897be6b1d40127938c043e6eb692580cc9152e5f6cae0ab1c5a9f762beccb557165e164df62ced6e94d"),
+			hexEncPrivkey("477f69b000be223c5405a042345b5e95565dd4363d854392a4e27f394d2ba903ba5ef0e3b758640be5144f137929d204d953f798b85a38d955"),
+			hexEncPrivkey("76bcdf6cba61484498cc797fb051c867dc32fb12f80fbc1cacc439d810ce0bdd84372a72675e36202ba9eca3dd8e4ee7d7c66d51392b63eb1b"),
 		},
 	},
 }
 
-type preminedDevin struct {
+type preminedTestnet struct {
 	target encPubkey
-	dists  [hashBits + 1][]*eddsa.PrivateKey
+	dists  [hashBits + 1][]*crypto.PrivateKey
 }
 
-func (tn *preminedDevin) len() int {
+func (tn *preminedTestnet) len() int {
 	n := 0
 	for _, keys := range tn.dists {
 		n += len(keys)
@@ -244,7 +240,7 @@ func (tn *preminedDevin) len() int {
 	return n
 }
 
-func (tn *preminedDevin) nodes() []*enode.Node {
+func (tn *preminedTestnet) nodes() []*enode.Node {
 	result := make([]*enode.Node, 0, tn.len())
 	for dist, keys := range tn.dists {
 		for index := range keys {
@@ -255,24 +251,30 @@ func (tn *preminedDevin) nodes() []*enode.Node {
 	return result
 }
 
-func (tn *preminedDevin) node(dist, index int) *enode.Node {
+func (tn *preminedTestnet) node(dist, index int) *enode.Node {
 	key := tn.dists[dist][index]
 	rec := new(enr.Record)
 	rec.Set(enr.IP{127, byte(dist >> 8), byte(dist), byte(index)})
 	rec.Set(enr.UDP(5000))
-	enode.SignV4(rec, key)
-	n, _ := enode.New(enode.ValidSchemes, rec)
+	err := enode.SignV4(rec, key)
+	if err != nil {
+		panic(err)
+	}
+	n, err := enode.New(enode.ValidSchemes, rec)
+	if err != nil {
+		panic(err)
+	}
 	return n
 }
 
-func (tn *preminedDevin) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *eddsa.PrivateKey) {
+func (tn *preminedTestnet) nodeByAddr(addr *net.UDPAddr) (*enode.Node, *crypto.PrivateKey) {
 	dist := int(addr.IP[1])<<8 + int(addr.IP[2])
 	index := int(addr.IP[3])
 	key := tn.dists[dist][index]
 	return tn.node(dist, index), key
 }
 
-func (tn *preminedDevin) nodesAtDistance(dist int) []v4wire.Node {
+func (tn *preminedTestnet) nodesAtDistance(dist int) []v4wire.Node {
 	result := make([]v4wire.Node, len(tn.dists[dist]))
 	for i := range result {
 		result[i] = nodeToRPC(wrapNode(tn.node(dist, i)))
@@ -280,20 +282,24 @@ func (tn *preminedDevin) nodesAtDistance(dist int) []v4wire.Node {
 	return result
 }
 
-func (tn *preminedDevin) neighborsAtDistance(base *enode.Node, distance uint, elems int) []*enode.Node {
-	nodes := nodesByDistance{target: base.ID()}
-	for d := range lookupDevin.dists {
-		for i := range lookupDevin.dists[d] {
-			n := lookupDevin.node(d, i)
-			if uint(enode.LogDist(n.ID(), base.ID())) == distance {
-				nodes.push(wrapNode(n), elems)
+func (tn *preminedTestnet) neighborsAtDistances(base *enode.Node, distances []uint, elems int) []*enode.Node {
+	var result []*enode.Node
+	for d := range lookupTestnet.dists {
+		for i := range lookupTestnet.dists[d] {
+			n := lookupTestnet.node(d, i)
+			d := enode.LogDist(base.ID(), n.ID())
+			if containsUint(uint(d), distances) {
+				result = append(result, n)
+				if len(result) >= elems {
+					return result
+				}
 			}
 		}
 	}
-	return unwrapNodes(nodes.entries)
+	return result
 }
 
-func (tn *preminedDevin) closest(n int) (nodes []*enode.Node) {
+func (tn *preminedTestnet) closest(n int) (nodes []*enode.Node) {
 	for d := range tn.dists {
 		for i := range tn.dists[d] {
 			nodes = append(nodes, tn.node(d, i))
@@ -305,11 +311,11 @@ func (tn *preminedDevin) closest(n int) (nodes []*enode.Node) {
 	return nodes[:n]
 }
 
-var _ = (*preminedDevin).mine // avoid linter warning about mine being dead code.
+var _ = (*preminedTestnet).mine // avoid linter warning about mine being dead code.
 
-// mine generates a devin struct literal with nodes at
+// mine generates a testnet struct literal with nodes at
 // various distances to the network's target.
-func (tn *preminedDevin) mine() {
+func (tn *preminedTestnet) mine() {
 	// Clear existing slices first (useful when re-mining).
 	for i := range tn.dists {
 		tn.dists[i] = nil
@@ -319,24 +325,25 @@ func (tn *preminedDevin) mine() {
 	found, need := 0, 40
 	for found < need {
 		k := newkey()
-		pub := eddsa.Ed448DerivePublicKey(*k)
-		ld := enode.LogDist(targetSha, encodePubkey(&pub).id())
-		if len(tn.dists[ld]) < 8 {
-			tn.dists[ld] = append(tn.dists[ld], k)
-			found++
-			fmt.Printf("found ID with ld %d (%d/%d)\n", ld, found, need)
+		ld := enode.LogDist(targetSha, encodePubkey(k.PublicKey()).id())
+		if ld > 251 {
+			if len(tn.dists[ld]) < 8 {
+				tn.dists[ld] = append(tn.dists[ld], k)
+				found++
+				fmt.Printf("found ID with ld %d (%d/%d)\n", ld, found, need)
+			}
 		}
 	}
-	fmt.Printf("&preminedDevin{\n")
+	fmt.Printf("&preminedTestnet{\n")
 	fmt.Printf("	target: hexEncPubkey(\"%x\"),\n", tn.target[:])
-	fmt.Printf("	dists: [%d][]*eddsa.PrivateKey{\n", len(tn.dists))
+	fmt.Printf("	dists: [%d][]*crypto.PrivateKey{\n", len(tn.dists))
 	for ld, ns := range tn.dists {
 		if len(ns) == 0 {
 			continue
 		}
 		fmt.Printf("		%d: {\n", ld)
 		for _, key := range ns {
-			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", crypto.FromEDDSA(key))
+			fmt.Printf("			hexEncPrivkey(\"%x\"),\n", key.PrivateKey())
 		}
 		fmt.Printf("		},\n")
 	}

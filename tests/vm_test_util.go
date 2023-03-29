@@ -22,19 +22,19 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // VMTest checks CVM execution without block or transaction context.
-// See https://github.com/core-coin/tests/wiki/VM-Tests for the test format specification.
+// See https://github.com/core/tests/wiki/VM-Tests for the test format specification.
 type VMTest struct {
 	json vmJSON
 }
@@ -79,7 +79,15 @@ type vmExecMarshaling struct {
 }
 
 func (t *VMTest) Run(vmconfig vm.Config, snapshotter bool) error {
-	statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
+	snaps, statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
+	if snapshotter {
+		preRoot := statedb.IntermediateRoot(false)
+		defer func() {
+			if _, err := snaps.Journal(preRoot); err != nil {
+				panic(err)
+			}
+		}()
+	}
 	ret, energyRemaining, err := t.exec(statedb, vmconfig)
 
 	if t.json.EnergyRemaining == nil {
@@ -130,20 +138,22 @@ func (t *VMTest) newCVM(statedb *state.StateDB, vmconfig vm.Config) *vm.CVM {
 		return core.CanTransfer(db, address, amount)
 	}
 	transfer := func(db vm.StateDB, sender, recipient common.Address, amount *big.Int) {}
-	context := vm.Context{
+	txContext := vm.TxContext{
+		Origin:      t.json.Exec.Origin,
+		EnergyPrice: t.json.Exec.EnergyPrice,
+	}
+	context := vm.BlockContext{
 		CanTransfer: canTransfer,
 		Transfer:    transfer,
 		GetHash:     vmTestBlockHash,
-		Origin:      t.json.Exec.Origin,
 		Coinbase:    t.json.Env.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(t.json.Env.Number),
 		Time:        new(big.Int).SetUint64(t.json.Env.Timestamp),
 		EnergyLimit: t.json.Env.EnergyLimit,
 		Difficulty:  t.json.Env.Difficulty,
-		EnergyPrice: t.json.Exec.EnergyPrice,
 	}
 	vmconfig.NoRecursion = true
-	return vm.NewCVM(context, statedb, params.MainnetChainConfig, vmconfig)
+	return vm.NewCVM(context, txContext, statedb, params.MainnetChainConfig, vmconfig)
 }
 
 func vmTestBlockHash(n uint64) common.Hash {

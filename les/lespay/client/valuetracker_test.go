@@ -17,15 +17,18 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
 	"math"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+
+	"github.com/core-coin/go-core/v2/les/utils"
 )
 
 const (

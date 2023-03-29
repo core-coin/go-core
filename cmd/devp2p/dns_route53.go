@@ -27,9 +27,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
 )
 
 const (

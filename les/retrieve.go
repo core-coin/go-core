@@ -24,12 +24,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/v2/light"
 )
 
 var (
 	retryQueue         = time.Millisecond * 100
-	hardRequestTimeout = time.Second * 30
+	hardRequestTimeout = time.Second * 10
 )
 
 // retrieveManager is a layer on top of requestDistributor which takes care of
@@ -153,6 +153,15 @@ func (rm *retrieveManager) sendReq(reqID uint64, req *distReq, val validatorFunc
 
 	go r.retrieveLoop()
 	return r
+}
+
+// requested reports whether the request with given reqid is sent by the retriever.
+func (rm *retrieveManager) requested(reqId uint64) bool {
+	rm.lock.RLock()
+	defer rm.lock.RUnlock()
+
+	_, ok := rm.sentReqs[reqId]
+	return ok
 }
 
 // deliver is called by the LES protocol manager to deliver reply messages to waiting requests

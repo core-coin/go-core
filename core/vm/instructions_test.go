@@ -20,13 +20,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/core-coin/uint256"
 	"io/ioutil"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/uint256"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 type TwoOperandTestcase struct {
@@ -92,12 +93,13 @@ func init() {
 func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFunc, name string) {
 
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		rstack         = newReturnStack()
 		pc             = uint64(0)
 		cvmInterpreter = env.interpreter.(*CVMInterpreter)
 	)
+
 	for i, test := range tests {
 		x := new(uint256.Int).SetBytes(common.Hex2Bytes(test.X))
 		y := new(uint256.Int).SetBytes(common.Hex2Bytes(test.Y))
@@ -131,7 +133,7 @@ func TestByteOp(t *testing.T) {
 }
 
 func TestSHL(t *testing.T) {
-	// Testcases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-145.md#shl-shift-left
+	// Testcases from https://github.com/core/CIPs/blob/master/CIPS/cip-145.md#shl-shift-left
 	tests := []TwoOperandTestcase{
 		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000002"},
 		{"0000000000000000000000000000000000000000000000000000000000000001", "ff", "8000000000000000000000000000000000000000000000000000000000000000"},
@@ -147,11 +149,52 @@ func TestSHL(t *testing.T) {
 	testTwoOperandOp(t, tests, opSHL, "shl")
 }
 
+func TestSHR(t *testing.T) {
+	// Testcases from https://github.com/core/CIPs/blob/master/CIPS/cip-145.md#shr-logical-shift-right
+	tests := []TwoOperandTestcase{
+		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "01", "4000000000000000000000000000000000000000000000000000000000000000"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "ff", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "0101", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "00", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "01", "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"0000000000000000000000000000000000000000000000000000000000000000", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
+	}
+	testTwoOperandOp(t, tests, opSHR, "shr")
+}
+
+func TestSAR(t *testing.T) {
+	// Testcases from https://github.com/core/CIPs/blob/master/CIPS/cip-145.md#sar-arithmetic-shift-right
+	tests := []TwoOperandTestcase{
+		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "01", "c000000000000000000000000000000000000000000000000000000000000000"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "ff", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "0100", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"8000000000000000000000000000000000000000000000000000000000000000", "0101", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "00", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "01", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		{"0000000000000000000000000000000000000000000000000000000000000000", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"4000000000000000000000000000000000000000000000000000000000000000", "fe", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "f8", "000000000000000000000000000000000000000000000000000000000000007f"},
+		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "fe", "0000000000000000000000000000000000000000000000000000000000000001"},
+		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "0000000000000000000000000000000000000000000000000000000000000000"},
+		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
+	}
+
+	testTwoOperandOp(t, tests, opSAR, "sar")
+}
+
 func TestAddMod(t *testing.T) {
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
-		rstack         = newReturnStack()
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 		pc             = uint64(0)
 	)
@@ -178,7 +221,7 @@ func TestAddMod(t *testing.T) {
 		stack.push(z)
 		stack.push(y)
 		stack.push(x)
-		opAddmod(&pc, cvmInterpreter, &callCtx{nil, stack, rstack, nil})
+		opAddmod(&pc, cvmInterpreter, &callCtx{nil, stack, nil, nil})
 		actual := stack.pop()
 		if actual.Cmp(expected) != 0 {
 			t.Errorf("Testcase %d, expected  %x, got %x", i, expected, actual)
@@ -186,52 +229,10 @@ func TestAddMod(t *testing.T) {
 	}
 }
 
-func TestSHR(t *testing.T) {
-	// Testcases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-145.md#shr-logical-shift-right
-	tests := []TwoOperandTestcase{
-		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "01", "4000000000000000000000000000000000000000000000000000000000000000"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "ff", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "0101", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "00", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "01", "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"0000000000000000000000000000000000000000000000000000000000000000", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
-	}
-	testTwoOperandOp(t, tests, opSHR, "shr")
-}
-
-func TestSAR(t *testing.T) {
-	// Testcases from https://github.com/core-coin/CIPs/blob/master/CIPS/cip-145.md#sar-arithmetic-shift-right
-	tests := []TwoOperandTestcase{
-		{"0000000000000000000000000000000000000000000000000000000000000001", "00", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"0000000000000000000000000000000000000000000000000000000000000001", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "01", "c000000000000000000000000000000000000000000000000000000000000000"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "ff", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "0100", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"8000000000000000000000000000000000000000000000000000000000000000", "0101", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "00", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "01", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
-		{"0000000000000000000000000000000000000000000000000000000000000000", "01", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"4000000000000000000000000000000000000000000000000000000000000000", "fe", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "f8", "000000000000000000000000000000000000000000000000000000000000007f"},
-		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "fe", "0000000000000000000000000000000000000000000000000000000000000001"},
-		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "ff", "0000000000000000000000000000000000000000000000000000000000000000"},
-		{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "0100", "0000000000000000000000000000000000000000000000000000000000000000"},
-	}
-
-	testTwoOperandOp(t, tests, opSAR, "sar")
-}
-
 // getResult is a convenience function to generate the expected values
 func getResult(args []*twoOperandParams, opFn executionFunc) []TwoOperandTestcase {
 	var (
-		env           = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env           = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack, rstack = newstack(), newReturnStack()
 		pc            = uint64(0)
 		interpreter   = env.interpreter.(*CVMInterpreter)
@@ -244,7 +245,7 @@ func getResult(args []*twoOperandParams, opFn executionFunc) []TwoOperandTestcas
 		stack.push(y)
 		opFn(&pc, interpreter, &callCtx{nil, stack, rstack, nil})
 		actual := stack.pop()
-		result[i] = TwoOperandTestcase{param.x, param.y, fmt.Sprintf("%064x", actual)}
+		result[i] = TwoOperandTestcase{param.x, param.y, fmt.Sprintf("%064x", actual.Bytes())}
 	}
 	return result
 }
@@ -281,7 +282,7 @@ func TestJsonTestcases(t *testing.T) {
 
 func opBenchmark(bench *testing.B, op executionFunc, args ...string) {
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
 	)
@@ -298,6 +299,7 @@ func opBenchmark(bench *testing.B, op executionFunc, args ...string) {
 		for _, arg := range byteArgs {
 			a := new(uint256.Int)
 			a.SetBytes(arg)
+			stack.push(a)
 		}
 		op(&pc, cvmInterpreter, &callCtx{nil, stack, rstack, nil})
 		stack.pop()
@@ -514,7 +516,7 @@ func BenchmarkOpIsZero(b *testing.B) {
 
 func TestOpMstore(t *testing.T) {
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
 		mem            = NewMemory()
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
@@ -538,7 +540,7 @@ func TestOpMstore(t *testing.T) {
 
 func BenchmarkOpMstore(bench *testing.B) {
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
 		mem            = NewMemory()
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
@@ -559,7 +561,7 @@ func BenchmarkOpMstore(bench *testing.B) {
 
 func BenchmarkOpSHA3(bench *testing.B) {
 	var (
-		env            = NewCVM(Context{}, nil, params.TestChainConfig, Config{})
+		env            = NewCVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
 		mem            = NewMemory()
 		cvmInterpreter = NewCVMInterpreter(env, env.vmConfig)
@@ -571,12 +573,12 @@ func BenchmarkOpSHA3(bench *testing.B) {
 
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		stack.pushN(*uint256.NewInt(32), *start)
+		stack.pushN(*uint256.NewInt(0).SetUint64(32), *start)
 		opSha3(&pc, cvmInterpreter, &callCtx{mem, stack, rstack, nil})
 	}
 }
 
-func TestCreate2Addreses(t *testing.T) { //TODO: TEST
+func TestCreate2Addreses(t *testing.T) {
 	type testcase struct {
 		origin   string
 		salt     string
@@ -586,46 +588,46 @@ func TestCreate2Addreses(t *testing.T) { //TODO: TEST
 
 	for i, tt := range []testcase{
 		{
-			origin:   "cb540000000000000000000000000000000000000000",
+			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb60f356303e51d6ee297c776188ef56c9e5d76b7695",
+			expected: "cb52a55032de3186cea55fdef3fdb0dbd45b18bba964",
 		},
 		{
-			origin:   "cb77deadbeef00000000000000000000000000000000",
+			origin:   "0xdeadbeef00000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb2891ba774e8bbf175c3aff2d80cdb7b36487d25ff6",
+			expected: "cb6480d15ddb300c9631bb03d106e8638a823701ecac",
 		},
 		{
-			origin:   "cb77deadbeef00000000000000000000000000000000",
+			origin:   "0xdeadbeef00000000000000000000000000000000",
 			salt:     "0xfeed000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "cb95b7cf3b91f690cd4d193ccf19730aad0784d446d4",
+			expected: "cb875362c88b4f021806a12e94623c7a83e8c01473af",
 		},
 		{
-			origin:   "cb540000000000000000000000000000000000000000",
+			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0xdeadbeef",
-			expected: "cb708f43364879754b833313fc56f01657f1e3d670f7",
+			expected: "cb40fce72bafe6e89f533630b9a876c1d56bfc0d7707",
 		},
 		{
-			origin:   "cb3300000000000000000000000000000000deadbeef",
+			origin:   "0x00000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeef",
-			expected: "cb18953fbfbbe52bbfe20f7fe3bef330b23034b4bd94",
+			expected: "cb43d3c6aee116a1f8f82a0a4f2ea2a02059cafe6789",
 		},
 		{
-			origin:   "cb3300000000000000000000000000000000deadbeef",
+			origin:   "0x00000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-			expected: "cb54ea7dc5a75453359296efc2773e922abc35938d69",
+			expected: "cb516997e86459f44af92ab7e927c54fe47fadcbbd6c",
 		},
 		{
-			origin:   "cb540000000000000000000000000000000000000000",
+			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x",
-			expected: "cb8880b45148bcd416fa91d843d169b55c1755356cdb",
+			expected: "cb3680e5927ec9af1efc619ee6d4198e97c91ab72a96",
 		},
 	} {
 
@@ -647,6 +649,5 @@ func TestCreate2Addreses(t *testing.T) { //TODO: TEST
 		if !bytes.Equal(expected.Bytes(), address.Bytes()) {
 			t.Errorf("test %d: expected %s, got %s", i, expected.String(), address.String())
 		}
-
 	}
 }

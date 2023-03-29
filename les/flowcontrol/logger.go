@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
+	"github.com/core-coin/go-core/v2/common/mclock"
 )
 
 // logger collects events in string format and discards events older than the

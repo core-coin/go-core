@@ -3,16 +3,15 @@
 package xcb
 
 import (
-	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcb/energyprice"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
+	"github.com/core-coin/go-core/v2/xcb/energyprice"
 )
 
 // MarshalTOML marshals as TOML.
@@ -21,8 +20,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		Genesis                  *core.Genesis `toml:",omitempty"`
 		NetworkId                uint64
 		SyncMode                 downloader.SyncMode
-		DiscoveryURLs            []string
 		UseDNSDiscovery          bool
+		DiscoveryURLs            []string
 		NoPruning                bool
 		NoPrefetch               bool
 		TxLookupLimit            uint64                 `toml:",omitempty"`
@@ -45,6 +44,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		TrieDirtyCache           int
 		TrieTimeout              time.Duration
 		SnapshotCache            int
+		Preimages                bool
 		Miner                    miner.Config
 		Cryptore                 cryptore.Config
 		TxPool                   core.TxPoolConfig
@@ -54,7 +54,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		EWASMInterpreter         string
 		CVMInterpreter           string
 		TrustedPeersBroadcasting bool
-		RPCEnergyCap             *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap             uint64                         `toml:",omitempty"`
 		RPCTxFeeCap              float64                        `toml:",omitempty"`
 		Checkpoint               *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle         *params.CheckpointOracleConfig `toml:",omitempty"`
@@ -63,8 +63,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.Genesis = c.Genesis
 	enc.NetworkId = c.NetworkId
 	enc.SyncMode = c.SyncMode
-	enc.DiscoveryURLs = c.DiscoveryURLs
 	enc.UseDNSDiscovery = c.UseDNSDiscovery
+	enc.DiscoveryURLs = c.DiscoveryURLs
 	enc.NoPruning = c.NoPruning
 	enc.NoPrefetch = c.NoPrefetch
 	enc.TxLookupLimit = c.TxLookupLimit
@@ -87,6 +87,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TrieDirtyCache = c.TrieDirtyCache
 	enc.TrieTimeout = c.TrieTimeout
 	enc.SnapshotCache = c.SnapshotCache
+	enc.Preimages = c.Preimages
 	enc.Miner = c.Miner
 	enc.Cryptore = c.Cryptore
 	enc.TxPool = c.TxPool
@@ -109,8 +110,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		Genesis                  *core.Genesis `toml:",omitempty"`
 		NetworkId                *uint64
 		SyncMode                 *downloader.SyncMode
-		DiscoveryURLs            []string
 		UseDNSDiscovery          *bool
+		DiscoveryURLs            []string
 		NoPruning                *bool
 		NoPrefetch               *bool
 		TxLookupLimit            *uint64                `toml:",omitempty"`
@@ -133,6 +134,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		TrieDirtyCache           *int
 		TrieTimeout              *time.Duration
 		SnapshotCache            *int
+		Preimages                *bool
 		Miner                    *miner.Config
 		Cryptore                 *cryptore.Config
 		TxPool                   *core.TxPoolConfig
@@ -142,7 +144,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		EWASMInterpreter         *string
 		CVMInterpreter           *string
 		TrustedPeersBroadcasting *bool
-		RPCEnergyCap             *big.Int                       `toml:",omitempty"`
+		RPCEnergyCap             *uint64                        `toml:",omitempty"`
 		RPCTxFeeCap              *float64                       `toml:",omitempty"`
 		Checkpoint               *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle         *params.CheckpointOracleConfig `toml:",omitempty"`
@@ -160,11 +162,11 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.SyncMode != nil {
 		c.SyncMode = *dec.SyncMode
 	}
-	if dec.DiscoveryURLs != nil {
-		c.DiscoveryURLs = dec.DiscoveryURLs
-	}
 	if dec.UseDNSDiscovery != nil {
 		c.UseDNSDiscovery = *dec.UseDNSDiscovery
+	}
+	if dec.DiscoveryURLs != nil {
+		c.DiscoveryURLs = dec.DiscoveryURLs
 	}
 	if dec.NoPruning != nil {
 		c.NoPruning = *dec.NoPruning
@@ -232,6 +234,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.SnapshotCache != nil {
 		c.SnapshotCache = *dec.SnapshotCache
 	}
+	if dec.Preimages != nil {
+		c.Preimages = *dec.Preimages
+	}
 	if dec.Miner != nil {
 		c.Miner = *dec.Miner
 	}
@@ -260,7 +265,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		c.TrustedPeersBroadcasting = *dec.TrustedPeersBroadcasting
 	}
 	if dec.RPCEnergyCap != nil {
-		c.RPCEnergyCap = dec.RPCEnergyCap
+		c.RPCEnergyCap = *dec.RPCEnergyCap
 	}
 	if dec.RPCTxFeeCap != nil {
 		c.RPCTxFeeCap = *dec.RPCTxFeeCap

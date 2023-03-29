@@ -1,4 +1,4 @@
-// Copyright 2018 The go-core Authors
+// Copyright 2015 by The go-core Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build none
 // +build none
 
 /*

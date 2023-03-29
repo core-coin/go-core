@@ -20,12 +20,13 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction
@@ -53,25 +54,29 @@ func ReadTxLookupEntry(db xcbdb.Reader, hash common.Hash) *uint64 {
 	return &entry.BlockIndex
 }
 
-// WriteTxLookupEntries stores a positional metadata for every transaction from
-// a block, enabling hash based transaction and receipt lookups.
-func WriteTxLookupEntries(db xcbdb.KeyValueWriter, block *types.Block) {
-	number := block.Number().Bytes()
-	for _, tx := range block.Transactions() {
-		if err := db.Put(txLookupKey(tx.Hash()), number); err != nil {
-			log.Crit("Failed to store transaction lookup entry", "err", err)
-		}
+// writeTxLookupEntry stores a positional metadata for a transaction,
+// enabling hash based transaction and receipt lookups.
+func writeTxLookupEntry(db xcbdb.KeyValueWriter, hash common.Hash, numberBytes []byte) {
+	if err := db.Put(txLookupKey(hash), numberBytes); err != nil {
+		log.Crit("Failed to store transaction lookup entry", "err", err)
 	}
 }
 
-// WriteTxLookupEntriesByHash is identical to WriteTxLookupEntries, but does not
-// require a full types.Block as input.
-func WriteTxLookupEntriesByHash(db xcbdb.KeyValueWriter, number uint64, hashes []common.Hash) {
+// WriteTxLookupEntries is identical to WriteTxLookupEntry, but it works on
+// a list of hashes
+func WriteTxLookupEntries(db xcbdb.KeyValueWriter, number uint64, hashes []common.Hash) {
 	numberBytes := new(big.Int).SetUint64(number).Bytes()
 	for _, hash := range hashes {
-		if err := db.Put(txLookupKey(hash), numberBytes); err != nil {
-			log.Crit("Failed to store transaction lookup entry", "err", err)
-		}
+		writeTxLookupEntry(db, hash, numberBytes)
+	}
+}
+
+// WriteTxLookupEntriesByBlock stores a positional metadata for every transaction from
+// a block, enabling hash based transaction and receipt lookups.
+func WriteTxLookupEntriesByBlock(db xcbdb.KeyValueWriter, block *types.Block) {
+	numberBytes := block.Number().Bytes()
+	for _, tx := range block.Transactions() {
+		writeTxLookupEntry(db, tx.Hash(), numberBytes)
 	}
 }
 
@@ -83,11 +88,9 @@ func DeleteTxLookupEntry(db xcbdb.KeyValueWriter, hash common.Hash) {
 }
 
 // DeleteTxLookupEntries removes all transaction lookups for a given block.
-func DeleteTxLookupEntriesByHash(db xcbdb.KeyValueWriter, hashes []common.Hash) {
+func DeleteTxLookupEntries(db xcbdb.KeyValueWriter, hashes []common.Hash) {
 	for _, hash := range hashes {
-		if err := db.Delete(txLookupKey(hash)); err != nil {
-			log.Crit("Failed to delete transaction lookup entry", "err", err)
-		}
+		DeleteTxLookupEntry(db, hash)
 	}
 }
 

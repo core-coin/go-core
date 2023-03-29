@@ -19,10 +19,10 @@ package rpc_test
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // In this example, our client wishes to track the latest 'block number'
@@ -31,16 +31,16 @@ import (
 // xcb_getBlockByNumber("latest", {})
 //    returns the latest block object.
 //
-// xcb_subscribe("newBlocks")
+// xcb_subscribe("newHeads")
 //    creates a subscription which fires block objects when new blocks arrive.
 
 type Block struct {
-	Number *big.Int
+	Number *hexutil.Big
 }
 
 func ExampleClientSubscription() {
 	// Connect the client.
-	client, _ := rpc.Dial("ws://127.0.0.1:8485")
+	client, _ := rpc.Dial("ws://127.0.0.1:8545")
 	subch := make(chan Block)
 
 	// Ensure that subch receives the latest block.
@@ -75,7 +75,8 @@ func subscribeBlocks(client *rpc.Client, subch chan Block) {
 	// The connection is established now.
 	// Update the channel with the current block.
 	var lastBlock Block
-	if err := client.CallContext(ctx, &lastBlock, "xcb_getBlockByNumber", "latest"); err != nil {
+	err = client.CallContext(ctx, &lastBlock, "xcb_getBlockByNumber", "latest", false)
+	if err != nil {
 		fmt.Println("can't get latest block:", err)
 		return
 	}

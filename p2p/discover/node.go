@@ -17,12 +17,11 @@
 package discover
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 // node represents a host on the network.
@@ -35,13 +34,14 @@ type node struct {
 
 type encPubkey [57]byte
 
-func encodePubkey(pub *eddsa.PublicKey) (key encPubkey) {
-	copy(key[:], pub[:])
-	return key
+func encodePubkey(key *crypto.PublicKey) encPubkey {
+	var e encPubkey
+	copy(e[:], key[:])
+	return e
 }
 
-func decodePubkey(e encPubkey) (*eddsa.PublicKey, error) {
-	return crypto.UnmarshalPubkey(e[:])
+func decodePubkey(e []byte) (*crypto.PublicKey, error) {
+	return crypto.UnmarshalPubKey(e[:])
 }
 
 func (e encPubkey) id() enode.ID {

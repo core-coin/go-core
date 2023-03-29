@@ -22,8 +22,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 type JSONLogger struct {
@@ -62,12 +62,13 @@ func (l *JSONLogger) CaptureState(env *CVM, pc uint64, op OpCode, energy, cost u
 		log.Memory = memory.Data()
 	}
 	if !l.cfg.DisableStack {
-		//TODO(@holiman) improve this
+		//TODO(@raisty) improve this
 		logstack := make([]*big.Int, len(stack.Data()))
 		for i, item := range stack.Data() {
 			logstack[i] = item.ToBig()
 		}
 		log.Stack = logstack
+		log.ReturnStack = rStack.data
 	}
 	if !l.cfg.DisableReturnData {
 		log.ReturnData = rData

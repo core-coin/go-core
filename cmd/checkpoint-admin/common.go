@@ -19,16 +19,17 @@ package main
 import (
 	"strconv"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/external"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/contracts/checkpointoracle"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbclient"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/external"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/contracts/checkpointoracle"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcbclient"
 )
 
 // newClient creates a client with specified remote URL.
@@ -51,12 +52,16 @@ func newRPCClient(url string) *rpc.Client {
 
 // getContractAddr retrieves the register contract address through
 // rpc request.
-func getContractAddr(client *rpc.Client) (common.Address, error) {
-	var addr string
-	if err := client.Call(&addr, "les_getCheckpointContractAddress"); err != nil {
+func getContractAddr(client *rpc.Client) common.Address {
+	var addrStr string
+	if err := client.Call(&addrStr, "les_getCheckpointContractAddress"); err != nil {
 		utils.Fatalf("Failed to fetch checkpoint oracle address: %v", err)
 	}
-	return common.HexToAddress(addr)
+	addr, err := common.HexToAddress(addrStr)
+	if err != nil {
+		utils.Fatalf("invalid address %v, err: %v", addrStr, err)
+	}
+	return addr
 }
 
 // getCheckpoint retrieves the specified checkpoint or the latest one
@@ -97,12 +102,9 @@ func getCheckpoint(ctx *cli.Context, client *rpc.Client) *params.TrustedCheckpoi
 }
 
 // newContract creates a registrar contract instance with specified
-// contract address or the default contracts for mainnet or devin.
+// contract address or the default contracts for mainnet or testnet.
 func newContract(client *rpc.Client) (common.Address, *checkpointoracle.CheckpointOracle) {
-	addr, err := getContractAddr(client)
-	if err != nil {
-		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
-	}
+	addr := getContractAddr(client)
 	if addr == (common.Address{}) {
 		utils.Fatalf("No specified registrar contract address")
 	}
@@ -121,7 +123,7 @@ func newClefSigner(ctx *cli.Context) *bind.TransactOpts {
 	}
 	addr, err := common.HexToAddress(ctx.String(signerFlag.Name))
 	if err != nil {
-		utils.Fatalf("Failed to create clef signer %v", err)
+		utils.Fatalf("invalid address %v, err: %v", addr, err)
 	}
 	return bind.NewClefTransactor(clef, accounts.Account{Address: addr})
 }

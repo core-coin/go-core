@@ -25,17 +25,19 @@ import (
 	"testing"
 	"time"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 type testBackend struct {
@@ -211,10 +213,7 @@ func TestBlockSubscription(t *testing.T) {
 // TestPendingTxFilter tests whether pending tx filters retrieve all pending transactions that are posted to the event mux.
 func TestPendingTxFilter(t *testing.T) {
 	t.Parallel()
-	addr, err := common.HexToAddress("cb16b794f5ea0ba39494ce83a213fffba74279579268")
-	if err != nil {
-		t.Error(err)
-	}
+	addr, _ := common.HexToAddress("cb16b794f5ea0ba39494ce83a213fffba74279579268")
 	var (
 		db      = rawdb.NewMemoryDatabase()
 		backend = &testBackend{db: db}
@@ -366,13 +365,13 @@ func TestLogFilter(t *testing.T) {
 		backend = &testBackend{db: db}
 		api     = NewPublicFilterAPI(backend, false)
 
-		firstAddr, err1      = common.HexToAddress("cb751111111111111111111111111111111111111111")
-		secondAddr, err2     = common.HexToAddress("cb962222222222222222222222222222222222222222")
-		thirdAddress, err3   = common.HexToAddress("cb203333333333333333333333333333333333333333")
-		notUsedAddress, err4 = common.HexToAddress("cb499999999999999999999999999999999999999999")
-		firstTopic           = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
-		secondTopic          = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
-		notUsedTopic         = common.HexToHash("0x9999999999999999999999999999999999999999999999999999999999999999")
+		firstAddr, _      = common.HexToAddress("cb751111111111111111111111111111111111111111")
+		secondAddr, _     = common.HexToAddress("cb962222222222222222222222222222222222222222")
+		thirdAddress, _   = common.HexToAddress("cb203333333333333333333333333333333333333333")
+		notUsedAddress, _ = common.HexToAddress("cb499999999999999999999999999999999999999999")
+		firstTopic        = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
+		secondTopic       = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
+		notUsedTopic      = common.HexToHash("0x9999999999999999999999999999999999999999999999999999999999999999")
 
 		// posted twice, once as regular logs and once as pending logs.
 		allLogs = []*types.Log{
@@ -420,9 +419,6 @@ func TestLogFilter(t *testing.T) {
 		}
 	)
 
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		t.Error(err1, err2, err3, err4)
-	}
 	// create all filters
 	for i := range testCases {
 		testCases[i].id, _ = api.NewFilter(testCases[i].crit)
@@ -483,15 +479,15 @@ func TestPendingLogsSubscription(t *testing.T) {
 		backend = &testBackend{db: db}
 		api     = NewPublicFilterAPI(backend, false)
 
-		firstAddr, err1      = common.HexToAddress("cb751111111111111111111111111111111111111111")
-		secondAddr, err2     = common.HexToAddress("cb962222222222222222222222222222222222222222")
-		thirdAddress, err3   = common.HexToAddress("cb203333333333333333333333333333333333333333")
-		notUsedAddress, err4 = common.HexToAddress("cb499999999999999999999999999999999999999999")
-		firstTopic           = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
-		secondTopic          = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
-		thirdTopic           = common.HexToHash("0x3333333333333333333333333333333333333333333333333333333333333333")
-		fourthTopic          = common.HexToHash("0x4444444444444444444444444444444444444444444444444444444444444444")
-		notUsedTopic         = common.HexToHash("0x9999999999999999999999999999999999999999999999999999999999999999")
+		firstAddr, _      = common.HexToAddress("cb751111111111111111111111111111111111111111")
+		secondAddr, _     = common.HexToAddress("cb962222222222222222222222222222222222222222")
+		thirdAddress, _   = common.HexToAddress("cb203333333333333333333333333333333333333333")
+		notUsedAddress, _ = common.HexToAddress("cb499999999999999999999999999999999999999999")
+		firstTopic        = common.HexToHash("0x1111111111111111111111111111111111111111111111111111111111111111")
+		secondTopic       = common.HexToHash("0x2222222222222222222222222222222222222222222222222222222222222222")
+		thirdTopic        = common.HexToHash("0x3333333333333333333333333333333333333333333333333333333333333333")
+		fourthTopic       = common.HexToHash("0x4444444444444444444444444444444444444444444444444444444444444444")
+		notUsedTopic      = common.HexToHash("0x9999999999999999999999999999999999999999999999999999999999999999")
 
 		allLogs = [][]*types.Log{
 			{{Address: firstAddr, Topics: []common.Hash{}, BlockNumber: 0}},
@@ -508,64 +504,60 @@ func TestPendingLogsSubscription(t *testing.T) {
 		}
 
 		testCases = []struct {
-			crit     gocore.FilterQuery
+			crit     c.FilterQuery
 			expected []*types.Log
 			c        chan []*types.Log
 			sub      *Subscription
 		}{
 			// match all
 			{
-				gocore.FilterQuery{}, flattenLogs(allLogs),
+				c.FilterQuery{}, flattenLogs(allLogs),
 				nil, nil,
 			},
 			// match none due to no matching addresses
 			{
-				gocore.FilterQuery{Addresses: []common.Address{{}, notUsedAddress}, Topics: [][]common.Hash{nil}},
+				c.FilterQuery{Addresses: []common.Address{{}, notUsedAddress}, Topics: [][]common.Hash{nil}},
 				nil,
 				nil, nil,
 			},
 			// match logs based on addresses, ignore topics
 			{
-				gocore.FilterQuery{Addresses: []common.Address{firstAddr}},
+				c.FilterQuery{Addresses: []common.Address{firstAddr}},
 				append(flattenLogs(allLogs[:2]), allLogs[5][3]),
 				nil, nil,
 			},
 			// match none due to no matching topics (match with address)
 			{
-				gocore.FilterQuery{Addresses: []common.Address{secondAddr}, Topics: [][]common.Hash{{notUsedTopic}}},
+				c.FilterQuery{Addresses: []common.Address{secondAddr}, Topics: [][]common.Hash{{notUsedTopic}}},
 				nil, nil, nil,
 			},
 			// match logs based on addresses and topics
 			{
-				gocore.FilterQuery{Addresses: []common.Address{thirdAddress}, Topics: [][]common.Hash{{firstTopic, secondTopic}}},
+				c.FilterQuery{Addresses: []common.Address{thirdAddress}, Topics: [][]common.Hash{{firstTopic, secondTopic}}},
 				append(flattenLogs(allLogs[3:5]), allLogs[5][0]),
 				nil, nil,
 			},
 			// match logs based on multiple addresses and "or" topics
 			{
-				gocore.FilterQuery{Addresses: []common.Address{secondAddr, thirdAddress}, Topics: [][]common.Hash{{firstTopic, secondTopic}}},
+				c.FilterQuery{Addresses: []common.Address{secondAddr, thirdAddress}, Topics: [][]common.Hash{{firstTopic, secondTopic}}},
 				append(flattenLogs(allLogs[2:5]), allLogs[5][0]),
 				nil,
 				nil,
 			},
 			// block numbers are ignored for filters created with New***Filter, these return all logs that match the given criteria when the state changes
 			{
-				gocore.FilterQuery{Addresses: []common.Address{firstAddr}, FromBlock: big.NewInt(2), ToBlock: big.NewInt(3)},
+				c.FilterQuery{Addresses: []common.Address{firstAddr}, FromBlock: big.NewInt(2), ToBlock: big.NewInt(3)},
 				append(flattenLogs(allLogs[:2]), allLogs[5][3]),
 				nil, nil,
 			},
 			// multiple pending logs, should match only 2 topics from the logs in block 5
 			{
-				gocore.FilterQuery{Addresses: []common.Address{thirdAddress}, Topics: [][]common.Hash{{firstTopic, fourthTopic}}},
+				c.FilterQuery{Addresses: []common.Address{thirdAddress}, Topics: [][]common.Hash{{firstTopic, fourthTopic}}},
 				[]*types.Log{allLogs[5][0], allLogs[5][2]},
 				nil, nil,
 			},
 		}
 	)
-
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		t.Error(err1, err2, err3, err4)
-	}
 
 	// create all subscriptions, this ensures all subscriptions are created before the events are posted.
 	// on slow machines this could otherwise lead to missing events when the subscription is created after

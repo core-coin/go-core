@@ -21,7 +21,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
-	"github.com/core-coin/go-core/p2p/discover/v4wire"
+	"fmt"
 	"io"
 	"math/rand"
 	"net"
@@ -30,11 +30,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/internal/testlog"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/testlog"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/discover/v4wire"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 // shared test variables
@@ -53,7 +54,7 @@ type udpTest struct {
 	db                  *enode.DB
 	udp                 *UDPv4
 	sent                [][]byte
-	localkey, remotekey *eddsa.PrivateKey
+	localkey, remotekey *crypto.PrivateKey
 	remoteaddr          *net.UDPAddr
 }
 
@@ -91,7 +92,7 @@ func (test *udpTest) packetIn(wantError error, data v4wire.Packet) {
 }
 
 // handles a packet as if it had been sent to the transport by the key/endpoint.
-func (test *udpTest) packetInFrom(wantError error, key *eddsa.PrivateKey, addr *net.UDPAddr, data v4wire.Packet) {
+func (test *udpTest) packetInFrom(wantError error, key *crypto.PrivateKey, addr *net.UDPAddr, data v4wire.Packet) {
 	test.t.Helper()
 
 	enc, _, err := v4wire.Encode(key, data)
@@ -148,8 +149,7 @@ func TestUDPv4_pingTimeout(t *testing.T) {
 
 	key := newkey()
 	toaddr := &net.UDPAddr{IP: net.ParseIP("1.2.3.4"), Port: 2222}
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	node := enode.NewV4(&pub, toaddr.IP, 0, toaddr.Port)
+	node := enode.NewV4(key.PublicKey(), toaddr.IP, 0, toaddr.Port)
 	if _, err := test.udp.ping(node); err != errTimeout {
 		t.Error("expected timeout error, got", err)
 	}
@@ -193,13 +193,13 @@ func TestUDPv4_responseTimeouts(t *testing.T) {
 		} else {
 			p.errc = nilErr
 			test.udp.addReplyMatcher <- p
-			time.AfterFunc(randomDuration(60*time.Millisecond), func() {
+			time.AfterFunc(randomDuration(100*time.Millisecond), func() {
 				if !test.udp.handleReply(p.from, p.ip, testPacket(p.ptype)) {
 					t.Logf("not matched: %v", p)
 				}
 			})
 		}
-		time.Sleep(randomDuration(30 * time.Millisecond))
+		time.Sleep(randomDuration(50 * time.Millisecond))
 	}
 
 	// Check that all timeouts were delivered and that the rest got nil errors.
@@ -262,8 +262,7 @@ func TestUDPv4_findnode(t *testing.T) {
 	for i := 0; i < numCandidates; i++ {
 		key := newkey()
 		ip := net.IP{10, 13, 0, byte(i)}
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		n := wrapNode(enode.NewV4(&pub, ip, 0, 2000))
+		n := wrapNode(enode.NewV4(key.PublicKey(), ip, 0, 2000))
 		// Ensure half of table content isn't verified live yet.
 		if i > numCandidates/2 {
 			n.livenessChecks = 1
@@ -275,8 +274,7 @@ func TestUDPv4_findnode(t *testing.T) {
 
 	// ensure there's a bond with the test node,
 	// findnode won't be accepted otherwise.
-	pub := eddsa.Ed448DerivePublicKey(*test.remotekey)
-	remoteID := v4wire.EncodePubkey(&pub).ID()
+	remoteID := v4wire.EncodePubkey(test.remotekey.PublicKey()).ID()
 	test.table.db.UpdateLastPongReceived(remoteID, test.remoteaddr.IP, time.Now())
 
 	// check that closest neighbors are returned.
@@ -309,14 +307,14 @@ func TestUDPv4_findnode(t *testing.T) {
 func TestUDPv4_findnodeMultiReply(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
-	pub := eddsa.Ed448DerivePublicKey(*test.remotekey)
-	rid := enode.PubkeyToIDV4(&pub)
+
+	rid := enode.PubkeyToIDV4(test.remotekey.PublicKey())
 	test.table.db.UpdateLastPingReceived(rid, test.remoteaddr.IP, time.Now())
 
 	// queue a pending findnode request
 	resultc, errc := make(chan []*node), make(chan error)
 	go func() {
-		rid := encodePubkey(&pub).id()
+		rid := encodePubkey(test.remotekey.PublicKey()).id()
 		ns, err := test.udp.findnode(rid, test.remoteaddr, testTarget)
 		if err != nil && len(ns) == 0 {
 			errc <- err
@@ -335,10 +333,10 @@ func TestUDPv4_findnodeMultiReply(t *testing.T) {
 
 	// send the reply as two packets.
 	list := []*node{
-		wrapNode(enode.MustParse("enode://ba85011c70bcc5c04d8607d3a0ed29aa6179c092cbdda10d5d32684fb33ed01bd94f588ca8f91ac48318087dcb02eaf36773a7a453f0eeddaa@10.0.1.16:30303?discport=30304")),
-		wrapNode(enode.MustParse("enode://81fa361d25f157cd421c60dcc28d8dac5ef6a89476633339c5df30287474520caca09627da18543d9079b5b288698b542d56167aa5c09111aa@10.0.1.16:30303")),
-		wrapNode(enode.MustParse("enode://9bffefd833d53fac8e652415f4973bee289e8b1a5c6c4cbe70abf817ce8a64cee11b823b66a987f51aaa9fba0d6a91b3e6bf0d5a5d1042deaa@10.0.1.36:30301?discport=17")),
-		wrapNode(enode.MustParse("enode://1b5b4aa662d7cb44a7221bfba67302590b643028197a7d5214790f3bac7aaa4a3241be9e83c09cf1f6c69d007c634faae3dc1b1221793e84aa@10.0.1.16:30303")),
+		wrapNode(enode.MustParse("enode://ba85011c70bcc5c04d8607d3a0ed29aa6179c092cbdda10d5d32684fb33ed01bd94f588ca8f91ac48318087dcb02eaf36773a7a453f0eedd67@10.0.1.16:30303?discport=30304")),
+		wrapNode(enode.MustParse("enode://81fa361d25f157cd421c60dcc28d8dac5ef6a89476633339c5df30287474520caca09627da18543d9079b5b288698b542d56167aa5c09111e5@10.0.1.16:30303")),
+		wrapNode(enode.MustParse("enode://9bffefd833d53fac8e652415f4973bee289e8b1a5c6c4cbe70abf817ce8a64cee11b823b66a987f51aaa9fba0d6a91b3e6bf0d5a5d1042de8e@10.0.1.36:30301?discport=17")),
+		wrapNode(enode.MustParse("enode://1b5b4aa662d7cb44a7221bfba67302590b643028197a7d5214790f3bac7aaa4a3241be9e83c09cf1f6c69d007c634faae3dc1b1221793e8446@10.0.1.16:30303")),
 	}
 	rpclist := make([]v4wire.Node, len(list))
 	for i := range list {
@@ -440,8 +438,7 @@ func TestUDPv4_successfulPing(t *testing.T) {
 	// pong packet.
 	select {
 	case n := <-added:
-		pub := eddsa.Ed448DerivePublicKey(*test.remotekey)
-		rid := encodePubkey(&pub).id()
+		rid := encodePubkey(test.remotekey.PublicKey()).id()
 		if n.ID() != rid {
 			t.Errorf("node has wrong ID: got %v, want %v", n.ID(), rid)
 		}
@@ -495,6 +492,91 @@ func TestUDPv4_CIP868(t *testing.T) {
 			t.Fatalf("wrong node in enrResponse: %v", n)
 		}
 	})
+}
+
+// This test verifies that a small network of nodes can boot up into a healthy state.
+func TestUDPv4_smallNetConvergence(t *testing.T) {
+	t.Parallel()
+
+	// Start the network.
+	nodes := make([]*UDPv4, 4)
+	for i := range nodes {
+		var cfg Config
+		if i > 0 {
+			bn := nodes[0].Self()
+			cfg.Bootnodes = []*enode.Node{bn}
+		}
+		nodes[i] = startLocalhostV4(t, cfg)
+		defer nodes[i].Close()
+	}
+
+	// Run through the iterator on all nodes until
+	// they have all found each other.
+	status := make(chan error, len(nodes))
+	for i := range nodes {
+		node := nodes[i]
+		go func() {
+			found := make(map[enode.ID]bool, len(nodes))
+			it := node.RandomNodes()
+			for it.Next() {
+				found[it.Node().ID()] = true
+				if len(found) == len(nodes) {
+					status <- nil
+					return
+				}
+			}
+			status <- fmt.Errorf("node %s didn't find all nodes", node.Self().ID().TerminalString())
+		}()
+	}
+
+	// Wait for all status reports.
+	timeout := time.NewTimer(30 * time.Second)
+	defer timeout.Stop()
+	for received := 0; received < len(nodes); {
+		select {
+		case <-timeout.C:
+			for _, node := range nodes {
+				node.Close()
+			}
+		case err := <-status:
+			received++
+			if err != nil {
+				t.Error("ERROR:", err)
+				return
+			}
+		}
+	}
+}
+
+func startLocalhostV4(t *testing.T, cfg Config) *UDPv4 {
+	t.Helper()
+
+	cfg.PrivateKey = newkey()
+	db, _ := enode.OpenDB("")
+	ln := enode.NewLocalNode(db, cfg.PrivateKey)
+
+	// Prefix logs with node ID.
+	lprefix := fmt.Sprintf("(%s)", ln.ID().TerminalString())
+	lfmt := log.TerminalFormat(false)
+	cfg.Log = testlog.Logger(t, log.LvlTrace)
+	cfg.Log.SetHandler(log.FuncHandler(func(r *log.Record) error {
+		t.Logf("%s %s", lprefix, lfmt.Format(r))
+		return nil
+	}))
+
+	// Listen.
+	socket, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IP{127, 0, 0, 1}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	realaddr := socket.LocalAddr().(*net.UDPAddr)
+	ln.SetStaticIP(realaddr.IP)
+	ln.SetFallbackUDP(realaddr.Port)
+	udp, err := ListenV4(socket, ln, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return udp
 }
 
 // dgramPipe is a fake UDP socket. It queues all sent datagrams.

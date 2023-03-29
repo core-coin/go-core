@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // FunctionType represents different types of functions a contract might have.
@@ -35,7 +35,7 @@ const (
 	// signature and no receive function is specified.
 	Fallback
 	// Receive represents the receive function.
-	// This function is executed on plain Ether transfers.
+	// This function is executed on plain Core transfers.
 	Receive
 	// Function represents a normal function.
 	Function
@@ -45,7 +45,7 @@ const (
 // If the method is `Const` no transaction needs to be created for this
 // particular Method call. It can easily be simulated using a local VM.
 // For example a `Balance()` method only needs to retrieve something
-// from the storage and therefore requires no Tx to be send to the
+// from the storage and therefore requires no Tx to be sent to the
 // network. A method such as `Transact` does require a Tx and thus will
 // be flagged `false`.
 // Input specifies the required input parameters for this gives method.
@@ -54,7 +54,7 @@ type Method struct {
 	// the raw name and a suffix will be added in the case of a function overload.
 	//
 	// e.g.
-	// There are two functions have same name:
+	// These are two functions that have the same name:
 	// * foo(int,int)
 	// * foo(uint,uint)
 	// The method name of the first one will be resolved as foo while the second one
@@ -63,7 +63,7 @@ type Method struct {
 	RawName string // RawName is the raw method name parsed from ABI
 
 	// Type indicates whether the method is a
-	// special fallback introduced in solidity v0.6.0
+	// special fallback introduced in ylem v0.6.0
 	Type FunctionType
 
 	// StateMutability indicates the mutability state of method,
@@ -77,8 +77,7 @@ type Method struct {
 
 	Inputs  Arguments
 	Outputs Arguments
-
-	str string
+	str     string
 	// Sig returns the methods string signature according to the ABI spec.
 	// e.g.		function foo(uint32 a, int b) = "foo(uint32,int256)"
 	// Please note that "int" is substitute for its canonical representation "int256"
@@ -118,7 +117,7 @@ func NewMethod(name string, rawName string, funType FunctionType, mutability str
 		sig = fmt.Sprintf("%v(%v)", rawName, strings.Join(types, ","))
 		id = crypto.SHA3([]byte(sig))[:4]
 	}
-	// Extract meaningful state mutability of solidity method.
+	// Extract meaningful state mutability of ylem method.
 	// If it's default value, never print it.
 	state := mutability
 	if state == "nonpayable" {
@@ -162,7 +161,7 @@ func (method Method) IsConstant() bool {
 }
 
 // IsPayable returns the indicator whether the method can process
-// plain ether transfers.
+// plain core transfers.
 func (method Method) IsPayable() bool {
 	return method.StateMutability == "payable" || method.Payable
 }

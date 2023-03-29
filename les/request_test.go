@@ -21,14 +21,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/light"
 )
 
-var testBankSecureTrieKey = secAddr(bankAddr)
+var testBankSecureTrieKey = secAddr(bankKey.Address())
 
 func secAddr(addr common.Address) []byte {
 	return crypto.SHA3(addr[:])
@@ -78,7 +79,6 @@ func tfCodeAccess(db xcbdb.Database, bhash common.Hash, num uint64) light.OdrReq
 }
 
 func testAccess(t *testing.T, protocol int, fn accessTestFn) {
-	t.Skip("skip long-running tests")
 	// Assemble the test environment
 	server, client, tearDown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, true, true)
 	defer tearDown()
@@ -93,7 +93,7 @@ func testAccess(t *testing.T, protocol int, fn accessTestFn) {
 		for i := uint64(0); i <= server.handler.blockchain.CurrentHeader().Number.Uint64(); i++ {
 			bhash := rawdb.ReadCanonicalHash(server.db, i)
 			if req := fn(client.db, bhash, i); req != nil {
-				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 				err := client.handler.backend.odr.Retrieve(ctx, req)
 				cancel()
 

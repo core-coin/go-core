@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -22,13 +22,15 @@ import (
 	"os/user"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcb/energyprice"
+	"github.com/core-coin/go-core/v2/xcb/energyprice"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // DefaultFullGPOConfig contains default energyprice oracle settings for full node.
@@ -92,8 +94,8 @@ type Config struct {
 
 	// This can be set to list of enrtree:// URLs which will be queried for
 	// for nodes to connect to.
-	DiscoveryURLs   []string
 	UseDNSDiscovery bool
+	DiscoveryURLs   []string
 
 	NoPruning  bool // Whether to disable pruning and flush everything to disk
 	NoPrefetch bool // Whether to disable prefetching and only load state on demand
@@ -127,6 +129,7 @@ type Config struct {
 	TrieDirtyCache          int
 	TrieTimeout             time.Duration
 	SnapshotCache           int
+	Preimages               bool
 
 	// Mining options
 	Miner miner.Config
@@ -156,7 +159,7 @@ type Config struct {
 	TrustedPeersBroadcasting bool
 
 	// RPCEnergyCap is the global energy cap for xcb-call variants.
-	RPCEnergyCap *big.Int `toml:",omitempty"`
+	RPCEnergyCap uint64 `toml:",omitempty"`
 
 	// RPCTxFeeCap is the global transaction fee(price * energylimit) cap for
 	// send-transction variants. The unit is core.

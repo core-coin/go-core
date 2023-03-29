@@ -20,11 +20,11 @@
 // with pieces plucked from go-core, rather to allow writing native dapps on
 // mobile platforms. Keep this in mind when using or extending this package!
 //
-// API limitations
+// # API limitations
 //
 // Since gomobile cannot bridge arbitrary types between Go and Android/iOS, the
 // exposed APIs need to be manually wrapped into simplified types, with custom
-// constructors and getters/setters to ensure that they can be meaninfully used
+// constructors and getters/setters to ensure that they can be meaningfully used
 // from Java/ObjC too.
 //
 // With this in mind, please try to limit the scope of this package and only add

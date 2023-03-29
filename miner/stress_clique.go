@@ -22,27 +22,28 @@ package main
 
 import (
 	"bytes"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/fdlimit"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-goldilocks"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/fdlimit"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 func main() {
@@ -50,21 +51,22 @@ func main() {
 	fdlimit.Raise(2048)
 
 	// Generate a batch of accounts to seal and fund with
-	faucets := make([]*eddsa.PrivateKey, 128)
+	faucets := make([]*goldilocks.PrivateKey, 128)
 	for i := 0; i < len(faucets); i++ {
-		faucets[i], _ = crypto.GenerateKey(rand.Reader)
+		faucets[i], _ = crypto.GenerateKey(crand.Reader)
 	}
-	sealers := make([]*eddsa.PrivateKey, 4)
+	sealers := make([]*goldilocks.PrivateKey, 4)
 	for i := 0; i < len(sealers); i++ {
-		sealers[i], _ = crypto.GenerateKey(rand.Reader)
+		sealers[i], _ = crypto.GenerateKey(crand.Reader)
 	}
-	// Create a Clique network based off of the config
+	// Create a Clique network based off of the Devin config
 	genesis := makeGenesis(faucets, sealers)
 
 	var (
 		nodes  []*xcb.Core
 		enodes []*enode.Node
 	)
+
 	for _, sealer := range sealers {
 		// Start the node and wait until it's up
 		stack, xcbBackend, err := makeSealer(genesis)
@@ -80,7 +82,7 @@ func main() {
 		for _, n := range enodes {
 			stack.Server().AddPeer(n)
 		}
-		// Start tracking the node and it's enode
+		// Start tracking the node and its enode
 		nodes = append(nodes, xcbBackend)
 		enodes = append(enodes, stack.Server().Self())
 
@@ -95,7 +97,7 @@ func main() {
 		}
 	}
 
-	// Iterate over all the nodes and start signing with them
+	// Iterate over all the nodes and start signing on them
 	time.Sleep(3 * time.Second)
 	for _, node := range nodes {
 		if err := node.StartMining(1); err != nil {
@@ -110,8 +112,9 @@ func main() {
 		// Pick a random signer node
 		index := rand.Intn(len(faucets))
 		backend := nodes[index%len(nodes)]
+
 		// Create a self transaction and inject into the pool
-		tx, err := types.SignTx(types.NewTransaction(nonces[index], crypto.PubkeyToAddress(faucets[index].PublicKey), new(big.Int), 21000, big.NewInt(100000000000), nil), types.NewNucleusSigner(genesis.Config.NetworkID), faucets[index])
+		tx, err := types.SignTx(types.NewTransaction(nonces[index], faucets[index].Address(), new(big.Int), 21000, big.NewInt(100000000000), nil), types.HomesteadSigner{}, faucets[index])
 		if err != nil {
 			panic(err)
 		}
@@ -129,8 +132,8 @@ func main() {
 
 // makeGenesis creates a custom Clique genesis block based on some pre-defined
 // signer and faucet accounts.
-func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core.Genesis {
-	// Create a Clique network based off of the config
+func makeGenesis(faucets []*goldilocks.PrivateKey, sealers []*goldilocks.PrivateKey) *core.Genesis {
+	// Create a Clique network based off of the Devin config
 	genesis := core.DefaultDevinGenesisBlock()
 	genesis.EnergyLimit = 25000000
 
@@ -140,14 +143,14 @@ func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core
 
 	genesis.Alloc = core.GenesisAlloc{}
 	for _, faucet := range faucets {
-		genesis.Alloc[crypto.PubkeyToAddress(faucet.PublicKey)] = core.GenesisAccount{
+		genesis.Alloc[faucet.Address()] = core.GenesisAccount{
 			Balance: new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil),
 		}
 	}
 	// Sort the signers and embed into the extra-data section
 	signers := make([]common.Address, len(sealers))
 	for i, sealer := range sealers {
-		signers[i] = crypto.PubkeyToAddress(sealer.PublicKey)
+		signers[i] = sealer.Address()
 	}
 	for i := 0; i < len(signers); i++ {
 		for j := i + 1; j < len(signers); j++ {
@@ -156,7 +159,7 @@ func makeGenesis(faucets []*eddsa.PrivateKey, sealers []*eddsa.PrivateKey) *core
 			}
 		}
 	}
-	genesis.ExtraData = make([]byte, 32+len(signers)*common.AddressLength+65)
+	genesis.ExtraData = make([]byte, 32+len(signers)*common.AddressLength+crypto.ExtendedSignatureLength)
 	for i, signer := range signers {
 		copy(genesis.ExtraData[32+i*common.AddressLength:], signer[:])
 	}
@@ -177,7 +180,6 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *xcb.Core, error) {
 			NoDiscovery: true,
 			MaxPeers:    25,
 		},
-		NoUSB: true,
 	}
 	// Start the node and configure a full Core node on it
 	stack, err := node.New(config)

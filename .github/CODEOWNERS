@@ -1,5 +1,3 @@
-accounts/usbwallet              @error2215 @raisty @SashaZezulinsky
-accounts/scwallet               @error2215 @raisty @SashaZezulinsky
 accounts/abi                    @error2215 @raisty @SashaZezulinsky
 cmd/clef                        @error2215 @raisty @SashaZezulinsky
 consensus                       @error2215 @raisty @SashaZezulinsky

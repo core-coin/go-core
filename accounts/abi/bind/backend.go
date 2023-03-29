@@ -21,9 +21,9 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 var (
@@ -32,22 +32,22 @@ var (
 	// have any code associated with it (i.e. suicided).
 	ErrNoCode = errors.New("no contract code at given address")
 
-	// This error is raised when attempting to perform a pending state action
+	// ErrNoPendingState is raised when attempting to perform a pending state action
 	// on a backend that doesn't implement PendingContractCaller.
 	ErrNoPendingState = errors.New("backend does not support pending state")
 
-	// This error is returned by WaitDeployed if contract creation leaves an
+	// ErrNoCodeAfterDeploy is returned by WaitDeployed if contract creation leaves an
 	// empty contract behind.
 	ErrNoCodeAfterDeploy = errors.New("no contract code after deployment")
 )
 
-// ContractCaller defines the methods needed to allow operating with contract on a read
+// ContractCaller defines the methods needed to allow operating with a contract on a read
 // only basis.
 type ContractCaller interface {
 	// CodeAt returns the code of the given account. This is needed to differentiate
 	// between contract internal errors and the local chain being out of sync.
 	CodeAt(ctx context.Context, contract common.Address, blockNumber *big.Int) ([]byte, error)
-	// ContractCall executes an Core contract call with the specified data as the
+	// CallContract executes a Core contract call with the specified data as the
 	// input.
 	CallContract(ctx context.Context, call core.CallMsg, blockNumber *big.Int) ([]byte, error)
 }
@@ -58,12 +58,12 @@ type ContractCaller interface {
 type PendingContractCaller interface {
 	// PendingCodeAt returns the code of the given account in the pending state.
 	PendingCodeAt(ctx context.Context, contract common.Address) ([]byte, error)
-	// PendingCallContract executes an Core contract call against the pending state.
+	// PendingCallContract executes a Core contract call against the pending state.
 	PendingCallContract(ctx context.Context, call core.CallMsg) ([]byte, error)
 }
 
-// ContractTransactor defines the methods needed to allow operating with contract
-// on a write only basis. Beside the transacting method, the remainder are helpers
+// ContractTransactor defines the methods needed to allow operating with a contract
+// on a write only basis. Besides the transacting method, the remainder are helpers
 // used when the user does not provide some needed values, but rather leaves it up
 // to the transactor to decide.
 type ContractTransactor interface {

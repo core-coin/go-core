@@ -26,13 +26,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/internal/jsre"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcb"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/console/prompt"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/internal/jsre"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 const (
@@ -67,10 +69,10 @@ func (p *hookedPrompter) PromptPassword(prompt string) (string, error) {
 func (p *hookedPrompter) PromptConfirm(prompt string) (bool, error) {
 	return false, errors.New("not implemented")
 }
-func (p *hookedPrompter) SetHistory(history []string)              {}
-func (p *hookedPrompter) AppendHistory(command string)             {}
-func (p *hookedPrompter) ClearHistory()                            {}
-func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
+func (p *hookedPrompter) SetHistory(history []string)                     {}
+func (p *hookedPrompter) AppendHistory(command string)                    {}
+func (p *hookedPrompter) ClearHistory()                                   {}
+func (p *hookedPrompter) SetWordCompleter(completer prompt.WordCompleter) {}
 
 // tester is a console test environment for the console tests to operate on.
 type tester struct {
@@ -96,14 +98,14 @@ func newTester(t *testing.T, confOverride func(*xcb.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	corebase, err := common.HexToAddress(testAddress)
+	coinbase, err := common.HexToAddress(testAddress)
 	if err != nil {
-		t.Fatalf("failed to set corebase: %v", err)
+		t.Fatal(err)
 	}
 	xcbConf := &xcb.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
-			Corebase: corebase,
+			Corebase: coinbase,
 		},
 		Cryptore: cryptore.Config{
 			PowMode: cryptore.ModeTest,

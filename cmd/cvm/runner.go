@@ -28,17 +28,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/cmd/cvm/internal/compiler"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/core/vm/runtime"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/cmd/cvm/internal/compiler"
+
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/core/vm/runtime"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var runCommand = cli.Command{
@@ -115,13 +117,15 @@ func runCmd(ctx *cli.Context) error {
 		Debug:             ctx.GlobalBool(DebugFlag.Name),
 	}
 
+	if id := ctx.GlobalUint64(utils.NetworkIdFlag.Name); id != 0 {
+		common.DefaultNetworkID = common.NetworkID(id)
+	}
+
 	var (
 		tracer        vm.Tracer
 		debugLogger   *vm.StructLogger
 		statedb       *state.StateDB
 		chainConfig   *params.ChainConfig
-		sender        = common.BytesToAddress([]byte("sender"))
-		receiver      = common.BytesToAddress([]byte("receiver"))
 		genesisConfig *core.Genesis
 	)
 	if ctx.GlobalBool(MachineFlag.Name) {
@@ -139,29 +143,29 @@ func runCmd(ctx *cli.Context) error {
 		genesis := gen.ToBlock(db)
 		statedb, _ = state.New(genesis.Root(), state.NewDatabase(db), nil)
 		chainConfig = gen.Config
+		common.DefaultNetworkID = common.NetworkID(chainConfig.NetworkID.Int64())
 	} else {
 		statedb, _ = state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
 		genesisConfig = new(core.Genesis)
-		chainConfig = params.AllCryptoreProtocolChanges
 	}
 
-	common.DefaultNetworkID = common.NetworkID(chainConfig.NetworkID.Int64())
+	sender := common.BytesToAddress([]byte("sender"))
+	receiver := common.BytesToAddress([]byte("receiver"))
 
+	var err error
 	if ctx.GlobalString(SenderFlag.Name) != "" {
-		addr, err := common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
+		sender, err = common.HexToAddress(ctx.GlobalString(SenderFlag.Name))
 		if err != nil {
 			return err
 		}
-		sender = addr
 	}
 	statedb.CreateAccount(sender)
 
 	if ctx.GlobalString(ReceiverFlag.Name) != "" {
-		addr, err := common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
+		receiver, err = common.HexToAddress(ctx.GlobalString(ReceiverFlag.Name))
 		if err != nil {
 			return err
 		}
-		receiver = addr
 	}
 
 	var code []byte
@@ -222,7 +226,6 @@ func runCmd(ctx *cli.Context) error {
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),
 		Coinbase:    genesisConfig.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(genesisConfig.Number),
-		ChainConfig: chainConfig,
 		CVMConfig: vm.Config{
 			Tracer:         tracer,
 			Debug:          ctx.GlobalBool(DebugFlag.Name) || ctx.GlobalBool(MachineFlag.Name),
@@ -241,6 +244,12 @@ func runCmd(ctx *cli.Context) error {
 			os.Exit(1)
 		}
 		defer pprof.StopCPUProfile()
+	}
+
+	if chainConfig != nil {
+		runtimeConfig.ChainConfig = chainConfig
+	} else {
+		runtimeConfig.ChainConfig = params.MainnetChainConfig
 	}
 
 	var hexInput []byte
@@ -304,9 +313,9 @@ func runCmd(ctx *cli.Context) error {
 
 	if bench || ctx.GlobalBool(StatDumpFlag.Name) {
 		fmt.Fprintf(os.Stderr, `CVM energy used:    %d
-execution time:     %v
-allocations:        %d
-allocated bytes:    %d
+execution time:  %v
+allocations:     %d
+allocated bytes: %d
 `, initialEnergy-leftOverEnergy, stats.time, stats.allocs, stats.bytesAllocated)
 	}
 	if tracer == nil {

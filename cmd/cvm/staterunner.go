@@ -23,12 +23,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/tests"
+	"gopkg.in/urfave/cli.v1"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/tests"
 )
 
 var stateTestCommand = cli.Command{
@@ -98,7 +98,7 @@ func stateTestCmd(ctx *cli.Context) error {
 		for _, st := range test.Subtests() {
 			// Run the test and aggregate the result
 			result := &StatetestResult{Name: key, Fork: st.Fork, Pass: true}
-			state, err := test.Run(st, cfg, false)
+			_, state, err := test.Run(st, cfg, false)
 			// print state root for cvmlab tracing
 			if ctx.GlobalBool(MachineFlag.Name) && state != nil {
 				fmt.Fprintf(os.Stderr, "{\"stateRoot\": \"%x\"}\n", state.IntermediateRoot(false))

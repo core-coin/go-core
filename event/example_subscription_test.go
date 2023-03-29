@@ -19,7 +19,7 @@ package event_test
 import (
 	"fmt"
 
-	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 func ExampleNewSubscription() {

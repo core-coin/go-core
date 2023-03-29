@@ -32,10 +32,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 const (
@@ -377,7 +377,7 @@ func (tab *Table) nextRevalidateTime() time.Duration {
 }
 
 // copyLiveNodes adds nodes from the table to the database if they have been in the table
-// longer then minTableTime.
+// longer than seedMinTableTime.
 func (tab *Table) copyLiveNodes() {
 	tab.mutex.Lock()
 	defer tab.mutex.Unlock()
@@ -541,6 +541,9 @@ func (tab *Table) delete(node *node) {
 }
 
 func (tab *Table) addIP(b *bucket, ip net.IP) bool {
+	if len(ip) == 0 {
+		return false // Nodes without IP cannot be added.
+	}
 	if netutil.IsLAN(ip) {
 		return true
 	}

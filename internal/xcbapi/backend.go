@@ -19,21 +19,22 @@ package xcbapi
 
 import (
 	"context"
-	"github.com/core-coin/go-core/consensus"
 	"math/big"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // Backend interface provides the common API services (that are provided by
@@ -46,8 +47,8 @@ type Backend interface {
 	ChainDb() xcbdb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
-	RPCEnergyCap() *big.Int // global energy cap for xcb_call over rpc: DoS protection
-	RPCTxFeeCap() float64   // global tx fee cap for all transaction related APIs
+	RPCEnergyCap() uint64 // global energy cap for xcb_call over rpc: DoS protection
+	RPCTxFeeCap() float64 // global tx fee cap for all transaction related APIs
 
 	// Blockchain API
 	SetHead(number uint64)

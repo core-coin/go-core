@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -21,11 +21,13 @@ import (
 	"sync"
 
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 // diskLayer is a low level persistent snapshot built on top of a key-value store.

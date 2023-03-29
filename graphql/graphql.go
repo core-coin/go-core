@@ -20,19 +20,21 @@ package graphql
 import (
 	"context"
 	"errors"
+	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb/filters"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb/filters"
 )
 
 var (
@@ -77,7 +79,7 @@ func (a *Account) Code(ctx context.Context) (hexutil.Bytes, error) {
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return hexutil.Bytes(state.GetCode(a.address)), nil
+	return state.GetCode(a.address), nil
 }
 
 func (a *Account) Storage(ctx context.Context, args struct{ Slot common.Hash }) (common.Hash, error) {
@@ -116,7 +118,7 @@ func (l *Log) Topics(ctx context.Context) []common.Hash {
 }
 
 func (l *Log) Data(ctx context.Context) hexutil.Bytes {
-	return hexutil.Bytes(l.log.Data)
+	return l.log.Data
 }
 
 // Transaction represents an Core transaction.
@@ -157,7 +159,7 @@ func (t *Transaction) InputData(ctx context.Context) (hexutil.Bytes, error) {
 	if err != nil || tx == nil {
 		return hexutil.Bytes{}, err
 	}
-	return hexutil.Bytes(tx.Data()), nil
+	return tx.Data(), nil
 }
 
 func (t *Transaction) Energy(ctx context.Context) (hexutil.Uint64, error) {
@@ -213,8 +215,9 @@ func (t *Transaction) From(ctx context.Context, args BlockNumberArgs) (*Account,
 	if err != nil || tx == nil {
 		return nil, err
 	}
-	var signer types.Signer = types.NewNucleusSigner(t.backend.ChainConfig().NetworkID)
+	signer := types.NewNucleusSigner(big.NewInt(int64(tx.NetworkID())))
 	from, _ := types.Sender(signer, tx)
+
 	return &Account{
 		backend:       t.backend,
 		address:       from,
@@ -379,7 +382,7 @@ func (b *Block) resolveReceipts(ctx context.Context) ([]*types.Receipt, error) {
 		if err != nil {
 			return nil, err
 		}
-		b.receipts = []*types.Receipt(receipts)
+		b.receipts = receipts
 	}
 	return b.receipts, nil
 }
@@ -459,7 +462,7 @@ func (b *Block) Nonce(ctx context.Context) (hexutil.Bytes, error) {
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return hexutil.Bytes(header.Nonce[:]), nil
+	return header.Nonce[:], nil
 }
 
 func (b *Block) TransactionsRoot(ctx context.Context) (common.Hash, error) {
@@ -525,7 +528,7 @@ func (b *Block) ExtraData(ctx context.Context) (hexutil.Bytes, error) {
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return hexutil.Bytes(header.Extra), nil
+	return header.Extra, nil
 }
 
 func (b *Block) LogsBloom(ctx context.Context) (hexutil.Bytes, error) {
@@ -533,7 +536,7 @@ func (b *Block) LogsBloom(ctx context.Context) (hexutil.Bytes, error) {
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}
-	return hexutil.Bytes(header.Bloom.Bytes()), nil
+	return header.Bloom.Bytes(), nil
 }
 
 func (b *Block) TotalDifficulty(ctx context.Context) (hexutil.Big, error) {
@@ -772,6 +775,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 	if result.Failed() {
 		status = 0
 	}
+
 	return &CallResult{
 		data:       result.ReturnData,
 		energyUsed: hexutil.Uint64(result.UsedEnergy),
@@ -841,6 +845,7 @@ func (p *Pending) Call(ctx context.Context, args struct {
 	if result.Failed() {
 		status = 0
 	}
+
 	return &CallResult{
 		data:       result.ReturnData,
 		energyUsed: hexutil.Uint64(result.UsedEnergy),
@@ -866,7 +871,7 @@ func (r *Resolver) Block(ctx context.Context, args struct {
 }) (*Block, error) {
 	var block *Block
 	if args.Number != nil {
-		number := rpc.BlockNumber(uint64(*args.Number))
+		number := rpc.BlockNumber(*args.Number)
 		numberOrHash := rpc.BlockNumberOrHashWithNumber(number)
 		block = &Block{
 			backend:      r.backend,
@@ -1001,6 +1006,10 @@ func (r *Resolver) EnergyPrice(ctx context.Context) (hexutil.Big, error) {
 
 func (r *Resolver) ProtocolVersion(ctx context.Context) (int32, error) {
 	return int32(r.backend.ProtocolVersion()), nil
+}
+
+func (r *Resolver) NetworkID(ctx context.Context) (hexutil.Big, error) {
+	return hexutil.Big(*r.backend.ChainConfig().NetworkID), nil
 }
 
 // SyncState represents the synchronisation status returned from the `syncing` accessor.

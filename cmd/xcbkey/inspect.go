@@ -19,13 +19,14 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/crypto"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 type outputInspect struct {
@@ -46,17 +47,19 @@ make sure to use this feature with great caution!`,
 	Flags: []cli.Flag{
 		passphraseFlag,
 		jsonFlag,
-		utils.NetworkIdFlag,
 		cli.BoolFlag{
 			Name:  "private",
 			Usage: "include the private key in the output",
 		},
+		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
-		keyfilepath := ctx.Args().First()
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
 		}
+
+		keyfilepath := ctx.Args().First()
+
 		// Read key from file.
 		keyjson, err := ioutil.ReadFile(keyfilepath)
 		if err != nil {
@@ -72,14 +75,12 @@ make sure to use this feature with great caution!`,
 
 		// Output all relevant information we can retrieve.
 		showPrivate := ctx.Bool("private")
-		pub := eddsa.Ed448DerivePublicKey(*key.PrivateKey)
 		out := outputInspect{
-			Address: key.Address.Hex(),
-			PublicKey: hex.EncodeToString(
-				crypto.FromEDDSAPub(&pub)),
+			Address:   key.Address.Hex(),
+			PublicKey: hex.EncodeToString(key.PrivateKey.PublicKey()[:]),
 		}
 		if showPrivate {
-			out.PrivateKey = hex.EncodeToString(crypto.FromEDDSA(key.PrivateKey))
+			out.PrivateKey = hex.EncodeToString(crypto.MarshalPrivateKey(key.PrivateKey))
 		}
 
 		if ctx.Bool(jsonFlag.Name) {

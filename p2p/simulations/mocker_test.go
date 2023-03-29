@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 func TestMocker(t *testing.T) {

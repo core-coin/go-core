@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 // Event is an event potentially triggered by the CVM's LOG mechanism. The Event
@@ -32,7 +32,7 @@ type Event struct {
 	// the raw name and a suffix will be added in the case of a event overload.
 	//
 	// e.g.
-	// There are two events have same name:
+	// These are two events that have the same name:
 	// * foo(int,int)
 	// * foo(uint,uint)
 	// The event name of the first one wll be resolved as foo while the second one
@@ -42,8 +42,7 @@ type Event struct {
 	RawName   string
 	Anonymous bool
 	Inputs    Arguments
-
-	str string
+	str       string
 	// Sig contains the string signature according to the ABI spec.
 	// e.g.	 event foo(uint32 a, int b) = "foo(uint32,int256)"
 	// Please note that "int" is substitute for its canonical representation "int256"

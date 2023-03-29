@@ -26,8 +26,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/core-coin/go-core/common/math"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/common/math"
 )
 
 // Custom type which is registered in the flags library which cli uses for
@@ -192,14 +193,14 @@ func GlobalBig(ctx *cli.Context, name string) *big.Int {
 // Note, it has limitations, e.g. ~someuser/tmp will not be expanded
 func expandPath(p string) string {
 	if strings.HasPrefix(p, "~/") || strings.HasPrefix(p, "~\\") {
-		if home := homeDir(); home != "" {
+		if home := HomeDir(); home != "" {
 			p = home + p[1:]
 		}
 	}
 	return path.Clean(os.ExpandEnv(p))
 }
 
-func homeDir() string {
+func HomeDir() string {
 	if home := os.Getenv("HOME"); home != "" {
 		return home
 	}

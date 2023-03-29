@@ -24,11 +24,12 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 var dumper = spew.ConfigState{Indent: "    "}
@@ -56,9 +57,9 @@ func (h resultHash) Len() int           { return len(h) }
 func (h resultHash) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 func (h resultHash) Less(i, j int) bool { return bytes.Compare(h[i].Bytes(), h[j].Bytes()) < 0 }
 
-func TestAccountRange(t *testing.T) { // TODO: TEST
+func TestAccountRange(t *testing.T) {
 	var (
-		statedb  = state.NewDatabase(rawdb.NewMemoryDatabase())
+		statedb  = state.NewDatabaseWithConfig(rawdb.NewMemoryDatabase(), nil)
 		state, _ = state.New(common.Hash{}, statedb, nil)
 		addrs    = [AccountRangeMaxResults * 2]common.Address{}
 		m        = map[common.Address]bool{}
@@ -82,7 +83,6 @@ func TestAccountRange(t *testing.T) { // TODO: TEST
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	accountRangeTest(t, &trie, state, common.Hash{}, AccountRangeMaxResults/2, AccountRangeMaxResults/2)
 	// test pagination
 	firstResult := accountRangeTest(t, &trie, state, common.Hash{}, AccountRangeMaxResults, AccountRangeMaxResults)

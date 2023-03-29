@@ -17,21 +17,22 @@
 package les
 
 import (
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/xcb/fetcher"
-	"github.com/core-coin/go-core/xcbdb"
 	"math/big"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/xcb/fetcher"
 )
 
 const (
@@ -88,6 +89,7 @@ func (fp *fetcherPeer) addAnno(anno *announce) {
 	}
 	fp.announces[hash] = anno
 	fp.announcesList = append(fp.announcesList, hash)
+
 	// Evict oldest if the announces are oversized.
 	if len(fp.announcesList)-cachedAnnosThreshold > 0 {
 		for i := 0; i < len(fp.announcesList)-cachedAnnosThreshold; i++ {
@@ -243,18 +245,19 @@ func (f *lightFetcher) forEachPeer(check func(id enode.ID, p *fetcherPeer) bool)
 }
 
 // mainloop is the main event loop of the light fetcher, which is responsible for
-// - announcement maintenance(ulc)
-//   If we are running in ultra light client mode, then all announcements from
-//   the trusted servers are maintained. If the same announcements from trusted
-//   servers reach the threshold, then the relevant header is requested for retrieval.
 //
-// - block header retrieval
-//   Whenever we receive announce with higher td compared with local chain, the
-//   request will be made for header retrieval.
+//   - announcement maintenance(ulc)
+//     If we are running in ultra light client mode, then all announcements from
+//     the trusted servers are maintained. If the same announcements from trusted
+//     servers reach the threshold, then the relevant header is requested for retrieval.
 //
-// - re-sync trigger
-//   If the local chain lags too much, then the fetcher will enter "synnchronise"
-//   mode to retrieve missing headers in batch.
+//   - block header retrieval
+//     Whenever we receive announce with higher td compared with local chain, the
+//     request will be made for header retrieval.
+//
+//   - re-sync trigger
+//     If the local chain lags too much, then the fetcher will enter "synnchronise"
+//     mode to retrieve missing headers in batch.
 func (f *lightFetcher) mainloop() {
 	defer f.wg.Done()
 

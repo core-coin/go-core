@@ -18,10 +18,11 @@ package vm
 
 import (
 	"fmt"
+
 	"github.com/core-coin/uint256"
 )
 
-// Memory implements a simple memory model for the Core Virtual Machine.
+// Memory implements a simple memory model for the core virtual machine.
 type Memory struct {
 	store          []byte
 	lastEnergyCost uint64

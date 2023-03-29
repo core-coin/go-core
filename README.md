@@ -60,8 +60,8 @@ $ gocore console
 ```
 
 This command will:
- * Start `gocore` in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to download more data in exchange for avoiding processing the entire history of the CORE network, which is very CPU intensive.
- * Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach it to an already running `gocore` instance with `gocore attach`.
+* Start `gocore` in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to download more data in exchange for avoiding processing the entire history of the CORE network, which is very CPU intensive.
+* Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach it to an already running `gocore` instance with `gocore attach`.
 
 ### A Full node on the Devin network (PoW)
 
@@ -75,8 +75,8 @@ The `console` subcommand has the exact same meaning as above and they are equall
 
 Specifying the `--devin` flag, however, will reconfigure your `gocore` instance a bit:
 
- * Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
- * Instead of connecting to the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
+* Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
+* Instead of connecting to the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
 
 ### Configuration
 
@@ -115,19 +115,19 @@ The IPC interface is enabled by default and exposes all the APIs supported by `g
 
 HTTP based JSON-RPC API options:
 
-  * `--rpc` Enable the HTTP-RPC server
-  * `--rpcaddr` HTTP-RPC server listening interface (default: `localhost`)
-  * `--rpcport` HTTP-RPC server listening port (default: `8545`)
-  * `--rpcapi` API's offered over the HTTP-RPC interface (default: `xcb,net,web3`)
-  * `--rpccorsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
-  * `--ws` Enable the WS-RPC server
-  * `--wsaddr` WS-RPC server listening interface (default: `localhost`)
-  * `--wsport` WS-RPC server listening port (default: `8546`)
-  * `--wsapi` API's offered over the WS-RPC interface (default: `xcb,net,web3`)
-  * `--wsorigins` Origins from which to accept websockets requests
-  * `--ipcdisable` Disable the IPC-RPC server
-  * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xcb,miner,net,personal,txpool,web3`)
-  * `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
+* `--rpc` Enable the HTTP-RPC server
+* `--rpcaddr` HTTP-RPC server listening interface (default: `localhost`)
+* `--rpcport` HTTP-RPC server listening port (default: `8545`)
+* `--rpcapi` API's offered over the HTTP-RPC interface (default: `xcb,net,web3`)
+* `--rpccorsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
+* `--ws` Enable the WS-RPC server
+* `--wsaddr` WS-RPC server listening interface (default: `localhost`)
+* `--wsport` WS-RPC server listening port (default: `8546`)
+* `--wsapi` API's offered over the WS-RPC interface (default: `xcb,net,web3`)
+* `--wsorigins` Origins from which to accept websockets requests
+* `--ipcdisable` Disable the IPC-RPC server
+* `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xcb,miner,net,personal,txpool,web3`)
+* `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
 
 You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect via HTTP, WS, or IPC to a `gocore` node configured with the above flags and you'll need to speak JSON-RPC on all transports. You can reuse the same connection for multiple requests!
 
@@ -291,11 +291,11 @@ If you'd like to contribute to go-core, please fork, fix, commit and send a pull
 
 Please make sure your contributions adhere to our coding guidelines:
 
- * Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting) guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
- * Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
- * Pull requests need to be based on and opened against the `master` branch.
- * Commit messages should be prefixed with the package(s) they modify.
-   * E.g. "xcb, rpc: make trace configs optional"
+* Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting) guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
+* Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
+* Pull requests need to be based on and opened against the `master` branch.
+* Commit messages should be prefixed with the package(s) they modify.
+  * E.g. "xcb, rpc: make trace configs optional"
 
 ## Security vulnerability disclosure
 

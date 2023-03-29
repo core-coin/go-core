@@ -21,16 +21,16 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"sort"
 	"strings"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // Tree is a merkle tree of node records.
@@ -40,7 +40,7 @@ type Tree struct {
 }
 
 // Sign signs the tree with the given private key and sets the sequence number.
-func (t *Tree) Sign(key *eddsa.PrivateKey, domain string) (url string, err error) {
+func (t *Tree) Sign(key *crypto.PrivateKey, domain string) (url string, err error) {
 	root := *t.root
 	sig, err := crypto.Sign(root.sigHash(), key)
 	if err != nil {
@@ -48,14 +48,13 @@ func (t *Tree) Sign(key *eddsa.PrivateKey, domain string) (url string, err error
 	}
 	root.sig = sig
 	t.root = &root
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	link := newLinkEntry(domain, &pub)
+	link := newLinkEntry(domain, key.PublicKey())
 	return link.String(), nil
 }
 
 // SetSignature verifies the given signature and assigns it as the tree's current
 // signature if valid.
-func (t *Tree) SetSignature(pubkey *eddsa.PublicKey, signature string) error {
+func (t *Tree) SetSignature(pubkey *crypto.PublicKey, signature string) error {
 	sig, err := b64format.DecodeString(signature)
 	if err != nil || len(sig) != crypto.ExtendedSignatureLength {
 		return errInvalidSig
@@ -212,7 +211,7 @@ type (
 	linkEntry struct {
 		str    string
 		domain string
-		pubkey *eddsa.PublicKey
+		pubkey *crypto.PublicKey
 	}
 )
 
@@ -246,9 +245,8 @@ func (e *rootEntry) sigHash() []byte {
 	return h.Sum(nil)
 }
 
-func (e *rootEntry) verifySignature(pubkey *eddsa.PublicKey) bool {
-	enckey := crypto.FromEDDSAPub(pubkey)
-	return crypto.VerifySignature(enckey, e.sigHash(), e.sig)
+func (e *rootEntry) verifySignature(pubkey *crypto.PublicKey) bool {
+	return crypto.VerifySignature(pubkey[:], e.sigHash(), e.sig)
 }
 
 func (e *branchEntry) String() string {
@@ -263,8 +261,8 @@ func (e *linkEntry) String() string {
 	return linkPrefix + e.str
 }
 
-func newLinkEntry(domain string, pubkey *eddsa.PublicKey) *linkEntry {
-	key := b32format.EncodeToString(crypto.CompressPubkey(pubkey))
+func newLinkEntry(domain string, pubkey *crypto.PublicKey) *linkEntry {
+	key := b32format.EncodeToString(pubkey[:])
 	str := key + "@" + domain
 	return &linkEntry{str, domain, pubkey}
 }
@@ -322,7 +320,7 @@ func parseLink(e string) (*linkEntry, error) {
 	if err != nil {
 		return nil, entryError{"link", errBadPubkey}
 	}
-	key, err := crypto.DecompressPubkey(keybytes)
+	key, err := crypto.UnmarshalPubKey(keybytes)
 	if err != nil {
 		return nil, entryError{"link", errBadPubkey}
 	}
@@ -383,7 +381,7 @@ func truncateHash(hash string) string {
 // URL encoding
 
 // ParseURL parses an enrtree:// URL and returns its components.
-func ParseURL(url string) (domain string, pubkey *eddsa.PublicKey, err error) {
+func ParseURL(url string) (domain string, pubkey *crypto.PublicKey, err error) {
 	le, err := parseLink(url)
 	if err != nil {
 		return "", nil, err

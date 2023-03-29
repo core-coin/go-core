@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ func callEnergy(availableEnergy, base uint64, callCost *uint256.Int) (uint64, er
 	availableEnergy = availableEnergy - base
 	energy := availableEnergy - availableEnergy/64
 	// If the bit length exceeds 64 bit we know that the newly calculated "energy" for CIP150
-	// is smaller than the requested amount. Therefor we return the new energy instead
+	// is smaller than the requested amount. Therefore we return the new energy instead
 	// of returning an error.
 	if !callCost.IsUint64() || energy < callCost.Uint64() {
 		return energy, nil

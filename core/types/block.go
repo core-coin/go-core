@@ -23,13 +23,16 @@ import (
 	"io"
 	"math/big"
 	"reflect"
+	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -127,10 +130,19 @@ func (h *Header) SanityCheck() error {
 	return nil
 }
 
+// hasherPool holds LegacyKeccak hashers.
+var hasherPool = sync.Pool{
+	New: func() interface{} {
+		return sha3.New256()
+	},
+}
+
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.New256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
+	sha := hasherPool.Get().(crypto.SHA3State)
+	defer hasherPool.Put(sha)
+	sha.Reset()
+	rlp.Encode(sha, x)
+	sha.Read(h[:])
 	return h
 }
 

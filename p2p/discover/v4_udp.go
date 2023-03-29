@@ -23,19 +23,17 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/p2p/discover/v4wire"
 	"io"
 	"net"
 	"sync"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/netutil"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/discover/v4wire"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // Errors
@@ -50,7 +48,7 @@ var (
 )
 
 const (
-	respTimeout    = 1000 * time.Millisecond
+	respTimeout    = 500 * time.Millisecond
 	expiration     = 20 * time.Second
 	bondExpiration = 24 * time.Hour
 
@@ -70,7 +68,7 @@ type UDPv4 struct {
 	conn        UDPConn
 	log         log.Logger
 	netrestrict *netutil.Netlist
-	priv        *eddsa.PrivateKey
+	priv        *crypto.PrivateKey
 	localNode   *enode.LocalNode
 	db          *enode.DB
 	tab         *Table
@@ -187,11 +185,11 @@ func (t *UDPv4) Resolve(n *enode.Node) *enode.Node {
 		}
 	}
 	// Otherwise perform a network lookup.
-	var key enode.Secp256k1
+	var key enode.Ed448
 	if n.Load(&key) != nil {
-		return n // no secp256k1 key
+		return n // no ed448 key
 	}
-	result := t.LookupPubkey((*eddsa.PublicKey)(&key))
+	result := t.LookupPubkey((*crypto.PublicKey)(&key))
 	for _, rn := range result {
 		if rn.ID() == n.ID() {
 			if rn, err := t.RequestENR(rn); err == nil {
@@ -260,7 +258,7 @@ func (t *UDPv4) makePing(toaddr *net.UDPAddr) *v4wire.Ping {
 }
 
 // LookupPubkey finds the closest nodes to the given public key.
-func (t *UDPv4) LookupPubkey(key *eddsa.PublicKey) []*enode.Node {
+func (t *UDPv4) LookupPubkey(key *crypto.PublicKey) []*enode.Node {
 	if t.tab.len() == 0 {
 		// All nodes were dropped, refresh. The very first query will hit this
 		// case and run the bootstrapping logic.
@@ -281,8 +279,7 @@ func (t *UDPv4) lookupRandom() []*enode.Node {
 
 // lookupSelf implements transport.
 func (t *UDPv4) lookupSelf() []*enode.Node {
-	pub := eddsa.Ed448DerivePublicKey(*t.priv)
-	return t.newLookup(t.closeCtx, encodePubkey(&pub)).run()
+	return t.newLookup(t.closeCtx, encodePubkey(t.priv.PublicKey())).run()
 }
 
 func (t *UDPv4) newRandomLookup(ctx context.Context) *lookup {
@@ -350,6 +347,7 @@ func (t *UDPv4) RequestENR(n *enode.Node) (*enode.Node, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// Add a matcher for the reply to the pending reply queue. Responses are matched if
 	// they reference the request we're about to send.
 	rm := t.pending(n.ID(), addr.IP, v4wire.ENRResponsePacket, func(r v4wire.Packet) (matched bool, requestDone bool) {
@@ -588,19 +586,16 @@ func (t *UDPv4) nodeFromRPC(sender *net.UDPAddr, rn v4wire.Node) (*node, error) 
 	if t.netrestrict != nil && !t.netrestrict.Contains(rn.IP) {
 		return nil, errors.New("not contained in netrestrict whitelist")
 	}
-	key, err := v4wire.DecodePubkey(rn.ID)
-	if err != nil {
-		return nil, err
-	}
+	key := v4wire.DecodePubkey(rn.ID)
 	n := wrapNode(enode.NewV4(key, rn.IP, int(rn.TCP), int(rn.UDP)))
-	err = n.ValidateComplete()
+	err := n.ValidateComplete()
 	return n, err
 }
 
 func nodeToRPC(n *node) v4wire.Node {
-	var key eddsa.PublicKey
+	var key crypto.PublicKey
 	var ekey v4wire.Pubkey
-	if err := n.Load((*enode.Secp256k1)(&key)); err == nil {
+	if err := n.Load((*enode.Ed448)(&key)); err == nil {
 		ekey = v4wire.EncodePubkey(&key)
 	}
 	return v4wire.Node{ID: ekey, IP: n.IP(), UDP: uint16(n.UDP()), TCP: uint16(n.TCP())}
@@ -633,7 +628,7 @@ func (t *UDPv4) wrapPacket(p v4wire.Packet) *packetHandlerV4 {
 // packetHandlerV4 wraps a packet with handler functions.
 type packetHandlerV4 struct {
 	v4wire.Packet
-	senderKey *eddsa.PublicKey // used for ping
+	senderKey *crypto.PublicKey // used for ping
 
 	// preverify checks whether the packet is valid and should be handled at all.
 	preverify func(p *packetHandlerV4, from *net.UDPAddr, fromID enode.ID, fromKey v4wire.Pubkey) error
@@ -646,10 +641,7 @@ type packetHandlerV4 struct {
 func (t *UDPv4) verifyPing(h *packetHandlerV4, from *net.UDPAddr, fromID enode.ID, fromKey v4wire.Pubkey) error {
 	req := h.Packet.(*v4wire.Ping)
 
-	senderKey, err := v4wire.DecodePubkey(fromKey)
-	if err != nil {
-		return err
-	}
+	senderKey := v4wire.DecodePubkey(fromKey)
 	if v4wire.Expired(req.Expiration) {
 		return errExpired
 	}
@@ -678,6 +670,7 @@ func (t *UDPv4) handlePing(h *packetHandlerV4, from *net.UDPAddr, fromID enode.I
 	} else {
 		t.tab.addVerifiedNode(n)
 	}
+
 	// Update node database and endpoint predictor.
 	t.db.UpdateLastPingReceived(n.ID(), from.IP, time.Now())
 	t.localNode.UDPEndpointStatement(from, &net.UDPAddr{IP: req.To.IP, Port: int(req.To.UDP)})

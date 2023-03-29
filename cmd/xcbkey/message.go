@@ -21,11 +21,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 type outputSign struct {
@@ -50,12 +51,15 @@ To sign a message contained in a file, use the --msgfile flag.
 		passphraseFlag,
 		jsonFlag,
 		msgfileFlag,
+		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
-		message := getMessage(ctx, 1)
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
 		}
+
+		message := getMessage(ctx, 1)
+
 		// Load the keyfile.
 		keyfilepath := ctx.Args().First()
 		keyjson, err := ioutil.ReadFile(keyfilepath)
@@ -103,11 +107,12 @@ It is possible to refer to a file containing the message.`,
 		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
+		if ctx.IsSet(utils.NetworkIdFlag.Name) {
+			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+		}
+
 		addressStr := ctx.Args().First()
 		signatureHex := ctx.Args().Get(1)
-		if ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
-		}
 		message := getMessage(ctx, 2)
 
 		if !common.IsHexAddress(addressStr) {
@@ -115,8 +120,7 @@ It is possible to refer to a file containing the message.`,
 		}
 		address, err := common.HexToAddress(addressStr)
 		if err != nil {
-			utils.Fatalf("Invalid address: %s", err)
-
+			utils.Fatalf("invalid address %v, err: %v", addressStr, err)
 		}
 		signature, err := hex.DecodeString(signatureHex)
 		if err != nil {
@@ -127,13 +131,12 @@ It is possible to refer to a file containing the message.`,
 		if err != nil || recoveredPubkey == nil {
 			utils.Fatalf("Signature verification failed: %v", err)
 		}
-		recoveredPubkeyBytes := crypto.FromEDDSAPub(recoveredPubkey)
-		recoveredAddress := crypto.PubkeyToAddress(*recoveredPubkey)
+		recoveredAddress := crypto.PubkeyToAddress(recoveredPubkey)
 		success := address == recoveredAddress
 
 		out := outputVerify{
 			Success:            success,
-			RecoveredPublicKey: hex.EncodeToString(recoveredPubkeyBytes),
+			RecoveredPublicKey: hex.EncodeToString(recoveredPubkey[:]),
 			RecoveredAddress:   recoveredAddress.Hex(),
 		}
 		if ctx.Bool(jsonFlag.Name) {

@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package keystore implements encrypted storage of secp256k1 private keys.
+// Package keystore implements encrypted storage of ed448 private keys.
 //
 // Keys are stored as encrypted JSON files according to the Web3 Secret Storage specification.
-// See https://github.com/core-coin/wiki/wiki/Web3-Secret-Storage-Definition for more information.
+// See https://github.com/core/wiki/wiki/Web3-Secret-Storage-Definition for more information.
 package keystore
 
 import (
 	crand "crypto/rand"
 	"errors"
-	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -32,19 +31,21 @@ import (
 	"sync"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
 )
 
 var (
 	ErrLocked  = accounts.NewAuthNeededError("password or unlock")
 	ErrNoMatch = errors.New("no key for given address or file")
 	ErrDecrypt = errors.New("could not decrypt key with given password")
+
+	// ErrAccountAlreadyExists is returned if an account attempted to import is
+	// already present in the keystore.
+	ErrAccountAlreadyExists = errors.New("account already exists")
 )
 
 // KeyStoreType is the reflect type of a keystore backend.
@@ -68,7 +69,8 @@ type KeyStore struct {
 	updateScope event.SubscriptionScope // Subscription scope tracking current live listeners
 	updating    bool                    // Whether the event notification loop is running
 
-	mu sync.RWMutex
+	mu       sync.RWMutex
+	importMu sync.Mutex // Import Mutex locks the import to prevent two insertions from racing
 }
 
 type unlocked struct {
@@ -80,15 +82,6 @@ type unlocked struct {
 func NewKeyStore(keydir string, scryptN, scryptP int) *KeyStore {
 	keydir, _ = filepath.Abs(keydir)
 	ks := &KeyStore{storage: &keyStorePassphrase{keydir, scryptN, scryptP, false}}
-	ks.init(keydir)
-	return ks
-}
-
-// NewPlaintextKeyStore creates a keystore for the given directory.
-// Deprecated: Use NewKeyStore.
-func NewPlaintextKeyStore(keydir string) *KeyStore {
-	keydir, _ = filepath.Abs(keydir)
-	ks := &KeyStore{storage: &keyStorePlain{keydir}}
 	ks.init(keydir)
 	return ks
 }
@@ -255,8 +248,7 @@ func (ks *KeyStore) Delete(a accounts.Account, passphrase string) error {
 	return err
 }
 
-// SignHash calculates a EDDSA signature for the given hash. The produced
-// signature is in the [R || S || V] format where V is 0 or 1.
+// SignHash calculates a EDDSA signature for the given hash.
 func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 	// Look up the key to sign with and abort if it cannot be found
 	ks.mu.RLock()
@@ -280,13 +272,11 @@ func (ks *KeyStore) SignTx(a accounts.Account, tx *types.Transaction, networkID 
 	if !found {
 		return nil, ErrLocked
 	}
-	// Depending on the presence of the network ID, sign with CIP155 or nucleus
 	return types.SignTx(tx, types.NewNucleusSigner(networkID), unlockedKey.PrivateKey)
 }
 
 // SignHashWithPassphrase signs hash if the private key matching the given address
-// can be decrypted with the given passphrase. The produced signature is in the
-// [R || S || V] format where V is 0 or 1.
+// can be decrypted with the given passphrase.
 func (ks *KeyStore) SignHashWithPassphrase(a accounts.Account, passphrase string, hash []byte) (signature []byte, err error) {
 	_, key, err := ks.getDecryptedKey(a, passphrase)
 	if err != nil {
@@ -437,14 +427,27 @@ func (ks *KeyStore) Import(keyJSON []byte, passphrase, newPassphrase string) (ac
 	if err != nil {
 		return accounts.Account{}, err
 	}
+	ks.importMu.Lock()
+	defer ks.importMu.Unlock()
+
+	if ks.cache.hasAddress(key.Address) {
+		return accounts.Account{
+			Address: key.Address,
+		}, ErrAccountAlreadyExists
+	}
 	return ks.importKey(key, newPassphrase)
 }
 
 // ImportEDDSA stores the given key into the key directory, encrypting it with the passphrase.
-func (ks *KeyStore) ImportEDDSA(priv *eddsa.PrivateKey, passphrase string) (accounts.Account, error) {
+func (ks *KeyStore) ImportEDDSA(priv *crypto.PrivateKey, passphrase string) (accounts.Account, error) {
+	ks.importMu.Lock()
+	defer ks.importMu.Unlock()
+
 	key := newKeyFromEDDSA(priv)
 	if ks.cache.hasAddress(key.Address) {
-		return accounts.Account{}, fmt.Errorf("account already exists")
+		return accounts.Account{
+			Address: key.Address,
+		}, ErrAccountAlreadyExists
 	}
 	return ks.importKey(key, passphrase)
 }
@@ -468,19 +471,7 @@ func (ks *KeyStore) Update(a accounts.Account, passphrase, newPassphrase string)
 	return ks.storage.StoreKey(a.URL.Path, key, newPassphrase)
 }
 
-// ImportPreSaleKey decrypts the given Core presale wallet and stores
-// a key file in the key directory. The key file is encrypted with the same passphrase.
-func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (accounts.Account, error) {
-	a, _, err := importPreSaleKey(ks.storage, keyJSON, passphrase)
-	if err != nil {
-		return a, err
-	}
-	ks.cache.add(a)
-	ks.refreshWallets()
-	return a, nil
-}
-
 // zeroKey zeroes a private key in memory.
-func zeroKey(k *eddsa.PrivateKey) {
-	k = new(eddsa.PrivateKey)
+func zeroKey(k *crypto.PrivateKey) {
+	k = new(crypto.PrivateKey)
 }

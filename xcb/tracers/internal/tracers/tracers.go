@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
-//go:generate go-bindata -o assets.go -pkg tracers -ignore tracers.go -ignore assets.go ./...
+//go:generate go-bindata -nometadata -o assets.go -pkg tracers -ignore tracers.go -ignore assets.go ./...
 //go:generate gofmt -s -w assets.go
 
 // Package tracers contains the actual JavaScript tracer assets.

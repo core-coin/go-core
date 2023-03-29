@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -22,11 +22,11 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 const sampleNumber = 3 // Number of transactions sampled in a block
@@ -115,7 +115,6 @@ func (gpo *Oracle) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	if headHash == lastHead {
 		return lastPrice, nil
 	}
-
 	var (
 		sent, exp int
 		number    = head.Number.Uint64()
@@ -176,11 +175,9 @@ type getBlockPricesResult struct {
 
 type transactionsByEnergyPrice []*types.Transaction
 
-func (t transactionsByEnergyPrice) Len() int      { return len(t) }
-func (t transactionsByEnergyPrice) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
-func (t transactionsByEnergyPrice) Less(i, j int) bool {
-	return t[i].EnergyPrice().Cmp(t[j].EnergyPrice()) < 0
-}
+func (t transactionsByEnergyPrice) Len() int           { return len(t) }
+func (t transactionsByEnergyPrice) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
+func (t transactionsByEnergyPrice) Less(i, j int) bool { return t[i].EnergyPriceCmp(t[j]) < 0 }
 
 // getBlockPrices calculates the lowest transaction energy price in a given block
 // and sends it to the result channel. If the block is empty or all transactions

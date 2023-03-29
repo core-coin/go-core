@@ -28,10 +28,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var enrdumpCommand = cli.Command{
@@ -89,9 +90,9 @@ func dumpRecord(out io.Writer, r *enr.Record) {
 }
 
 func dumpNodeURL(out io.Writer, n *enode.Node) {
-	var key enode.Secp256k1
+	var key enode.Ed448
 	if n.Load(&key) != nil {
-		return // no secp256k1 public key
+		return // no ed448 public key
 	}
 	fmt.Fprintf(out, "URLv4:   %s\n", n.URLv4())
 }

@@ -17,11 +17,12 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/rlp"
 	"io"
 	"math"
 	"time"
+
+	"github.com/core-coin/go-core/v2/les/utils"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 const (

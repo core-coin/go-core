@@ -19,7 +19,7 @@
 // stored in key/value pairs. To store and retrieve key/values in a record, use the Entry
 // interface.
 //
-// Signature Handling
+// # Signature Handling
 //
 // Records must be signed before transmitting them to another node.
 //
@@ -30,7 +30,7 @@
 // When creating a record, set the entries you want and use a signing function provided by
 // the identity scheme to add the signature. Modifying a record invalidates the signature.
 //
-// Package enr supports the "secp256k1-keccak" identity scheme.
+// Package enr supports the "ed448-keccak" identity scheme.
 package enr
 
 import (
@@ -40,10 +40,10 @@ import (
 	"io"
 	"sort"
 
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
-const SizeLimit = 300 // maximum encoded size of a node record in bytes
+const SizeLimit = 600 // maximum encoded size of a node record in bytes
 
 var (
 	ErrInvalidSig     = errors.New("invalid signature on node record")

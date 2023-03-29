@@ -20,8 +20,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // senderFromServer is a types.Signer that remembers the sender address returned by the RPC
@@ -30,17 +30,14 @@ import (
 type senderFromServer struct {
 	addr      common.Address
 	blockhash common.Hash
-}
-
-func (s *senderFromServer) NetworkID() int {
-	panic("can't sign with senderFromServer")
+	networkID int
 }
 
 var errNotCached = errors.New("sender not cached")
 
 func setSenderFromServer(tx *types.Transaction, addr common.Address, block common.Hash) {
 	// Use types.Sender for side-effect to store our signer into the cache.
-	types.Sender(&senderFromServer{addr, block}, tx)
+	types.Sender(&senderFromServer{addr, block, int(tx.NetworkID())}, tx)
 }
 
 func (s *senderFromServer) Equal(other types.Signer) bool {
@@ -53,6 +50,10 @@ func (s *senderFromServer) Sender(tx *types.Transaction) (common.Address, error)
 		return common.Address{}, errNotCached
 	}
 	return s.addr, nil
+}
+
+func (s *senderFromServer) NetworkID() int {
+	return s.networkID
 }
 
 func (s *senderFromServer) Hash(tx *types.Transaction) common.Hash {

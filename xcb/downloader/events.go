@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 package downloader
 
-import "github.com/core-coin/go-core/core/types"
+import "github.com/core-coin/go-core/v2/core/types"
 
 type DoneEvent struct {
 	Latest *types.Header

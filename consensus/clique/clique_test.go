@@ -17,17 +17,16 @@
 package clique
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // This test case is a repro of an annoying bug that took us forever to catch.
@@ -38,12 +37,10 @@ import (
 // empty one **also completes** the empty one, ending up in a known-block error.
 func TestReimportMirroredState(t *testing.T) {
 	// Initialize a Clique chain with a single signer
-	address, _ := common.HexToAddress("cb540000000000000000000000000000000000000000")
 	var (
 		db     = rawdb.NewMemoryDatabase()
-		key, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub    = eddsa.Ed448DerivePublicKey(*key)
-		addr   = crypto.PubkeyToAddress(pub)
+		key, _ = crypto.UnmarshalPrivateKeyHex("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
+		addr   = key.Address()
 		engine = New(params.AllCliqueProtocolChanges.Clique, db)
 		signer = types.NewNucleusSigner(params.AllCliqueProtocolChanges.NetworkID)
 	)
@@ -57,7 +54,10 @@ func TestReimportMirroredState(t *testing.T) {
 	genesis := genspec.MustCommit(db)
 
 	// Generate a batch of blocks, each properly signed
-	chain, _ := core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	chain, err := core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	if err != nil {
+		t.Fatalf("cannot create a new block chain: %v", err)
+	}
 	defer chain.Stop()
 
 	blocks, _ := core.GenerateChain(params.AllCliqueProtocolChanges, genesis, engine, db, 3, func(i int, block *core.BlockGen) {
@@ -68,7 +68,7 @@ func TestReimportMirroredState(t *testing.T) {
 		// We want to simulate an empty middle block, having the same state as the
 		// first one. The last is needs a state change again to force a reorg.
 		if i != 1 {
-			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(addr), address, new(big.Int), params.TxEnergy, nil, nil), signer, key)
+			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(addr), common.Address{0x00}, new(big.Int), params.TxEnergy, nil, nil), signer, key)
 			if err != nil {
 				panic(err)
 			}
@@ -83,7 +83,10 @@ func TestReimportMirroredState(t *testing.T) {
 		header.Extra = make([]byte, extraVanity+extraSeal)
 		header.Difficulty = diffInTurn
 
-		sig, _ := crypto.Sign(SealHash(header).Bytes(), key)
+		sig, err := crypto.Sign(SealHash(header).Bytes(), key)
+		if err != nil {
+			t.Fatalf("cannot sign: %v", err)
+		}
 		copy(header.Extra[len(header.Extra)-extraSeal:], sig)
 		blocks[i] = block.WithSeal(header)
 	}
@@ -91,7 +94,10 @@ func TestReimportMirroredState(t *testing.T) {
 	db = rawdb.NewMemoryDatabase()
 	genspec.MustCommit(db)
 
-	chain, _ = core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	chain, err = core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	if err != nil {
+		t.Fatalf("cannot create a new block chain: %v", err)
+	}
 	defer chain.Stop()
 
 	if _, err := chain.InsertChain(blocks[:2]); err != nil {
@@ -102,9 +108,12 @@ func TestReimportMirroredState(t *testing.T) {
 	}
 
 	// Simulate a crash by creating a new chain on top of the database, without
-	// flushing the dirty states out. Insert the last block, trigerring a sidechain
+	// flushing the dirty states out. Insert the last block, triggering a sidechain
 	// reimport.
-	chain, _ = core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	chain, err = core.NewBlockChain(db, nil, params.AllCliqueProtocolChanges, engine, vm.Config{}, nil, nil)
+	if err != nil {
+		t.Fatalf("cannot create a new block chain: %v", err)
+	}
 	defer chain.Stop()
 
 	if _, err := chain.InsertChain(blocks[2:]); err != nil {

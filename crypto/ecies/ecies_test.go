@@ -34,11 +34,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
-	"golang.org/x/crypto/sha3"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
+	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func TestKDF(t *testing.T) {
@@ -75,12 +76,12 @@ func TestSharedKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
-	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
+	pub1 := crypto.DerivePublicKey(prv1)
+	pub2 := crypto.DerivePublicKey(prv2)
 
-	sk1 := crypto.ComputeSecret(prv1, &pub2)
+	sk1 := crypto.ComputeSecret(prv1, pub2)
 
-	sk2 := crypto.ComputeSecret(prv2, &pub1)
+	sk2 := crypto.ComputeSecret(prv2, pub1)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys)
@@ -89,13 +90,13 @@ func TestSharedKey(t *testing.T) {
 
 func TestSharedKeyPadding(t *testing.T) {
 	// sanity checks
-	prv0 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
-	prv1 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
+	prv0, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991"))
+	prv1, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868"))
 	pub0 := decode("2f65ab658f3b0bc9fbdea48703b9c5c0dc2151c5ae8c4b77b1e5cdaee9fa20748e01960ab51ddb118d1209f73d186f0444921ad72c7c757480")
 	pub1 := decode("77b1d24670fee6dd811f4f06573ce5f19844eb50cb6ce960d12bdbc8bf77be2221111cf755371d9e896e544ea2a4ebf206b775df55f5e74580")
 
-	prv0Pub := eddsa.Ed448DerivePublicKey(*prv0)
-	prv1Pub := eddsa.Ed448DerivePublicKey(*prv1)
+	prv0Pub := crypto.DerivePublicKey(prv0)
+	prv1Pub := crypto.DerivePublicKey(prv1)
 
 	if !bytes.Equal(prv0Pub[:], pub0) {
 		t.Errorf("mismatched prv0.X:\nhave: %x\nwant: %x\n", prv0Pub, pub0)
@@ -105,26 +106,33 @@ func TestSharedKeyPadding(t *testing.T) {
 	}
 
 	// test shared secret generation
-	sk1 := crypto.ComputeSecret(prv0, &prv1Pub)
+	sk1 := crypto.ComputeSecret(prv0, prv1Pub)
 
-	sk2 := crypto.ComputeSecret(prv1, &prv0Pub)
+	sk2 := crypto.ComputeSecret(prv1, prv0Pub)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys.Error())
 	}
 }
 
-// Benchmark the generation of S256 shared keys.
-func BenchmarkGenSharedKeyS256(b *testing.B) {
+// Benchmark the generation of P256 keys.
+func BenchmarkGenerateKeyP256(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if _, err := crypto.GenerateKey(rand.Reader); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+// Benchmark the generation of P256 shared keys.
+func BenchmarkGenSharedKeyP256(b *testing.B) {
 	prv, err := crypto.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatal(err)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prv)
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		k := crypto.ComputeSecret(prv, &pub)
+		k := crypto.ComputeSecret(prv, crypto.DerivePublicKey(prv))
 		if len(k) != 0 {
 			b.Fatal("zero key len")
 		}
@@ -142,10 +150,9 @@ func TestEncryptDecrypt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
 
 	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, &pub2, message, nil, nil)
+	ct, err := Encrypt(rand.Reader, crypto.DerivePublicKey(prv2), message, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,11 +177,10 @@ func TestDecryptShared2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*prv)
 
 	message := []byte("Hello, world.")
 	shared2 := []byte("shared data 2")
-	ct, err := Encrypt(rand.Reader, &pub, message, nil, shared2)
+	ct, err := Encrypt(rand.Reader, crypto.DerivePublicKey(prv), message, nil, shared2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,12 +204,11 @@ func TestDecryptShared2(t *testing.T) {
 }
 
 func TestBox(t *testing.T) {
-	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
-	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
-	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
+	prv1, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991"))
+	prv2, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868"))
 
 	message := []byte("Hello, world.")
-	ct, err := Encrypt(rand.Reader, &pub2, message, nil, nil)
+	ct, err := Encrypt(rand.Reader, crypto.DerivePublicKey(prv2), message, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,15 +228,15 @@ func TestBox(t *testing.T) {
 // Verify GenerateShared against static values - useful when
 // debugging changes in underlying libs
 func TestSharedKeyStatic(t *testing.T) {
-	prv1 := hexKey("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991")
-	prv2 := hexKey("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868")
+	prv1, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("1033b1bac4c731e800b6399a357e51cf1b20eec942aac608c90b89553003e2ed3f94bd80613ee9006b1e62b6bb45109d0db9a4833e78363991"))
+	prv2, _ := crypto.UnmarshalPrivateKey(common.Hex2Bytes("fdf02153a9d5e3e0f3a958bbe9ee7e79eaf77a22703aee462354998ab0178f06566707c297df3510a3b071ccedac6b3154531aa51d10401868"))
 
-	pub1 := eddsa.Ed448DerivePublicKey(*prv1)
-	pub2 := eddsa.Ed448DerivePublicKey(*prv2)
+	pub1 := crypto.DerivePublicKey(prv1)
+	pub2 := crypto.DerivePublicKey(prv2)
 
-	sk1 := crypto.ComputeSecret(prv1, &pub2)
+	sk1 := crypto.ComputeSecret(prv1, pub2)
 
-	sk2 := crypto.ComputeSecret(prv2, &pub1)
+	sk2 := crypto.ComputeSecret(prv2, pub1)
 
 	if !bytes.Equal(sk1, sk2) {
 		t.Fatal(ErrBadSharedKeys)
@@ -241,14 +246,6 @@ func TestSharedKeyStatic(t *testing.T) {
 	if !bytes.Equal(sk1, sk) {
 		t.Fatalf("shared secret mismatch: want: %x have: %x", sk, sk1)
 	}
-}
-
-func hexKey(prv string) *eddsa.PrivateKey {
-	key, err := crypto.HexToEDDSA(prv)
-	if err != nil {
-		panic(err)
-	}
-	return key
 }
 
 func decode(s string) []byte {

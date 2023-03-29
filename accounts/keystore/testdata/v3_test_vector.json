@@ -1,74 +1,98 @@
 {
     "wikipage_test_vector_scrypt": {
         "json": {
-            "crypto":{
-                "cipher":"aes-128-ctr",
-                "ciphertext":"5ba7202d39678bbdc1774bf4d498fbdc310fee1a6dd9d5f08c3d5ccc8f5c69d5f3e12f7b7c0f9a825a9e5a06772578068f339a3537b608fbcbc4b9db4f20d1f1c77eff4b376bed2e1d63a2f58143e2dc03f20682e4f69c55457975c2ac596b21853e387fffa3c4b32d9ab339d4ea19172fb6f012afda4e5f2e49ac92bee282d549e3f7a839b57386875fe50c60b7d78d",
-                "cipherparams":{
-                    "iv":"07d3d54ef519777588267037141fbb83"
+            "crypto": {
+                "cipher": "aes-128-ctr",
+                "ciphertext": "708f75bd78eab77698956edf365da7b69f8eef07de2fda41c4a20cfeb605f937aa71424b519a0d9c5d7cfa1d80d1a395cfb798b28a388371e8",
+                "cipherparams": {
+                    "iv": "4bd3d7337d6d028ed567654e132a0bbf"
                 },
-                "kdf":"scrypt",
-                "kdfparams":{
-                    "dklen":32,
-                    "n":4096,
-                    "p":6,
-                    "r":8,
-                    "salt":"5cd517592d40b4621a1aa8eae776897325de73bc2dcca9e85f0102c1379a2bec"
+                "kdf": "scrypt",
+                "kdfparams": {
+                    "dklen": 32,
+                    "n": 262144,
+                    "p": 1,
+                    "r": 8,
+                    "salt": "e0987203f71d00a41e907c771e9c82c0e66409b49be8fb79b703617c83fbecc8"
                 },
-                "mac":"a97ef67c885658540780897a34f5b96d1cf4ecf4beb0964796235d07c198ac31"
+                "mac": "130521afee5bc41160b3330eb1215ffc15d711dc23d2bf7023ac78e4ee996b1a"
             },
-            "id":"f192872d-8a24-4f55-a955-9ce1c13fb324",
+            "id": "ebc4b65a-817f-4236-a4d6-2f6beeecd1a9",
             "version": 3
         },
         "password": "foobar",
-        "priv": "c1ed22156cc076fbb283daf823415b0b2d63e56a1f84c899a49cecda9ae3686dc5ce3bbdcbca88d361d87e460513ec66e344c90defe3081484202445cabf9c05edb8f059ab575d72dbb363940b6da4ef780cccd69356f844a025681cda5e7edd55a682062e4631b3e2253b49d462e69a5d6296ab758b3240e6a1d8182751a76b5958895928744c7f2f114eb3f68fe5be"
+        "priv": "07529ebcc60432bbfa36b0a0bf21738759dde441903d1947c5a3a67951a4f5308f883884a3227186fceda56dbd838a5b9bd9346cc04cc67a06"
+    },
+    "wikipage_test_vector_pbkdf2": {
+        "json": {
+            "crypto": {
+                "cipher": "aes-128-ctr",
+                "ciphertext": "d9ab41e34075b8f7dd72ef1bcd2881b5c66abfd5f08b9c0f6b482480db711fd160ca0d181e88f2828375780398a3a29886068c471cbc29c290",
+                "cipherparams": {
+                    "iv": "472b50da108f5d6cbe01c9634238c99a"
+                },
+                "kdf": "scrypt",
+                "kdfparams": {
+                    "dklen": 32,
+                    "n": 262144,
+                    "p": 1,
+                    "r": 8,
+                    "salt": "64ff27fc052ce3c885a22f97f68651481703ba1a4be958b0f8c5b74f020e2190"
+                },
+                "mac": "a8af0fad9f9886c3fee470d3e055765130741d23bbc629102f0b9f4390c666c7"
+            },
+            "id": "725051b0-048c-4886-9fdf-ae520236cf4d",
+            "version": 3
+        },
+        "password": "foobar",
+        "priv": "5b402f36a6a94d41e0970c3bfca377dc8ce5065673decf70ae77780a3381b77771ab58295d59b4626dedfa54d5796619219bc3b05952058b3a"
     },
     "31_byte_key": {
         "json": {
-            "crypto" : {
-                "cipher" : "aes-128-ctr",
-                "cipherparams" : {
-                    "iv" : "e0c41130a323adc1446fc82f724bca2f"
+            "crypto": {
+                "cipher": "aes-128-ctr",
+                "ciphertext": "44b73b0543fb1439eb2b598ca69322e8bc26ff16554a37beea3eb02073e6ef9cc1bfe4b055c662fb94411c55f64f9d3f47db1a1afdf93879e5",
+                "cipherparams": {
+                    "iv": "d94d539cacd2cf497199c69a7a175e77"
                 },
-                "ciphertext" : "9517cd5bdbe69076f9bf5057248c6c050141e970efa36ce53692d5d59a3984",
-                "kdf" : "scrypt",
-                "kdfparams" : {
-                    "dklen" : 32,
-                    "n" : 2,
-                    "r" : 8,
-                    "p" : 1,
-                    "salt" : "711f816911c92d649fb4c84b047915679933555030b3552c1212609b38208c63"
+                "kdf": "scrypt",
+                "kdfparams": {
+                    "dklen": 32,
+                    "n": 262144,
+                    "p": 1,
+                    "r": 8,
+                    "salt": "21bcea5649aa64583533111fc3d7697a261a40264dbb4bc49dcf33589c6c1a28"
                 },
-                "mac" : "d5e116151c6aa71470e67a7d42c9620c75c4d23229847dcc127794f0732b0db5"
+                "mac": "c084f3663e0f0b024f85e89332e9b8362c4f67e50efa1f6f1b2f1425504b57dd"
             },
-            "id" : "fecfc4ce-e956-48fd-953b-30f8b52ed66c",
-            "version" : 3
+            "id": "d36bb52c-f88e-4d13-b77a-25d741315da5",
+            "version": 3
         },
-        "password": "foo",
-        "priv": "fa7b3db73dc7dfdf8c5fbdb796d741e4488628c41fc4febd9160a866ba0f35"
+        "password": "foobar",
+        "priv": "8bd315f67f08d93862345ba06138587596994f0f1c8b8c15603abb740474a923c32979484276716fc1246cb4ca1d8bb3f7686c304a70980e10"
     },
     "30_byte_key": {
         "json": {
-            "crypto" : {
-                "cipher" : "aes-128-ctr",
-                "cipherparams" : {
-                    "iv" : "3ca92af36ad7c2cd92454c59cea5ef00"
+            "crypto": {
+                "cipher": "aes-128-ctr",
+                "ciphertext": "aba9bd16b2c1e02d622f5cf805f67ca28105a5d170c59f1d9bd29e57ab9d10baf761521b57f1d2466a530feb565bf8b7a92dc4c5f4070eb695",
+                "cipherparams": {
+                    "iv": "a5df7616653016c2bb9ebabc4755d16b"
                 },
-                "ciphertext" : "108b7d34f3442fc26ab1ab90ca91476ba6bfa8c00975a49ef9051dc675aa",
-                "kdf" : "scrypt",
-                "kdfparams" : {
-                    "dklen" : 32,
-                    "n" : 2,
-                    "r" : 8,
-                    "p" : 1,
-                    "salt" : "d0769e608fb86cda848065642a9c6fa046845c928175662b8e356c77f914cd3b"
+                "kdf": "scrypt",
+                "kdfparams": {
+                    "dklen": 32,
+                    "n": 262144,
+                    "p": 1,
+                    "r": 8,
+                    "salt": "1ebd7893dd50f29290188b7a51f7adcece4b0b8019278a74c739659d2218520b"
                 },
-                "mac" : "75d0e6759f7b3cefa319c3be41680ab6beea7d8328653474bd06706d4cc67420"
+                "mac": "e1a041a4026ecf37d2cd5eccc2e34be2284b150596f35a38e1ac0472751f745b"
             },
-            "id" : "a37e1559-5955-450d-8075-7b8931b392b2",
-            "version" : 3
+            "id": "dc490d9b-e14a-4473-9e29-b18dd623dae6",
+            "version": 3
         },
-        "password": "foo",
-        "priv": "81c29e8142bb6a81bef5a92bda7a8328a5c85bb2f9542e76f9b0f94fc018"
+        "password": "foobar",
+        "priv": "f88a5dae8a2606ab69e9105461b08e6af453eb1e6309838024a2b422f21dab88f2dabd0424f7e50f336a3cc8ceed0b53ae2d5b7e829dc3000e"
     }
 }

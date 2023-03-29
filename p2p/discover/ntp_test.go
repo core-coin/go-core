@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -21,8 +21,8 @@ import (
 )
 
 func TestNTPDrift(t *testing.T) {
-	t.Skipf("skip failing tests")
-	drift, err := sntpDrift(ntpChecks)
+	t.Skip()
+	drift, err := sntpDrift(3)
 	if err != nil {
 		t.Errorf("TestNTPDrift err: %s", err.Error())
 		return

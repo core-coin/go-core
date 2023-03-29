@@ -18,24 +18,25 @@ package les
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcbclient"
 	"math/big"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/les/checkpointoracle"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/discv5"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/les/checkpointoracle"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/discv5"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcbclient"
 )
 
 func errResp(code errCode, format string, v ...interface{}) error {
@@ -75,7 +76,7 @@ type lesCommons struct {
 // NodeInfo represents a short summary of the Core sub-protocol metadata
 // known about the host peer.
 type NodeInfo struct {
-	Network    uint64                   `json:"network"`    // Core network ID (1=Mainnet, 3=Devin)
+	Network    uint64                   `json:"network"`    // Core network ID (Mainnet=1, Devin=3, Enterprise=4)
 	Difficulty *big.Int                 `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash              `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Config     *params.ChainConfig      `json:"config"`     // Chain configuration for the fork rules

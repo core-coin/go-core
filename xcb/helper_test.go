@@ -27,28 +27,26 @@ import (
 	"sync"
 	"testing"
 
-	eddsa "github.com/core-coin/go-goldilocks"
+	"github.com/core-coin/go-core/v2/xcbdb"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 var (
-	testBankKey, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub            = eddsa.Ed448DerivePublicKey(*testBankKey)
-	testBank       = crypto.PubkeyToAddress(pub)
+	testBankKey, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 )
 
 // newTestProtocolManager creates a new protocol manager for testing purposes,
@@ -56,12 +54,12 @@ var (
 // channels for different events.
 func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func(int, *core.BlockGen), newtx chan<- []*types.Transaction) (*ProtocolManager, xcbdb.Database, error) {
 	var (
-		evmux  = new(event.TypeMux)
+		cvmux  = new(event.TypeMux)
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()
 		gspec  = &core.Genesis{
 			Config: params.TestChainConfig,
-			Alloc:  core.GenesisAlloc{testBank: {Balance: big.NewInt(1000000)}},
+			Alloc:  core.GenesisAlloc{testBankKey.Address(): {Balance: big.NewInt(1000000)}},
 		}
 		genesis       = gspec.MustCommit(db)
 		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, nil, nil)
@@ -70,7 +68,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func
 	if _, err := blockchain.InsertChain(chain); err != nil {
 		panic(err)
 	}
-	pm, err := NewProtocolManager(gspec.Config, nil, mode, DefaultConfig.NetworkId, evmux, &testTxPool{added: newtx, pool: make(map[common.Hash]*types.Transaction)}, engine, blockchain, db, 1, nil, false)
+	pm, err := NewProtocolManager(gspec.Config, nil, mode, DefaultConfig.NetworkId, cvmux, &testTxPool{added: newtx, pool: make(map[common.Hash]*types.Transaction)}, engine, blockchain, db, 1, nil, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -140,10 +138,7 @@ func (p *testTxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 	batches := make(map[common.Address]types.Transactions)
 	for _, tx := range p.pool {
-		from, err := types.Sender(types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), tx)
-		if err != nil {
-			return nil, err
-		}
+		from, _ := types.Sender(types.NewNucleusSigner(big.NewInt(1)), tx)
 		batches[from] = append(batches[from], tx)
 	}
 	for _, batch := range batches {
@@ -157,9 +152,9 @@ func (p *testTxPool) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subs
 }
 
 // newTestTransaction create a new dummy transaction.
-func newTestTransaction(from *eddsa.PrivateKey, nonce uint64, datasize int) *types.Transaction {
+func newTestTransaction(from *crypto.PrivateKey, nonce uint64, datasize int) *types.Transaction {
 	tx := types.NewTransaction(nonce, common.Address{}, big.NewInt(0), 100000, big.NewInt(0), make([]byte, datasize))
-	tx, _ = types.SignTx(tx, types.NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID), from)
+	tx, _ = types.SignTx(tx, types.NewNucleusSigner(big.NewInt(1)), from)
 	return tx
 }
 
@@ -190,7 +185,8 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 			head    = pm.blockchain.CurrentHeader()
 			td      = pm.blockchain.GetTd(head.Hash(), head.Number.Uint64())
 		)
-		tp.handshake(nil, td, head.Hash(), genesis.Hash(), forkid.NewID(pm.blockchain), forkid.NewFilter(pm.blockchain))
+		forkID := forkid.NewID(pm.blockchain.Config(), pm.blockchain.Genesis().Hash(), pm.blockchain.CurrentHeader().Number.Uint64())
+		tp.handshake(nil, td, head.Hash(), genesis.Hash(), forkID, forkid.NewFilter(pm.blockchain))
 	}
 	return tp, errc
 }

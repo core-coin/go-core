@@ -18,12 +18,12 @@ package bind
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // WaitMined waits for tx to be mined on the blockchain.
@@ -56,14 +56,14 @@ func WaitMined(ctx context.Context, b DeployBackend, tx *types.Transaction) (*ty
 // contract address when it is mined. It stops waiting when ctx is canceled.
 func WaitDeployed(ctx context.Context, b DeployBackend, tx *types.Transaction) (common.Address, error) {
 	if tx.To() != nil {
-		return common.Address{}, fmt.Errorf("tx is not contract creation")
+		return common.Address{}, errors.New("tx is not contract creation")
 	}
 	receipt, err := WaitMined(ctx, b, tx)
 	if err != nil {
 		return common.Address{}, err
 	}
 	if receipt.ContractAddress == (common.Address{}) {
-		return common.Address{}, fmt.Errorf("zero address")
+		return common.Address{}, errors.New("zero address")
 	}
 	// Check that code has indeed been deployed at the address.
 	code, err := b.CodeAt(ctx, receipt.ContractAddress, nil)

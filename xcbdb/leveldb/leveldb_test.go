@@ -1,4 +1,4 @@
-// Copyright 2019 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -19,10 +19,11 @@ package leveldb
 import (
 	"testing"
 
-	"github.com/core-coin/go-core/xcbdb"
-	"github.com/core-coin/go-core/xcbdb/dbtest"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb/dbtest"
 )
 
 func TestLevelDB(t *testing.T) {

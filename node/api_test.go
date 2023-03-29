@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,14 +18,16 @@ package node
 
 import (
 	"bytes"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // This test uses the admin_startRPC and admin_startWS APIs,
@@ -243,13 +245,10 @@ func TestStartRPC(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
 			// Apply some sane defaults.
 			config := test.cfg
 			// config.Logger = testlog.Logger(t, log.LvlDebug)
-			config.NoUSB = true
 			config.P2P.NoDiscovery = true
 
 			// Create Node.

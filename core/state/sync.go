@@ -19,22 +19,23 @@ package state
 import (
 	"bytes"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 // NewStateSync create a new state trie download scheduler.
 func NewStateSync(root common.Hash, database xcbdb.KeyValueReader, bloom *trie.SyncBloom) *trie.Sync {
 	var syncer *trie.Sync
-	callback := func(leaf []byte, parent common.Hash) error {
+	callback := func(path []byte, leaf []byte, parent common.Hash) error {
 		var obj Account
 		if err := rlp.Decode(bytes.NewReader(leaf), &obj); err != nil {
 			return err
 		}
-		syncer.AddSubTrie(obj.Root, 64, parent, nil)
-		syncer.AddCodeEntry(common.BytesToHash(obj.CodeHash), 64, parent)
+		syncer.AddSubTrie(obj.Root, path, parent, nil)
+		syncer.AddCodeEntry(common.BytesToHash(obj.CodeHash), path, parent)
 		return nil
 	}
 	syncer = trie.NewSync(root, database, callback, bloom)

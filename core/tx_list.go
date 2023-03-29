@@ -22,9 +22,9 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for
@@ -287,8 +287,8 @@ func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Tran
 		threshold := a.Div(a, b)
 		// Have to ensure that the new energy price is higher than the old energy
 		// price as well as checking the percentage threshold to ensure that
-		// this is accurate for low (Ore-level) energy price replacements
-		if old.EnergyPrice().Cmp(tx.EnergyPrice()) >= 0 || threshold.Cmp(tx.EnergyPrice()) > 0 {
+		// this is accurate for low (Wei-level) energy price replacements
+		if old.EnergyPriceCmp(tx) >= 0 || tx.EnergyPriceIntCmp(threshold) < 0 {
 			return false, nil
 		}
 	}
@@ -415,7 +415,7 @@ func (h priceHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
 func (h priceHeap) Less(i, j int) bool {
 	// Sort primarily by price, returning the cheaper one
-	switch h[i].EnergyPrice().Cmp(h[j].EnergyPrice()) {
+	switch h[i].EnergyPriceCmp(h[j]) {
 	case -1:
 		return true
 	case 1:
@@ -433,6 +433,7 @@ func (h *priceHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
+	old[n-1] = nil
 	*h = old[0 : n-1]
 	return x
 }
@@ -492,7 +493,7 @@ func (l *txPricedList) Cap(threshold *big.Int, local *accountSet) types.Transact
 			continue
 		}
 		// Stop the discards if we've reached the threshold
-		if tx.EnergyPrice().Cmp(threshold) >= 0 {
+		if tx.EnergyPriceIntCmp(threshold) >= 0 {
 			save = append(save, tx)
 			break
 		}
@@ -532,7 +533,7 @@ func (l *txPricedList) Underpriced(tx *types.Transaction, local *accountSet) boo
 		return false
 	}
 	cheapest := []*types.Transaction(*l.items)[0]
-	return cheapest.EnergyPrice().Cmp(tx.EnergyPrice()) >= 0
+	return cheapest.EnergyPriceCmp(tx) >= 0
 }
 
 // Discard finds a number of most underpriced transactions, removes them from the

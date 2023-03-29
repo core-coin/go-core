@@ -30,7 +30,7 @@
     "name": "Core Mail",
     "version": "1",
     "networkId": "1",
-    "verifyingContract": "cb10cccccccccccccccccccccccccccccccccccccccc"
+    "verifyingContract": "cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba"
   },
   "message": {
     "test":257

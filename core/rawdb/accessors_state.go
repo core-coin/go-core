@@ -1,4 +1,4 @@
-// Copyright 2018 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,9 +17,10 @@
 package rawdb
 
 import (
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // ReadPreimage retrieves a single preimage of the provided hash.
@@ -44,7 +45,7 @@ func ReadCode(db xcbdb.KeyValueReader, hash common.Hash) []byte {
 	// Try with the legacy code scheme first, if not then try with current
 	// scheme. Since most of the code will be found with legacy scheme.
 	//
-	// todo(rjl493456442) change the order when we forcibly upgrade the code
+	// todo(raisty) change the order when we forcibly upgrade the code
 	// scheme with snapshot.
 	data, _ := db.Get(hash[:])
 	if len(data) != 0 {

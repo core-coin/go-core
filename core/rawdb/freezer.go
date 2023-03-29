@@ -26,12 +26,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
 	"github.com/prometheus/tsdb/fileutil"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
@@ -62,10 +64,10 @@ const (
 // freezer is an memory mapped append-only database to store immutable chain data
 // into flat files:
 //
-// - The append only nature ensures that disk writes are minimized.
-// - The memory mapping ensures we can max out system memory for caching without
-//   reserving it for go-core. This would also reduce the memory requirements
-//   of Gocore, and thus also GC overhead.
+//   - The append only nature ensures that disk writes are minimized.
+//   - The memory mapping ensures we can max out system memory for caching without
+//     reserving it for go-core. This would also reduce the memory requirements
+//     of Gocore, and thus also GC overhead.
 type freezer struct {
 	// WARNING: The `frozen` field is accessed atomically. On 32 bit platforms, only
 	// 64-bit aligned fields can be atomic. The struct is guaranteed to be so aligned,
@@ -231,7 +233,7 @@ func (f *freezer) AppendAncient(number uint64, hash, header, body, receipts, td 
 	return nil
 }
 
-// Truncate discards any recent data above the provided threshold number.
+// TruncateAncients discards any recent data above the provided threshold number.
 func (f *freezer) TruncateAncients(items uint64) error {
 	if atomic.LoadUint64(&f.frozen) <= items {
 		return nil
@@ -245,7 +247,7 @@ func (f *freezer) TruncateAncients(items uint64) error {
 	return nil
 }
 
-// sync flushes all data tables to disk.
+// Sync flushes all data tables to disk.
 func (f *freezer) Sync() error {
 	var errs []error
 	for _, table := range f.tables {
@@ -386,6 +388,7 @@ func (f *freezer) freeze(db xcbdb.KeyValueStore) {
 			log.Crit("Failed to delete frozen canonical blocks", "err", err)
 		}
 		batch.Reset()
+
 		// Wipe out side chains also and track dangling side chians
 		var dangling []common.Hash
 		for number := first; number < f.frozen; number++ {
@@ -447,7 +450,7 @@ func (f *freezer) freeze(db xcbdb.KeyValueStore) {
 
 		// Avoid database thrashing with tiny writes
 		if f.frozen-first < freezerBatchLimit {
-			time.Sleep(freezerRecheckInterval)
+			backoff = true
 		}
 	}
 }

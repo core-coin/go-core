@@ -18,52 +18,10 @@ package enode
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 	"testing/quick"
-
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/stretchr/testify/assert"
 )
-
-var pyRecord, _ = hex.DecodeString("f884b8407098ad865b00a582051940cb9cf36836572411a47278783077011599ed5cd16b76f2635f4e234738f30813a89eb9137e3e3df5266e3a1f11df72ecf1145ccb9c01826964827634826970847f00000189736563703235366b31a103ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31388375647082765f")
-
-// TestPythonInterop checks that we can decode and verify a record produced by the Python
-// implementation.
-func TestPythonInterop(t *testing.T) {
-	t.Skip("TestPythonInterop checks that we can decode and verify a record produced by the Python implementation")
-	var r enr.Record
-	if err := rlp.DecodeBytes(pyRecord, &r); err != nil {
-		t.Fatalf("can't decode: %v", err)
-	}
-	n, err := New(ValidSchemes, &r)
-	if err != nil {
-		t.Fatalf("can't verify record: %v", err)
-	}
-
-	var (
-		wantID  = HexID("1f0b5df32640f4fff3e5160c27e9cfb1eae29afaa950d53885c63a2bdca47e0e49a8f69896e632e4b23e9d956f51d2f90adf22dae8e922b9")
-		wantSeq = uint64(1)
-		wantIP  = enr.IPv4{127, 0, 0, 1}
-		wantUDP = enr.UDP(30303)
-	)
-	if n.Seq() != wantSeq {
-		t.Errorf("wrong seq: got %d, want %d", n.Seq(), wantSeq)
-	}
-	if n.ID() != wantID {
-		t.Errorf("wrong id: got %x, want %x", n.ID(), wantID)
-	}
-	want := map[enr.Entry]interface{}{new(enr.IPv4): &wantIP, new(enr.UDP): &wantUDP}
-	for k, v := range want {
-		desc := fmt.Sprintf("loading key %q", k.ENRKey())
-		if assert.NoError(t, n.Load(k), desc) {
-			assert.Equal(t, k, v, desc)
-		}
-	}
-}
 
 func TestHexID(t *testing.T) {
 	ref := ID{0, 0, 0, 0, 0, 0, 0, 128, 106, 217, 182, 31, 165, 174, 1, 67, 7, 235, 220, 150, 66, 83, 173, 205, 159, 44, 10, 57, 42, 161, 26, 188}

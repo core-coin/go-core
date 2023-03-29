@@ -18,29 +18,27 @@ package fetcher
 
 import (
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 var (
 	testdb       = rawdb.NewMemoryDatabase()
-	testKey, _   = crypto.HexToEDDSA("71f6e8535ca1b851a31008f7c49361726ccd6642643b094acae200013ebb15879ca7cb7b5ef822b2310e70b8c59fcf6d6a99e390b361491959")
-	pub          = eddsa.Ed448DerivePublicKey(*testKey)
-	testAddress  = crypto.PubkeyToAddress(pub)
-	genesis      = core.GenesisBlockForTesting(testdb, testAddress, big.NewInt(1000000000))
+	testKey, _   = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
+	genesis      = core.GenesisBlockForTesting(testdb, testKey.Address(), big.NewInt(1000000000))
 	unknownBlock = types.NewBlock(&types.Header{EnergyLimit: params.GenesisEnergyLimit}, nil, nil, nil, new(trie.Trie))
 )
 
@@ -55,7 +53,7 @@ func makeChain(n int, seed byte, parent *types.Block) ([]common.Hash, map[common
 		// If the block number is multiple of 3, send a bonus transaction to the miner
 		if parent == genesis && i%3 == 0 {
 			signer := types.MakeSigner(params.TestChainConfig.NetworkID)
-			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
+			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testKey.Address()), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)
 			}
@@ -344,7 +342,6 @@ func testSequentialAnnouncements(t *testing.T, light bool) {
 			imported <- block
 		}
 	}
-
 	for i := len(hashes) - 2; i >= 0; i-- {
 		tester.fetcher.Notify("valid", hashes[i], uint64(len(hashes)-i-1), time.Now().Add(-arriveTimeout), headerFetcher, bodyFetcher)
 		verifyImportEvent(t, imported, true)
@@ -394,7 +391,6 @@ func testConcurrentAnnouncements(t *testing.T, light bool) {
 			imported <- block
 		}
 	}
-
 	for i := len(hashes) - 2; i >= 0; i-- {
 		tester.fetcher.Notify("first", hashes[i], uint64(len(hashes)-i-1), time.Now().Add(-arriveTimeout), firstHeaderWrapper, firstBodyFetcher)
 		tester.fetcher.Notify("second", hashes[i], uint64(len(hashes)-i-1), time.Now().Add(-arriveTimeout+time.Millisecond), secondHeaderWrapper, secondBodyFetcher)
@@ -534,7 +530,6 @@ func testRandomArrivalImport(t *testing.T, light bool) {
 			imported <- block
 		}
 	}
-
 	for i := len(hashes) - 1; i >= 0; i-- {
 		if i != skip {
 			tester.fetcher.Notify("valid", hashes[i], uint64(len(hashes)-i-1), time.Now().Add(-arriveTimeout), headerFetcher, bodyFetcher)
@@ -716,7 +711,6 @@ func testInvalidNumberAnnouncement(t *testing.T, light bool) {
 			imported <- block
 		}
 	}
-
 	// Announce a block with a bad number, check for immediate drop
 	tester.fetcher.Notify("bad", hashes[0], 2, time.Now().Add(-arriveTimeout), badHeaderFetcher, badBodyFetcher)
 	verifyImportEvent(t, imported, false)
@@ -769,7 +763,6 @@ func TestEmptyBlockShortCircuit(t *testing.T) {
 		}
 		imported <- block
 	}
-
 	// Iteratively announce blocks until all are imported
 	for i := len(hashes) - 2; i >= 0; i-- {
 		tester.fetcher.Notify("valid", hashes[i], uint64(len(hashes)-i-1), time.Now().Add(-arriveTimeout), headerFetcher, bodyFetcher)

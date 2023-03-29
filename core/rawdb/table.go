@@ -17,7 +17,7 @@
 package rawdb
 
 import (
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 // table is a wrapper around a database that prefixes each key access with a pre-

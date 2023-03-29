@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,10 +17,11 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/p2p/enode"
 	"time"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/les/utils"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 // PrivateClientAPI implements the lespay client side API
@@ -35,8 +36,8 @@ func NewPrivateClientAPI(vt *ValueTracker) *PrivateClientAPI {
 
 // parseNodeStr converts either an enode address or a plain hex node id to enode.ID
 func parseNodeStr(nodeStr string) (enode.ID, error) {
-	if node, err := enode.ParseID(nodeStr); err == nil {
-		return node, nil
+	if id, err := enode.ParseID(nodeStr); err == nil {
+		return id, nil
 	}
 	if node, err := enode.Parse(enode.ValidSchemes, nodeStr); err == nil {
 		return node.ID(), nil

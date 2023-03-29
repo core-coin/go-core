@@ -21,13 +21,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcbdb"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -35,7 +36,6 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", block.Hash(), params.MainnetGenesisHash)
 	}
-
 	block = DefaultDevinGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.DevinGenesisHash {
 		t.Errorf("wrong devin genesis hash, got %v, want %v", block.Hash(), params.DevinGenesisHash)
@@ -46,14 +46,14 @@ func TestSetupGenesis(t *testing.T) {
 	var (
 		customghash = common.HexToHash("0xd3fde1cd83b29aea233b42e6c72bc51f77d44911d829ae0e0627d5ccad74da66")
 		customg     = Genesis{
-			Config: &params.ChainConfig{EWASMBlock: big.NewInt(3)},
+			Config: &params.ChainConfig{NetworkID: big.NewInt(1), EWASMBlock: big.NewInt(3)},
 			Alloc: GenesisAlloc{
 				{1}: {Balance: big.NewInt(1), Storage: map[common.Hash]common.Hash{{1}: {1}}},
 			},
 		}
 		oldcustomg = customg
 	)
-	oldcustomg.Config = &params.ChainConfig{EWASMBlock: big.NewInt(2)}
+	oldcustomg.Config = &params.ChainConfig{NetworkID: big.NewInt(1), EWASMBlock: big.NewInt(2)}
 	tests := []struct {
 		name       string
 		fn         func(xcbdb.Database) (*params.ChainConfig, common.Hash, error)
@@ -67,7 +67,7 @@ func TestSetupGenesis(t *testing.T) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
-			wantConfig: params.AllCryptoreProtocolChanges,
+			wantConfig: params.MainnetChainConfig,
 		},
 		{
 			name: "no block in DB, genesis == nil",
@@ -120,12 +120,20 @@ func TestSetupGenesis(t *testing.T) {
 				// Commit the 'old' genesis block with transition at #2.
 				// Advance to block #4, past the transition block of customg.
 				genesis := oldcustomg.MustCommit(db)
-
-				bc, _ := NewBlockChain(db, nil, oldcustomg.Config, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
+				bc, err := NewBlockChain(db, nil, oldcustomg.Config, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
+				if err != nil {
+					panic(err)
+				}
 				defer bc.Stop()
-
 				blocks, _ := GenerateChain(oldcustomg.Config, genesis, cryptore.NewFaker(), db, 4, nil)
-				bc.InsertChain(blocks)
+				_, err = bc.InsertChain(blocks)
+				if err != nil {
+					panic(err)
+				}
+				bc, err = NewBlockChain(db, nil, oldcustomg.Config, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
+				if err != nil {
+					panic(err)
+				}
 				bc.CurrentBlock()
 				// This should return a compatibility error.
 				return SetupGenesisBlock(db, &customg)
@@ -146,8 +154,8 @@ func TestSetupGenesis(t *testing.T) {
 		config, hash, err := test.fn(db)
 		// Check the return values.
 		if !reflect.DeepEqual(err, test.wantErr) {
-			speww := spew.ConfigState{DisablePointerAddresses: true, DisableCapacities: true}
-			t.Errorf("%s: returned error %#v, want %#v", test.name, speww.NewFormatter(err), speww.NewFormatter(test.wantErr))
+			spew := spew.ConfigState{DisablePointerAddresses: true, DisableCapacities: true}
+			t.Errorf("%s: returned error %#v, want %#v", test.name, spew.NewFormatter(err), spew.NewFormatter(test.wantErr))
 		}
 		if !reflect.DeepEqual(config, test.wantConfig) {
 			t.Errorf("%s:\nreturned %v\nwant     %v", test.name, config, test.wantConfig)

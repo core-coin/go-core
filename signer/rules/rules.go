@@ -22,16 +22,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/rules/deps"
-	"github.com/core-coin/go-core/signer/storage"
 	"github.com/dop251/goja"
+
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/rules/deps"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 var (
-	BigNumber_JS, _ = deps.Asset("bignumber.js")
+	BigNumber_JS = deps.MustAsset("bignumber.js")
 )
 
 // consoleOutput is an override for the console.log and console.error methods to

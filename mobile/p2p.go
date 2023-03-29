@@ -21,7 +21,7 @@ package gocore
 import (
 	"errors"
 
-	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/v2/p2p"
 )
 
 // NodeInfo represents pi short summary of the information known about the host.

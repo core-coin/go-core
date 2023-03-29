@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -21,11 +21,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func TestMemoryEnergyCost(t *testing.T) {
@@ -87,11 +87,11 @@ func TestCIP2200(t *testing.T) {
 		statedb.SetState(address, common.Hash{}, common.BytesToHash([]byte{tt.original}))
 		statedb.Finalise(true) // Push the state into the "original" slot
 
-		vmctx := Context{
+		vmctx := BlockContext{
 			CanTransfer: func(StateDB, common.Address, *big.Int) bool { return true },
 			Transfer:    func(StateDB, common.Address, common.Address, *big.Int) {},
 		}
-		vmenv := NewCVM(vmctx, statedb, params.AllCryptoreProtocolChanges, Config{ExtraCips: []int{2200}})
+		vmenv := NewCVM(vmctx, TxContext{}, statedb, params.MainnetChainConfig, Config{})
 
 		_, energy, err := vmenv.Call(AccountRef(common.Address{}), address, nil, tt.energypool, new(big.Int))
 		if err != tt.failure {

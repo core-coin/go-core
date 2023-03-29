@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2017 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,9 +23,10 @@ import (
 	"testing"
 
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/rlp"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // randomHash generates a random blob of data and returns it as a hash.
@@ -58,6 +59,29 @@ func randomAccountSet(hashes ...string) map[common.Hash][]byte {
 		accounts[common.HexToHash(hash)] = randomAccount()
 	}
 	return accounts
+}
+
+// randomStorageSet generates a set of random slots with the given strings as
+// the slot addresses.
+func randomStorageSet(accounts []string, hashes [][]string, nilStorage [][]string) map[common.Hash]map[common.Hash][]byte {
+	storages := make(map[common.Hash]map[common.Hash][]byte)
+	for index, account := range accounts {
+		storages[common.HexToHash(account)] = make(map[common.Hash][]byte)
+
+		if index < len(hashes) {
+			hashes := hashes[index]
+			for _, hash := range hashes {
+				storages[common.HexToHash(account)][common.HexToHash(hash)] = randomHash().Bytes()
+			}
+		}
+		if index < len(nilStorage) {
+			nils := nilStorage[index]
+			for _, hash := range nils {
+				storages[common.HexToHash(account)][common.HexToHash(hash)] = nil
+			}
+		}
+	}
+	return storages
 }
 
 // Tests that if a disk layer becomes stale, no active external references will

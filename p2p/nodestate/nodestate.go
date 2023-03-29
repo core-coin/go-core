@@ -18,17 +18,19 @@ package nodestate
 
 import (
 	"errors"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
 	"reflect"
 	"sync"
 	"time"
 	"unsafe"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -528,7 +530,6 @@ func (ns *NodeStateMachine) saveNode(id enode.ID, node *nodeInfo) error {
 	for _, t := range node.timeouts {
 		storedState &= ^t.mask
 	}
-
 	enc := nodeInfoEnc{
 		Enr:     *node.node.Record(),
 		Version: ns.setup.Version,
@@ -607,6 +608,7 @@ func (ns *NodeStateMachine) updateEnode(n *enode.Node) (enode.ID, *nodeInfo) {
 func (ns *NodeStateMachine) Persist(n *enode.Node) error {
 	ns.lock.Lock()
 	defer ns.lock.Unlock()
+
 	ns.checkStarted()
 	if id, node := ns.updateEnode(n); node != nil && node.dirty {
 		err := ns.saveNode(id, node)
@@ -657,6 +659,7 @@ func (ns *NodeStateMachine) setState(n *enode.Node, setFlags, resetFlags Flags, 
 	newState := (node.state & (^reset)) | set
 	changed := oldState ^ newState
 	node.state = newState
+
 	// Remove the timeout callbacks for all reset and set flags,
 	// even they are not existent(it's noop).
 	ns.removeTimeouts(node, set|reset)

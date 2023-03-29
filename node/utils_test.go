@@ -20,8 +20,8 @@
 package node
 
 import (
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // NoopLifecycle is a trivial implementation of the Service interface.
@@ -57,6 +57,7 @@ func (s *InstrumentedService) Start() error {
 	}
 	return s.start
 }
+
 func (s *InstrumentedService) Stop() error {
 	if s.stopHook != nil {
 		s.stopHook()

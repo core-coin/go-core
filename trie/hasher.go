@@ -17,20 +17,13 @@
 package trie
 
 import (
-	"hash"
 	"sync"
 
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
-)
 
-// keccakState wraps sha3.state. In addition to the usual hash methods, it also supports
-// Read to get a variable amount of data from the hash state. Read is faster than Sum
-// because it doesn't copy the internal state, but also modifies the internal state.
-type keccakState interface {
-	hash.Hash
-	Read([]byte) (int, error)
-}
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/rlp"
+)
 
 type sliceBuffer []byte
 
@@ -46,7 +39,7 @@ func (b *sliceBuffer) Reset() {
 // hasher is a type used for the trie Hash operation. A hasher has some
 // internal preallocated temp space
 type hasher struct {
-	sha      keccakState
+	sha      crypto.SHA3State
 	tmp      sliceBuffer
 	parallel bool // Whether to use paralallel threads when hashing
 }
@@ -56,7 +49,7 @@ var hasherPool = sync.Pool{
 	New: func() interface{} {
 		return &hasher{
 			tmp: make(sliceBuffer, 0, 550), // cap is as large as a full fullNode.
-			sha: sha3.New256().(keccakState),
+			sha: sha3.New256().(crypto.SHA3State),
 		}
 	},
 }
@@ -74,11 +67,11 @@ func returnHasherToPool(h *hasher) {
 // hash collapses a node down into a hash node, also returning a copy of the
 // original node initialized with the computed hash to replace the original one.
 func (h *hasher) hash(n node, force bool) (hashed node, cached node) {
-	// We're not storing the node, just hashing, use available cached data
+	// Return the cached hash if it's available
 	if hash, _ := n.cache(); hash != nil {
 		return hash, n
 	}
-	// Trie not processed yet or needs storage, walk the children
+	// Trie not processed yet, walk the children
 	switch n := n.(type) {
 	case *shortNode:
 		collapsed, cached := h.hashShortNodeChildren(n)

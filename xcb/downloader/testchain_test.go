@@ -18,30 +18,28 @@ package downloader
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Test chain parameters.
 var (
-	testKey, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-	pub         = eddsa.Ed448DerivePublicKey(*testKey)
-	testAddress = crypto.PubkeyToAddress(pub)
+	testKey, _  = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 	testDB      = rawdb.NewMemoryDatabase()
-	testGenesis = core.GenesisBlockForTesting(testDB, testAddress, big.NewInt(1000000000))
+	testGenesis = core.GenesisBlockForTesting(testDB, testKey.Address(), big.NewInt(1000000000))
 )
 
 // The common prefix of all test chains:
-var testChainBase = newTestChain(blockCacheItems+200, testGenesis)
+var testChainBase = newTestChain(blockCacheMaxItems+200, testGenesis)
 
 // Different forks on top of the base chain:
 var testChainForkLightA, testChainForkLightB, testChainForkHeavy *testChain
@@ -129,7 +127,7 @@ func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool)
 		// Include transactions to the miner to make blocks more interesting.
 		if parent == tc.genesis && i%22 == 0 {
 			signer := types.MakeSigner(params.TestChainConfig.NetworkID)
-			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
+			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testKey.Address()), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)
 			}

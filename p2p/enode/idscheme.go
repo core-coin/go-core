@@ -18,13 +18,13 @@ package enode
 
 import (
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // List of known secure identity schemes.
@@ -41,15 +41,18 @@ var ValidSchemesForTesting = enr.SchemeMap{
 type V4ID struct{}
 
 // SignV4 signs a record using the v4 scheme.
-func SignV4(r *enr.Record, privkey *eddsa.PrivateKey) error {
+func SignV4(r *enr.Record, privkey *crypto.PrivateKey) error {
 	// Copy r to avoid modifying it if signing fails.
 	cpy := *r
 	cpy.Set(enr.ID("v4"))
-	pub := eddsa.Ed448DerivePublicKey(*privkey)
-	cpy.Set(Secp256k1(pub))
+	cpy.Set(Ed448(*privkey.PublicKey()))
 
 	h := sha3.New256()
-	rlp.Encode(h, cpy.AppendElements(nil))
+	err := rlp.Encode(h, cpy.AppendElements(nil))
+	if err != nil {
+		return err
+	}
+
 	sig, err := crypto.Sign(h.Sum(nil), privkey)
 	if err != nil {
 		return err
@@ -61,7 +64,7 @@ func SignV4(r *enr.Record, privkey *eddsa.PrivateKey) error {
 }
 
 func (V4ID) Verify(r *enr.Record, sig []byte) error {
-	var entry s256raw
+	var entry ed448raw
 	if err := r.Load(&entry); err != nil {
 		return err
 	} else if len(entry) != 57 {
@@ -69,7 +72,11 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 	}
 
 	h := sha3.New256()
-	rlp.Encode(h, r.AppendElements(nil))
+	err := rlp.Encode(h, r.AppendElements(nil))
+	if err != nil {
+		return err
+	}
+
 	if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
 		return enr.ErrInvalidSig
 	}
@@ -77,7 +84,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 }
 
 func (V4ID) NodeAddr(r *enr.Record) []byte {
-	var pubkey Secp256k1
+	var pubkey Ed448
 	err := r.Load(&pubkey)
 	if err != nil {
 		return nil
@@ -85,49 +92,48 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	return crypto.SHA3(pubkey[:])
 }
 
-// Secp256k1 is the "secp256k1" key, which holds a public key.
-type Secp256k1 eddsa.PublicKey
+// Ed448 is the "ed448" key, which holds a public key.
+type Ed448 crypto.PublicKey
 
-func (v Secp256k1) ENRKey() string { return "secp256k1" }
+func (v Ed448) ENRKey() string { return "secp256k1" }
 
 // EncodeRLP implements rlp.Encoder.
-func (v Secp256k1) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, crypto.CompressPubkey((*eddsa.PublicKey)(&v)))
+func (v Ed448) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, (*crypto.PublicKey)(&v))
 }
 
 // DecodeRLP implements rlp.Decoder.
-func (v *Secp256k1) DecodeRLP(s *rlp.Stream) error {
+func (v *Ed448) DecodeRLP(s *rlp.Stream) error {
 	buf, err := s.Bytes()
 	if err != nil {
 		return err
 	}
-	pk, err := crypto.DecompressPubkey(buf)
+	pk, err := crypto.UnmarshalPubKey(buf)
 	if err != nil {
 		return err
 	}
-	*v = (Secp256k1)(*pk)
+	*v = (Ed448)(*pk)
 	return nil
 }
 
-// s256raw is an unparsed secp256k1 public key entry.
-type s256raw []byte
+// ed448raw is an unparsed ed448 public key entry.
+type ed448raw []byte
 
-func (s256raw) ENRKey() string { return "secp256k1" }
+func (ed448raw) ENRKey() string { return "secp256k1" }
 
 // v4CompatID is a weaker and insecure version of the "v4" scheme which only checks for the
-// presence of a secp256k1 public key, but doesn't verify the signature.
+// presence of a ed448 public key, but doesn't verify the signature.
 type v4CompatID struct {
 	V4ID
 }
 
 func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
-	var pubkey Secp256k1
+	var pubkey Ed448
 	return r.Load(&pubkey)
 }
 
-func signV4Compat(r *enr.Record, pubkey *eddsa.PublicKey) {
-	//r.Set(enr.ID("v4"))
-	r.Set((*Secp256k1)(pubkey))
+func signV4Compat(r *enr.Record, pubkey *crypto.PublicKey) {
+	r.Set((*Ed448)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {
 		panic(err)
 	}
