@@ -31,8 +31,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/log"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/log"
 )
 
 func TestClientRequest(t *testing.T) {
@@ -183,10 +184,10 @@ func testClientCancel(transport string, t *testing.T) {
 	//
 	// Once a connection is dead, there is a fair chance it won't connect
 	// successfully because the accept is delayed by 1s.
-	maxContextCancelTimeout := 600 * time.Millisecond
+	maxContextCancelTimeout := 300 * time.Millisecond
 	fl := &flakeyListener{
-		maxAcceptDelay: 2 * time.Second,
-		maxKillTimeout: 1200 * time.Millisecond,
+		maxAcceptDelay: 1 * time.Second,
+		maxKillTimeout: 600 * time.Millisecond,
 	}
 
 	var client *Client
@@ -353,7 +354,7 @@ func TestClientSubscribeClose(t *testing.T) {
 	}
 }
 
-// This test reproduces https://github.com/core-coin/go-core/issues/17837 where the
+// This test reproduces https://github.com/core-coin/go-core/v2/issues/17837 where the
 // client hangs during shutdown when Unsubscribe races with Client.Close.
 func TestClientCloseUnsubscribeRace(t *testing.T) {
 	server := newTestServer()

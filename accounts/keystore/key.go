@@ -26,12 +26,11 @@ import (
 	"path/filepath"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
 	"github.com/pborman/uuid"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 const (
@@ -44,7 +43,7 @@ type Key struct {
 	Address common.Address
 	// we only store privkey as pubkey/address can be derived from it
 	// privkey in this struct is always in plaintext
-	PrivateKey *eddsa.PrivateKey
+	PrivateKey *crypto.PrivateKey
 }
 
 type keyStore interface {
@@ -70,13 +69,6 @@ type encryptedKeyJSONV3 struct {
 	Version int        `json:"version"`
 }
 
-type encryptedKeyJSONV1 struct {
-	Address string     `json:"address"`
-	Crypto  CryptoJSON `json:"crypto"`
-	Id      string     `json:"id"`
-	Version string     `json:"version"`
-}
-
 type CryptoJSON struct {
 	Cipher       string                 `json:"cipher"`
 	CipherText   string                 `json:"ciphertext"`
@@ -93,7 +85,7 @@ type cipherparamsJSON struct {
 func (k *Key) MarshalJSON() (j []byte, err error) {
 	jStruct := plainKeyJSON{
 		hex.EncodeToString(k.Address[:]),
-		hex.EncodeToString(crypto.FromEDDSA(k.PrivateKey)),
+		hex.EncodeToString(crypto.MarshalPrivateKey(k.PrivateKey)),
 		k.Id.String(),
 		version,
 	}
@@ -115,7 +107,7 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	privkey, err := crypto.HexToEDDSA(keyJSON.PrivateKey)
+	privkey, err := crypto.UnmarshalPrivateKeyHex(keyJSON.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -126,12 +118,11 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	return nil
 }
 
-func newKeyFromEDDSA(privateKeyEDDSA *eddsa.PrivateKey) *Key {
+func newKeyFromEDDSA(privateKeyEDDSA *crypto.PrivateKey) *Key {
 	id := uuid.NewRandom()
-	pub := eddsa.Ed448DerivePublicKey(*privateKeyEDDSA)
 	key := &Key{
 		Id:         id,
-		Address:    crypto.PubkeyToAddress(pub),
+		Address:    privateKeyEDDSA.Address(),
 		PrivateKey: privateKeyEDDSA,
 	}
 	return key

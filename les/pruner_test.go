@@ -1,4 +1,4 @@
-// Copyright 2019 The Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -23,8 +23,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/light"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/light"
 )
 
 func TestLightPruner(t *testing.T) {
@@ -37,7 +37,7 @@ func TestLightPruner(t *testing.T) {
 			if cs >= 3 && bts >= 3 {
 				break
 			}
-			time.Sleep(15 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 	server, client, tearDown := newClientServerEnv(t, int(3*config.ChtSize+config.ChtConfirms), 2, waitIndexers, nil, 0, false, true, false)
@@ -122,10 +122,10 @@ func TestLightPruner(t *testing.T) {
 		}
 	}
 	// Start light pruner.
-	time.Sleep(2500 * time.Millisecond) // Ensure light client has finished the syncing and indexing
+	time.Sleep(1500 * time.Millisecond) // Ensure light client has finished the syncing and indexing
 	newPruner(client.db, client.chtIndexer, client.bloomTrieIndexer)
 
-	time.Sleep(2500 * time.Millisecond) // Ensure pruner have enough time to prune data.
+	time.Sleep(1500 * time.Millisecond) // Ensure pruner have enough time to prune data.
 	checkPruned(1, config.ChtSize-1)
 
 	// Ensure all APIs still work after pruning.
@@ -192,6 +192,6 @@ func TestLightPruner(t *testing.T) {
 
 	// Ensure the ODR cached data can be cleaned by pruner.
 	newPruner(client.db, client.chtIndexer, client.bloomTrieIndexer)
-	time.Sleep(150 * time.Millisecond) // Ensure pruner have enough time to prune data.
-	checkPruned(1, config.ChtSize-1)   // Ensure all cached data(by odr) is cleaned.
+	time.Sleep(50 * time.Millisecond) // Ensure pruner have enough time to prune data.
+	checkPruned(1, config.ChtSize-1)  // Ensure all cached data(by odr) is cleaned.
 }

@@ -19,7 +19,7 @@ package keystore
 import (
 	"os"
 
-	"github.com/core-coin/go-core/accounts/keystore"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
 )
 
 func Fuzz(input []byte) int {
@@ -33,5 +33,5 @@ func Fuzz(input []byte) int {
 		panic(err)
 	}
 	os.Remove(a.URL.Path)
-	return 0
+	return 1
 }

@@ -18,25 +18,23 @@ package types
 
 import (
 	"bytes"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/json"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/params"
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // The values in those tests are from the Transaction Tests
 // at github.com/core-coin/tests.
 var (
 	address, errAddr = common.HexToAddress("cb08095e7baea6a6c7c4c2dfeb977efac326af552d87")
-	key, _           = crypto.HexToEDDSA("2da94fd47e8369ffe88850654de266727ff284c3f78d61b04153cb9a908ed3b61248ac5172d3caabbc3493807c0297645ae328e10eb9543bdb")
+	key, _           = crypto.UnmarshalPrivateKeyHex("2da94fd47e8369ffe88850654de266727ff284c3f78d61b04153cb9a908ed3b61248ac5172d3caabbc3493807c0297645ae328e10eb9543bdb")
 
 	emptyTx = NewTransaction(
 		0,
@@ -44,16 +42,15 @@ var (
 		big.NewInt(0), 0, big.NewInt(0),
 		nil,
 	)
-	pub           = eddsa.Ed448DerivePublicKey(*key)
 	rightvrsTx, _ = NewTransaction(
 		0,
-		crypto.PubkeyToAddress(pub),
+		key.Address(),
 		big.NewInt(10),
 		50000,
 		big.NewInt(10),
 		common.FromHex("1123"),
 	).WithSignature(
-		NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID),
+		NewNucleusSigner(params.MainnetChainConfig.NetworkID),
 		common.Hex2Bytes("b7ea2c0222ad2cf32dc5671dcff5b6d3190d328b2696cca92b5b17d56b76fb26b6e3e303f3d1c428828b0e86616f783b4fc0dcc9d60157f820d2ce5b6b2709734fcf4188bc1020db6e8b972c63531832d0ee4fd66a1c2cee858540e237ff4351d8b2ed0c08edf15a9851cfd532191c39825e4ad8d405878998a67c949b3f94e3445f1d6e61f69d091be53f4326eb9d9d05627375ef943ae9f1763689984aa377ed84cd8923973ab0"),
 	)
 )
@@ -62,7 +59,7 @@ func TestTransactionSigHash(t *testing.T) {
 	if errAddr != nil {
 		t.Error(errAddr)
 	}
-	var nucleus = NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	var nucleus = NewNucleusSigner(params.MainnetChainConfig.NetworkID)
 	if nucleus.Hash(emptyTx) != common.HexToHash("0x0064d7a2aa08686b4f36a2188352ba162ff2b5bdce72335f4a0e25a6c5f47af7") {
 		t.Errorf("empty transaction hash mismatch, got %x", emptyTx.Hash())
 	}
@@ -89,16 +86,21 @@ func decodeTx(data []byte) (*Transaction, error) {
 	return t, err
 }
 
+func defaultTestKey() (*crypto.PrivateKey, common.Address) {
+	key, _ := crypto.UnmarshalPrivateKeyHex("2da94fd47e8369ffe88850654de266727ff284c3f78d61b04153cb9a908ed3b61248ac5172d3caabbc3493807c0297645ae328e10eb9543bdb")
+	return key, key.Address()
+}
+
 func TestRecipientEmpty(t *testing.T) {
-	tx, err := decodeTx(common.Hex2Bytes("f8b480808002808080b8ab96244b19508ebae6a6e0784798a7133c1a450f67ebc7261639814a7564a44770487e1d0152f9bc122624c9f47cf268a48eb73bedc4bda99f00151fc77aac317bf4f03f3ed376950e6376fc1eced1c16c433e2466e1484f08ecb34369959a561a4cf7767a93a10b0ff52fbce0cca5acfc2600661c16da7981ec4c3007bde037c36a426ae7171c2a2403f1d20f5ce999f869271de6d65af86ad72a5ada09b12ec60b154ff72a0ccec9ce2080"))
+	tx, err := decodeTx(common.Hex2Bytes("f8b803018207d001800a825544b8ab850769578ccf6328306c6cc42661de2d2fa4679dce8e68901ab0920d5b0f81c7dd214a184c34f9b1293305f94a171015d470b6eacbac4de380b812810a9d6ab60e6668e01cb4d74d93ab0a25ffa55c8ef962902c8669bac1b64bdd124ecd5e00bdfad1e45c88a65e4d3a659be43fc4b33800ba277941fcb9ac8063a9b6ed64fbc86c51dd5ae6cf1f01f7bcf533cf0b0cfc5dc3fdc5bc7eaa99366ada5e7127331b862586a46c12a85f9580"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	from, err := Sender(NewNucleusSigner(params.TestChainConfig.NetworkID), tx)
+	from, err := Sender(NewNucleusSigner(params.MainnetChainConfig.NetworkID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, err := common.HexToAddress("cb76a631db606f1452ddc2432931d611f1d5b126f848")
+	expected, err := common.HexToAddress("cb8238748ee459bc0c1d86eab1d3f6d83bb433cdad9c")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,16 +110,16 @@ func TestRecipientEmpty(t *testing.T) {
 }
 
 func TestRecipientNormal(t *testing.T) {
-	tx, err := decodeTx(common.Hex2Bytes("f8b480808002808080b8abc9df7a9e4c69e12f72cc27060ae919a470a9d14ce9590a4c8477354e437cb5da3a72cb7f9c398f30ff2cb32ea47bd4fa44f8e2369674d2b70070d5ed40d4d2125a518fd1f345f263a65f0aa49db7efb70d0c5b7878f877b4ed036c2749507fe66824e15f0b11c24a690f8cac25cb4b2101009f5bdee59b65cf8fc8d088814cb08ab501c8e53a1878f5b781402e3bdbe4cf47c989286ff3d568d9007200a47bf79b5eedb937688214096500"))
+	tx, err := decodeTx(common.Hex2Bytes("f8ce03018207d00196cb8238748ee459bc0c1d86eab1d3f6d83bb433cdad9c0a825544b8abe0b9531cf735fa66d60fb08231780a6de7de847a3d0de4eef012615f1194562e25a84aacfe3151cb39bdbabadf82f620b661f5deb100fe7d00bc2eaf3e7c47ed2e40e6e32f7f8172c4e27c1a561d4410abbc89b90f4a33c76b325fa625844b03a68538b4c870c3e617b5fc959ac7b8671500ba277941fcb9ac8063a9b6ed64fbc86c51dd5ae6cf1f01f7bcf533cf0b0cfc5dc3fdc5bc7eaa99366ada5e7127331b862586a46c12a85f9580"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	from, err := Sender(NewNucleusSigner(params.TestChainConfig.NetworkID), tx)
+	from, err := Sender(NewNucleusSigner(params.MainnetChainConfig.NetworkID), tx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected, err := common.HexToAddress("cb74992308477b09a42fdd8051fd1bfd325bd7c0d16a")
+	expected, err := common.HexToAddress("cb8238748ee459bc0c1d86eab1d3f6d83bb433cdad9c")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,20 +133,18 @@ func TestRecipientNormal(t *testing.T) {
 // the same account.
 func TestTransactionPriceNonceSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*eddsa.PrivateKey, 25)
+	keys := make([]*crypto.PrivateKey, 25)
 	for i := 0; i < len(keys); i++ {
-		keys[i], _ = crypto.GenerateKey(rand.Reader)
+		keys[i], _ = crypto.GenerateKey(crand.Reader)
 	}
-	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	signer := NewNucleusSigner(params.MainnetChainConfig.NetworkID)
 
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		addr := crypto.PubkeyToAddress(pub)
 		for i := 0; i < 25; i++ {
 			tx, _ := SignTx(NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), 100, big.NewInt(int64(start+i)), nil), signer, key)
-			groups[addr] = append(groups[addr], tx)
+			groups[key.Address()] = append(groups[key.Address()], tx)
 		}
 	}
 	// Sort the transactions and cross check the nonce ordering
@@ -183,22 +183,19 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 // are prioritized to avoid network spam attacks aiming for a specific ordering.
 func TestTransactionTimeSort(t *testing.T) {
 	// Generate a batch of accounts to start with
-	keys := make([]*eddsa.PrivateKey, 5)
+	keys := make([]*crypto.PrivateKey, 5)
 	for i := 0; i < len(keys); i++ {
-		keys[i], _ = crypto.GenerateKey(rand.Reader)
+		keys[i], _ = crypto.GenerateKey(crand.Reader)
 	}
-	signer := NewNucleusSigner(params.AllCryptoreProtocolChanges.NetworkID)
+	signer := NewNucleusSigner(params.MainnetChainConfig.NetworkID)
 
 	// Generate a batch of transactions with overlapping prices, but different creation times
 	groups := map[common.Address]Transactions{}
 	for start, key := range keys {
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		addr := crypto.PubkeyToAddress(pub)
-
 		tx, _ := SignTx(NewTransaction(0, common.Address{}, big.NewInt(100), 100, big.NewInt(1), nil), signer, key)
 		tx.time = time.Unix(0, int64(len(keys)-start))
 
-		groups[addr] = append(groups[addr], tx)
+		groups[key.Address()] = append(groups[key.Address()], tx)
 	}
 	// Sort the transactions and cross check the nonce ordering
 	txset := NewTransactionsByPriceAndNonce(signer, groups)
@@ -230,8 +227,7 @@ func TestTransactionTimeSort(t *testing.T) {
 
 // TestTransactionJSON tests serializing/de-serializing to/from JSON.
 func TestTransactionJSON(t *testing.T) {
-	t.Skip()
-	key, err := crypto.GenerateKey(rand.Reader)
+	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		t.Fatalf("could not generate key: %v", err)
 	}
@@ -242,7 +238,7 @@ func TestTransactionJSON(t *testing.T) {
 		var tx *Transaction
 		switch i % 2 {
 		case 0:
-			tx = NewTransaction(i, common.Address{1}, common.Big0, 1, common.Big2, []byte("abcdef"))
+			tx = NewTransaction(i, common.BigToAddress(common.Big1), common.Big0, 1, common.Big2, []byte("abcdef"))
 		case 1:
 			tx = NewContractCreation(i, common.Big0, 1, common.Big2, []byte("abcdef"))
 		}
@@ -270,6 +266,9 @@ func TestTransactionJSON(t *testing.T) {
 		// compare nonce, price, energylimit, recipient, amount, payload, V, R, S
 		if tx.Hash() != parsedTx.Hash() {
 			t.Errorf("parsed tx differs from original tx, want %v, got %v", tx, parsedTx)
+		}
+		if tx.NetworkID() != tx.NetworkID() {
+			t.Errorf("invalid chain id, want %d, got %d", tx.NetworkID(), parsedTx.NetworkID())
 		}
 	}
 }

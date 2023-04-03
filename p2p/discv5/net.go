@@ -23,15 +23,14 @@ import (
 	"net"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
-
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/netutil"
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 var (
@@ -124,7 +123,7 @@ type timeoutEvent struct {
 	node *Node
 }
 
-func newNetwork(conn transport, ourPubkey eddsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func newNetwork(conn transport, ourPubkey crypto.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	ourID := PubkeyID(&ourPubkey)
 
 	var db *nodeDB
@@ -1037,6 +1036,9 @@ func (net *Network) handle(n *Node, ev nodeEvent, pkt *ingressPacket) error {
 		if net.db != nil {
 			net.db.ensureExpirer()
 		}
+	}
+	if ev == pongTimeout {
+		n.pingEcho = nil // clean up if pongtimeout
 	}
 	if n.state == nil {
 		n.state = unknown //???

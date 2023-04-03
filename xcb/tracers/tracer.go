@@ -25,13 +25,13 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/hpcloud/tail/util"
-	duktape "gopkg.in/olebedev/go-duktape.v3"
+	"gopkg.in/olebedev/go-duktape.v3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // bigIntegerJS is the minified version of https://github.com/peterolson/BigInteger.js.
@@ -357,11 +357,12 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-1); ptr != nil {
 			addr = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			address, err := common.HexToAddress(ctx.GetString(-1))
+			var err error
+			addrString := ctx.GetString(-1)
+			addr, err = common.HexToAddress(addrString)
 			if err != nil {
-				util.Fatal(err.Error())
+				log.Error(fmt.Sprintf("invalid address %v, err: %v", addrString, err))
 			}
-			addr = address
 		}
 		ctx.Pop()
 		copy(makeSlice(ctx.PushFixedBuffer(22), 22), addr[:])
@@ -372,11 +373,12 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-2); ptr != nil {
 			from = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			address, err := common.HexToAddress(ctx.GetString(-2))
+			var err error
+			addrString := ctx.GetString(-2)
+			from, err = common.HexToAddress(addrString)
 			if err != nil {
-				util.Fatal(err.Error())
+				log.Error(fmt.Sprintf("invalid address %v, err: %v", addrString, err))
 			}
-			from = address
 		}
 		nonce := uint64(ctx.GetInt(-1))
 		ctx.Pop2()
@@ -390,11 +392,12 @@ func New(code string) (*Tracer, error) {
 		if ptr, size := ctx.GetBuffer(-3); ptr != nil {
 			from = common.BytesToAddress(makeSlice(ptr, size))
 		} else {
-			address, err := common.HexToAddress(ctx.GetString(-3))
+			var err error
+			addrString := ctx.GetString(-3)
+			from, err = common.HexToAddress(addrString)
 			if err != nil {
-				util.Fatal(err.Error())
+				log.Error(fmt.Sprintf("invalid address %v, err: %v", addrString, err))
 			}
-			from = address
 		}
 		// Retrieve salt hex string from js stack
 		salt := common.HexToHash(ctx.GetString(-2))
@@ -558,7 +561,7 @@ func (jst *Tracer) CaptureState(env *vm.CVM, pc uint64, op vm.OpCode, energy, co
 	if jst.err == nil {
 		// Initialize the context if it wasn't done yet
 		if !jst.inited {
-			jst.ctx["block"] = env.BlockNumber.Uint64()
+			jst.ctx["block"] = env.Context.BlockNumber.Uint64()
 			jst.inited = true
 		}
 		// If tracing was interrupted, set the error and stop

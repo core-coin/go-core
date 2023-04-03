@@ -18,15 +18,15 @@ package node
 
 import (
 	"bytes"
-	"crypto/rand"
+	crand "crypto/rand"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p"
 )
 
 // Tests that datadirs can be successfully created, be them manually configured
@@ -119,7 +119,7 @@ func TestNodeKeyPersistency(t *testing.T) {
 	keyfile := filepath.Join(dir, "unit-test", datadirPrivateKey)
 
 	// Configure a node with a preset key and ensure it's not persisted
-	key, err := crypto.GenerateKey(rand.Reader)
+	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		t.Fatalf("failed to generate one-shot node key: %v", err)
 	}

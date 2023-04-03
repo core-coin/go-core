@@ -35,18 +35,13 @@ var DefaultRootDerivationPath = DerivationPath{0x80000000 + 44, 0x80000000 + 654
 // at m/44'/654'/0'/0/1, etc.
 var DefaultBaseDerivationPath = DerivationPath{0x80000000 + 44, 0x80000000 + 654, 0x80000000 + 0, 0, 0}
 
-// LegacyLedgerBaseDerivationPath is the legacy base path from which custom derivation
-// endpoints are incremented. As such, the first account will be at m/44'/654'/0'/0, the
-// second at m/44'/654'/0'/1, etc.
-var LegacyLedgerBaseDerivationPath = DerivationPath{0x80000000 + 44, 0x80000000 + 654, 0x80000000 + 0, 0}
-
 // DerivationPath represents the computer friendly version of a hierarchical
 // deterministic wallet account derivaion path.
 //
 // The BIP-32 spec https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 // defines derivation paths to be of the form:
 //
-//   m / purpose' / coin_type' / account' / change / address_index
+//	m / purpose' / coin_type' / account' / change / address_index
 //
 // The BIP-44 spec https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 // defines that the `purpose` be 44' (or 0x8000002C) for crypto currencies, and
@@ -149,4 +144,17 @@ func (path *DerivationPath) UnmarshalJSON(b []byte) error {
 	}
 	*path, err = ParseDerivationPath(dp)
 	return err
+}
+
+// DefaultIterator creates a BIP-32 path iterator, which progresses by increasing the last component:
+// i.e. m/44'/654'/0'/0/0, m/44'/654'/0'/0/1, m/44'/654'/0'/0/2, ... m/44'/654'/0'/0/N.
+func DefaultIterator(base DerivationPath) func() DerivationPath {
+	path := make(DerivationPath, len(base))
+	copy(path[:], base[:])
+	// Set it back by one, so the first call gives the first result
+	path[len(path)-1]--
+	return func() DerivationPath {
+		path[len(path)-1]++
+		return path
+	}
 }

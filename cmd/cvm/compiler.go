@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/core-coin/go-core/cmd/cvm/internal/compiler"
+	"gopkg.in/urfave/cli.v1"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/core-coin/go-core/v2/cmd/cvm/internal/compiler"
 )
 
 var compileCommand = cli.Command{

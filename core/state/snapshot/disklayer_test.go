@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,16 +18,19 @@ package snapshot
 
 import (
 	"bytes"
-	"github.com/core-coin/go-core/xcbdb"
-	"github.com/core-coin/go-core/xcbdb/leveldb"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/VictoriaMetrics/fastcache"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/xcbdb/memorydb"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb/leveldb"
+	"github.com/core-coin/go-core/v2/xcbdb/memorydb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // reverse reverses the contents of a byte slice. It's used to update random accs
@@ -429,6 +432,81 @@ func TestDiskPartialMerge(t *testing.T) {
 	}
 }
 
+// Tests that when the bottom-most diff layer is merged into the disk
+// layer whether the corresponding generator is persisted correctly.
+func TestDiskGeneratorPersistence(t *testing.T) {
+	var (
+		accOne        = randomHash()
+		accTwo        = randomHash()
+		accOneSlotOne = randomHash()
+		accOneSlotTwo = randomHash()
+
+		accThree     = randomHash()
+		accThreeSlot = randomHash()
+		baseRoot     = randomHash()
+		diffRoot     = randomHash()
+		diffTwoRoot  = randomHash()
+		genMarker    = append(randomHash().Bytes(), randomHash().Bytes()...)
+	)
+	// Testing scenario 1, the disk layer is still under the construction.
+	db := rawdb.NewMemoryDatabase()
+
+	rawdb.WriteAccountSnapshot(db, accOne, accOne[:])
+	rawdb.WriteStorageSnapshot(db, accOne, accOneSlotOne, accOneSlotOne[:])
+	rawdb.WriteStorageSnapshot(db, accOne, accOneSlotTwo, accOneSlotTwo[:])
+	rawdb.WriteSnapshotRoot(db, baseRoot)
+
+	// Create a disk layer based on all above updates
+	snaps := &Tree{
+		layers: map[common.Hash]snapshot{
+			baseRoot: &diskLayer{
+				diskdb:    db,
+				cache:     fastcache.New(500 * 1024),
+				root:      baseRoot,
+				genMarker: genMarker,
+			},
+		},
+	}
+	// Modify or delete some accounts, flatten everything onto disk
+	if err := snaps.Update(diffRoot, baseRoot, nil, map[common.Hash][]byte{
+		accTwo: accTwo[:],
+	}, nil); err != nil {
+		t.Fatalf("failed to update snapshot tree: %v", err)
+	}
+	if err := snaps.Cap(diffRoot, 0); err != nil {
+		t.Fatalf("failed to flatten snapshot tree: %v", err)
+	}
+	blob := rawdb.ReadSnapshotGenerator(db)
+	var generator journalGenerator
+	if err := rlp.DecodeBytes(blob, &generator); err != nil {
+		t.Fatalf("Failed to decode snapshot generator %v", err)
+	}
+	if !bytes.Equal(generator.Marker, genMarker) {
+		t.Fatalf("Generator marker is not matched")
+	}
+	// Test senario 2, the disk layer is fully generated
+	// Modify or delete some accounts, flatten everything onto disk
+	if err := snaps.Update(diffTwoRoot, diffRoot, nil, map[common.Hash][]byte{
+		accThree: accThree.Bytes(),
+	}, map[common.Hash]map[common.Hash][]byte{
+		accThree: {accThreeSlot: accThreeSlot.Bytes()},
+	}); err != nil {
+		t.Fatalf("failed to update snapshot tree: %v", err)
+	}
+	diskLayer := snaps.layers[snaps.diskRoot()].(*diskLayer)
+	diskLayer.genMarker = nil // Construction finished
+	if err := snaps.Cap(diffTwoRoot, 0); err != nil {
+		t.Fatalf("failed to flatten snapshot tree: %v", err)
+	}
+	blob = rawdb.ReadSnapshotGenerator(db)
+	if err := rlp.DecodeBytes(blob, &generator); err != nil {
+		t.Fatalf("Failed to decode snapshot generator %v", err)
+	}
+	if len(generator.Marker) != 0 {
+		t.Fatalf("Failed to update snapshot generator")
+	}
+}
+
 // Tests that merging something into a disk layer persists it into the database
 // and invalidates any previously written and cached values, discarding anything
 // after the in-progress generation marker.
@@ -436,7 +514,7 @@ func TestDiskPartialMerge(t *testing.T) {
 // This test case is a tiny specialized case of TestDiskPartialMerge, which tests
 // some very specific cornercases that random tests won't ever trigger.
 func TestDiskMidAccountPartialMerge(t *testing.T) {
-	// TODO(@error2215) ?
+	// TODO(@raisty) ?
 }
 
 // TestDiskSeek tests that seek-operations work on the disk layer

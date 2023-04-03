@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-core library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build (darwin && !ios && cgo) || freebsd || (linux && !arm64) || netbsd || solaris
 // +build darwin,!ios,cgo freebsd linux,!arm64 netbsd solaris
 
 package keystore
@@ -21,8 +22,9 @@ package keystore
 import (
 	"time"
 
-	"github.com/core-coin/go-core/log"
 	"github.com/rjeczalik/notify"
+
+	"github.com/core-coin/go-core/v2/log"
 )
 
 type watcher struct {

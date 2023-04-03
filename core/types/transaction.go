@@ -24,15 +24,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
 
 var (
-	ErrInvalidSig = errors.New("invalid signature values")
+	ErrInvalidSig = errors.New("invalid transaction values")
 )
 
 type Transaction struct {
@@ -49,7 +49,7 @@ type txdata struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"energyPrice" gencodec:"required"`
 	EnergyLimit  uint64          `json:"energy"      gencodec:"required"`
-	NetworkID    uint            `json:"chain_id" gencodec:"required"`
+	NetworkID    uint            `json:"network_id" gencodec:"required"`
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
@@ -83,13 +83,13 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 	}
 	d := txdata{
 		AccountNonce: nonce,
-		Recipient:    to,
-		Payload:      data,
-		Amount:       new(big.Int),
-		EnergyLimit:  energyLimit,
 		Price:        new(big.Int),
-		Signature:    []byte{},
+		EnergyLimit:  energyLimit,
 		NetworkID:    0,
+		Recipient:    to,
+		Amount:       new(big.Int),
+		Payload:      data,
+		Signature:    []byte{},
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -97,7 +97,6 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, energyLim
 	if energyPrice != nil {
 		d.Price.Set(energyPrice)
 	}
-
 	return &Transaction{
 		data: d,
 		time: time.Now(),
@@ -141,13 +140,19 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte                { return common.CopyBytes(tx.data.Payload) }
-func (tx *Transaction) Energy() uint64              { return tx.data.EnergyLimit }
-func (tx *Transaction) EnergyPrice() *big.Int       { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) Data() []byte          { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Energy() uint64        { return tx.data.EnergyLimit }
+func (tx *Transaction) EnergyPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
+func (tx *Transaction) EnergyPriceCmp(other *Transaction) int {
+	return tx.data.Price.Cmp(other.data.Price)
+}
+func (tx *Transaction) EnergyPriceIntCmp(other *big.Int) int {
+	return tx.data.Price.Cmp(other)
+}
 func (tx *Transaction) Value() *big.Int             { return new(big.Int).Set(tx.data.Amount) }
+func (tx *Transaction) NetworkID() uint             { return tx.data.NetworkID }
 func (tx *Transaction) Nonce() uint64               { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool            { return true }
-func (tx *Transaction) NetworkID() uint             { return tx.data.NetworkID }
 func (tx *Transaction) Signature() []byte           { return tx.data.Signature }
 func (tx *Transaction) SetNetworkID(networkID uint) { tx.data.NetworkID = networkID }
 
@@ -173,7 +178,7 @@ func (tx *Transaction) Hash() common.Hash {
 }
 
 // Size returns the true RLP encoded storage size of the transaction, either by
-// encoding and returning it, or returning a previsouly cached value.
+// encoding and returning it, or returning a previously cached value.
 func (tx *Transaction) Size() common.StorageSize {
 	if size := tx.size.Load(); size != nil {
 		return size.(common.StorageSize)
@@ -190,10 +195,6 @@ func (tx *Transaction) Size() common.StorageSize {
 //
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
-	from, err := recoverPlain(s, tx)
-	if err != nil {
-		return Message{}, err
-	}
 	msg := Message{
 		nonce:       tx.data.AccountNonce,
 		energyLimit: tx.data.EnergyLimit,
@@ -201,10 +202,12 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 		to:          tx.data.Recipient,
 		amount:      tx.data.Amount,
 		data:        tx.data.Payload,
-		from:        from,
 		checkNonce:  true,
 	}
-	return msg, nil
+
+	var err error
+	msg.from, err = Sender(s, tx)
+	return msg, err
 }
 
 // WithSignature returns a new transaction with the given signature.

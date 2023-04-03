@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/hpcloud/tail/util"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -28,19 +27,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/fourbyte"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/fourbyte"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
-//Used for testing
+// Used for testing
 type headlessUi struct {
 	approveCh chan string // to send approve/deny
 	inputCh   chan string // to send password
@@ -126,8 +126,8 @@ func setup(t *testing.T) (*core.SignerAPI, *headlessUi) {
 		t.Fatal(err.Error())
 	}
 	ui := &headlessUi{make(chan string, 20), make(chan string, 20)}
-	am := core.StartClefAccountManager(tmpDirName(t), true, true, "")
-	api := core.NewSignerAPI(am, 1337, true, ui, db, true, &storage.NoStorage{})
+	am := core.StartClefAccountManager(tmpDirName(t), true)
+	api := core.NewSignerAPI(am, 1337, ui, db, true, &storage.NoStorage{})
 	return api, ui
 
 }
@@ -225,11 +225,10 @@ func TestNewAcc(t *testing.T) {
 }
 
 func mkTestTx(from common.Address) core.SendTxArgs {
-	addr, err := common.HexToAddress("cb390000000000000000000000000000000000001337")
+	to, err := common.HexToAddress("cb390000000000000000000000000000000000001337")
 	if err != nil {
-		util.Fatal(err.Error())
+		panic(err)
 	}
-	to := addr
 	energy := hexutil.Uint64(21000)
 	energyPrice := (hexutil.Big)(*big.NewInt(2000000000))
 	value := (hexutil.Big)(*big.NewInt(1e18))

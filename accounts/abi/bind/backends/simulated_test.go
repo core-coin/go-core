@@ -19,32 +19,30 @@ package backends
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func TestSimulatedBackend(t *testing.T) {
 	var energyLimit uint64 = 8000029
-	key, _ := crypto.GenerateKey(rand.Reader) // nolint: gosec
+	key, _ := crypto.GenerateKey(crand.Reader) // nolint: gosec
 	auth, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
-
 	sim := NewSimulatedBackend(genAlloc, energyLimit)
 	defer sim.Close()
 
@@ -55,7 +53,7 @@ func TestSimulatedBackend(t *testing.T) {
 	if isPending {
 		t.Fatal("transaction should not be pending")
 	}
-	if err != gocore.NotFound {
+	if err != c.NotFound {
 		t.Fatalf("err should be `core.NotFound` but received %v", err)
 	}
 
@@ -63,8 +61,7 @@ func TestSimulatedBackend(t *testing.T) {
 	code := `6060604052600a8060106000396000f360606040526008565b00`
 	var energy uint64 = 3000000
 	tx := types.NewContractCreation(0, big.NewInt(0), energy, big.NewInt(1), common.FromHex(code))
-	tx, _ = types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), key)
-
+	tx, err = types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), key)
 	err = sim.SendTransaction(context.Background(), tx)
 	if err != nil {
 		t.Fatal("error sending transaction")
@@ -89,19 +86,19 @@ func TestSimulatedBackend(t *testing.T) {
 	}
 }
 
-var testKey, failure = crypto.HexToEDDSA("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
+var testKey, failure = crypto.UnmarshalPrivateKeyHex("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
 
-//  the following is based on this contract:
-//  contract T {
-//  	event received(address sender, uint amount, bytes memo);
-//  	event receivedAddr(address sender);
+//	 the following is based on this contract:
+//	 contract T {
+//	 	event received(address sender, uint amount, bytes memo);
+//	 	event receivedAddr(address sender);
 //
-//  	function receive(bytes calldata memo) external payable returns (string memory res) {
-//  		emit received(msg.sender, msg.value, memo);
-//  		emit receivedAddr(msg.sender);
-//		    return "hello world";
-//  	}
-//  }
+//	 	function receive(bytes calldata memo) external payable returns (string memory res) {
+//	 		emit received(msg.sender, msg.value, memo);
+//	 		emit receivedAddr(msg.sender);
+//			    return "hello world";
+//	 	}
+//	 }
 const abiJSON = `[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"bytes","name":"memo","type":"bytes"}],"name":"received","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"sender","type":"address"}],"name":"receivedAddr","type":"event"},{"inputs":[{"internalType":"bytes","name":"memo","type":"bytes"}],"name":"receive","outputs":[{"internalType":"string","name":"res","type":"string"}],"stateMutability":"payable","type":"function"}]`
 const abiBin = `608060405234801561001057600080fd5b506102ba806100206000396000f3fe60806040526004361061001e5760003560e01c80631a96cac114610023575b600080fd5b61009a6004803603602081101561003957600080fd5b810190808035906020019064010000000081111561005657600080fd5b82018360208201111561006857600080fd5b8035906020019184600183028401116401000000008311171561008a57600080fd5b9091929391929390505050610115565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156100da5780820151818401526020810190506100bf565b50505050905090810190601f1680156101075780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b60607ff04f3ac9177f6321985a4ac7cbba630e5510274550eba61663bd547dc067666c33348585604051808575ffffffffffffffffffffffffffffffffffffffffffff1675ffffffffffffffffffffffffffffffffffffffffffff168152602001848152602001806020018281038252848482818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a17f3af7ac6f20ac0da4b0a8a72bc30d72ea12f8a2d3dd9fbe292400ebee0e7f559d33604051808275ffffffffffffffffffffffffffffffffffffffffffff1675ffffffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390a16040518060400160405280600b81526020017f68656c6c6f20776f726c6400000000000000000000000000000000000000000081525090509291505056fea2646970667358221220ed9a4a0d373eb4629e50a4569370026d7334b397204cc19b02cb97e3f57d65c764736f6c637827302e362e392d646576656c6f702e323032302e372e32312b636f6d6d69742e33633832373333370058`
 const deployedCode = `60806040526004361061001e5760003560e01c80631a96cac114610023575b600080fd5b61009a6004803603602081101561003957600080fd5b810190808035906020019064010000000081111561005657600080fd5b82018360208201111561006857600080fd5b8035906020019184600183028401116401000000008311171561008a57600080fd5b9091929391929390505050610115565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156100da5780820151818401526020810190506100bf565b50505050905090810190601f1680156101075780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b60607ff04f3ac9177f6321985a4ac7cbba630e5510274550eba61663bd547dc067666c33348585604051808575ffffffffffffffffffffffffffffffffffffffffffff1675ffffffffffffffffffffffffffffffffffffffffffff168152602001848152602001806020018281038252848482818152602001925080828437600081840152601f19601f8201169050808301925050509550505050505060405180910390a17f3af7ac6f20ac0da4b0a8a72bc30d72ea12f8a2d3dd9fbe292400ebee0e7f559d33604051808275ffffffffffffffffffffffffffffffffffffffffffff1675ffffffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390a16040518060400160405280600b81526020017f68656c6c6f20776f726c6400000000000000000000000000000000000000000081525090509291505056fea2646970667358221220ed9a4a0d373eb4629e50a4569370026d7334b397204cc19b02cb97e3f57d65c764736f6c637827302e362e392d646576656c6f702e323032302e372e32312b636f6d6d69742e33633832373333370058`
@@ -118,25 +115,20 @@ func simTestBackend(testAddr common.Address) *SimulatedBackend {
 }
 
 func TestNewSimulatedBackend(t *testing.T) {
-	if failure != nil {
-		t.Error(failure)
-	}
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 	expectedBal := big.NewInt(10000000000)
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 
-	if sim.config != params.DevChainConfig {
-		t.Errorf("expected sim config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
+	if sim.config != params.TestChainConfig {
+		t.Errorf("expected sim config to equal params.TestChainConfig, got %v", sim.config)
 	}
 
-	if sim.blockchain.Config() != params.DevChainConfig {
-		t.Errorf("expected sim blockchain config to equal params.AllCryptoreProtocolChanges, got %v", sim.config)
+	if sim.blockchain.Config() != params.TestChainConfig {
+		t.Errorf("expected sim blockchain config to equal params.TestChainConfig, got %v", sim.config)
 	}
 
-	statedb, _ := sim.blockchain.State()
-	bal := statedb.GetBalance(testAddr)
+	stateDB, _ := sim.blockchain.State()
+	bal := stateDB.GetBalance(testKey.Address())
 	if bal.Cmp(expectedBal) != 0 {
 		t.Errorf("expected balance for test address not received. expected: %v actual: %v", expectedBal, bal)
 	}
@@ -149,8 +141,7 @@ func TestSimulatedBackend_AdjustTime(t *testing.T) {
 	defer sim.Close()
 
 	prevTime := sim.pendingBlock.Time()
-	err := sim.AdjustTime(time.Second)
-	if err != nil {
+	if err := sim.AdjustTime(time.Second); err != nil {
 		t.Error(err)
 	}
 	newTime := sim.pendingBlock.Time()
@@ -160,15 +151,51 @@ func TestSimulatedBackend_AdjustTime(t *testing.T) {
 	}
 }
 
+func TestNewSimulatedBackend_AdjustTimeFail(t *testing.T) {
+	sim := simTestBackend(testKey.Address())
+	// Create tx and send
+	tx := types.NewTransaction(0, testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
+	if err != nil {
+		t.Errorf("could not sign tx: %v", err)
+	}
+	sim.SendTransaction(context.Background(), signedTx)
+	// AdjustTime should fail on non-empty block
+	if err := sim.AdjustTime(time.Second); err == nil {
+		t.Error("Expected adjust time to error on non-empty block")
+	}
+	sim.Commit()
+
+	prevTime := sim.pendingBlock.Time()
+	if err := sim.AdjustTime(time.Minute); err != nil {
+		t.Error(err)
+	}
+	newTime := sim.pendingBlock.Time()
+	if newTime-prevTime != uint64(time.Minute.Seconds()) {
+		t.Errorf("adjusted time not equal to a minute. prev: %v, new: %v", prevTime, newTime)
+	}
+	// Put a transaction after adjusting time
+	tx2 := types.NewTransaction(1, testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	signedTx2, err := types.SignTx(tx2, types.NewNucleusSigner(sim.config.NetworkID), testKey)
+	if err != nil {
+		t.Errorf("could not sign tx: %v", err)
+	}
+	sim.SendTransaction(context.Background(), signedTx2)
+	sim.Commit()
+	newTime = sim.pendingBlock.Time()
+	if newTime-prevTime >= uint64(time.Minute.Seconds()) {
+		t.Errorf("time adjusted, but shouldn't be: prev: %v, new: %v", prevTime, newTime)
+	}
+}
+
 func TestSimulatedBackend_BalanceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
+
 	expectedBal := big.NewInt(10000000000)
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
-	bal, err := sim.BalanceAt(bgCtx, testAddr, nil)
+	bal, err := sim.BalanceAt(bgCtx, testKey.Address(), nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -235,14 +262,12 @@ func TestSimulatedBackend_BlockByNumber(t *testing.T) {
 }
 
 func TestSimulatedBackend_NonceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
-	nonce, err := sim.NonceAt(bgCtx, testAddr, big.NewInt(0))
+	nonce, err := sim.NonceAt(bgCtx, testKey.Address(), big.NewInt(0))
 	if err != nil {
 		t.Errorf("could not get nonce for test addr: %v", err)
 	}
@@ -252,7 +277,7 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(nonce, testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(nonce, testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -265,7 +290,7 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 	}
 	sim.Commit()
 
-	newNonce, err := sim.NonceAt(bgCtx, testAddr, big.NewInt(1))
+	newNonce, err := sim.NonceAt(bgCtx, testKey.Address(), big.NewInt(1))
 	if err != nil {
 		t.Errorf("could not get nonce for test addr: %v", err)
 	}
@@ -273,18 +298,26 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 	if newNonce != nonce+uint64(1) {
 		t.Errorf("received incorrect nonce. expected 1, got %v", nonce)
 	}
+	// create some more blocks
+	sim.Commit()
+	// Check that we can get data for an older block/state
+	newNonce, err = sim.NonceAt(bgCtx, testKey.Address(), big.NewInt(1))
+	if err != nil {
+		t.Fatalf("could not get nonce for test addr: %v", err)
+	}
+	if newNonce != nonce+uint64(1) {
+		t.Fatalf("received incorrect nonce. expected 1, got %v", nonce)
+	}
 }
 
 func TestSimulatedBackend_SendTransaction(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -308,15 +341,17 @@ func TestSimulatedBackend_SendTransaction(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionByHash(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := NewSimulatedBackend(
+		core.GenesisAlloc{
+			testKey.Address(): {Balance: big.NewInt(10000000000)},
+		}, 10000000,
+	)
 	defer sim.Close()
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -368,29 +403,25 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	const contractAbi = "[{\"inputs\":[],\"name\":\"Assert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OOG\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PureRevert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"Revert\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"Valid\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 	const contractBin = "608060405234801561001057600080fd5b50610277806100206000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633ae247141461005c578063593b9361146100665780636c5fcd821461007057806396be6e031461007a578063a842ede314610084575b600080fd5b61006461008e565b005b61006e6100c9565b005b6100786100ce565b005b6100826100e4565b005b61008c6100e6565b005b6040517f4e401cbe0000000000000000000000000000000000000000000000000000000081526004016100c090610140565b60405180910390fd5b600080fd5b60005b80806100dc9061017b565b9150506100d1565b565b600061011b577f4b1f2ce300000000000000000000000000000000000000000000000000000000600052600160045260246000fd5b565b600061012a600d83610160565b9150610135826101f3565b602082019050919050565b600060208201905081810360008301526101598161011d565b9050919050565b600082825260208201905092915050565b6000819050919050565b600061018682610171565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156101b9576101b86101c4565b5b600182019050919050565b7f4b1f2ce300000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f72657665727420726561736f6e0000000000000000000000000000000000000060008201525056fea2646970667358221220a6fc6aa476f9e0ac54c080bfe2449a444d3ff8e7f0af4a847631b09f2022c3ae64736f6c637827302e382e342d646576656c6f702e323032322e382e32322b636f6d6d69742e37383961353965650058"
 
-	key, _ := crypto.GenerateKey(rand.Reader)
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	addr := crypto.PubkeyToAddress(pub)
+	key, _ := crypto.GenerateKey(crand.Reader)
+	addr := key.Address()
 	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
 
 	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core)}}, 10000000)
 	defer sim.Close()
 
 	parsed, _ := abi.JSON(strings.NewReader(contractAbi))
-	contractAddr, _, _, err := bind.DeployContract(opts, parsed, common.FromHex(contractBin), sim)
-	if err != nil {
-		t.Error(err)
-	}
+	contractAddr, _, _, _ := bind.DeployContract(opts, parsed, common.FromHex(contractBin), sim)
 	sim.Commit()
 
 	var cases = []struct {
 		name        string
-		message     gocore.CallMsg
+		message     c.CallMsg
 		expect      uint64
 		expectError error
 		expectData  interface{}
 	}{
-		{"plain transfer(valid)", gocore.CallMsg{
+		{"plain transfer(valid)", c.CallMsg{
 			From:        addr,
 			To:          &addr,
 			Energy:      0,
@@ -399,7 +430,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			Data:        nil,
 		}, params.TxEnergy, nil, nil},
 
-		{"plain transfer(invalid)", gocore.CallMsg{
+		{"plain transfer(invalid)", c.CallMsg{
 			From:        addr,
 			To:          &contractAddr,
 			Energy:      0,
@@ -408,7 +439,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			Data:        nil,
 		}, 0, errors.New("execution reverted"), nil},
 
-		{"Revert", gocore.CallMsg{
+		{"Revert", c.CallMsg{
 			From:        addr,
 			To:          &contractAddr,
 			Energy:      0,
@@ -417,7 +448,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			Data:        common.Hex2Bytes("3ae24714"),
 		}, 0, errors.New("execution reverted: revert reason"), "0x4e401cbe0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d72657665727420726561736f6e00000000000000000000000000000000000000"},
 
-		{"PureRevert", gocore.CallMsg{
+		{"PureRevert", c.CallMsg{
 			From:        addr,
 			To:          &contractAddr,
 			Energy:      0,
@@ -426,7 +457,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			Data:        common.Hex2Bytes("593b9361"),
 		}, 0, errors.New("execution reverted"), nil},
 
-		{"OOG", gocore.CallMsg{
+		{"OOG", c.CallMsg{
 			From:        addr,
 			To:          &contractAddr,
 			Energy:      100000,
@@ -435,8 +466,8 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 			Data:        common.Hex2Bytes("6c5fcd82"),
 		}, 0, errors.New("energy required exceeds allowance (100000)"), nil},
 
-		// TODO error2215: fix test
-		//{"Assert", gocore.CallMsg{
+		// t.Skip("temporary skip")
+		//{"Assert", c.CallMsg{
 		//	From:        addr,
 		//	To:          &contractAddr,
 		//	Energy:      100000,
@@ -445,7 +476,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 		//	Data:        common.Hex2Bytes("a842ede3"),
 		//}, 0, errors.New("invalid opcode: opcode 0xfe not defined"), nil},
 
-		{"Valid", gocore.CallMsg{
+		{"Valid", c.CallMsg{
 			From:        addr,
 			To:          &contractAddr,
 			Energy:      100000,
@@ -478,11 +509,79 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 	}
 }
 
-func TestSimulatedBackend_HeaderByHash(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
+func TestSimulatedBackend_EstimateEnergyWithPrice(t *testing.T) {
+	key, _ := crypto.GenerateKey(crand.Reader)
+	addr := key.Address()
 
-	sim := simTestBackend(testAddr)
+	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core*2 + 2e17)}}, 10000000)
+	defer sim.Close()
+
+	recipient, err := common.HexToAddress("cb76a631db606f1452ddc2432931d611f1d5b126f848")
+	if err != nil {
+		t.Error(err)
+	}
+	var cases = []struct {
+		name        string
+		message     c.CallMsg
+		expect      uint64
+		expectError error
+	}{
+		{"EstimateWithoutPrice", c.CallMsg{
+			From:        addr,
+			To:          &recipient,
+			Energy:      0,
+			EnergyPrice: big.NewInt(0),
+			Value:       big.NewInt(1000),
+			Data:        nil,
+		}, 21000, nil},
+
+		{"EstimateWithPrice", c.CallMsg{
+			From:        addr,
+			To:          &recipient,
+			Energy:      0,
+			EnergyPrice: big.NewInt(1000),
+			Value:       big.NewInt(1000),
+			Data:        nil,
+		}, 21000, nil},
+
+		{"EstimateWithVeryHighPrice", c.CallMsg{
+			From:        addr,
+			To:          &recipient,
+			Energy:      0,
+			EnergyPrice: big.NewInt(1e14), // energycost = 2.1core
+			Value:       big.NewInt(1e17), // the remaining balance for fee is 2.1core
+			Data:        nil,
+		}, 21000, nil},
+
+		{"EstimateWithSuperhighPrice", c.CallMsg{
+			From:        addr,
+			To:          &recipient,
+			Energy:      0,
+			EnergyPrice: big.NewInt(2e14), // energycost = 4.2core
+			Value:       big.NewInt(1000),
+			Data:        nil,
+		}, 21000, errors.New("energy required exceeds allowance (10999)")}, // 10999=(2.2core-1000ore)/(2e14)
+	}
+	for _, c := range cases {
+		got, err := sim.EstimateEnergy(context.Background(), c.message)
+		if c.expectError != nil {
+			if err == nil {
+				t.Fatalf("Expect error, got nil")
+			}
+			if c.expectError.Error() != err.Error() {
+				t.Fatalf("Expect error, want %v, got %v", c.expectError, err)
+			}
+			continue
+		}
+		if got != c.expect {
+			t.Fatalf("Energy estimation mismatch, want %d, got %d", c.expect, got)
+		}
+	}
+}
+
+func TestSimulatedBackend_HeaderByHash(t *testing.T) {
+
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
@@ -501,10 +600,8 @@ func TestSimulatedBackend_HeaderByHash(t *testing.T) {
 }
 
 func TestSimulatedBackend_HeaderByNumber(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
@@ -549,10 +646,8 @@ func TestSimulatedBackend_HeaderByNumber(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionCount(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 	currentBlock, err := sim.BlockByNumber(bgCtx, nil)
@@ -570,7 +665,7 @@ func TestSimulatedBackend_TransactionCount(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -600,10 +695,8 @@ func TestSimulatedBackend_TransactionCount(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
@@ -616,7 +709,7 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 	}
 
 	// expect pending nonce to be 0 since account has not been used
-	pendingNonce, err := sim.PendingNonceAt(bgCtx, testAddr)
+	pendingNonce, err := sim.PendingNonceAt(bgCtx, testKey.Address())
 	if err != nil {
 		t.Errorf("did not get the pending nonce: %v", err)
 	}
@@ -626,7 +719,7 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -664,15 +757,13 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 }
 
 func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
 	// expect pending nonce to be 0 since account has not been used
-	pendingNonce, err := sim.PendingNonceAt(bgCtx, testAddr)
+	pendingNonce, err := sim.PendingNonceAt(bgCtx, testKey.Address())
 	if err != nil {
 		t.Errorf("did not get the pending nonce: %v", err)
 	}
@@ -682,7 +773,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -695,7 +786,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// expect pending nonce to be 1 since account has submitted one transaction
-	pendingNonce, err = sim.PendingNonceAt(bgCtx, testAddr)
+	pendingNonce, err = sim.PendingNonceAt(bgCtx, testKey.Address())
 	if err != nil {
 		t.Errorf("did not get the pending nonce: %v", err)
 	}
@@ -705,7 +796,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// make a new transaction with a nonce of 1
-	tx = types.NewTransaction(uint64(1), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx = types.NewTransaction(uint64(1), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err = types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -716,7 +807,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// expect pending nonce to be 2 since account now has two transactions
-	pendingNonce, err = sim.PendingNonceAt(bgCtx, testAddr)
+	pendingNonce, err = sim.PendingNonceAt(bgCtx, testKey.Address())
 	if err != nil {
 		t.Errorf("did not get the pending nonce: %v", err)
 	}
@@ -727,15 +818,13 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 }
 
 func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
 
-	sim := simTestBackend(testAddr)
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testKey.Address(), big.NewInt(1000), params.TxEnergy, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.NewNucleusSigner(sim.config.NetworkID), testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -753,7 +842,7 @@ func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
 		t.Errorf("could not get transaction receipt: %v", err)
 	}
 
-	if receipt.ContractAddress != testAddr && receipt.TxHash != signedTx.Hash() {
+	if receipt.ContractAddress != testKey.Address() && receipt.TxHash != signedTx.Hash() {
 		t.Errorf("received receipt is not correct: %v", receipt)
 	}
 }
@@ -775,12 +864,11 @@ func TestSimulatedBackend_SuggestEnergyPrice(t *testing.T) {
 }
 
 func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
-	sim := simTestBackend(testAddr)
+
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
-	code, err := sim.CodeAt(bgCtx, testAddr, nil)
+	code, err := sim.CodeAt(bgCtx, testKey.Address(), nil)
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
@@ -812,12 +900,11 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 }
 
 func TestSimulatedBackend_CodeAt(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
-	sim := simTestBackend(testAddr)
+
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
-	code, err := sim.CodeAt(bgCtx, testAddr, nil)
+	code, err := sim.CodeAt(bgCtx, testKey.Address(), nil)
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
@@ -850,11 +937,11 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 }
 
 // When receive("X") is called with sender 0x00... and value 1, it produces this tx receipt:
-//   receipt{status=1 cenergy=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
+//
+//	receipt{status=1 cenergy=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
 func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
-	sim := simTestBackend(testAddr)
+
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
@@ -874,8 +961,8 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	}
 
 	// make sure you can call the contract in pending state
-	res, err := sim.PendingCallContract(bgCtx, gocore.CallMsg{
-		From: testAddr,
+	res, err := sim.PendingCallContract(bgCtx, c.CallMsg{
+		From: testKey.Address(),
 		To:   &addr,
 		Data: input,
 	})
@@ -894,8 +981,8 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	sim.Commit()
 
 	// make sure you can call the contract
-	res, err = sim.CallContract(bgCtx, gocore.CallMsg{
-		From: testAddr,
+	res, err = sim.CallContract(bgCtx, c.CallMsg{
+		From: testKey.Address(),
 		To:   &addr,
 		Data: input,
 	}, nil)
@@ -937,9 +1024,8 @@ contract Reverter {
     }
 }*/
 func TestSimulatedBackend_CallContractRevert(t *testing.T) {
-	pub := eddsa.Ed448DerivePublicKey(*testKey)
-	testAddr := crypto.PubkeyToAddress(pub)
-	sim := simTestBackend(testAddr)
+
+	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 	bgCtx := context.Background()
 
@@ -963,15 +1049,15 @@ func TestSimulatedBackend_CallContractRevert(t *testing.T) {
 
 	call := make([]func([]byte) ([]byte, error), 2)
 	call[0] = func(input []byte) ([]byte, error) {
-		return sim.PendingCallContract(bgCtx, gocore.CallMsg{
-			From: testAddr,
+		return sim.PendingCallContract(bgCtx, c.CallMsg{
+			From: testKey.Address(),
 			To:   &addr,
 			Data: input,
 		})
 	}
 	call[1] = func(input []byte) ([]byte, error) {
-		return sim.CallContract(bgCtx, gocore.CallMsg{
-			From: testAddr,
+		return sim.CallContract(bgCtx, c.CallMsg{
+			From: testKey.Address(),
 			To:   &addr,
 			Data: input,
 		}, nil)

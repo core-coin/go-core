@@ -1,4 +1,4 @@
-// Copyright 2022 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -17,21 +17,21 @@
 package v4test
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/discover/v4wire"
-	"github.com/core-coin/go-core/p2p/enode"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"time"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/discover/v4wire"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 const waitTime = 300 * time.Millisecond
 
 type testenv struct {
 	l1, l2     net.PacketConn
-	key        *eddsa.PrivateKey
+	key        *crypto.PrivateKey
 	remote     *enode.Node
 	remoteAddr *net.UDPAddr
 }
@@ -45,7 +45,7 @@ func newTestEnv(remote string, listen1, listen2 string) *testenv {
 	if err != nil {
 		panic(err)
 	}
-	key, err := crypto.GenerateKey(rand.Reader)
+	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic(err)
 	}
@@ -60,10 +60,10 @@ func newTestEnv(remote string, listen1, listen2 string) *testenv {
 			ip = net.ParseIP("127.0.0.1")
 		}
 		if tcpPort = node.TCP(); tcpPort == 0 {
-			tcpPort = 30303
+			tcpPort = 30300
 		}
 		if udpPort = node.TCP(); udpPort == 0 {
-			udpPort = 30303
+			udpPort = 30300
 		}
 		node = enode.NewV4(node.Pubkey(), ip, tcpPort, udpPort)
 	}

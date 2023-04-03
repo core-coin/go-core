@@ -19,32 +19,33 @@ package les
 
 import (
 	"fmt"
-	lpc "github.com/core-coin/go-core/les/lespay/client"
-	"github.com/core-coin/go-core/xcb/filters"
-	"math/big"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcb/energyprice"
+	"github.com/core-coin/go-core/v2/xcb/energyprice"
+
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	lpc "github.com/core-coin/go-core/v2/les/lespay/client"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
+	"github.com/core-coin/go-core/v2/xcb/filters"
 )
 
 type LightCore struct {
@@ -89,9 +90,6 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	if _, isCompat := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !isCompat {
 		return nil, genesisErr
 	}
-
-	chainConfig.NetworkID = big.NewInt(int64(config.NetworkId))
-
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	peers := newServerPeerSet()
@@ -116,7 +114,7 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	}
 	peers.subscribe((*vtSubscription)(lxcb.valueTracker))
 
-	dnsdisc, err := lxcb.setupDiscovery(&stack.Config().P2P)
+	dnsdisc, err := lxcb.setupDiscovery()
 	if err != nil {
 		return nil, err
 	}
@@ -144,12 +142,16 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	lxcb.chainReader = lxcb.blockchain
 	lxcb.txPool = light.NewTxPool(lxcb.chainConfig, lxcb.blockchain, lxcb.relay)
 
+	// Set up checkpoint oracle.
 	lxcb.oracle = lxcb.setupOracle(stack, genesisHash, config)
 
 	// Note: AddChildIndexer starts the update process for the child
 	lxcb.bloomIndexer.AddChildIndexer(lxcb.bloomTrieIndexer)
 	lxcb.chtIndexer.Start(lxcb.blockchain)
 	lxcb.bloomIndexer.Start(lxcb.blockchain)
+
+	// Start a light chain pruner to delete useless historical data.
+	lxcb.pruner = newPruner(chainDb, lxcb.chtIndexer, lxcb.bloomTrieIndexer)
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
@@ -165,6 +167,12 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	}
 	lxcb.ApiBackend.gpo = energyprice.NewOracle(lxcb.ApiBackend, gpoParams)
 
+	lxcb.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxcb)
+	if lxcb.handler.ulc != nil {
+		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcb.handler.ulc.keys), "minTrustedFraction", lxcb.handler.ulc.fraction)
+		lxcb.blockchain.DisableCheckFreq()
+	}
+
 	lxcb.netRPCService = xcbapi.NewPublicNetAPI(lxcb.p2pServer, lxcb.config.NetworkId)
 
 	// Register the backend on the node
@@ -172,11 +180,6 @@ func New(stack *node.Node, config *xcb.Config) (*LightCore, error) {
 	stack.RegisterProtocols(lxcb.Protocols())
 	stack.RegisterLifecycle(lxcb)
 
-	lxcb.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lxcb)
-	if lxcb.handler.ulc != nil {
-		log.Warn("Ultra light client is enabled", "trustedNodes", len(lxcb.handler.ulc.keys), "minTrustedFraction", lxcb.handler.ulc.fraction)
-		lxcb.blockchain.DisableCheckFreq()
-	}
 	return lxcb, nil
 }
 
@@ -312,7 +315,6 @@ func (s *LightCore) Stop() error {
 	s.engine.Close()
 	s.pruner.close()
 	s.eventMux.Stop()
-	s.serverPool.stop()
 	s.chainDb.Close()
 	s.wg.Wait()
 	log.Info("Light core stopped")

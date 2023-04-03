@@ -25,12 +25,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/contracts/checkpointoracle"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/contracts/checkpointoracle"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // CheckpointOracle is responsible for offering the latest stable checkpoint
@@ -140,11 +140,11 @@ func (oracle *CheckpointOracle) VerifySigners(index uint64, hash [32]byte, signa
 		// --  Application specific data
 		// 4 : checkpoint section_index (uint64)
 		// 5 : checkpoint hash (bytes32)
-		//     hash = keccak256(checkpoint_index, section_head, cht_root, bloom_root)
+		//     hash = SHA3(checkpoint_index, section_head, cht_root, bloom_root)
 		buf := make([]byte, 8)
 		binary.BigEndian.PutUint64(buf, index)
 		data := append([]byte{0x19, 0x00}, append(oracle.config.Address.Bytes(), append(buf, hash[:]...)...)...)
-		//signatures[i][64] -= 27 // Transform V from 27/28 to 0/1 according to the yellow paper for verification.
+		signatures[i][64] -= 27 // Transform V from 27/28 to 0/1 according to the yellow paper for verification.
 		pubkey, err := crypto.Ecrecover(crypto.SHA3(data), signatures[i])
 		if err != nil {
 			return false, nil

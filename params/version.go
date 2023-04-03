@@ -21,7 +21,7 @@ func VersionWithTag(gitTag, gitCommit, gitDate string) string {
 	if len(gitCommit) >= 8 {
 		vsn += "-" + gitCommit[:8]
 	}
-	if (gitDate != "") {
+	if gitDate != "" {
 		vsn += "-" + gitDate
 	}
 	return vsn

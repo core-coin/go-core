@@ -1,4 +1,4 @@
-// Copyright 2020 The go-core Authors
+// Copyright 2020 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -17,14 +17,14 @@
 package main
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 var (
@@ -60,12 +60,12 @@ var (
 	tcpPortFlag = cli.IntFlag{
 		Name:  "tcp",
 		Usage: "TCP port of the node",
-		Value: 30303,
+		Value: 30300,
 	}
 	udpPortFlag = cli.IntFlag{
 		Name:  "udp",
 		Usage: "UDP port of the node",
-		Value: 30303,
+		Value: 30300,
 	}
 )
 
@@ -75,7 +75,7 @@ func genkey(ctx *cli.Context) error {
 	}
 	file := ctx.Args().Get(0)
 
-	key, err := crypto.GenerateKey(rand.Reader)
+	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		return fmt.Errorf("could not generate key: %v", err)
 	}
@@ -101,8 +101,7 @@ func keyToURL(ctx *cli.Context) error {
 	if ip == nil {
 		return fmt.Errorf("invalid IP address %q", host)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*key)
-	node := enode.NewV4(&pub, ip, tcp, udp)
+	node := enode.NewV4(key.PublicKey(), ip, tcp, udp)
 	fmt.Println(node.URLv4())
 	return nil
 }

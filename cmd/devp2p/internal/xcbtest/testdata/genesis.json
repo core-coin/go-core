@@ -1,0 +1,20 @@
+{
+    "config": {
+        "networkId": 19763,
+        "cryptore": {}
+    },
+    "nonce": "0xdeadbeefdeadbeef",
+    "timestamp": "0x0",
+    "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "energyLimit": "0x80000000",
+    "difficulty": "0x20000",
+    "coinbase": "0x0000000000000000000000000000000000000000",
+    "alloc": {
+        "71562b71999873db5b286df957af199ec94617f7": {
+            "balance": "0xffffffffffffffffffffffffff"
+        }
+    },
+    "number": "0x0",
+    "energyUsed": "0x0",
+    "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}

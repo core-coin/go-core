@@ -18,16 +18,72 @@ package tests
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/params"
 	"math/big"
+	"sort"
+
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // Forks table defines supported forks and their chain config.
 var Forks = map[string]*params.ChainConfig{
-	"Mainnet": {
+	"Frontier": {
 		NetworkID: big.NewInt(1),
-		Cryptore:  &params.CryptoreConfig{},
 	},
+	"Homestead": {
+		NetworkID: big.NewInt(1),
+	},
+	"CIP150": {
+		NetworkID: big.NewInt(1),
+	},
+	"CIP158": {
+		NetworkID: big.NewInt(1),
+	},
+	"Byzantium": {
+		NetworkID: big.NewInt(1),
+	},
+	"Constantinople": {
+		NetworkID: big.NewInt(1),
+	},
+	"ConstantinopleFix": {
+		NetworkID: big.NewInt(1),
+	},
+	"Istanbul": {
+		NetworkID: big.NewInt(1),
+	},
+	"FrontierToHomesteadAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"HomesteadToCIP150At5": {
+		NetworkID: big.NewInt(1),
+	},
+	"HomesteadToDaoAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"CIP158ToByzantiumAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"ByzantiumToConstantinopleAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"ByzantiumToConstantinopleFixAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"ConstantinopleFixToIstanbulAt5": {
+		NetworkID: big.NewInt(1),
+	},
+	"Berlin": {
+		NetworkID: big.NewInt(1),
+	},
+}
+
+// Returns the set of defined fork names
+func AvailableForks() []string {
+	var availableForks []string
+	for k := range Forks {
+		availableForks = append(availableForks, k)
+	}
+	sort.Strings(availableForks)
+	return availableForks
 }
 
 // UnsupportedForkError is returned when a test requests a fork that isn't implemented.

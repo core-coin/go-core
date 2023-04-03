@@ -21,22 +21,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common/compiler"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common/compiler"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/flags"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 var (
 	// Git SHA1 commit hash of the release (set via linker flags)
-	gitTag = ""
+	gitTag    = ""
 	gitCommit = ""
 	gitDate   = ""
 
@@ -61,21 +61,12 @@ var (
 	}
 	solFlag = cli.StringFlag{
 		Name:  "sol",
-		Usage: "Path to the Core contract Solidity source to build and bind",
+		Usage: "Path to the Core contract Ylem source to build and bind",
 	}
 	ylemFlag = cli.StringFlag{
 		Name:  "ylem",
 		Usage: "Ylem compiler to use if source builds are requested",
 		Value: "ylem",
-	}
-	vyFlag = cli.StringFlag{
-		Name:  "vy",
-		Usage: "Path to the Core contract Vyper source to build and bind",
-	}
-	vyperFlag = cli.StringFlag{
-		Name:  "vyper",
-		Usage: "Vyper compiler to use if source builds are requested",
-		Value: "vyper",
 	}
 	excFlag = cli.StringFlag{
 		Name:  "exc",
@@ -89,11 +80,6 @@ var (
 		Name:  "out",
 		Usage: "Output file for the generated binding (default = stdout)",
 	}
-	langFlag = cli.StringFlag{
-		Name:  "lang",
-		Usage: "Destination language for the bindings (go, java, objc)",
-		Value: "go",
-	}
 	aliasFlag = cli.StringFlag{
 		Name:  "alias",
 		Usage: "Comma separated aliases for function and event renaming, e.g. foo=bar",
@@ -101,7 +87,7 @@ var (
 )
 
 func init() {
-	app = utils.NewApp(gitTag, gitCommit, gitDate, "core checkpoint helper tool")
+	app = flags.NewApp(gitTag, gitCommit, gitDate, "core checkpoint helper tool")
 	app.Flags = []cli.Flag{
 		abiFlag,
 		binFlag,
@@ -109,36 +95,21 @@ func init() {
 		jsonFlag,
 		solFlag,
 		ylemFlag,
-		vyFlag,
-		vyperFlag,
 		excFlag,
 		pkgFlag,
 		outFlag,
-		langFlag,
 		aliasFlag,
 	}
 	app.Action = utils.MigrateFlags(abigen)
-	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
+	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
 
 func abigen(c *cli.Context) error {
-	utils.CheckExclusive(c, abiFlag, jsonFlag, solFlag, vyFlag) // Only one source can be selected.
+	utils.CheckExclusive(c, abiFlag, jsonFlag, solFlag) // Only one source can be selected.
 	if c.GlobalString(pkgFlag.Name) == "" {
 		utils.Fatalf("No destination package specified (--pkg)")
 	}
-	var lang bind.Lang
-	switch c.GlobalString(langFlag.Name) {
-	case "go":
-		lang = bind.LangGo
-	case "java":
-		lang = bind.LangJava
-	case "objc":
-		lang = bind.LangObjC
-		utils.Fatalf("Objc binding generation is uncompleted")
-	default:
-		utils.Fatalf("Unsupported destination language \"%s\" (--lang)", c.GlobalString(langFlag.Name))
-	}
-	// If the entire solidity code was specified, build and bind based on that
+	// If the entire ylem code was specified, build and bind based on that
 	var (
 		abis    []string
 		bins    []string
@@ -195,23 +166,6 @@ func abigen(c *cli.Context) error {
 			if err != nil {
 				utils.Fatalf("Failed to build Ylem contract: %v", err)
 			}
-		case c.GlobalIsSet(vyFlag.Name):
-			output, err := compiler.CompileVyper(c.GlobalString(vyperFlag.Name), c.GlobalString(vyFlag.Name))
-			if err != nil {
-				utils.Fatalf("Failed to build Vyper contract: %v", err)
-			}
-			contracts = make(map[string]*compiler.Contract)
-			for n, contract := range output {
-				name := n
-				// Sanitize the combined json names to match the
-				// format expected by solidity.
-				if !strings.Contains(n, ":") {
-					// Remove extra path components
-					name = abi.ToCamelCase(strings.TrimSuffix(filepath.Base(name), ".vy"))
-				}
-				contracts[name] = contract
-			}
-
 		case c.GlobalIsSet(jsonFlag.Name):
 			jsonOutput, err := ioutil.ReadFile(c.GlobalString(jsonFlag.Name))
 			if err != nil {
@@ -254,7 +208,7 @@ func abigen(c *cli.Context) error {
 		}
 	}
 	// Generate the contract binding
-	code, err := bind.Bind(types, abis, bins, sigs, c.GlobalString(pkgFlag.Name), lang, libs, aliases)
+	code, err := bind.Bind(types, abis, bins, sigs, c.GlobalString(pkgFlag.Name), libs, aliases)
 	if err != nil {
 		utils.Fatalf("Failed to generate ABI binding: %v", err)
 	}

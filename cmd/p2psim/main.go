@@ -19,40 +19,39 @@
 // Here is an example of creating a 2 node network with the first node
 // connected to the second:
 //
-//     $ p2psim node create
-//     Created node01
+//	$ p2psim node create
+//	Created node01
 //
-//     $ p2psim node start node01
-//     Started node01
+//	$ p2psim node start node01
+//	Started node01
 //
-//     $ p2psim node create
-//     Created node02
+//	$ p2psim node create
+//	Created node02
 //
-//     $ p2psim node start node02
-//     Started node02
+//	$ p2psim node start node02
+//	Started node02
 //
-//     $ p2psim node connect node01 node02
-//     Connected node01 to node02
-//
+//	$ p2psim node connect node01 node02
+//	Connected node01 to node02
 package main
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io"
 	"os"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
-	"github.com/core-coin/go-core/rpc"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 var client *simulations.Client
@@ -282,12 +281,11 @@ func createNode(ctx *cli.Context) error {
 	config := adapters.RandomNodeConfig()
 	config.Name = ctx.String("name")
 	if key := ctx.String("key"); key != "" {
-		privKey, err := crypto.HexToEDDSA(key)
+		privKey, err := crypto.UnmarshalPrivateKeyHex(key)
 		if err != nil {
 			return err
 		}
-		pub := eddsa.Ed448DerivePublicKey(*privKey)
-		config.ID = enode.PubkeyToIDV4(&pub)
+		config.ID = enode.PubkeyToIDV4(privKey.PublicKey())
 		config.PrivateKey = privKey
 	}
 	if services := ctx.String("services"); services != "" {

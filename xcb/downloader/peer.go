@@ -21,7 +21,6 @@ package downloader
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 	"sort"
@@ -29,9 +28,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 const (
@@ -118,7 +117,6 @@ func newPeerConnection(id string, version int, peer Peer, logger log.Logger) *pe
 		id:      id,
 		lacking: make(map[common.Hash]struct{}),
 		peer:    peer,
-
 		version: version,
 		log:     logger,
 	}
@@ -144,17 +142,13 @@ func (p *peerConnection) Reset() {
 
 // FetchHeaders sends a header retrieval request to the remote peer.
 func (p *peerConnection) FetchHeaders(from uint64, count int) error {
-	// Sanity check the protocol version
-	if p.version < 62 {
-		panic(fmt.Sprintf("header fetch [xcb/62+] requested on xcb/%d", p.version))
-	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.headerIdle, 0, 1) {
 		return errAlreadyFetching
 	}
 	p.headerStarted = time.Now()
 
-	// Issue the header retrieval request (absolut upwards without gaps)
+	// Issue the header retrieval request (absolute upwards without gaps)
 	go p.peer.RequestHeadersByNumber(from, count, 0, false)
 
 	return nil
@@ -162,10 +156,6 @@ func (p *peerConnection) FetchHeaders(from uint64, count int) error {
 
 // FetchBodies sends a block body retrieval request to the remote peer.
 func (p *peerConnection) FetchBodies(request *fetchRequest) error {
-	// Sanity check the protocol version
-	if p.version < 62 {
-		panic(fmt.Sprintf("body fetch [xcb/62+] requested on xcb/%d", p.version))
-	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.blockIdle, 0, 1) {
 		return errAlreadyFetching
@@ -186,10 +176,6 @@ func (p *peerConnection) FetchBodies(request *fetchRequest) error {
 
 // FetchReceipts sends a receipt retrieval request to the remote peer.
 func (p *peerConnection) FetchReceipts(request *fetchRequest) error {
-	// Sanity check the protocol version
-	if p.version < 63 {
-		panic(fmt.Sprintf("body fetch [xcb/63+] requested on xcb/%d", p.version))
-	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.receiptIdle, 0, 1) {
 		return errAlreadyFetching
@@ -210,10 +196,6 @@ func (p *peerConnection) FetchReceipts(request *fetchRequest) error {
 
 // FetchNodeData sends a node state data retrieval request to the remote peer.
 func (p *peerConnection) FetchNodeData(hashes []common.Hash) error {
-	// Sanity check the protocol version
-	if p.version < 63 {
-		panic(fmt.Sprintf("node data fetch [xcb/63+] requested on xcb/%d", p.version))
-	}
 	// Short circuit if the peer is already fetching
 	if !atomic.CompareAndSwapInt32(&p.stateIdle, 0, 1) {
 		return errAlreadyFetching
@@ -261,6 +243,7 @@ func (p *peerConnection) setIdle(elapsed time.Duration, delivered int, throughpu
 
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
 	// If nothing was delivered (hard timeout / unavailable data), reduce throughput to minimum
 	if delivered == 0 {
 		*throughput = 0
@@ -425,7 +408,7 @@ func (ps *peerSet) Unregister(id string) error {
 	ps.lock.Lock()
 	p, ok := ps.peers[id]
 	if !ok {
-		defer ps.lock.Unlock()
+		ps.lock.Unlock()
 		return errNotRegistered
 	}
 	delete(ps.peers, id)
@@ -474,7 +457,7 @@ func (ps *peerSet) HeaderIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.headerThroughput
 	}
-	return ps.idlePeers(62, 65, idle, throughput)
+	return ps.idlePeers(63, 65, idle, throughput)
 }
 
 // BodyIdlePeers retrieves a flat list of all the currently body-idle peers within
@@ -488,7 +471,7 @@ func (ps *peerSet) BodyIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.blockThroughput
 	}
-	return ps.idlePeers(62, 65, idle, throughput)
+	return ps.idlePeers(63, 65, idle, throughput)
 }
 
 // ReceiptIdlePeers retrieves a flat list of all the currently receipt-idle peers
@@ -526,8 +509,8 @@ func (ps *peerSet) idlePeers(minProtocol, maxProtocol int, idleCheck func(*peerC
 	ps.lock.RLock()
 	defer ps.lock.RUnlock()
 
-	tps := make([]float64, 0, len(ps.peers))
 	idle, total := make([]*peerConnection, 0, len(ps.peers)), 0
+	tps := make([]float64, 0, len(ps.peers))
 	for _, p := range ps.peers {
 		if p.version >= minProtocol && p.version <= maxProtocol {
 			if idleCheck(p) {

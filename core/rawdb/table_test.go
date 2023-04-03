@@ -18,8 +18,9 @@ package rawdb
 
 import (
 	"bytes"
-	"github.com/core-coin/go-core/xcbdb"
 	"testing"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 func TestTableDatabase(t *testing.T)            { testTableDatabase(t, "prefix") }
@@ -117,10 +118,8 @@ func testTableDatabase(t *testing.T, prefix string) {
 	}
 	// Test iterators
 	check(db.NewIterator(nil, nil), 6, 0)
-
 	// Test iterators with prefix
 	check(db.NewIterator([]byte{0xff, 0xff}, nil), 3, 3)
-
 	// Test iterators with start point
 	check(db.NewIterator(nil, []byte{0xff, 0xff, 0x02}), 2, 4)
 	// Test iterators with prefix and start point

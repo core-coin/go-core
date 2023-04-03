@@ -23,45 +23,41 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/big"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/abi/bind/backends"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/contracts/checkpointoracle/contract"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/les/checkpointoracle"
-	"github.com/core-coin/go-core/les/flowcontrol"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind/backends"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/contracts/checkpointoracle/contract"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/les/checkpointoracle"
+	"github.com/core-coin/go-core/v2/les/flowcontrol"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/nodestate"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
 )
 
 var (
 	bankKey, _ = crypto.GenerateKey(rand.Reader)
-	bankPubKey = eddsa.Ed448DerivePublicKey(*bankKey)
-	bankAddr   = crypto.PubkeyToAddress(bankPubKey)
 	bankFunds  = big.NewInt(1000000000000000000)
 
 	userKey1, _ = crypto.GenerateKey(rand.Reader)
 	userKey2, _ = crypto.GenerateKey(rand.Reader)
-	userPubKey1 = eddsa.Ed448DerivePublicKey(*userKey1)
-	userPubKey2 = eddsa.Ed448DerivePublicKey(*userKey2)
-	userAddr1   = crypto.PubkeyToAddress(userPubKey1)
-	userAddr2   = crypto.PubkeyToAddress(userPubKey2)
 
 	testContractAddr         common.Address
 	testContractCode         = common.Hex2Bytes("606060405260cc8060106000396000f360606040526000357c01000000000000000000000000000000000000000000000000000000009004806360cd2685146041578063c16431b914606b57603f565b005b6055600480803590602001909190505060a9565b6040518082815260200191505060405180910390f35b60886004808035906020019091908035906020019091905050608a565b005b80600060005083606481101560025790900160005b50819055505b5050565b6000600060005082606481101560025790900160005b5054905060c7565b91905056")
@@ -73,8 +69,6 @@ var (
 	// Checkpoint registrar relative
 	registrarAddr common.Address
 	signerKey, _  = crypto.GenerateKey(rand.Reader)
-	signerPubKey  = eddsa.Ed448DerivePublicKey(*signerKey)
-	signerAddr    = crypto.PubkeyToAddress(signerPubKey)
 )
 
 var (
@@ -117,35 +111,35 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 		case 0:
 			// deploy checkpoint contract
 			auth, _ := bind.NewKeyedTransactorWithNetworkID(bankKey, big.NewInt(1337))
-			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(auth, backend, []common.Address{signerAddr}, sectionSize, processConfirms, big.NewInt(1))
+			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(auth, backend, []common.Address{signerKey.Address()}, sectionSize, processConfirms, big.NewInt(1))
 			// bankUser transfers some core to user1
-			nonce, _ := backend.PendingNonceAt(ctx, bankAddr)
-			tx, _ := types.SignTx(types.NewTransaction(nonce, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
+			nonce, _ := backend.PendingNonceAt(ctx, bankKey.Address())
+			tx, _ := types.SignTx(types.NewTransaction(nonce, userKey1.Address(), big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx)
 		case 1:
-			bankNonce, _ := backend.PendingNonceAt(ctx, bankAddr)
-			userNonce1, _ := backend.PendingNonceAt(ctx, userAddr1)
+			bankNonce, _ := backend.PendingNonceAt(ctx, bankKey.Address())
+			userNonce1, _ := backend.PendingNonceAt(ctx, userKey1.Address())
 
 			// bankUser transfers more core to user1
-			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, userAddr1, big.NewInt(1000), params.TxEnergy, nil, nil), signer, bankKey)
+			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, userKey1.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx1)
 
 			// user1 relays core to user2
-			tx2, _ := types.SignTx(types.NewTransaction(userNonce1, userAddr2, big.NewInt(1000), params.TxEnergy, nil, nil), signer, userKey1)
+			tx2, _ := types.SignTx(types.NewTransaction(userNonce1, userKey2.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), signer, userKey1)
 			backend.SendTransaction(ctx, tx2)
 
 			// user1 deploys a test contract
 			tx3, _ := types.SignTx(types.NewContractCreation(userNonce1+1, big.NewInt(0), 200000, big.NewInt(0), testContractCode), signer, userKey1)
 			backend.SendTransaction(ctx, tx3)
-			testContractAddr = crypto.CreateAddress(userAddr1, userNonce1+1)
+			testContractAddr = crypto.CreateAddress(userKey1.Address(), userNonce1+1)
 
 			// user1 deploys a event contract
 			tx4, _ := types.SignTx(types.NewContractCreation(userNonce1+2, big.NewInt(0), 200000, big.NewInt(0), testEventEmitterCode), signer, userKey1)
 			backend.SendTransaction(ctx, tx4)
 		case 2:
 			// bankUser transfer some core to signer
-			bankNonce, _ := backend.PendingNonceAt(ctx, bankAddr)
-			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, signerAddr, big.NewInt(1000000000), params.TxEnergy, nil, nil), signer, bankKey)
+			bankNonce, _ := backend.PendingNonceAt(ctx, bankKey.Address())
+			tx1, _ := types.SignTx(types.NewTransaction(bankNonce, signerKey.Address(), big.NewInt(1000000000), params.TxEnergy, nil, nil), signer, bankKey)
 			backend.SendTransaction(ctx, tx1)
 
 			// invoke test contract
@@ -154,7 +148,7 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 			backend.SendTransaction(ctx, tx2)
 		case 3:
 			// invoke test contract
-			bankNonce, _ := backend.PendingNonceAt(ctx, bankAddr)
+			bankNonce, _ := backend.PendingNonceAt(ctx, bankKey.Address())
 			data := common.Hex2Bytes("C16431B900000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002")
 			tx, _ := types.SignTx(types.NewTransaction(bankNonce, testContractAddr, big.NewInt(0), 100000, nil, data), signer, bankKey)
 			backend.SendTransaction(ctx, tx)
@@ -176,13 +170,12 @@ func testIndexers(db xcbdb.Database, odr light.OdrBackend, config *light.Indexer
 
 func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, indexers []*core.ChainIndexer, db xcbdb.Database, peers *serverPeerSet, ulcServers []string, ulcFraction int) *clientHandler {
 	var (
-		evmux  = new(event.TypeMux)
+		cvmux  = new(event.TypeMux)
 		engine = cryptore.NewFaker()
 		gspec  = core.Genesis{
-			Config:      params.DevChainConfig,
-			Alloc:       core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
+			Config:      params.MainnetChainConfig,
+			Alloc:       core.GenesisAlloc{bankKey.Address(): {Balance: bankFunds}},
 			EnergyLimit: 100000000,
-			Coinbase:    core.DefaultCoinbaseMainnet,
 		}
 		oracle *checkpointoracle.CheckpointOracle
 	)
@@ -190,8 +183,8 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 	chain, _ := light.NewLightChain(odr, gspec.Config, engine, nil)
 	if indexers != nil {
 		checkpointConfig := &params.CheckpointOracleConfig{
-			Address:   crypto.CreateAddress(bankAddr, 0),
-			Signers:   []common.Address{signerAddr},
+			Address:   crypto.CreateAddress(bankKey.Address(), 0),
+			Signers:   []common.Address{signerKey.Address()},
 			Threshold: 1,
 		}
 		getLocal := func(index uint64) params.TrustedCheckpoint {
@@ -210,7 +203,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
 			config:      &xcb.Config{LightPeers: 100, NetworkId: NetworkId},
-			chainConfig: params.AllCryptoreProtocolChanges,
+			chainConfig: params.MainnetChainConfig,
 			iConfig:     light.TestClientIndexerConfig,
 			chainDb:     db,
 			oracle:      oracle,
@@ -223,7 +216,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 		odr:        odr,
 		engine:     engine,
 		blockchain: chain,
-		eventMux:   evmux,
+		eventMux:   cvmux,
 	}
 	client.handler = newClientHandler(ulcServers, ulcFraction, nil, client)
 
@@ -234,11 +227,11 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 	return client.handler
 }
 
-func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Database, peers *clientPeerSet, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
+func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Database, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
 	var (
 		gspec = core.Genesis{
-			Config:      params.DevChainConfig,
-			Alloc:       core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
+			Config:      params.TestChainConfig,
+			Alloc:       core.GenesisAlloc{bankKey.Address(): {Balance: bankFunds}},
 			EnergyLimit: 100000000,
 		}
 		oracle *checkpointoracle.CheckpointOracle
@@ -254,8 +247,8 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Da
 	txpool := core.NewTxPool(txpoolConfig, gspec.Config, simulation.Blockchain())
 	if indexers != nil {
 		checkpointConfig := &params.CheckpointOracleConfig{
-			Address:   crypto.CreateAddress(bankAddr, 0),
-			Signers:   []common.Address{signerAddr},
+			Address:   crypto.CreateAddress(bankKey.Address(), 0),
+			Signers:   []common.Address{signerKey.Address()},
 			Threshold: 1,
 		}
 		getLocal := func(index uint64) params.TrustedCheckpoint {
@@ -270,18 +263,20 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Da
 		}
 		oracle = checkpointoracle.New(checkpointConfig, getLocal)
 	}
+	ns := nodestate.NewNodeStateMachine(nil, nil, mclock.System{}, serverSetup)
 	server := &LesServer{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
 			config:      &xcb.Config{LightPeers: 100, NetworkId: NetworkId},
-			chainConfig: params.AllCryptoreProtocolChanges,
+			chainConfig: params.MainnetChainConfig,
 			iConfig:     light.TestServerIndexerConfig,
 			chainDb:     db,
 			chainReader: simulation.Blockchain(),
 			oracle:      oracle,
 			closeCh:     make(chan struct{}),
 		},
-		peers:        peers,
+		ns:           ns,
+		broadcaster:  newBroadcaster(ns),
 		servingQueue: newServingQueue(int64(time.Millisecond*10), 1),
 		defParams: flowcontrol.ServerParams{
 			BufLimit:    testBufLimit,
@@ -289,15 +284,16 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Da
 		},
 		fcManager: flowcontrol.NewClientManager(nil, clock),
 	}
-	server.costTracker, server.freeCapacity = newCostTracker(db, server.config)
+	server.costTracker, server.minCapacity = newCostTracker(db, server.config)
 	server.costTracker.testCostList = testCostList(0) // Disable flow control mechanism.
-	server.clientPool = newClientPool(db, 1, clock, nil)
+	server.clientPool = newClientPool(ns, db, testBufRecharge, defaultConnectedBias, clock, func(id enode.ID) {})
 	server.clientPool.setLimits(10000, 10000) // Assign enough capacity for clientpool
 	server.handler = newServerHandler(server, simulation.Blockchain(), db, txpool, func() bool { return true })
 	if server.oracle != nil {
 		server.oracle.Start(simulation)
 	}
 	server.servingQueue.setThreads(4)
+	ns.Start()
 	server.handler.start()
 	return server.handler, simulation
 }
@@ -470,7 +466,7 @@ func newServerEnv(t *testing.T, blocks int, protocol int, callback indexerCallba
 	if simClock {
 		clock = &mclock.Simulated{}
 	}
-	handler, b := newTestServerHandler(blocks, indexers, db, newClientPeerSet(), clock)
+	handler, b := newTestServerHandler(blocks, indexers, db, clock)
 
 	var peer *testPeer
 	if newPeer {
@@ -509,7 +505,7 @@ func newServerEnv(t *testing.T, blocks int, protocol int, callback indexerCallba
 
 func newClientServerEnv(t *testing.T, blocks int, protocol int, callback indexerCallback, ulcServers []string, ulcFraction int, simClock bool, connect bool, disablePruning bool) (*testServer, *testClient, func()) {
 	sdb, cdb := rawdb.NewMemoryDatabase(), rawdb.NewMemoryDatabase()
-	speers, cpeers := newServerPeerSet(), newClientPeerSet()
+	speers := newServerPeerSet()
 
 	var clock mclock.Clock = &mclock.System{}
 	if simClock {
@@ -526,7 +522,7 @@ func newClientServerEnv(t *testing.T, blocks int, protocol int, callback indexer
 	ccIndexer, cbIndexer, cbtIndexer := cIndexers[0], cIndexers[1], cIndexers[2]
 	odr.SetIndexers(ccIndexer, cbIndexer, cbtIndexer)
 
-	server, b := newTestServerHandler(blocks, sindexers, sdb, cpeers, clock)
+	server, b := newTestServerHandler(blocks, sindexers, sdb, clock)
 	client := newTestClientHandler(b, odr, cIndexers, cdb, speers, ulcServers, ulcFraction)
 
 	scIndexer.Start(server.blockchain)
@@ -550,8 +546,8 @@ func newClientServerEnv(t *testing.T, blocks int, protocol int, callback indexer
 		}
 		select {
 		case <-done:
-		case <-time.After(20 * time.Second):
-			t.Fatal("test peer did not connect and sync within 20s")
+		case <-time.After(10 * time.Second):
+			t.Fatal("test peer did not connect and sync within 3s")
 		}
 	}
 	s := &testServer{

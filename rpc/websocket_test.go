@@ -72,7 +72,7 @@ func TestWebsocketOriginCheck(t *testing.T) {
 	// Connections without origin header should work.
 	client, err = DialWebsocket(context.Background(), wsURL, "")
 	if err != nil {
-		t.Fatalf("error for empty origin: %v", err)
+		t.Fatal("error for empty origin")
 	}
 	client.Close()
 }
@@ -136,7 +136,7 @@ func TestClientWebsocketPing(t *testing.T) {
 	}
 
 	// Wait for the context's deadline to be reached before proceeding.
-	// This is important for reproducing https://github.com/core-coin/go-core/issues/19798
+	// This is important for reproducing https://github.com/core-coin/go-core/v2/issues/19798
 	<-ctx.Done()
 	close(sendPing)
 

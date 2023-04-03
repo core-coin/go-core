@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -24,17 +24,18 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/internal/debug"
-	"github.com/core-coin/go-core/les"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
-	"github.com/core-coin/go-core/xcbclient"
-	"github.com/core-coin/go-core/xcbstats"
+	"github.com/core-coin/go-core/v2/xcbstats"
+
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/internal/debug"
+	"github.com/core-coin/go-core/v2/les"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
+	"github.com/core-coin/go-core/v2/xcbclient"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Gocore
@@ -125,7 +126,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 
 	if config.PprofAddress != "" {
-		debug.StartPProf(config.PprofAddress)
+		debug.StartPProf(config.PprofAddress, true)
 	}
 
 	// Create the empty networking stack
@@ -158,7 +159,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 		if err := json.Unmarshal([]byte(config.CoreGenesis), genesis); err != nil {
 			return nil, fmt.Errorf("invalid genesis spec: %v", err)
 		}
-		// If we have the devin, hard code the chain configs too
+		// If we have the Devin testnet, hard code the chain configs too
 		if config.CoreGenesis == DevinGenesis() {
 			genesis.Config = params.DevinChainConfig
 			if config.CoreNetworkID == 1 {
@@ -184,7 +185,6 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 			}
 		}
 	}
-
 	return &Node{rawStack}, nil
 }
 

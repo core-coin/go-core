@@ -25,11 +25,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 const (
-	ntpChecks = 10 // Number of measurements to do against the NTP server
+	ntpChecks = 5 // Number of measurements to do against the NTP server
 )
 
 var NtpPool = "pool.ntp.org:123"
@@ -64,7 +64,9 @@ func checkClockDrift() {
 // Note, it executes two extra measurements compared to the number of requested
 // ones to be able to discard the two extremes as outliers.
 func sntpDrift(measurements int) (time.Duration, error) {
+
 	addr, err := net.ResolveUDPAddr("udp", NtpPool)
+
 	if err != nil {
 		return 0, err
 	}
@@ -89,7 +91,7 @@ func sntpDrift(measurements int) (time.Duration, error) {
 			return 0, err
 		}
 		// Retrieve the reply and calculate the elapsed time
-		conn.SetDeadline(time.Now().Add(15 * time.Second))
+		conn.SetDeadline(time.Now().Add(60 * time.Second))
 
 		reply := make([]byte, 48)
 		if _, err = conn.Read(reply); err != nil {

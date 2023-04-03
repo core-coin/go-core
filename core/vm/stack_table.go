@@ -17,7 +17,7 @@
 package vm
 
 import (
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func minSwapStack(n int) int {

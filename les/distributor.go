@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/les/utils"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/les/utils"
 )
 
 // requestDistributor implements a mechanism that distributes requests to
@@ -183,7 +183,6 @@ type selectPeerItem struct {
 	weight uint64
 }
 
-// Weight implements wrsItem interface
 func selectPeerWeight(i interface{}) uint64 {
 	return i.(selectPeerItem).weight
 }

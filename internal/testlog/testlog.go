@@ -21,7 +21,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 // Handler returns a log handler which logs to the unit test log of t.

@@ -18,14 +18,13 @@ package enode
 
 import (
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enr"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 func init() {
@@ -46,7 +45,7 @@ var parseNodeTests = []struct {
 	{
 		input: "enr:-QEIuKuk5dq-y6V-njXo1mgo6ETegrTMMdpiN7snT31ebR2RbMp68L5qzSi3AOFPaE70U5gXyaqnxSXEuwCrW-9ElZ4GjrTXOK_-ovGusc5_npVF4ITl6Z6hbOqIG4yV0_VdT9Gmwf1BUh4Ylggtf0Z6jjJ9GAAC_L2OxBWwhT3M3rdzJE9s8bVcyfOEk3tXJwwQQLlCFQGnGRF3DIr82yGNZQcHrBESaKfilTyQJ4BjgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxuDkC_L2OxBWwhT3M3rdzJE9s8bVcyfOEk3tXJwwQQLlCFQGnGRF3DIr82yGNZQcHrBESaKfilTyQJ4CDdWRwgnZc",
 		wantResult: func() *Node {
-			testKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
+			testKey, _ := crypto.UnmarshalPrivateKeyHex("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
 			var r enr.Record
 			r.Set(enr.IP{127, 0, 0, 1})
 			r.Set(enr.UDP(30300))
@@ -157,7 +156,7 @@ var parseNodeTests = []struct {
 	},
 }
 
-func hexPubkey(h string) *eddsa.PublicKey {
+func hexPubkey(h string) *crypto.PublicKey {
 	k, err := parsePubkey(h)
 	if err != nil {
 		panic(err)

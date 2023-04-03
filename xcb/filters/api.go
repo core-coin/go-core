@@ -25,13 +25,13 @@ import (
 	"sync"
 	"time"
 
-	core "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcbdb"
+	core "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcbdb"
 )
 
 var (
@@ -171,7 +171,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 // NewBlockFilter creates a filter that fetches blocks that are imported into the chain.
 // It is part of the filter package since polling goes with xcb_getFilterChanges.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_newblockfilter
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_newblockfilter
 func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 	var (
 		headers   = make(chan *types.Header)
@@ -287,12 +287,12 @@ type FilterCriteria core.FilterQuery
 //
 // In case "fromBlock" > "toBlock" an error is returned.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_newfilter
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_newfilter
 func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
 	logs := make(chan []*types.Log)
 	logsSub, err := api.events.SubscribeLogs(core.FilterQuery(crit), logs)
 	if err != nil {
-		return rpc.ID(""), err
+		return "", err
 	}
 
 	api.filtersMu.Lock()
@@ -322,7 +322,7 @@ func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
 
 // GetLogs returns logs matching the given argument that are stored within the state.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_getlogs
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_getlogs
 func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([]*types.Log, error) {
 	var filter *Filter
 	if crit.BlockHash != nil {
@@ -351,7 +351,7 @@ func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([
 
 // UninstallFilter removes the filter with the given filter id.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_uninstallfilter
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_uninstallfilter
 func (api *PublicFilterAPI) UninstallFilter(id rpc.ID) bool {
 	api.filtersMu.Lock()
 	f, found := api.filters[id]
@@ -369,7 +369,7 @@ func (api *PublicFilterAPI) UninstallFilter(id rpc.ID) bool {
 // GetFilterLogs returns the logs for the filter with the given id.
 // If the filter could not be found an empty array of logs is returned.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_getfilterlogs
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_getfilterlogs
 func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*types.Log, error) {
 	api.filtersMu.Lock()
 	f, found := api.filters[id]
@@ -410,7 +410,7 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*ty
 // For pending transaction and block filters the result is []common.Hash.
 // (pending)Log filters return []Log.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_getfilterchanges
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_getfilterchanges
 func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) (interface{}, error) {
 	api.filtersMu.Lock()
 	defer api.filtersMu.Unlock()

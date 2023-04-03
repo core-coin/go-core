@@ -23,19 +23,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/light"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/trie"
-	"github.com/core-coin/go-core/xcb/downloader"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/light"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/trie"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 func expectResponse(r p2p.MsgReader, msgcode, reqID, bv uint64, data interface{}) error {
@@ -347,7 +348,7 @@ func testGetProofs(t *testing.T, protocol int) {
 	var proofreqs []ProofReq
 	proofsV2 := light.NewNodeSet()
 
-	accounts := []common.Address{bankAddr, userAddr1, userAddr2, signerAddr, {}}
+	accounts := []common.Address{bankKey.Address(), userKey1.Address(), userKey2.Address(), signerKey.Address(), {}}
 	for i := uint64(0); i <= bc.CurrentBlock().NumberU64(); i++ {
 		header := bc.GetHeaderByNumber(i)
 		trie, _ := trie.New(header.Root, trie.NewDatabase(server.db))
@@ -380,7 +381,7 @@ func testGetStaleProof(t *testing.T, protocol int) {
 	check := func(number uint64, wantOK bool) {
 		var (
 			header  = bc.GetHeaderByNumber(number)
-			account = crypto.SHA3(userAddr1.Bytes())
+			account = crypto.SHA3(userKey1.Address().Bytes())
 		)
 		req := &ProofReq{
 			BHash: header.Hash(),
@@ -521,22 +522,22 @@ func testTransactionStatus(t *testing.T, protocol int) {
 			sendRequest(server.peer.app, GetTxStatusMsg, reqID, []common.Hash{tx.Hash()})
 		}
 		if err := expectResponse(server.peer.app, TxStatusMsg, reqID, testBufLimit, []light.TxStatus{expStatus}); err != nil {
-			t.Errorf("transaction status mismatch")
+			t.Errorf("transaction status mismatch: err - %v", err)
 		}
 	}
-	signer := types.NewNucleusSigner(chain.Config().NetworkID)
+	signer := types.NewNucleusSigner(server.backend.Blockchain().Config().NetworkID)
 
 	// test error status by sending an underpriced transaction
-	tx0, _ := types.SignTx(types.NewTransaction(0, userAddr1, big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
+	tx0, _ := types.SignTx(types.NewTransaction(0, userKey1.Address(), big.NewInt(10000), params.TxEnergy, nil, nil), signer, bankKey)
 	test(tx0, true, light.TxStatus{Status: core.TxStatusUnknown, Error: core.ErrUnderpriced.Error()})
 
-	tx1, _ := types.SignTx(types.NewTransaction(0, userAddr1, big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
+	tx1, _ := types.SignTx(types.NewTransaction(0, userKey1.Address(), big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
 	test(tx1, false, light.TxStatus{Status: core.TxStatusUnknown}) // query before sending, should be unknown
 	test(tx1, true, light.TxStatus{Status: core.TxStatusPending})  // send valid processable tx, should return pending
 	test(tx1, true, light.TxStatus{Status: core.TxStatusPending})  // adding it again should not return an error
 
-	tx2, _ := types.SignTx(types.NewTransaction(1, userAddr1, big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
-	tx3, _ := types.SignTx(types.NewTransaction(2, userAddr1, big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
+	tx2, _ := types.SignTx(types.NewTransaction(1, userKey1.Address(), big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
+	tx3, _ := types.SignTx(types.NewTransaction(2, userKey1.Address(), big.NewInt(10000), params.TxEnergy, big.NewInt(100000000000), nil), signer, bankKey)
 	// send transactions in the wrong order, tx3 should be queued
 	test(tx3, true, light.TxStatus{Status: core.TxStatusQueued})
 	test(tx2, true, light.TxStatus{Status: core.TxStatusPending})

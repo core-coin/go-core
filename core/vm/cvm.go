@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,14 +18,15 @@ package vm
 
 import (
 	"errors"
-	"github.com/core-coin/uint256"
 	"math/big"
 	"sync/atomic"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/uint256"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -67,9 +68,9 @@ func run(cvm *CVM, contract *Contract, input []byte, readOnly bool) ([]byte, err
 	return nil, errors.New("no compatible interpreter")
 }
 
-// Context provides the CVM with auxiliary information. Once provided
+// BlockContext provides the CVM with auxiliary information. Once provided
 // it shouldn't be modified.
-type Context struct {
+type BlockContext struct {
 	// CanTransfer returns whether the account contains
 	// sufficient core to transfer the value
 	CanTransfer CanTransferFunc
@@ -78,16 +79,20 @@ type Context struct {
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
 
-	// Message information
-	Origin      common.Address // Provides information for ORIGIN
-	EnergyPrice *big.Int       // Provides information for ENERGYPRICE
-
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
 	EnergyLimit uint64         // Provides information for ENERGYLIMIT
 	BlockNumber *big.Int       // Provides information for NUMBER
 	Time        *big.Int       // Provides information for TIME
 	Difficulty  *big.Int       // Provides information for DIFFICULTY
+}
+
+// TxContext provides the CVM with information about a transaction.
+// All fields can change between transactions.
+type TxContext struct {
+	// Message information
+	Origin      common.Address // Provides information for ORIGIN
+	EnergyPrice *big.Int       // Provides information for ENERGYPRICE
 }
 
 // CVM is the Core Virtual Machine base object and provides
@@ -101,7 +106,8 @@ type Context struct {
 // The CVM should never be reused and is not thread safe.
 type CVM struct {
 	// Context provides auxiliary blockchain related information
-	Context
+	Context BlockContext
+	TxContext
 	// StateDB gives access to the underlying state
 	StateDB StateDB
 	// Depth is the current call stack
@@ -109,12 +115,10 @@ type CVM struct {
 
 	// chainConfig contains information about the current chain
 	chainConfig *params.ChainConfig
-	// chain rules contains the chain rules for the current epoch
-	chainRules params.Rules
 	// virtual machine configuration options used to initialise the
 	// cvm.
 	vmConfig Config
-	// global (to this context) Core Virtual Machine
+	// global (to this context) core virtual machine
 	// used throughout the execution of the tx.
 	interpreters []Interpreter
 	interpreter  Interpreter
@@ -129,17 +133,17 @@ type CVM struct {
 
 // NewCVM returns a new CVM. The returned CVM is not thread safe and should
 // only ever be used *once*.
-func NewCVM(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmConfig Config) *CVM {
+func NewCVM(blockCtx BlockContext, txCtx TxContext, statedb StateDB, chainConfig *params.ChainConfig, vmConfig Config) *CVM {
 	cvm := &CVM{
-		Context:      ctx,
+		Context:      blockCtx,
+		TxContext:    txCtx,
 		StateDB:      statedb,
 		vmConfig:     vmConfig,
 		chainConfig:  chainConfig,
-		chainRules:   chainConfig.Rules(ctx.BlockNumber),
 		interpreters: make([]Interpreter, 0, 1),
 	}
 
-	if chainConfig.IsEWASM(ctx.BlockNumber) {
+	if chainConfig.IsEWASM(blockCtx.BlockNumber) {
 		// to be implemented by CVM-C and Wagon PRs.
 		// if vmConfig.EWASMInterpreter != "" {
 		//  extIntOpts := strings.Split(vmConfig.EWASMInterpreter, ":")
@@ -152,7 +156,7 @@ func NewCVM(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmCon
 		// } else {
 		// 	cvm.interpreters = append(cvm.interpreters, NewEWASMInterpreter(cvm, vmConfig))
 		// }
-		panic("No supported ewasm interpreter yet.")
+		//panic("No supported ewasm interpreter yet.")
 	}
 
 	// vmConfig.CVMInterpreter will be used by CVM-C, it won't be checked here
@@ -161,6 +165,13 @@ func NewCVM(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmCon
 	cvm.interpreter = cvm.interpreters[0]
 
 	return cvm
+}
+
+// Reset resets the CVM with a new transaction context.Reset
+// This is not threadsafe and should only be done very cautiously.
+func (cvm *CVM) Reset(txCtx TxContext, statedb StateDB) {
+	cvm.TxContext = txCtx
+	cvm.StateDB = statedb
 }
 
 // Cancel cancels any running CVM operation. This may be called concurrently and
@@ -187,7 +198,6 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 	if cvm.vmConfig.NoRecursion && cvm.depth > 0 {
 		return nil, energy, nil
 	}
-
 	// Fail if we're trying to execute above the call depth limit
 	if cvm.depth > int(params.CallCreateDepth) {
 		return nil, energy, ErrDepth
@@ -196,7 +206,6 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 	if value.Sign() != 0 && !cvm.Context.CanTransfer(cvm.StateDB, caller.Address(), value) {
 		return nil, energy, ErrInsufficientBalance
 	}
-
 	snapshot := cvm.StateDB.Snapshot()
 	p, isPrecompile := cvm.precompile(addr)
 
@@ -211,16 +220,16 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 		}
 		cvm.StateDB.CreateAccount(addr)
 	}
-	cvm.Transfer(cvm.StateDB, caller.Address(), addr, value)
+	cvm.Context.Transfer(cvm.StateDB, caller.Address(), addr, value)
 
 	// Capture the tracer start/end events in debug mode
 	if cvm.vmConfig.Debug && cvm.depth == 0 {
 		cvm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, energy, value)
-
 		defer func(startEnergy uint64, startTime time.Time) { // Lazy evaluation of the parameters
 			cvm.vmConfig.Tracer.CaptureEnd(ret, startEnergy-energy, time.Since(startTime), err)
 		}(energy, time.Now())
 	}
+
 	if isPrecompile {
 		ret, energy, err = RunPrecompiledContract(p, input, energy)
 	} else {
@@ -239,7 +248,6 @@ func (cvm *CVM) Call(caller ContractRef, addr common.Address, input []byte, ener
 			energy = contract.Energy
 		}
 	}
-
 	// When an error was returned by the CVM or when setting the creation code
 	// above we revert to the snapshot and consume any energy remaining.
 	if err != nil {
@@ -265,7 +273,6 @@ func (cvm *CVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 	if cvm.vmConfig.NoRecursion && cvm.depth > 0 {
 		return nil, energy, nil
 	}
-
 	// Fail if we're trying to execute above the call depth limit
 	if cvm.depth > int(params.CallCreateDepth) {
 		return nil, energy, ErrDepth
@@ -277,7 +284,6 @@ func (cvm *CVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 	if !cvm.Context.CanTransfer(cvm.StateDB, caller.Address(), value) {
 		return nil, energy, ErrInsufficientBalance
 	}
-
 	var snapshot = cvm.StateDB.Snapshot()
 
 	// It is allowed to call precompiles, even via delegatecall
@@ -314,7 +320,6 @@ func (cvm *CVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 	if cvm.depth > int(params.CallCreateDepth) {
 		return nil, energy, ErrDepth
 	}
-
 	var snapshot = cvm.StateDB.Snapshot()
 
 	// It is allowed to call precompiles, even via delegatecall
@@ -405,12 +410,11 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	if cvm.depth > int(params.CallCreateDepth) {
 		return nil, common.Address{}, energy, ErrDepth
 	}
-	if !cvm.CanTransfer(cvm.StateDB, caller.Address(), value) {
+	if !cvm.Context.CanTransfer(cvm.StateDB, caller.Address(), value) {
 		return nil, common.Address{}, energy, ErrInsufficientBalance
 	}
 	nonce := cvm.StateDB.GetNonce(caller.Address())
 	cvm.StateDB.SetNonce(caller.Address(), nonce+1)
-
 	// Ensure there's no existing contract already at the designated address
 	contractHash := cvm.StateDB.GetCodeHash(address)
 	if cvm.StateDB.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
@@ -420,7 +424,7 @@ func (cvm *CVM) create(caller ContractRef, codeAndHash *codeAndHash, energy uint
 	snapshot := cvm.StateDB.Snapshot()
 	cvm.StateDB.CreateAccount(address)
 	cvm.StateDB.SetNonce(address, 1)
-	cvm.Transfer(cvm.StateDB, caller.Address(), address, value)
+	cvm.Context.Transfer(cvm.StateDB, caller.Address(), address, value)
 
 	// Initialise a new contract and set the code that is to be used by the CVM.
 	// The contract is a scoped environment for this execution context only.
@@ -484,7 +488,7 @@ func (cvm *CVM) Create(caller ContractRef, code []byte, energy uint64, value *bi
 // instead of the usual sender-and-nonce-hash as the address where the contract is initialized at.
 func (cvm *CVM) Create2(caller ContractRef, code []byte, energy uint64, endowment *big.Int, salt *uint256.Int) (ret []byte, contractAddr common.Address, leftOverEnergy uint64, err error) {
 	codeAndHash := &codeAndHash{code: code}
-	contractAddr = crypto.CreateAddress2(caller.Address(), common.Hash(salt.Bytes32()), codeAndHash.Hash().Bytes())
+	contractAddr = crypto.CreateAddress2(caller.Address(), salt.Bytes32(), codeAndHash.Hash().Bytes())
 	return cvm.create(caller, codeAndHash, energy, endowment, contractAddr)
 }
 

@@ -16,7 +16,7 @@
 
 package core
 
-import "github.com/core-coin/go-core/common"
+import "github.com/core-coin/go-core/v2/common"
 
 // BadHashes represent a set of manually tracked bad hashes (usually hard forks)
 var BadHashes = map[common.Hash]bool{}

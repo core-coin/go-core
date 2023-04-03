@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2019 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,14 +17,16 @@
 package les
 
 import (
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/p2p/enode"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 // verifyImportEvent verifies that one single event arrive on an import channel.
@@ -32,7 +34,7 @@ func verifyImportEvent(t *testing.T, imported chan interface{}, arrive bool) {
 	if arrive {
 		select {
 		case <-imported:
-		case <-time.After(3 * time.Second):
+		case <-time.After(time.Second):
 			t.Fatalf("import timeout")
 		}
 	} else {
@@ -65,7 +67,7 @@ func TestSequentialAnnouncementsLes2(t *testing.T) { testSequentialAnnouncements
 func TestSequentialAnnouncementsLes3(t *testing.T) { testSequentialAnnouncements(t, 3) }
 
 func testSequentialAnnouncements(t *testing.T, protocol int) {
-	s, c, teardown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, false, false)
+	s, c, teardown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, false, true)
 	defer teardown()
 
 	// Create connected peer pair.
@@ -100,7 +102,7 @@ func TestGappedAnnouncementsLes2(t *testing.T) { testGappedAnnouncements(t, 2) }
 func TestGappedAnnouncementsLes3(t *testing.T) { testGappedAnnouncements(t, 3) }
 
 func testGappedAnnouncements(t *testing.T, protocol int) {
-	s, c, teardown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, false, false)
+	s, c, teardown := newClientServerEnv(t, 4, protocol, nil, nil, 0, false, false, true)
 	defer teardown()
 
 	// Create connected peer pair.
@@ -162,7 +164,6 @@ func TestTrustedAnnouncementsLes2(t *testing.T) { testTrustedAnnouncement(t, 2) 
 func TestTrustedAnnouncementsLes3(t *testing.T) { testTrustedAnnouncement(t, 3) }
 
 func testTrustedAnnouncement(t *testing.T, protocol int) {
-	t.Skip("long-running test")
 	var (
 		servers   []*testServer
 		teardowns []func()
@@ -183,7 +184,7 @@ func testTrustedAnnouncement(t *testing.T, protocol int) {
 			ids = append(ids, n.String())
 		}
 	}
-	_, c, teardown := newClientServerEnv(t, 0, protocol, nil, ids, 60, false, false, false)
+	_, c, teardown := newClientServerEnv(t, 0, protocol, nil, ids, 60, false, false, true)
 	defer teardown()
 	defer func() {
 		for i := 0; i < len(teardowns); i++ {
@@ -234,7 +235,7 @@ func testTrustedAnnouncement(t *testing.T, protocol int) {
 }
 
 func TestInvalidAnnounces(t *testing.T) {
-	s, c, teardown := newClientServerEnv(t, 4, lpv3, nil, nil, 0, false, false, false)
+	s, c, teardown := newClientServerEnv(t, 4, lpv3, nil, nil, 0, false, false, true)
 	defer teardown()
 
 	// Create connected peer pair.

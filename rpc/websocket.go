@@ -27,9 +27,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/log"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/gorilla/websocket"
+
+	"github.com/core-coin/go-core/v2/log"
 )
 
 const (

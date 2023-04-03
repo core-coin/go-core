@@ -20,42 +20,44 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"os/signal"
-	"os/user"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/fourbyte"
-	"github.com/core-coin/go-core/signer/rules"
-	"github.com/core-coin/go-core/signer/storage"
-	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/flags"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/fourbyte"
+	"github.com/core-coin/go-core/v2/signer/rules"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 const legalWarning = `
@@ -82,6 +84,10 @@ var (
 		Name:  "advanced",
 		Usage: "If enabled, issues warnings instead of rejections for suspicious requests. Default off",
 	}
+	acceptFlag = cli.BoolFlag{
+		Name:  "suppress-bootwarn",
+		Usage: "If set, does not show the warning during boot",
+	}
 	keystoreFlag = cli.StringFlag{
 		Name:  "keystore",
 		Value: filepath.Join(node.DefaultDataDir(), "keystore"),
@@ -95,10 +101,10 @@ var (
 	networkIdFlag = cli.Int64Flag{
 		Name:  "networkid",
 		Value: params.MainnetChainConfig.NetworkID.Int64(),
-		Usage: "Network id to use for signing (1=mainnet, 3=Devin)",
+		Usage: "Chain id to use for signing (1=mainnet, 3=Devin, 4=Enterprise)",
 	}
 	rpcPortFlag = cli.IntFlag{
-		Name:  "rpcport",
+		Name:  "http.port",
 		Usage: "HTTP-RPC server listening port",
 		Value: node.DefaultHTTPPort + 5,
 	}
@@ -196,10 +202,11 @@ The delpw command removes a password for a given address (keyfile).
 			logLevelFlag,
 			keystoreFlag,
 			utils.LightKDFFlag,
+			acceptFlag,
 		},
 		Description: `
-	The newaccount command creates a new keystore-backed account. It is a convenience-method
-	which can be used in lieu of an external UI.`,
+The newaccount command creates a new keystore-backed account. It is a convenience-method
+which can be used in lieu of an external UI.`,
 	}
 
 	gendocCommand = cli.Command{
@@ -211,6 +218,34 @@ The gendoc generates example structures of the json-rpc communication types.
 `}
 )
 
+// AppHelpFlagGroups is the application flags, grouped by functionality.
+var AppHelpFlagGroups = []flags.FlagGroup{
+	{
+		Name: "FLAGS",
+		Flags: []cli.Flag{
+			logLevelFlag,
+			keystoreFlag,
+			configdirFlag,
+			networkIdFlag,
+			utils.LightKDFFlag,
+			utils.HTTPListenAddrFlag,
+			utils.HTTPVirtualHostsFlag,
+			utils.IPCDisabledFlag,
+			utils.IPCPathFlag,
+			utils.HTTPEnabledFlag,
+			rpcPortFlag,
+			signerSecretFlag,
+			customDBFlag,
+			auditLogFlag,
+			ruleFlag,
+			stdiouiFlag,
+			testFlag,
+			advancedMode,
+			acceptFlag,
+		},
+	},
+}
+
 func init() {
 	app.Name = "Clef"
 	app.Usage = "Manage Core account operations"
@@ -220,10 +255,8 @@ func init() {
 		configdirFlag,
 		networkIdFlag,
 		utils.LightKDFFlag,
-		utils.NoUSBFlag,
 		utils.LedFlag,
 		utils.LedGPIOPortFlag,
-		utils.SmartCardDaemonPathFlag,
 		utils.HTTPListenAddrFlag,
 		utils.HTTPVirtualHostsFlag,
 		utils.IPCDisabledFlag,
@@ -237,6 +270,7 @@ func init() {
 		stdiouiFlag,
 		testFlag,
 		advancedMode,
+		acceptFlag,
 	}
 	app.Action = signer
 	app.Commands = []cli.Command{initCommand,
@@ -245,7 +279,41 @@ func init() {
 		delCredentialCommand,
 		newAccountCommand,
 		gendocCommand}
-	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
+	cli.CommandHelpTemplate = flags.CommandHelpTemplate
+	// Override the default app help template
+	cli.AppHelpTemplate = flags.ClefAppHelpTemplate
+
+	// Override the default app help printer, but only for the global app help
+	originalHelpPrinter := cli.HelpPrinter
+	cli.HelpPrinter = func(w io.Writer, tmpl string, data interface{}) {
+		if tmpl == flags.ClefAppHelpTemplate {
+			// Render out custom usage screen
+			originalHelpPrinter(w, tmpl, flags.HelpData{App: data, FlagGroups: AppHelpFlagGroups})
+		} else if tmpl == flags.CommandHelpTemplate {
+			// Iterate over all command specific flags and categorize them
+			categorized := make(map[string][]cli.Flag)
+			for _, flag := range data.(cli.Command).Flags {
+				if _, ok := categorized[flag.String()]; !ok {
+					categorized[flags.FlagCategory(flag, AppHelpFlagGroups)] = append(categorized[flags.FlagCategory(flag, AppHelpFlagGroups)], flag)
+				}
+			}
+
+			// sort to get a stable ordering
+			sorted := make([]flags.FlagGroup, 0, len(categorized))
+			for cat, flgs := range categorized {
+				sorted = append(sorted, flags.FlagGroup{Name: cat, Flags: flgs})
+			}
+			sort.Sort(flags.ByCategory(sorted))
+
+			// add sorted array to data and render with default printer
+			originalHelpPrinter(w, tmpl, map[string]interface{}{
+				"cmd":              data,
+				"categorizedFlags": sorted,
+			})
+		} else {
+			originalHelpPrinter(w, tmpl, data)
+		}
+	}
 }
 
 func main() {
@@ -285,7 +353,7 @@ func initializeSecrets(c *cli.Context) error {
 	text := "The master seed of clef will be locked with a password.\nPlease specify a password. Do not forget this password!"
 	var password string
 	for {
-		password = getPassPhrase(text, true)
+		password = utils.GetPassPhrase(text, true)
 		if err := core.ValidatePasswordFormat(password); err != nil {
 			fmt.Printf("invalid password: %v\n", err)
 		} else {
@@ -359,9 +427,9 @@ func setCredential(ctx *cli.Context) error {
 	}
 	address, err := common.HexToAddress(addr)
 	if err != nil {
-		utils.Fatalf("Invalid address specified: %s", err)
+		utils.Fatalf(err.Error())
 	}
-	password := getPassPhrase("Please enter a password to store for this address:", true)
+	password := utils.GetPassPhrase("Please enter a password to store for this address:", true)
 	fmt.Println()
 
 	stretchedKey, err := readMasterKey(ctx, nil)
@@ -392,7 +460,7 @@ func removeCredential(ctx *cli.Context) error {
 	}
 	address, err := common.HexToAddress(addr)
 	if err != nil {
-		return err
+		utils.Fatalf(err.Error())
 	}
 	stretchedKey, err := readMasterKey(ctx, nil)
 	if err != nil {
@@ -422,9 +490,9 @@ func newAccount(c *cli.Context) error {
 		lightKdf                  = c.GlobalBool(utils.LightKDFFlag.Name)
 	)
 	log.Info("Starting clef", "keystore", ksLoc, "light-kdf", lightKdf)
-	am := core.StartClefAccountManager(ksLoc, true, lightKdf, "")
+	am := core.StartClefAccountManager(ksLoc, lightKdf)
 	// This gives is us access to the external API
-	apiImpl := core.NewSignerAPI(am, 0, true, ui, nil, false, pwStorage)
+	apiImpl := core.NewSignerAPI(am, 0, ui, nil, false, pwStorage)
 	// This gives us access to the internal API
 	internalApi := core.NewUIServerAPI(apiImpl)
 	addr, err := internalApi.New(context.Background())
@@ -440,16 +508,18 @@ func initialize(c *cli.Context) error {
 	if c.GlobalBool(stdiouiFlag.Name) {
 		logOutput = os.Stderr
 		// If using the stdioui, we can't do the 'confirm'-flow
-		fmt.Fprint(logOutput, legalWarning)
-	} else {
+		if !c.GlobalBool(acceptFlag.Name) {
+			fmt.Fprint(logOutput, legalWarning)
+		}
+	} else if !c.GlobalBool(acceptFlag.Name) {
 		if !confirm(legalWarning) {
 			return fmt.Errorf("aborted by user")
 		}
 		fmt.Println()
 	}
 
-	networkId := c.GlobalInt64(networkIdFlag.Name)
-	common.DefaultNetworkID = common.NetworkID(networkId)
+	chainId := c.GlobalInt64(networkIdFlag.Name)
+	common.DefaultNetworkID = common.NetworkID(chainId)
 
 	usecolor := (isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
 	output := io.Writer(logOutput)
@@ -484,9 +554,6 @@ func ipcEndpoint(ipcPath, datadir string) string {
 
 func signer(c *cli.Context) error {
 	// If we have some unrecognized command, bail out
-	networkId := c.GlobalInt64(networkIdFlag.Name)
-	common.DefaultNetworkID = common.NetworkID(networkId)
-
 	if args := c.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
@@ -538,7 +605,7 @@ func signer(c *cli.Context) error {
 			if err != nil {
 				log.Warn("Could not load rules, disabling", "file", ruleFile, "err", err)
 			} else {
-				shasum := sha3.Sum256(ruleJS)
+				shasum := sha256.Sum256(ruleJS)
 				foundShaSum := hex.EncodeToString(shasum[:])
 				storedShasum, _ := configStorage.Get("ruleset_sha256")
 				if storedShasum != foundShaSum {
@@ -560,13 +627,11 @@ func signer(c *cli.Context) error {
 		ksLoc    = c.GlobalString(keystoreFlag.Name)
 		lightKdf = c.GlobalBool(utils.LightKDFFlag.Name)
 		advanced = c.GlobalBool(advancedMode.Name)
-		nousb    = c.GlobalBool(utils.NoUSBFlag.Name)
-		scpath   = c.GlobalString(utils.SmartCardDaemonPathFlag.Name)
 	)
-	log.Info("Starting signer", "networkid", networkId, "keystore", ksLoc,
+	log.Info("Starting signer", "networkid", common.DefaultNetworkID, "keystore", ksLoc,
 		"light-kdf", lightKdf, "advanced", advanced)
-	am := core.StartClefAccountManager(ksLoc, nousb, lightKdf, scpath)
-	apiImpl := core.NewSignerAPI(am, networkId, nousb, ui, db, advanced, pwStorage)
+	am := core.StartClefAccountManager(ksLoc, lightKdf)
+	apiImpl := core.NewSignerAPI(am, int64(common.DefaultNetworkID), ui, db, advanced, pwStorage)
 
 	// Establish the bidirectional communication, by creating a new UI backend and registering
 	// it with the UI.
@@ -593,26 +658,31 @@ func signer(c *cli.Context) error {
 			Version:   "1.0"},
 	}
 	if c.GlobalBool(utils.HTTPEnabledFlag.Name) {
-		vhosts := splitAndTrim(c.GlobalString(utils.HTTPVirtualHostsFlag.Name))
-		cors := splitAndTrim(c.GlobalString(utils.HTTPCORSDomainFlag.Name))
+		vhosts := utils.SplitAndTrim(c.GlobalString(utils.HTTPVirtualHostsFlag.Name))
+		cors := utils.SplitAndTrim(c.GlobalString(utils.HTTPCORSDomainFlag.Name))
+
 		srv := rpc.NewServer()
 		err := node.RegisterApisFromWhitelist(rpcAPI, []string{"account"}, srv, false)
 		if err != nil {
 			utils.Fatalf("Could not register API: %w", err)
 		}
-		handler := node.NewHTTPHandlerStack(srv, cors, vhosts, nil)
+		handler := node.NewHTTPHandlerStack(srv, cors, vhosts)
+
+		// set port
+		port := c.Int(rpcPortFlag.Name)
 
 		// start http server
-		httpEndpoint := fmt.Sprintf("%s:%d", c.GlobalString(utils.HTTPListenAddrFlag.Name), c.Int(rpcPortFlag.Name))
-		listener, err := node.StartHTTPEndpoint(httpEndpoint, rpc.DefaultHTTPTimeouts, handler)
+		httpEndpoint := fmt.Sprintf("%s:%d", c.GlobalString(utils.HTTPListenAddrFlag.Name), port)
+		httpServer, addr, err := node.StartHTTPEndpoint(httpEndpoint, rpc.DefaultHTTPTimeouts, handler)
 		if err != nil {
 			utils.Fatalf("Could not start RPC api: %v", err)
 		}
-		extapiURL = fmt.Sprintf("http://%v/", listener.Addr())
+		extapiURL = fmt.Sprintf("http://%v/", addr)
 		log.Info("HTTP endpoint opened", "url", extapiURL)
 
 		defer func() {
-			listener.Close()
+			// Don't bother imposing a timeout here.
+			httpServer.Shutdown(context.Background())
 			log.Info("HTTP endpoint closed", "url", extapiURL)
 		}()
 	}
@@ -652,21 +722,11 @@ func signer(c *cli.Context) error {
 	return nil
 }
 
-// splitAndTrim splits input separated by a comma
-// and trims excessive white space from the substrings.
-func splitAndTrim(input string) []string {
-	result := strings.Split(input, ",")
-	for i, r := range result {
-		result[i] = strings.TrimSpace(r)
-	}
-	return result
-}
-
 // DefaultConfigDir is the default config directory to use for the vaults and other
 // persistence requirements.
 func DefaultConfigDir() string {
 	// Try to place the data folder in the user's home dir
-	home := homeDir()
+	home := utils.HomeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
 			return filepath.Join(home, "Library", "Signer")
@@ -683,15 +743,6 @@ func DefaultConfigDir() string {
 	return ""
 }
 
-func homeDir() string {
-	if home := os.Getenv("HOME"); home != "" {
-		return home
-	}
-	if usr, err := user.Current(); err == nil {
-		return usr.HomeDir
-	}
-	return ""
-}
 func readMasterKey(ctx *cli.Context, ui core.UIClientAPI) ([]byte, error) {
 	var (
 		file      string
@@ -721,7 +772,7 @@ func readMasterKey(ctx *cli.Context, ui core.UIClientAPI) ([]byte, error) {
 		}
 		password = resp.Text
 	} else {
-		password = getPassPhrase("Decrypt master seed of clef", false)
+		password = utils.GetPassPhrase("Decrypt master seed of clef", false)
 	}
 	masterSeed, err := decryptSeed(cipherKey, password)
 	if err != nil {
@@ -780,9 +831,9 @@ func testExternalUI(api *core.SignerAPI) {
 		log.Info("Test error", "err", errStr)
 		errs = append(errs, errStr)
 	}
-	a, err := common.HexToAddress("cb15deadbeef000000000000000000000000deadbeef")
+	a, err := common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
 	if err != nil {
-		addErr("Invalid address, " + err.Error())
+		addErr(err.Error())
 	}
 	queryUser := func(q string) string {
 		resp, err := api.UI.OnInputRequired(core.UserInputRequest{
@@ -823,9 +874,9 @@ func testExternalUI(api *core.SignerAPI) {
 	{ // Sign data test - clique header
 		api.UI.ShowInfo("Please approve the next request for signing a clique header")
 		time.Sleep(delay)
-		coinbase, err := common.HexToAddress("cb96deadbeef000000000000000000000000deadbeff")
+		coinbase, err := common.HexToAddress("0000H45H")
 		if err != nil {
-			addErr("Invalid address, " + err.Error())
+			utils.Fatalf("Should not error: %v", err)
 		}
 		cliqueHeader := types.Header{
 			ParentHash:  common.HexToHash("0000H45H"),
@@ -845,33 +896,45 @@ func testExternalUI(api *core.SignerAPI) {
 		if err != nil {
 			utils.Fatalf("Should not error: %v", err)
 		}
-		addr, _ := common.HexToAddress("cb0011223344556677889900112233445566778899")
+		addr, err := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		if err != nil {
+			utils.Fatalf("Should not error: %v", err)
+		}
 		_, err = api.SignData(ctx, accounts.MimetypeClique, addr, hexutil.Encode(cliqueRlp))
 		expectApprove("signdata - clique header", err)
 	}
 	{ // Sign data test - typed data
 		api.UI.ShowInfo("Please approve the next request for signing CIP-712 typed data")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("cb330011223344556677889900112233445566778899")
-		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"networkId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","networkId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
+		addr, err := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		if err != nil {
+			utils.Fatalf("Should not error: %v", err)
+		}
+		data := `{"types":{"CIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"networkid","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Core Mail","version":"1","networkid":"1","verifyingContract":"cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba"},"message":{"from":{"name":"Cow","test":"3","wallet":"cb76a631db606f1452ddc2432931d611f1d5b126f848"},"to":{"name":"Bob","wallet":"cb27de521e43741cf785cbad450d5649187b9612018f","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
 		var typedData core.TypedData
 		json.Unmarshal([]byte(data), &typedData)
-		_, err := api.SignTypedData(ctx, addr, typedData)
+		_, err = api.SignTypedData(ctx, addr, typedData)
 		expectApprove("sign 712 typed data", err)
 	}
 	{ // Sign data test - plain text
 		api.UI.ShowInfo("Please approve the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("cb330011223344556677889900112233445566778899")
-		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
+		addr, err := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		if err != nil {
+			utils.Fatalf("Should not error: %v", err)
+		}
+		_, err = api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectApprove("signdata - text", err)
 	}
 	{ // Sign data test - plain text reject
 		api.UI.ShowInfo("Please deny the next request for signing text")
 		time.Sleep(delay)
-		addr, _ := common.HexToAddress("cbcc0011223344556677889900112233445566778899")
-		_, err := api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
+		addr, err := common.HexToAddress("0x0011223344556677889900112233445566778899")
+		if err != nil {
+			utils.Fatalf("Should not error: %v", err)
+		}
+		_, err = api.SignData(ctx, accounts.MimetypeTextPlain, addr, hexutil.Encode([]byte("hello world")))
 		expectDeny("signdata - text", err)
 	}
 	{ // Sign transaction
@@ -879,13 +942,12 @@ func testExternalUI(api *core.SignerAPI) {
 		api.UI.ShowInfo("Please reject next transaction")
 		time.Sleep(delay)
 		data := hexutil.Bytes([]byte{})
-		to := a
 		tx := core.SendTxArgs{
 			Data:        &data,
 			Nonce:       0x1,
 			Value:       hexutil.Big(*big.NewInt(6)),
 			From:        a,
-			To:          &to,
+			To:          &a,
 			EnergyPrice: hexutil.Big(*big.NewInt(5)),
 			Energy:      1000,
 			Input:       nil,
@@ -919,27 +981,6 @@ func testExternalUI(api *core.SignerAPI) {
 	result := fmt.Sprintf("Tests completed. %d errors:\n%s\n", len(errs), strings.Join(errs, "\n"))
 	api.UI.ShowInfo(result)
 
-}
-
-// getPassPhrase retrieves the password associated with clef, either fetched
-// from a list of preloaded passphrases, or requested interactively from the user.
-// TODO: there are many `getPassPhrase` functions, it will be better to abstract them into one.
-func getPassPhrase(prompt string, confirmation bool) string {
-	fmt.Println(prompt)
-	password, err := console.Stdin.PromptPassword("Password: ")
-	if err != nil {
-		utils.Fatalf("Failed to read password: %v", err)
-	}
-	if confirmation {
-		confirm, err := console.Stdin.PromptPassword("Repeat password: ")
-		if err != nil {
-			utils.Fatalf("Failed to read password confirmation: %v", err)
-		}
-		if password != confirm {
-			utils.Fatalf("Passwords do not match")
-		}
-	}
-	return password
 }
 
 type encryptedSeedStorage struct {
@@ -976,11 +1017,24 @@ func decryptSeed(keyjson []byte, auth string) ([]byte, error) {
 
 // GenDoc outputs examples of all structures used in json-rpc communication
 func GenDoc(ctx *cli.Context) {
-
+	a, err := common.HexToAddress("0xdeadbeef000000000000000000000000deadbeef")
+	if err != nil {
+		utils.Fatalf("Should not error: %v", err)
+	}
+	b, err := common.HexToAddress("0x1111111122222222222233333333334444444444")
+	if err != nil {
+		utils.Fatalf("Should not error: %v", err)
+	}
+	c, err := common.HexToAddress("0xcowbeef000000cowbeef00000000000000000c0w")
+	if err != nil {
+		utils.Fatalf("Should not error: %v", err)
+	}
+	d, err := common.HexToAddress("0xffffffffffffffffffffffffffffffffffffffff")
+	if err != nil {
+		utils.Fatalf("Should not error: %v", err)
+	}
 	var (
-		a, err  = common.HexToAddress("cb15deadbeef000000000000000000000000deadbeef")
-		b, err2 = common.HexToAddress("cb151111111122222222222233333333334444444444")
-		meta    = core.Metadata{
+		meta = core.Metadata{
 			Scheme:    "http",
 			Local:     "localhost:8545",
 			Origin:    "www.malicious.ru",
@@ -992,16 +1046,11 @@ func GenDoc(ctx *cli.Context) {
 			if data, err := json.MarshalIndent(v, "", "  "); err == nil {
 				output = append(output, fmt.Sprintf("### %s\n\n%s\n\nExample:\n```json\n%s\n```", name, desc, data))
 			} else {
-				log.Error("Error generating output", err)
+				log.Error("Error generating output", "err", err)
 			}
 		}
 	)
-	if err != nil {
-		utils.Fatalf(err.Error())
-	}
-	if err2 != nil {
-		utils.Fatalf(err2.Error())
-	}
+
 	{ // Sign plain text request
 		desc := "SignDataRequest contains information about a pending request to sign some data. " +
 			"The data to be signed can be of various types, defined by content-type. Clef has done most " +
@@ -1100,14 +1149,6 @@ func GenDoc(ctx *cli.Context) {
 			&core.UserInputResponse{Text: "The textual response from user"})
 	}
 	{ // List request
-		addr1, err := common.HexToAddress("cbcowbeef000000cowbeef00000000000000000c0w")
-		if err != nil {
-			utils.Fatalf(err.Error())
-		}
-		addr2, err := common.HexToAddress("cb37ffffffffffffffffffffffffffffffffffffffff")
-		if err != nil {
-			utils.Fatalf(err.Error())
-		}
 		add("ListRequest", "Sent when a request has been made to list addresses. The UI is provided with the "+
 			"full `account`s, including local directory names. Note: this information is not passed back to the external caller, "+
 			"who only sees the `address`es. ",
@@ -1123,11 +1164,11 @@ func GenDoc(ctx *cli.Context) {
 			&core.ListResponse{
 				Accounts: []accounts.Account{
 					{
-						Address: addr1,
+						Address: c,
 						URL:     accounts.URL{Path: ".. ignored .."},
 					},
 					{
-						Address: addr2,
+						Address: d,
 					},
 				}})
 	}

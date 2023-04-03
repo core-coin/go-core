@@ -22,9 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/miner"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/xcb/downloader"
 	"math/big"
 	"net/http"
 	"regexp"
@@ -34,18 +31,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/les"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb"
 	"github.com/gorilla/websocket"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/les"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/miner"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 const (
@@ -94,19 +95,21 @@ type Service struct {
 
 	pongCh chan struct{} // Pong notifications are fed into this channel
 	histCh chan []uint64 // History request block numbers are fed into this channel
+
 }
 
 // connWrapper is a wrapper to prevent concurrent-write or concurrent-read on the
 // websocket.
 //
 // From Gorilla websocket docs:
-//   Connections support one concurrent reader and one concurrent writer.
-//   Applications are responsible for ensuring that no more than one goroutine calls the write methods
-//     - NextWriter, SetWriteDeadline, WriteMessage, WriteJSON, EnableWriteCompression, SetCompressionLevel
-//   concurrently and that no more than one goroutine calls the read methods
-//     - NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler, SetPingHandler
-//   concurrently.
-//   The Close and WriteControl methods can be called concurrently with all other methods.
+//
+//	Connections support one concurrent reader and one concurrent writer.
+//	Applications are responsible for ensuring that no more than one goroutine calls the write methods
+//	  - NextWriter, SetWriteDeadline, WriteMessage, WriteJSON, EnableWriteCompression, SetCompressionLevel
+//	concurrently and that no more than one goroutine calls the read methods
+//	  - NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler, SetPingHandler
+//	concurrently.
+//	The Close and WriteControl methods can be called concurrently with all other methods.
 type connWrapper struct {
 	conn *websocket.Conn
 
@@ -149,7 +152,7 @@ func New(node *node.Node, backend backend, engine consensus.Engine, url string) 
 	if len(parts) != 5 {
 		return fmt.Errorf("invalid netstats url: \"%s\", should be nodename:secret@host:port", url)
 	}
-	ethstats := &Service{
+	xcbstats := &Service{
 		backend: backend,
 		engine:  engine,
 		server:  node.Server(),
@@ -160,7 +163,7 @@ func New(node *node.Node, backend backend, engine consensus.Engine, url string) 
 		histCh:  make(chan []uint64, 1),
 	}
 
-	node.RegisterLifecycle(ethstats)
+	node.RegisterLifecycle(xcbstats)
 	return nil
 }
 
@@ -182,7 +185,6 @@ func (s *Service) Stop() error {
 // until termination.
 func (s *Service) loop() {
 	// Subscribe to chain events to execute updates on
-
 	chainHeadCh := make(chan core.ChainHeadEvent, chainHeadChanSize)
 	headSub := s.backend.SubscribeChainHeadEvent(chainHeadCh)
 	defer headSub.Unsubscribe()
@@ -259,11 +261,11 @@ func (s *Service) loop() {
 			header.Set("origin", "http://localhost")
 			for _, url := range urls {
 				c, _, e := dialer.Dial(url, header)
-				if e == nil {
+				err = e
+				if err == nil {
 					conn = newConnectionWrapper(c)
 					break
 				}
-				err = e
 			}
 			if err != nil {
 				log.Warn("Stats server unreachable", "err", err)
@@ -385,8 +387,11 @@ func (s *Service) readLoop(conn *connWrapper) {
 			request, ok := msg["emit"][1].(map[string]interface{})
 			if !ok {
 				log.Warn("Invalid stats history request", "msg", msg["emit"][1])
-				s.histCh <- nil
-				continue // Xcbstats sometime sends invalid history requests, ignore those
+				select {
+				case s.histCh <- nil: // Treat it as an no indexes request
+				default:
+				}
+				continue
 			}
 			list, ok := request["list"].([]interface{})
 			if !ok {
@@ -414,7 +419,7 @@ func (s *Service) readLoop(conn *connWrapper) {
 	}
 }
 
-// nodeInfo is the collection of metainformation about a node that is displayed
+// nodeInfo is the collection of meta information about a node that is displayed
 // on the monitoring page.
 type nodeInfo struct {
 	Name     string `json:"name"`
@@ -596,6 +601,7 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		txs    []txStats
 		uncles []*types.Header
 	)
+
 	// check if backend is a full node
 	fullBackend, ok := s.backend.(fullNodeBackend)
 	if ok {
@@ -620,6 +626,7 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		td = s.backend.GetTd(context.Background(), header.Hash())
 		txs = []txStats{}
 	}
+
 	// Assemble and return the block stats
 	author, _ := s.engine.Author(header)
 

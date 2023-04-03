@@ -22,13 +22,13 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/prque"
-	"github.com/core-coin/go-core/consensus"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/metrics"
-	"github.com/core-coin/go-core/trie"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/prque"
+	"github.com/core-coin/go-core/v2/consensus"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/metrics"
+	"github.com/core-coin/go-core/v2/trie"
 )
 
 const (
@@ -583,7 +583,6 @@ func (f *BlockFetcher) loop() {
 			for _, announce := range lightHeaders {
 				f.enqueue(announce.origin, announce.header, nil)
 			}
-
 			// Schedule the header-only blocks for import
 			for _, block := range complete {
 				if announce := f.completing[block.Hash()]; announce != nil {
@@ -600,7 +599,6 @@ func (f *BlockFetcher) loop() {
 				return
 			}
 			bodyFilterInMeter.Mark(int64(len(task.transactions)))
-
 			blocks := []*types.Block{}
 			// abort early if there's nothing explicitly requested
 			if len(f.completing) > 0 {
@@ -690,7 +688,6 @@ func (f *BlockFetcher) rescheduleComplete(complete *time.Timer) {
 	if len(f.fetched) == 0 {
 		return
 	}
-
 	// Otherwise find the earliest expiring announcement
 	earliest := time.Now()
 	for _, announces := range f.fetched {
@@ -713,7 +710,6 @@ func (f *BlockFetcher) enqueue(peer string, header *types.Header, block *types.B
 	} else {
 		hash, number = block.Hash(), block.NumberU64()
 	}
-
 	// Ensure the peer isn't DOSing us
 	count := f.queues[peer] + 1
 	if count > blockLimit {

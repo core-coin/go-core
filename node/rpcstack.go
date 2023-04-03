@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -20,9 +20,6 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/rs/cors"
 	"io"
 	"io/ioutil"
 	"net"
@@ -31,6 +28,11 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/rs/cors"
+
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // httpConfig is the JSON-RPC/HTTP configuration.
@@ -38,16 +40,12 @@ type httpConfig struct {
 	Modules            []string
 	CorsAllowedOrigins []string
 	Vhosts             []string
-	prefix             string // path prefix on which to mount http handler
-	jwtSecret          []byte // optional JWT secret
 }
 
 // wsConfig is the JSON-RPC/Websocket configuration
 type wsConfig struct {
-	Origins   []string
-	Modules   []string
-	prefix    string // path prefix on which to mount ws handler
-	jwtSecret []byte // optional JWT secret
+	Origins []string
+	Modules []string
 }
 
 type rpcHandler struct {
@@ -145,17 +143,12 @@ func (h *httpServer) start() error {
 
 	// if server is websocket only, return after logging
 	if h.wsAllowed() && !h.rpcAllowed() {
-		url := fmt.Sprintf("ws://%v", listener.Addr())
-		if h.wsConfig.prefix != "" {
-			url += h.wsConfig.prefix
-		}
-		h.log.Info("WebSocket enabled", "url", url)
+		h.log.Info("WebSocket enabled", "url", fmt.Sprintf("ws://%v", listener.Addr()))
 		return nil
 	}
 	// Log http endpoint.
 	h.log.Info("HTTP server started",
-		"endpoint", listener.Addr(), "auth", (h.httpConfig.jwtSecret != nil),
-		"prefix", h.httpConfig.prefix,
+		"endpoint", listener.Addr(),
 		"cors", strings.Join(h.httpConfig.CorsAllowedOrigins, ","),
 		"vhosts", strings.Join(h.httpConfig.Vhosts, ","),
 	)
@@ -178,60 +171,26 @@ func (h *httpServer) start() error {
 }
 
 func (h *httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// check if ws request and serve if ws enabled
-	ws := h.wsHandler.Load().(*rpcHandler)
-	if ws != nil && isWebsocket(r) {
-		if checkPath(r, h.wsConfig.prefix) {
-			ws.ServeHTTP(w, r)
-		}
-		return
-	}
-	// if http-rpc is enabled, try to serve request
 	rpc := h.httpHandler.Load().(*rpcHandler)
-	if rpc != nil {
-		// First try to route in the mux.
-		// Requests to a path below root are handled by the mux,
-		// which has all the handlers registered via Node.RegisterHandler.
-		// These are made available when RPC is enabled.
-		muxHandler, pattern := h.mux.Handler(r)
-		if pattern != "" {
-			muxHandler.ServeHTTP(w, r)
+	if r.RequestURI == "/" {
+		// Serve JSON-RPC on the root path.
+		ws := h.wsHandler.Load().(*rpcHandler)
+		if ws != nil && isWebsocket(r) {
+			ws.ServeHTTP(w, r)
 			return
 		}
-
-		if checkPath(r, h.httpConfig.prefix) {
+		if rpc != nil {
 			rpc.ServeHTTP(w, r)
 			return
 		}
+	} else if rpc != nil {
+		// Requests to a path below root are handled by the mux,
+		// which has all the handlers registered via Node.RegisterHandler.
+		// These are made available when RPC is enabled.
+		h.mux.ServeHTTP(w, r)
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
-}
-
-// checkPath checks whether a given request URL matches a given path prefix.
-func checkPath(r *http.Request, path string) bool {
-	// if no prefix has been specified, request URL must be on root
-	if path == "" {
-		return r.URL.Path == "/"
-	}
-	// otherwise, check to make sure prefix matches
-	return len(r.URL.Path) >= len(path) && r.URL.Path[:len(path)] == path
-}
-
-// validatePrefix checks if 'path' is a valid configuration value for the RPC prefix option.
-func validatePrefix(what, path string) error {
-	if path == "" {
-		return nil
-	}
-	if path[0] != '/' {
-		return fmt.Errorf(`%s RPC path prefix %q does not contain leading "/"`, what, path)
-	}
-	if strings.ContainsAny(path, "?#") {
-		// This is just to avoid confusion. While these would match correctly (i.e. they'd
-		// match if URL-escaped into path), it's not easy to understand for users when
-		// setting that on the command line.
-		return fmt.Errorf("%s RPC path prefix %q contains URL meta-characters", what, path)
-	}
-	return nil
+	w.WriteHeader(404)
 }
 
 // stop shuts down the HTTP server.
@@ -282,7 +241,7 @@ func (h *httpServer) enableRPC(apis []rpc.API, config httpConfig) error {
 	}
 	h.httpConfig = config
 	h.httpHandler.Store(&rpcHandler{
-		Handler: NewHTTPHandlerStack(srv, config.CorsAllowedOrigins, config.Vhosts, config.jwtSecret),
+		Handler: NewHTTPHandlerStack(srv, config.CorsAllowedOrigins, config.Vhosts),
 		server:  srv,
 	})
 	return nil
@@ -314,7 +273,7 @@ func (h *httpServer) enableWS(apis []rpc.API, config wsConfig) error {
 	}
 	h.wsConfig = config
 	h.wsHandler.Store(&rpcHandler{
-		Handler: NewWSHandlerStack(srv.WebsocketHandler(config.Origins), config.jwtSecret),
+		Handler: srv.WebsocketHandler(config.Origins),
 		server:  srv,
 	})
 	return nil
@@ -359,22 +318,11 @@ func isWebsocket(r *http.Request) bool {
 }
 
 // NewHTTPHandlerStack returns wrapped http-related handlers
-func NewHTTPHandlerStack(srv http.Handler, cors []string, vhosts []string, jwtSecret []byte) http.Handler {
+func NewHTTPHandlerStack(srv http.Handler, cors []string, vhosts []string) http.Handler {
 	// Wrap the CORS-handler within a host-handler
 	handler := newCorsHandler(srv, cors)
 	handler = newVHostHandler(vhosts, handler)
-	if len(jwtSecret) != 0 {
-		handler = newJWTHandler(jwtSecret, handler)
-	}
 	return newGzipHandler(handler)
-}
-
-// NewWSHandlerStack returns a wrapped ws-related handler.
-func NewWSHandlerStack(srv http.Handler, jwtSecret []byte) http.Handler {
-	if len(jwtSecret) != 0 {
-		return newJWTHandler(jwtSecret, srv)
-	}
-	return srv
 }
 
 func newCorsHandler(srv http.Handler, allowedOrigins []string) http.Handler {
@@ -501,6 +449,7 @@ func (is *ipcServer) start(apis []rpc.API) error {
 	}
 	listener, srv, err := rpc.StartIPCEndpoint(is.endpoint, apis)
 	if err != nil {
+		is.log.Warn("IPC opening failed", "url", is.endpoint, "error", err)
 		return err
 	}
 	is.log.Info("IPC endpoint opened", "url", is.endpoint)

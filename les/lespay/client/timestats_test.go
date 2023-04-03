@@ -17,11 +17,12 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/les/utils"
 	"math"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/core-coin/go-core/v2/les/utils"
 )
 
 func TestTransition(t *testing.T) {

@@ -23,10 +23,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 const (
@@ -109,8 +109,7 @@ func (ks *KeyStore) DeleteAccount(account *Account, passphrase string) error {
 	return ks.keystore.Delete(account.account, passphrase)
 }
 
-// SignHash calculates a EDDSA signature for the given hash. The produced signature
-// is in the [R || S || V] format where V is 0 or 1.
+// SignHash calculates a EDDSA signature for the given hash.
 func (ks *KeyStore) SignHash(address *Address, hash []byte) (signature []byte, _ error) {
 	return ks.keystore.SignHash(accounts.Account{Address: address.address}, common.CopyBytes(hash))
 }
@@ -128,8 +127,7 @@ func (ks *KeyStore) SignTx(account *Account, tx *Transaction, networkID *BigInt)
 }
 
 // SignHashPassphrase signs hash if the private key matching the given address can
-// be decrypted with the given passphrase. The produced signature is in the
-// [R || S || V] format where V is 0 or 1.
+// be decrypted with the given passphrase.
 func (ks *KeyStore) SignHashPassphrase(account *Account, passphrase string, hash []byte) (signature []byte, _ error) {
 	return ks.keystore.SignHashWithPassphrase(account.account, passphrase, common.CopyBytes(hash))
 }
@@ -199,7 +197,7 @@ func (ks *KeyStore) ImportKey(keyJSON []byte, passphrase, newPassphrase string) 
 
 // ImportEDDSAKey stores the given encrypted JSON key into the key directory.
 func (ks *KeyStore) ImportEDDSAKey(key []byte, passphrase string) (account *Account, _ error) {
-	privkey, err := crypto.ToEDDSA(common.CopyBytes(key))
+	privkey, err := crypto.UnmarshalPrivateKey(common.CopyBytes(key))
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +206,4 @@ func (ks *KeyStore) ImportEDDSAKey(key []byte, passphrase string) (account *Acco
 		return nil, err
 	}
 	return &Account{acc}, nil
-}
-
-// ImportPreSaleKey decrypts the given Core presale wallet and stores
-// a key file in the key directory. The key file is encrypted with the same passphrase.
-func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (ccount *Account, _ error) {
-	account, err := ks.keystore.ImportPreSaleKey(common.CopyBytes(keyJSON), passphrase)
-	if err != nil {
-		return nil, err
-	}
-	return &Account{account}, nil
 }

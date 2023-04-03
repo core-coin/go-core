@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,9 +18,10 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/core/types"
 	"sync"
 	"sync/atomic"
+
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // resultStore implements a structure for maintaining fetchResults, tracking their
@@ -70,10 +71,11 @@ func (r *resultStore) SetThrottleThreshold(threshold uint64) uint64 {
 // wants to reserve headers for fetching.
 //
 // It returns the following:
-//   stale     - if true, this item is already passed, and should not be requested again
-//   throttled - if true, the store is at capacity, this particular header is not prio now
-//   item      - the result to store data into
-//   err       - any error that occurred
+//
+//	stale     - if true, this item is already passed, and should not be requested again
+//	throttled - if true, the store is at capacity, this particular header is not prio now
+//	item      - the result to store data into
+//	err       - any error that occurred
 func (r *resultStore) AddFetch(header *types.Header, fastSync bool) (stale, throttled bool, item *fetchResult, err error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()

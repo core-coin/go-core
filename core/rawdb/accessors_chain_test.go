@@ -26,11 +26,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // Tests block header storage and retrieval operations.
@@ -272,15 +273,16 @@ func TestHeadStorage(t *testing.T) {
 // Tests that receipts associated with a single block can be stored and retrieved.
 func TestBlockReceiptStorage(t *testing.T) {
 	db := NewMemoryDatabase()
+
+	// Create a live block since we need metadata to reconstruct the receipt
 	addr1, err := common.HexToAddress("cb270000000000000000000000000000000000000001")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	addr2, err := common.HexToAddress("cb970000000000000000000000000000000000000002")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	// Create a live block since we need metadata to reconstruct the receipt
 	tx1 := types.NewTransaction(1, addr1, big.NewInt(1), 1, big.NewInt(1), nil)
 	tx2 := types.NewTransaction(2, addr2, big.NewInt(2), 2, big.NewInt(2), nil)
 

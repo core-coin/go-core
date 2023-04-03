@@ -1,4 +1,4 @@
-// Copyright 2017 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/core-coin/go-core/core/asm"
+	"github.com/core-coin/go-core/v2/core/asm"
 )
 
 func Compile(fn string, src []byte, debug bool) (string, error) {

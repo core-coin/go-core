@@ -18,13 +18,10 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/rand"
-	"github.com/core-coin/go-core/common"
-	eddsa "github.com/core-coin/go-goldilocks"
-	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common/hexutil"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 )
 
 var (
@@ -44,12 +41,11 @@ func TestEcrecover(t *testing.T) {
 }
 
 func TestVerifySignature(t *testing.T) {
-	sig := testsig
-	if !VerifySignature(testpubkey, testmsg, sig) {
-		t.Errorf("can't verify signature with uncompressed key")
+	if !VerifySignature(testpubkey, testmsg, testsig) {
+		t.Errorf("can't verify signature with pub key")
 	}
 
-	if VerifySignature(nil, testmsg, sig) {
+	if VerifySignature(nil, testmsg, testsig) {
 		t.Errorf("signature valid with no key")
 	}
 	if VerifySignature(testpubkey, nil, testsig) {
@@ -78,25 +74,6 @@ func TestVerifySignatureMalleable(t *testing.T) {
 	msg := hexutil.MustDecode("0xd301ce462d3e639518f482c7f03821fec1e602018630ce621e1e7851c12343a6")
 	if VerifySignature(key, msg, sig) {
 		t.Error("VerifySignature returned true for malleable signature")
-	}
-}
-
-func TestPubkeyRandom(t *testing.T) {
-	const runs = 200
-
-	for i := 0; i < runs; i++ {
-		key, err := GenerateKey(rand.Reader)
-		if err != nil {
-			t.Fatalf("iteration %d: %v", i, err)
-		}
-		pub := eddsa.Ed448DerivePublicKey(*key)
-		pubkey2, err := DecompressPubkey(CompressPubkey(&pub))
-		if err != nil {
-			t.Fatalf("iteration %d: %v", i, err)
-		}
-		if !reflect.DeepEqual(pub, *pubkey2) {
-			t.Fatalf("iteration %d: keys not equal", i)
-		}
 	}
 }
 

@@ -22,26 +22,24 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
 	"reflect"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/accounts/usbwallet"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 const (
 	// numberOfAccountsToDerive For hardware wallets, the number of accounts to derive
 	numberOfAccountsToDerive = 10
 	// ExternalAPIVersion -- see extapi_changelog.md
-	ExternalAPIVersion = "6.0.0"
+	ExternalAPIVersion = "6.1.0"
 	// InternalAPIVersion -- see intapi_changelog.md
 	InternalAPIVersion = "7.0.1"
 )
@@ -62,6 +60,8 @@ type ExternalAPI interface {
 	EcRecover(ctx context.Context, data hexutil.Bytes, sig hexutil.Bytes) (common.Address, error)
 	// Version info about the APIs
 	Version(ctx context.Context) (string, error)
+	// SignGnosisSafeTransaction signs/confirms a gnosis-safe multisig transaction
+	SignGnosisSafeTx(ctx context.Context, signerAddress common.Address, gnosisTx GnosisSafeTx, methodSelector *string) (*GnosisSafeTx, error)
 }
 
 // UIClientAPI specifies what method a UI needs to implement to be able to be used as a
@@ -125,7 +125,7 @@ type Metadata struct {
 	Origin    string `json:"Origin"`
 }
 
-func StartClefAccountManager(ksLocation string, nousb, lightKDF bool, scpath string) *accounts.Manager {
+func StartClefAccountManager(ksLocation string, lightKDF bool) *accounts.Manager {
 	var (
 		backends []accounts.Backend
 		n, p     = keystore.StandardScryptN, keystore.StandardScryptP
@@ -136,34 +136,6 @@ func StartClefAccountManager(ksLocation string, nousb, lightKDF bool, scpath str
 	// support password based accounts
 	if len(ksLocation) > 0 {
 		backends = append(backends, keystore.NewKeyStore(ksLocation, n, p))
-	}
-	if !nousb {
-		// Start a USB hub for Ledger hardware wallets
-		if ledgerhub, err := usbwallet.NewLedgerHub(); err != nil {
-			log.Warn(fmt.Sprintf("Failed to start Ledger hub, disabling: %v", err))
-		} else {
-			backends = append(backends, ledgerhub)
-			log.Debug("Ledger support enabled")
-		}
-	}
-
-	// Start a smart card hub
-	if len(scpath) > 0 {
-		// Sanity check that the smartcard path is valid
-		fi, err := os.Stat(scpath)
-		if err != nil {
-			log.Info("Smartcard socket file missing, disabling", "err", err)
-		} else {
-			if fi.Mode()&os.ModeType != os.ModeSocket {
-				log.Error("Invalid smartcard socket file type", "path", scpath, "type", fi.Mode().String())
-			} else {
-				if schub, err := scwallet.NewHub(scpath, scwallet.Scheme, ksLocation); err != nil {
-					log.Warn(fmt.Sprintf("Failed to start smart card hub, disabling: %v", err))
-				} else {
-					backends = append(backends, schub)
-				}
-			}
-		}
 	}
 
 	// Clef doesn't allow insecure http account unlock.
@@ -220,6 +192,7 @@ type (
 		Address     common.Address   `json:"address"`
 		Rawdata     []byte           `json:"raw_data"`
 		Messages    []*NameValueType `json:"messages"`
+		Callinfo    []ValidationInfo `json:"call_info"`
 		Hash        hexutil.Bytes    `json:"hash"`
 		Meta        Metadata         `json:"meta"`
 	}
@@ -260,71 +233,44 @@ var ErrRequestDenied = errors.New("request denied")
 // NewSignerAPI creates a new API that can be used for Account management.
 // ksLocation specifies the directory where to store the password protected private
 // key that is generated when a new Account is created.
-// noUSB disables USB support that is required to support hardware device such as
-// ledger.
-func NewSignerAPI(am *accounts.Manager, networkID int64, noUSB bool, ui UIClientAPI, validator Validator, advancedMode bool, credentials storage.Storage) *SignerAPI {
+func NewSignerAPI(am *accounts.Manager, networkID int64, ui UIClientAPI, validator Validator, advancedMode bool, credentials storage.Storage) *SignerAPI {
 	if advancedMode {
 		log.Info("Clef is in advanced mode: will warn instead of reject")
 	}
 	signer := &SignerAPI{big.NewInt(networkID), am, ui, validator, !advancedMode, credentials}
-	if !noUSB {
-		signer.startUSBListener()
-	}
 	return signer
 }
 
-// startUSBListener starts a listener for USB events, for hardware wallet interaction
-func (api *SignerAPI) startUSBListener() {
-	events := make(chan accounts.WalletEvent, 16)
-	am := api.am
-	am.Subscribe(events)
-	go func() {
-
-		// Open any wallets already attached
-		for _, wallet := range am.Wallets() {
-			if err := wallet.Open(""); err != nil {
-				log.Warn("Failed to open wallet", "url", wallet.URL(), "err", err)
+// derivationLoop listens for wallet events
+func (api *SignerAPI) derivationLoop(events chan accounts.WalletEvent) {
+	// Listen for wallet event till termination
+	for event := range events {
+		switch event.Kind {
+		case accounts.WalletArrived:
+			if err := event.Wallet.Open(""); err != nil {
+				log.Warn("New wallet appeared, failed to open", "url", event.Wallet.URL(), "err", err)
 			}
-		}
-		// Listen for wallet event till termination
-		for event := range events {
-			switch event.Kind {
-			case accounts.WalletArrived:
-				if err := event.Wallet.Open(""); err != nil {
-					log.Warn("New wallet appeared, failed to open", "url", event.Wallet.URL(), "err", err)
-				}
-			case accounts.WalletOpened:
-				status, _ := event.Wallet.Status()
-				log.Info("New wallet appeared", "url", event.Wallet.URL(), "status", status)
-				var derive = func(numToDerive int, base accounts.DerivationPath) {
-					// Derive first N accounts, hardcoded for now
-					var nextPath = make(accounts.DerivationPath, len(base))
-					copy(nextPath[:], base[:])
-
-					for i := 0; i < numToDerive; i++ {
-						acc, err := event.Wallet.Derive(nextPath, true)
-						if err != nil {
-							log.Warn("Account derivation failed", "error", err)
-						} else {
-							log.Info("Derived account", "address", acc.Address, "path", nextPath)
-						}
-						nextPath[len(nextPath)-1]++
+		case accounts.WalletOpened:
+			status, _ := event.Wallet.Status()
+			log.Info("New wallet appeared", "url", event.Wallet.URL(), "status", status)
+			var derive = func(limit int, next func() accounts.DerivationPath) {
+				// Derive first N accounts, hardcoded for now
+				for i := 0; i < limit; i++ {
+					path := next()
+					if acc, err := event.Wallet.Derive(path, true); err != nil {
+						log.Warn("Account derivation failed", "error", err)
+					} else {
+						log.Info("Derived account", "address", acc.Address, "path", path)
 					}
 				}
-				if event.Wallet.URL().Scheme == "ledger" {
-					log.Info("Deriving ledger default paths")
-					derive(numberOfAccountsToDerive/2, accounts.DefaultBaseDerivationPath)
-					log.Info("Deriving ledger legacy paths")
-					derive(numberOfAccountsToDerive/2, accounts.LegacyLedgerBaseDerivationPath)
-				} else {
-					derive(numberOfAccountsToDerive, accounts.DefaultBaseDerivationPath)
-				}
-			case accounts.WalletDropped:
-				log.Info("Old wallet dropped", "url", event.Wallet.URL())
-				event.Wallet.Close()
 			}
+			log.Info("Deriving default paths")
+			derive(numberOfAccountsToDerive, accounts.DefaultIterator(accounts.DefaultBaseDerivationPath))
+		case accounts.WalletDropped:
+			log.Info("Old wallet dropped", "url", event.Wallet.URL())
+			event.Wallet.Close()
 		}
-	}()
+	}
 }
 
 // List returns the set of wallet this signer manages. Each wallet can contain
@@ -529,6 +475,32 @@ func (api *SignerAPI) SignTransaction(ctx context.Context, args SendTxArgs, meth
 	// ...and to the external caller
 	return &response, nil
 
+}
+
+func (api *SignerAPI) SignGnosisSafeTx(ctx context.Context, signerAddress common.Address, gnosisTx GnosisSafeTx, methodSelector *string) (*GnosisSafeTx, error) {
+	// Do the usual validations, but on the last-stage transaction
+	args := gnosisTx.ArgsForValidation()
+	msgs, err := api.validator.ValidateTransaction(methodSelector, args)
+	if err != nil {
+		return nil, err
+	}
+	// If we are in 'rejectMode', then reject rather than show the user warnings
+	if api.rejectMode {
+		if err := msgs.getWarnings(); err != nil {
+			return nil, err
+		}
+	}
+	typedData := gnosisTx.ToTypedData()
+	signature, preimage, err := api.signTypedData(ctx, signerAddress, typedData, msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	gnosisTx.Signature = signature
+	gnosisTx.SafeTxHash = common.BytesToHash(preimage)
+	gnosisTx.Sender = signerAddress
+
+	return &gnosisTx, nil
 }
 
 // Returns the external api version. This method does not require user acceptance. Available methods are

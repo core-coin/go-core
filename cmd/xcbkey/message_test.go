@@ -1,4 +1,4 @@
-// Copyright 2018 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify

@@ -19,19 +19,17 @@ package discover
 import (
 	crand "crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
-
 	"net"
 	"reflect"
 	"testing"
 	"testing/quick"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
-	"github.com/core-coin/go-core/p2p/netutil"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
+	"github.com/core-coin/go-core/v2/p2p/netutil"
 )
 
 func TestTable_pingReplace(t *testing.T) {
@@ -58,9 +56,8 @@ func testPingReplace(t *testing.T, newNodeIsResponding, lastInBucketIsResponding
 	<-tab.initDone
 
 	// Fill up the sender's bucket.
-	pingKey, _ := crypto.HexToEDDSA("07e988804055546babfb00e34d015314a21a76a1cb049cad4adeb3d931af355f2393ba45bfda9aeb7ca40c1e0a4e63ba4639e43957a54109f2")
-	pub := eddsa.Ed448DerivePublicKey(*pingKey)
-	pingSender := wrapNode(enode.NewV4(&pub, net.IP{}, 99, 99))
+	pingKey, _ := crypto.UnmarshalPrivateKeyHex("ab856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b343204")
+	pingSender := wrapNode(enode.NewV4(pingKey.PublicKey(), net.IP{127, 0, 0, 1}, 99, 99))
 	last := fillBucket(tab, pingSender)
 
 	// Add the sender as if it just pinged us. Revalidate should replace the last node in
@@ -421,7 +418,7 @@ func quickcfg() *quick.Config {
 	}
 }
 
-func newkey() *eddsa.PrivateKey {
+func newkey() *crypto.PrivateKey {
 	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())

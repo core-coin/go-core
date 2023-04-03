@@ -1,4 +1,4 @@
-// Copyright 2018 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,34 +18,36 @@ package core
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	eddsa "github.com/core-coin/go-goldilocks"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 	"testing"
+
+	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 func getBlock(transactions int, uncles int, dataSize int) *types.Block {
+	aa, err := common.HexToAddress("cb21000000000000000000000000000000000000aaaa")
+	if err != nil {
+		panic(err)
+	}
 	var (
-		aa, _ = common.HexToAddress("cb540000000000000000000000000000000000000000")
 		// Generate a canonical chain to act as the main dataset
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()
 		// A sender who makes transactions, has some funds
-		key, _  = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key)
-		address = crypto.PubkeyToAddress(pub)
-
-		funds = big.NewInt(1000000000)
-		gspec = &Genesis{
+		key, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
+		funds  = big.NewInt(1000000000)
+		gspec  = &Genesis{
 			Config: params.TestChainConfig,
-			Alloc:  GenesisAlloc{address: {Balance: funds}},
+			Alloc:  GenesisAlloc{key.Address(): {Balance: funds}},
 		}
 		genesis = gspec.MustCommit(db)
 	)
@@ -57,7 +59,7 @@ func getBlock(transactions int, uncles int, dataSize int) *types.Block {
 				// Add transactions and stuff on the last block
 				for i := 0; i < transactions; i++ {
 					tx, _ := types.SignTx(types.NewTransaction(uint64(i), aa,
-						big.NewInt(0), 50000, big.NewInt(1), make([]byte, dataSize)), types.NewNucleusSigner(big.NewInt(1)), key)
+						big.NewInt(0), 50000, big.NewInt(1), make([]byte, dataSize)), types.NewNucleusSigner(big.NewInt(1337)), key)
 					b.AddTx(tx)
 				}
 				for i := 0; i < uncles; i++ {

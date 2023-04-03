@@ -22,9 +22,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/rlp"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 type jsonEncoder interface {
@@ -289,16 +290,6 @@ func (tx *Transaction) GetNonce() int64         { return int64(tx.tx.Nonce()) }
 func (tx *Transaction) GetHash() *Hash   { return &Hash{tx.tx.Hash()} }
 func (tx *Transaction) GetCost() *BigInt { return &BigInt{tx.tx.Cost()} }
 
-// Deprecated: GetSigHash cannot know which signer to use.
-func (tx *Transaction) GetSigHash() *Hash { return &Hash{types.NewNucleusSigner(nil).Hash(tx.tx)} }
-
-// Deprecated: use CoreClient.TransactionSender
-func (tx *Transaction) GetFrom(networkID *BigInt) (address *Address, _ error) {
-	var signer = types.NewNucleusSigner(networkID.bigint)
-	from, err := types.Sender(signer, tx.tx)
-	return &Address{from}, err
-}
-
 func (tx *Transaction) GetTo() *Address {
 	if to := tx.tx.To(); to != nil {
 		return &Address{*to}
@@ -307,7 +298,7 @@ func (tx *Transaction) GetTo() *Address {
 }
 
 func (tx *Transaction) WithSignature(sig []byte, networkID *BigInt) (signedTx *Transaction, _ error) {
-	var signer = types.NewNucleusSigner(networkID.bigint)
+	signer := types.NewNucleusSigner(networkID.bigint)
 	rawTx, err := tx.tx.WithSignature(signer, common.CopyBytes(sig))
 	return &Transaction{rawTx}, err
 }

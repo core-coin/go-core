@@ -28,19 +28,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/les/flowcontrol"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/simulations"
-	"github.com/core-coin/go-core/p2p/simulations/adapters"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb"
-	"github.com/core-coin/go-core/xcb/downloader"
 	"github.com/mattn/go-colorable"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/les/flowcontrol"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/simulations"
+	"github.com/core-coin/go-core/v2/p2p/simulations/adapters"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb"
+	"github.com/core-coin/go-core/v2/xcb/downloader"
 )
 
 // Additional command line flags for the test binary.
@@ -107,7 +109,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 			t.Fatalf("Failed to obtain rpc client: %v", err)
 		}
 		headNum, headHash := getHead(ctx, t, serverRpcClient)
-		minCap, freeCap, totalCap := getCapacityInfo(ctx, t, serverRpcClient)
+		minCap, totalCap := getCapacityInfo(ctx, t, serverRpcClient)
 		testCap := totalCap * 3 / 4
 		t.Logf("Server testCap: %d  minCap: %d  head number: %d  head hash: %064x\n", testCap, minCap, headNum, headHash)
 		reqMinCap := uint64(float64(testCap) * minRelCap / (minRelCap + float64(len(clients)-1)))
@@ -202,7 +204,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 
 		weights := make([]float64, len(clients))
 		for c := 0; c < 5; c++ {
-			setCapacity(ctx, t, serverRpcClient, clients[freeIdx].ID(), freeCap)
+			setCapacity(ctx, t, serverRpcClient, clients[freeIdx].ID(), minCap)
 			freeIdx = rand.Intn(len(clients))
 			var sum float64
 			for i := range clients {
@@ -214,7 +216,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 				sum += weights[i]
 			}
 			for i, client := range clients {
-				weights[i] *= float64(testCap-freeCap-100) / sum
+				weights[i] *= float64(testCap-minCap-100) / sum
 				capacity := uint64(weights[i])
 				if i != freeIdx && capacity < getCapacity(ctx, t, serverRpcClient, client.ID()) {
 					setCapacity(ctx, t, serverRpcClient, client.ID(), capacity)
@@ -227,7 +229,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 					setCapacity(ctx, t, serverRpcClient, client.ID(), capacity)
 				}
 			}
-			weights[freeIdx] = float64(freeCap)
+			weights[freeIdx] = float64(minCap)
 			for i := range clients {
 				weights[i] /= float64(testCap)
 			}
@@ -247,7 +249,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 				default:
 				}
 
-				_, _, totalCap = getCapacityInfo(ctx, t, serverRpcClient)
+				_, totalCap = getCapacityInfo(ctx, t, serverRpcClient)
 				if totalCap < testCap {
 					t.Log("Total capacity underrun")
 					close(stop)
@@ -326,7 +328,7 @@ func testRequest(ctx context.Context, t *testing.T, client *rpc.Client) bool {
 	var res string
 	var addr common.Address
 	rand.Read(addr[:])
-	c, cancel := context.WithTimeout(ctx, time.Second*30)
+	c, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
 	err := client.CallContext(c, &res, "xcb_getBalance", addr, "latest")
 	if err != nil {
@@ -370,7 +372,7 @@ func getCapacity(ctx context.Context, t *testing.T, server *rpc.Client, clientID
 	return uint64(vv)
 }
 
-func getCapacityInfo(ctx context.Context, t *testing.T, server *rpc.Client) (minCap, freeCap, totalCap uint64) {
+func getCapacityInfo(ctx context.Context, t *testing.T, server *rpc.Client) (minCap, totalCap uint64) {
 	var res map[string]interface{}
 	if err := server.CallContext(ctx, &res, "les_serverInfo"); err != nil {
 		t.Fatalf("Failed to query server info: %v", err)
@@ -387,7 +389,6 @@ func getCapacityInfo(ctx context.Context, t *testing.T, server *rpc.Client) (min
 		return uint64(vv)
 	}
 	minCap = decode("minimumCapacity")
-	freeCap = decode("freeClientCapacity")
 	totalCap = decode("totalCapacity")
 	return
 }

@@ -1,4 +1,4 @@
-// Copyright 2022 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -20,14 +20,13 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"net"
 	"reflect"
 	"time"
 
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/utesting"
-	"github.com/core-coin/go-core/p2p/discover/v4wire"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/utesting"
+	"github.com/core-coin/go-core/v2/p2p/discover/v4wire"
 )
 
 const (
@@ -39,9 +38,9 @@ const (
 var (
 	// Remote node under test
 	Remote string
-	// Listen1 IP where the first tester is listening, port will be assigned
+	// IP where the first tester is listening, port will be assigned
 	Listen1 string = "127.0.0.1"
-	// Listen2 IP where the second tester is listening, port will be assigned
+	// IP where the second tester is listening, port will be assigned
 	// Before running the test, you may have to `sudo ifconfig lo0 add 127.0.0.2` (on MacOS at least)
 	Listen2 string = "127.0.0.2"
 )
@@ -146,7 +145,7 @@ func PingWrongFrom(t *utesting.T) {
 }
 
 // This test sends a PING packet with additional data at the end and expects a PONG
-// response. The remote node should respond because EIP-8 mandates ignoring additional
+// response. The remote node should respond because CIP-8 mandates ignoring additional
 // trailing data.
 func PingExtraData(t *utesting.T) {
 	te := newTestEnv(Remote, Listen1, Listen2)
@@ -293,15 +292,14 @@ func UnsolicitedNeighbors(t *utesting.T) {
 
 	// Send unsolicited NEIGHBORS response.
 	fakeKey, _ := crypto.GenerateKey(rand.Reader)
-	fakePub := eddsa.Ed448DerivePublicKey(*fakeKey)
-	encFakeKey := v4wire.EncodePubkey(&fakePub)
+	encFakeKey := v4wire.EncodePubkey(fakeKey.PublicKey())
 	neighbors := v4wire.Neighbors{
 		Expiration: futureExpiration(),
 		Nodes: []v4wire.Node{{
 			ID:  encFakeKey,
 			IP:  net.IP{1, 2, 3, 4},
-			UDP: 30303,
-			TCP: 30303,
+			UDP: 30300,
+			TCP: 30300,
 		}},
 	}
 	te.send(te.l1, &neighbors)

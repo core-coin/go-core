@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/core/vm"
+	"github.com/core-coin/go-core/v2/core/vm"
 )
 
 func TestState(t *testing.T) {
@@ -37,14 +37,16 @@ func TestState(t *testing.T) {
 	st.slow(`^stQuadraticComplexityTest/`)
 	st.slow(`^stStaticCall/static_Call50000`)
 	st.slow(`^stStaticCall/static_Return50000`)
-	st.slow(`^stStaticCall/static_Call1MB`)
 	st.slow(`^stSystemOperationsTest/CallRecursiveBomb`)
 	st.slow(`^stTransactionTest/Opcodes_TransactionInit`)
 
 	// Very time consuming
 	st.skipLoad(`^stTimeConsuming/`)
 
-	// Older tests were moved into LegacyTests
+	// Uses 1GB RAM per tested fork
+	st.skipLoad(`^stStaticCall/static_Call1MB`)
+
+	// For Istanbul, older tests were moved into LegacyTests
 	for _, dir := range []string{
 		stateTestDir,
 		legacyStateTestDir,
@@ -57,13 +59,16 @@ func TestState(t *testing.T) {
 
 				t.Run(key+"/trie", func(t *testing.T) {
 					withTrace(t, test.energyLimit(subtest), func(vmconfig vm.Config) error {
-						_, err := test.Run(subtest, vmconfig, false)
+						_, _, err := test.Run(subtest, vmconfig, false)
 						return st.checkFailure(t, name+"/trie", err)
 					})
 				})
 				t.Run(key+"/snap", func(t *testing.T) {
 					withTrace(t, test.energyLimit(subtest), func(vmconfig vm.Config) error {
-						_, err := test.Run(subtest, vmconfig, true)
+						snaps, statedb, err := test.Run(subtest, vmconfig, true)
+						if _, err := snaps.Journal(statedb.IntermediateRoot(false)); err != nil {
+							return err
+						}
 						return st.checkFailure(t, name+"/snap", err)
 					})
 				})

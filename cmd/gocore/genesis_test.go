@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -90,11 +90,10 @@ func TestCustomGenesis(t *testing.T) {
 		if err := ioutil.WriteFile(json, []byte(tt.genesis), 0600); err != nil {
 			t.Fatalf("test %d: failed to write genesis file: %v", i, err)
 		}
-		runGocore(t, "--nousb", "--datadir", datadir, "init", json).WaitExit()
+		runGocore(t, "--datadir", datadir, "init", json).WaitExit()
 
 		// Query the custom genesis block
 		gocore := runGocore(t,
-			"--nousb",
 			"--datadir", datadir, "--maxpeers", "0", "--port", "0",
 			"--nodiscover", "--nat", "none", "--ipcdisable",
 			"--exec", tt.query, "console")

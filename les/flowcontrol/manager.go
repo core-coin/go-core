@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/common/prque"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/common/prque"
 )
 
 // cmNodeFields are ClientNode fields used by the client manager

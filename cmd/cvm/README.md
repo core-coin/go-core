@@ -4,29 +4,32 @@ The `cvm t8n` tool is a stateless state transition utility. It is a utility
 which can
 
 1. Take a prestate, including
-- Accounts,
-- Block context information,
-- Previous blockshashes (*optional)
+  - Accounts,
+  - Block context information,
+  - Previous blockshashes (*optional)
 2. Apply a set of transactions,
 3. Apply a mining-reward (*optional),
 4. And generate a post-state, including
-- State root, transaction root, receipt root,
-- Information about rejected transactions,
-- Optionally: a full or partial post-state dump
+  - State root, transaction root, receipt root,
+  - Information about rejected transactions,
+  - Optionally: a full or partial post-state dump
 
 ## Specification
 
 The idea is to specify the behaviour of this binary very _strict_, so that other
 node implementors can build replicas based on their own state-machines, and the
-state generators can swap between a `gocore`-based implementation.
+state generators can swap between a `gocore`-based implementations.
 
 ### Command line params
 
 Command line params that has to be supported are
 ```
+
    --trace                            Output full trace logs to files <txhash>.jsonl
    --trace.nomemory                   Disable full memory dump in traces
    --trace.nostack                    Disable stack output in traces
+   --trace.noreturndata               Disable return data output in traces
+   --output.basedir value             Specifies where output files are placed. Will be created if it does not exist. (default: ".")
    --output.alloc alloc               Determines where to put the alloc of the post-state.
                                       `stdout` - into the stdout output
                                       `stderr` - into the stderr output
@@ -34,8 +37,9 @@ Command line params that has to be supported are
                                       `stdout` - into the stdout output
                                       `stderr` - into the stderr output
    --state.fork value                 Name of ruleset to use.
-   --state.chainid value              ChainID to use (default: 1)
+   --state.networkid value              ChainID to use (default: 1)
    --state.reward value               Mining reward. Set to -1 to disable (default: 0)
+
 ```
 
 ### Error codes and output
@@ -163,16 +167,16 @@ Mining rewards and ommer rewards might need to be added. This is how those are a
 
 - `block_reward` is the block mining reward for the miner (`0xaa`), of a block at height `N`.
 - For each ommer (mined by `0xbb`), with blocknumber `N-delta`
-    - (where `delta` is the difference between the current block and the ommer)
-    - The account `0xbb` (ommer miner) is awarded `(8-delta)/ 8 * block_reward`
-    - The account `0xaa` (block miner) is awarded `block_reward / 32`
+   - (where `delta` is the difference between the current block and the ommer)
+   - The account `0xbb` (ommer miner) is awarded `(8-delta)/ 8 * block_reward`
+   - The account `0xaa` (block miner) is awarded `block_reward / 32`
 
 To make `state_t8n` apply these, the following inputs are required:
 
 - `state.reward`
-    - For cryptore, it is `5000000000000000000` `ore`,
-    - If this is not defined, mining rewards are not applied,
-    - A value of `0` is valid, and causes accounts to be 'touched'.
+  - For cryptore, it is `5000000000000000000` `ore`,
+  - If this is not defined, mining rewards are not applied,
+  - A value of `0` is valid, and causes accounts to be 'touched'.
 - For each ommer, the tool needs to be given an `address` and a `delta`. This
   is done via the `env`.
 
@@ -190,8 +194,8 @@ Example:
   "currentNumber": "1",
   "currentTimestamp": "1000",
   "ommers": [
-    {"delta":  1, "address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
-    {"delta":  2, "address": "0xcccccccccccccccccccccccccccccccccccccccc" }
+    {"delta":  1, "address": "cb27de521e43741cf785cbad450d5649187b9612018f" },
+    {"delta":  2, "address": "cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba" }
   ]
 }
 ```
@@ -203,39 +207,39 @@ Output:
   "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": {
    "balance": "0x88"
   },
-  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": {
+  "cb27de521e43741cf785cbad450d5649187b9612018f": {
    "balance": "0x70"
   },
-  "0xcccccccccccccccccccccccccccccccccccccccc": {
+  "cb375a538daf54f2e568bb4237357b1cee1aa3cb7eba": {
    "balance": "0x60"
   }
  }
 }
 ```
-### Future EIPS
+### Future CIPS
 
-It is also possible to experiment with future сips that are not yet defined in a hard fork.
-Example, putting СIP-1344 into Frontier:
+It is also possible to experiment with future cips that are not yet defined in a hard fork.
+Example, putting CIP-1344: 
 ```
-./cvm t8n --state.fork=Frontier+1344 --input.pre=./testdata/1/pre.json --input.txs=./testdata/1/txs.json --input.env=/testdata/1/env.json
+./cvm t8n --input.pre=./testdata/1/pre.json --input.txs=./testdata/1/txs.json --input.env=/testdata/1/env.json
 ```
 
 ### Block history
 
 The `BLOCKHASH` opcode requires blockhashes to be provided by the caller, inside the `env`.
 If a required blockhash is not provided, the exit code should be `4`:
-Example where blockhashes are provided:
+Example where blockhashes are provided: 
 ```
 ./cvm t8n --input.alloc=./testdata/3/alloc.json --input.txs=./testdata/3/txs.json --input.env=./testdata/3/env.json --trace
 ```
 ```
-cat trace-0.jsonl | grep BLOCKHASH -C2
+cat trace-0-0x72fadbef39cd251a437eea619cfeda752271a5faaaa2147df012e112159ffb81.jsonl | grep BLOCKHASH -C2
 ```
 ```
-{"pc":0,"op":96,"energy":"0x5f58ef8","energyCost":"0x3","memory":"0x","memSize":0,"stack":[],"returnStack":[],"depth":1,"refund":0,"opName":"PUSH1","error":""}
-{"pc":2,"op":64,"energy":"0x5f58ef5","energyCost":"0x14","memory":"0x","memSize":0,"stack":["0x1"],"returnStack":[],"depth":1,"refund":0,"opName":"BLOCKHASH","error":""}
-{"pc":3,"op":0,"energy":"0x5f58ee1","energyCost":"0x0","memory":"0x","memSize":0,"stack":["0xdac58aa524e50956d0c0bae7f3f8bb9d35381365d07804dd5b48a5a297c06af4"],"returnStack":[],"depth":1,"refund":0,"opName":"STOP","error":""}
-{"output":"","energyUsed":"0x17","time":155861}
+{"pc":0,"op":96,"energy":"0x5f58ef8","energyCost":"0x3","memory":"0x","memSize":0,"stack":[],"returnStack":[],"returnData":null,"depth":1,"refund":0,"opName":"PUSH1","error":""}
+{"pc":2,"op":64,"energy":"0x5f58ef5","energyCost":"0x14","memory":"0x","memSize":0,"stack":["0x1"],"returnStack":[],"returnData":null,"depth":1,"refund":0,"opName":"BLOCKHASH","error":""}
+{"pc":3,"op":0,"energy":"0x5f58ee1","energyCost":"0x0","memory":"0x","memSize":0,"stack":["0xdac58aa524e50956d0c0bae7f3f8bb9d35381365d07804dd5b48a5a297c06af4"],"returnStack":[],"returnData":null,"depth":1,"refund":0,"opName":"STOP","error":""}
+{"output":"","energyUsed":"0x17","time":112885}
 ```
 
 In this example, the caller has not provided the required blockhash:
@@ -251,13 +255,15 @@ Error code: 4
 Another thing that can be done, is to chain invocations:
 ```
 ./cvm t8n --input.alloc=./testdata/1/alloc.json --input.txs=./testdata/1/txs.json --input.env=./testdata/1/env.json --output.alloc=stdout | ./cvm t8n --input.alloc=stdin --input.env=./testdata/1/env.json --input.txs=./testdata/1/txs.json
-INFO [06-29|11:52:04.934] rejected tx                              index=1 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
-INFO [06-29|11:52:04.936] rejected tx                              index=0 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
-INFO [06-29|11:52:04.936] rejected tx                              index=1 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
+INFO [08-03|15:25:15.168] rejected tx                              index=1 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
+INFO [08-03|15:25:15.169] rejected tx                              index=0 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
+INFO [08-03|15:25:15.169] rejected tx                              index=1 hash="0557ba…18d673" from=0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192 error="nonce too low"
+
 ```
-What happened here, is that we first applied two identical transactions, so the second one was rejected.
+What happened here, is that we first applied two identical transactions, so the second one was rejected. 
 Then, taking the poststate alloc as the input for the next state, we tried again to include
 the same two transactions: this time, both failed due to too low nonce.
 
 In order to meaningfully chain invocations, one would need to provide meaningful new `env`, otherwise the
 actual blocknumber (exposed to the CVM) would not increase.
+

@@ -20,16 +20,16 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
-	"github.com/core-coin/go-goldilocks"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/crypto/blake2b"
-	"github.com/core-coin/go-core/crypto/bn256"
-	"github.com/core-coin/go-core/params"
+	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/crypto/blake2b"
+	"github.com/core-coin/go-core/v2/crypto/bn256"
+	"github.com/core-coin/go-core/v2/params"
 
 	//lint:ignore SA1019 Needed for precompile
 	"golang.org/x/crypto/ripemd160"
@@ -43,16 +43,18 @@ type PrecompiledContract interface {
 	Run(input []byte) ([]byte, error)   // Run runs the precompiled contract
 }
 
+// PrecompiledContracts contains the default set of pre-compiled Core
+// contracts used in the release.
 var PrecompiledContracts = map[common.Address]PrecompiledContract{
-	common.Addr1: &ecrecover{},
-	common.Addr2: &sha256hash{},
-	common.Addr3: &ripemd160hash{},
-	common.Addr4: &dataCopy{},
-	common.Addr5: &bigModExp{},
-	common.Addr6: &bn256Add{},
-	common.Addr7: &bn256ScalarMul{},
-	common.Addr8: &bn256Pairing{},
-	common.Addr9: &blake2F{},
+	common.BytesToAddress([]byte{1}): &ecrecover{},
+	common.BytesToAddress([]byte{2}): &sha256hash{},
+	common.BytesToAddress([]byte{3}): &ripemd160hash{},
+	common.BytesToAddress([]byte{4}): &dataCopy{},
+	common.BytesToAddress([]byte{5}): &bigModExp{},
+	common.BytesToAddress([]byte{6}): &bn256Add{},
+	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
+	common.BytesToAddress([]byte{8}): &bn256Pairing{},
+	common.BytesToAddress([]byte{9}): &blake2F{},
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
@@ -85,10 +87,14 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	pubKey, err := crypto.Ecrecover(input[:32], input[96:267])
 	// make sure the public key is a valid one
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	if pubKey != nil {
-		return common.LeftPadBytes(crypto.PubkeyToAddress(goldilocks.BytesToPublicKey(pubKey)).Bytes(), 32), nil
+		pub, err := crypto.UnmarshalPubKey(pubKey)
+		if err != nil {
+			return nil, err
+		}
+		return common.LeftPadBytes(crypto.PubkeyToAddress(pub).Bytes(), 32), nil
 	}
 	return nil, errors.New("invalid signature")
 }
@@ -139,14 +145,18 @@ func (c *dataCopy) Run(in []byte) ([]byte, error) {
 }
 
 // bigModExp implements a native big integer exponential modular operation.
-type bigModExp struct{}
+type bigModExp struct {
+}
 
 var (
 	big0      = big.NewInt(0)
 	big1      = big.NewInt(1)
+	big3      = big.NewInt(3)
 	big4      = big.NewInt(4)
+	big7      = big.NewInt(7)
 	big8      = big.NewInt(8)
 	big16     = big.NewInt(16)
+	big20     = big.NewInt(20)
 	big32     = big.NewInt(32)
 	big64     = big.NewInt(64)
 	big96     = big.NewInt(96)
@@ -264,8 +274,16 @@ func newTwistPoint(blob []byte) (*bn256.G2, error) {
 	return p, nil
 }
 
-// runBn256Add implements the Bn256Add precompile
-func runBn256Add(input []byte) ([]byte, error) {
+// bn256Add implements a native elliptic curve point addition conforming to
+// consensus rules.
+type bn256Add struct{}
+
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256Add) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256AddEnergy
+}
+
+func (c *bn256Add) Run(input []byte) ([]byte, error) {
 	x, err := newCurvePoint(getData(input, 0, 64))
 	if err != nil {
 		return nil, err
@@ -279,32 +297,8 @@ func runBn256Add(input []byte) ([]byte, error) {
 	return res.Marshal(), nil
 }
 
-// bn256Add implements a native elliptic curve point addition conforming to
-// consensus rules.
-type bn256Add struct{}
-
-// RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256Add) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256AddEnergy
-}
-
-func (c *bn256Add) Run(input []byte) ([]byte, error) {
-	return runBn256Add(input)
-}
-
-// runBn256ScalarMul implements the Bn256ScalarMul precompile
-func runBn256ScalarMul(input []byte) ([]byte, error) {
-	p, err := newCurvePoint(getData(input, 0, 64))
-	if err != nil {
-		return nil, err
-	}
-	res := new(bn256.G1)
-	res.ScalarMult(p, new(big.Int).SetBytes(getData(input, 64, 32)))
-	return res.Marshal(), nil
-}
-
 // bn256ScalarMul implements a native elliptic curve scalar
-// multiplication conforming to consensus rules.
+// multiplication conforming to  consensus rules.
 type bn256ScalarMul struct{}
 
 // RequiredEnergy returns the energy required to execute the pre-compiled contract.
@@ -313,7 +307,13 @@ func (c *bn256ScalarMul) RequiredEnergy(input []byte) uint64 {
 }
 
 func (c *bn256ScalarMul) Run(input []byte) ([]byte, error) {
-	return runBn256ScalarMul(input)
+	p, err := newCurvePoint(getData(input, 0, 64))
+	if err != nil {
+		return nil, err
+	}
+	res := new(bn256.G1)
+	res.ScalarMult(p, new(big.Int).SetBytes(getData(input, 64, 32)))
+	return res.Marshal(), nil
 }
 
 var (
@@ -327,8 +327,16 @@ var (
 	errBadPairingInput = errors.New("bad elliptic curve pairing size")
 )
 
-// runBn256Pairing implements the Bn256Pairing precompile
-func runBn256Pairing(input []byte) ([]byte, error) {
+// bn256Pairing implements a pairing pre-compile for the bn256 curve
+// conforming to consensus rules.
+type bn256Pairing struct{}
+
+// RequiredEnergy returns the energy required to execute the pre-compiled contract.
+func (c *bn256Pairing) RequiredEnergy(input []byte) uint64 {
+	return params.Bn256PairingBaseEnergy + uint64(len(input)/192)*params.Bn256PairingPerPointEnergy
+}
+
+func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 	// Handle some corner cases cheaply
 	if len(input)%192 > 0 {
 		return nil, errBadPairingInput
@@ -357,18 +365,6 @@ func runBn256Pairing(input []byte) ([]byte, error) {
 	return false32Byte, nil
 }
 
-// bn256Pairing implements a pairing pre-compile for the bn256 curve
-type bn256Pairing struct{}
-
-// RequiredEnergy returns the energy required to execute the pre-compiled contract.
-func (c *bn256Pairing) RequiredEnergy(input []byte) uint64 {
-	return params.Bn256PairingBaseEnergy + uint64(len(input)/192)*params.Bn256PairingPerPointEnergy
-}
-
-func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
-	return runBn256Pairing(input)
-}
-
 type blake2F struct{}
 
 func (c *blake2F) RequiredEnergy(input []byte) uint64 {
@@ -392,7 +388,7 @@ var (
 )
 
 func (c *blake2F) Run(input []byte) ([]byte, error) {
-	// Make sure the input is valid (correct lenth and final flag)
+	// Make sure the input is valid (correct length and final flag)
 	if len(input) != blake2FInputLength {
 		return nil, errBlake2FInvalidInputLength
 	}

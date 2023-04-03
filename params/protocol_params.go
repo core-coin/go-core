@@ -79,7 +79,7 @@ const (
 	// not exist. This logic is similar to call.
 	CreateBySelfdestructEnergy uint64 = 25000
 
-	MaxCodeSize = 24576 // Maximum bytecode to permit for a contract
+	MaxCodeSize = 50000 // Maximum bytecode to permit for a contract
 
 	// Precompiled contract energy prices
 

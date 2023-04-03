@@ -22,9 +22,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/nat"
-	"github.com/core-coin/go-core/rpc"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/p2p/nat"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 const (
@@ -34,23 +34,12 @@ const (
 	DefaultWSPort      = 8546        // Default TCP port for the websocket RPC server
 	DefaultGraphQLHost = "localhost" // Default host interface for the GraphQL server
 	DefaultGraphQLPort = 8547        // Default TCP port for the GraphQL server
-	DefaultAuthHost    = "localhost" // Default host interface for the authenticated apis
-	DefaultAuthPort    = 8551        // Default port for the authenticated apis
-)
-
-var (
-	DefaultAuthCors    = []string{"localhost"} // Default cors domain for the authenticated apis
-	DefaultAuthVhosts  = []string{"localhost"} // Default virtual hosts for the authenticated apis
-	DefaultAuthOrigins = []string{"localhost"} // Default origins for the authenticated apis
-	DefaultAuthPrefix  = ""                    // Default prefix for the authenticated apis
-	DefaultAuthModules = []string{"xcb"}
 )
 
 // DefaultConfig contains reasonable default settings.
 var DefaultConfig = Config{
 	DataDir:             DefaultDataDir(),
 	HTTPPort:            DefaultHTTPPort,
-	AuthPort:            DefaultAuthPort,
 	HTTPModules:         []string{"net", "web3"},
 	HTTPVirtualHosts:    []string{"localhost"},
 	HTTPTimeouts:        rpc.DefaultHTTPTimeouts,
@@ -85,7 +74,7 @@ func DefaultDataDir() string {
 			}
 			return filepath.Join(appdata, "Core")
 		default:
-			return filepath.Join(home, "core")
+			return filepath.Join(home, ".core")
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later

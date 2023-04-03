@@ -17,12 +17,13 @@
 package core
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 /*
@@ -36,8 +37,10 @@ The state transitioning model does all the necessary work to work out a valid ne
 3) Create a new state object if the recipient is \0*32
 4) Value transfer
 == If contract creation ==
-  4a) Attempt to run transaction data
-  4b) If valid, use result as code for the new state object
+
+	4a) Attempt to run transaction data
+	4b) If valid, use result as code for the new state object
+
 == end ==
 5) Run Script section
 6) Derive new state root
@@ -68,15 +71,15 @@ type Message interface {
 	Data() []byte
 }
 
-// ExecutionResult includes all output after executing given evm
+// ExecutionResult includes all output after executing given cvm
 // message no matter the execution itself is successful or not.
 type ExecutionResult struct {
 	UsedEnergy uint64 // Total used energy but include the refunded energy
 	Err        error  // Any error encountered during the execution(listed in core/vm/errors.go)
-	ReturnData []byte // Returned data from evm(function result or data supplied with revert opcode)
+	ReturnData []byte // Returned data from cvm(function result or data supplied with revert opcode)
 }
 
-// Unwrap returns the internal evm error which allows us for further
+// Unwrap returns the internal cvm error which allows us for further
 // analysis outside.
 func (result *ExecutionResult) Unwrap() error {
 	return result.Err
@@ -171,8 +174,8 @@ func (st *StateTransition) to() common.Address {
 
 func (st *StateTransition) buyEnergy() error {
 	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Energy()), st.energyPrice)
-	if st.state.GetBalance(st.msg.From()).Cmp(mgval) < 0 {
-		return ErrInsufficientFunds
+	if have, want := st.state.GetBalance(st.msg.From()), mgval; have.Cmp(want) < 0 {
+		return fmt.Errorf("%w: address %v have %v want %v", ErrInsufficientFunds, st.msg.From().Hex(), have, want)
 	}
 	if err := st.gp.SubEnergy(st.msg.Energy()); err != nil {
 		return err
@@ -187,29 +190,31 @@ func (st *StateTransition) buyEnergy() error {
 func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
-		nonce := st.state.GetNonce(st.msg.From())
-		if nonce < st.msg.Nonce() {
-			return ErrNonceTooHigh
-		} else if nonce > st.msg.Nonce() {
-			return ErrNonceTooLow
+		stNonce := st.state.GetNonce(st.msg.From())
+		if msgNonce := st.msg.Nonce(); stNonce < msgNonce {
+			return fmt.Errorf("%w: address %v, tx: %d state: %d", ErrNonceTooHigh,
+				st.msg.From().Hex(), msgNonce, stNonce)
+		} else if stNonce > msgNonce {
+			return fmt.Errorf("%w: address %v, tx: %d state: %d", ErrNonceTooLow,
+				st.msg.From().Hex(), msgNonce, stNonce)
 		}
 	}
 	return st.buyEnergy()
 }
 
 // TransitionDb will transition the state by applying the current message and
-// returning the evm execution result with following fields.
+// returning the cvm execution result with following fields.
 //
-// - used energy:
-//      total energy used (including energy being refunded)
-// - returndata:
-//      the returned data from cvm
-// - concrete execution error:
-//      various **CVM** error which aborts the execution,
-//      e.g. ErrOutOfEnergy, ErrExecutionReverted
+//   - used energy:
+//     total energy used (including energy being refunded)
+//   - returndata:
+//     the returned data from cvm
+//   - concrete execution error:
+//     various **CVM** error which aborts the execution,
+//     e.g. ErrOutOfEnergy, ErrExecutionReverted
 //
 // However if any consensus issue encountered, return the error directly with
-// nil evm execution result.
+// nil cvm execution result.
 func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	// First check this message satisfies all consensus rules before
 	// applying the message. The rules include these clauses
@@ -235,13 +240,13 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 		return nil, err
 	}
 	if st.energy < energy {
-		return nil, ErrIntrinsicEnergy
+		return nil, fmt.Errorf("%w: have %d, want %d", ErrIntrinsicEnergy, st.energy, energy)
 	}
 	st.energy -= energy
 
 	// Check clause 6
-	if msg.Value().Sign() > 0 && !st.cvm.CanTransfer(st.state, msg.From(), msg.Value()) {
-		return nil, ErrInsufficientFundsForTransfer
+	if msg.Value().Sign() > 0 && !st.cvm.Context.CanTransfer(st.state, msg.From(), msg.Value()) {
+		return nil, fmt.Errorf("%w: address %v", ErrInsufficientFundsForTransfer, msg.From().Hex())
 	}
 	var (
 		ret   []byte
@@ -255,7 +260,7 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 		ret, st.energy, vmerr = st.cvm.Call(sender, st.to(), st.data, st.energy, st.value)
 	}
 	st.refundEnergy()
-	st.state.AddBalance(st.cvm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
+	st.state.AddBalance(st.cvm.Context.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.energyUsed()), st.energyPrice))
 
 	return &ExecutionResult{
 		UsedEnergy: st.energyUsed(),

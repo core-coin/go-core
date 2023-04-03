@@ -18,18 +18,18 @@ package rules
 
 import (
 	"fmt"
-	"github.com/hpcloud/tail/util"
 	"math/big"
 	"strings"
 	"testing"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/internal/xcbapi"
-	"github.com/core-coin/go-core/signer/core"
-	"github.com/core-coin/go-core/signer/storage"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/signer/core"
+	"github.com/core-coin/go-core/v2/signer/storage"
 )
 
 const JS = `
@@ -68,11 +68,6 @@ function test(thing){
 }
 
 `
-
-func mixAddr(a string) (*common.Address, error) {
-	addr, err := common.HexToAddress(a)
-	return &addr, err
-}
 
 type alwaysDenyUI struct{}
 
@@ -169,12 +164,12 @@ func TestSignTxRequest(t *testing.T) {
 		t.Errorf("Couldn't create evaluator %v", err)
 		return
 	}
-	to, err := mixAddr("cb79000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("cb79000000000000000000000000000000000000dead")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	from, err := mixAddr("cb390000000000000000000000000000000000001337")
+	from, err := common.HexToAddress("cb390000000000000000000000000000000000001337")
 
 	if err != nil {
 		t.Error(err)
@@ -183,8 +178,8 @@ func TestSignTxRequest(t *testing.T) {
 	t.Logf("to %v", to.String())
 	resp, err := r.ApproveTx(&core.SignTxRequest{
 		Transaction: core.SendTxArgs{
-			From: *from,
-			To:   to},
+			From: from,
+			To:   &to},
 		Callinfo: nil,
 		Meta:     core.Metadata{Remote: "remoteip", Local: "localip", Scheme: "inproc"},
 	})
@@ -244,7 +239,7 @@ func (d *dummyUI) OnApprovedTx(tx xcbapi.SignTransactionResult) {
 func (d *dummyUI) OnSignerStartup(info core.StartupInfo) {
 }
 
-//TestForwarding tests that the rule-engine correctly dispatches requests to the next caller
+// TestForwarding tests that the rule-engine correctly dispatches requests to the next caller
 func TestForwarding(t *testing.T) {
 
 	js := ""
@@ -427,16 +422,22 @@ const ExampleTxWindow = `
 `
 
 func dummyTx(value hexutil.Big) *core.SignTxRequest {
-	to, _ := mixAddr("cb000000000000000000000000000000000000dead")
-	from, _ := mixAddr("cb000000000000000000000000000000000000dead")
+	to, err := common.HexToAddress("cb79000000000000000000000000000000000000dead")
+	if err != nil {
+		panic(err)
+	}
+	from, err := common.HexToAddress("cb79000000000000000000000000000000000000dead")
+	if err != nil {
+		panic(err)
+	}
 	n := hexutil.Uint64(3)
 	energy := hexutil.Uint64(21000)
 	energyPrice := hexutil.Big(*big.NewInt(2000000))
 
 	return &core.SignTxRequest{
 		Transaction: core.SendTxArgs{
-			From:        *from,
-			To:          to,
+			From:        from,
+			To:          &to,
 			Value:       value,
 			Nonce:       n,
 			EnergyPrice: energyPrice,
@@ -458,7 +459,7 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 func dummySigned(value *big.Int) *types.Transaction {
 	to, err := common.HexToAddress("cb79000000000000000000000000000000000000dead")
 	if err != nil {
-		util.Fatal(err.Error())
+		panic(err)
 	}
 	energy := uint64(21000)
 	energyPrice := big.NewInt(2000000)
@@ -548,7 +549,7 @@ func (d *dontCallMe) OnApprovedTx(tx xcbapi.SignTransactionResult) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
-//TestContextIsCleared tests that the rule-engine does not retain variables over several requests.
+// TestContextIsCleared tests that the rule-engine does not retain variables over several requests.
 // if it does, that would be bad since developers may rely on that to store data,
 // instead of using the disk-based data storage
 func TestContextIsCleared(t *testing.T) {
@@ -589,7 +590,7 @@ func TestSignData(t *testing.T) {
     return "Approve"
 }
 function ApproveSignData(r){
-    if( r.address.toLowerCase() == "cb29694267f14675d7e1b9494fd8d72fefe1755710fa")
+    if( r.address.toLowerCase() == "cb27de521e43741cf785cbad450d5649187b9612018f")
     {
         if(r.messages[0].value.indexOf("bazonk") >= 0){
             return "Approve"
@@ -605,10 +606,10 @@ function ApproveSignData(r){
 	}
 	message := "baz bazonk foo"
 	hash, rawdata := accounts.TextAndHash([]byte(message))
-	addr, _ := mixAddr("cb29694267f14675d7e1b9494fd8d72fefe1755710fa")
-
-	t.Logf("address %v %v\n", addr.String(), addr.String())
-
+	addr, err := common.HexToAddress("cb27de521e43741cf785cbad450d5649187b9612018f")
+	if err != nil {
+		t.Error(err)
+	}
 	nvt := []*core.NameValueType{
 		{
 			Name:  "message",
@@ -617,7 +618,7 @@ function ApproveSignData(r){
 		},
 	}
 	resp, err := r.ApproveSignData(&core.SignDataRequest{
-		Address:  *addr,
+		Address:  addr,
 		Messages: nvt,
 		Hash:     hash,
 		Meta:     core.Metadata{Remote: "remoteip", Local: "localip", Scheme: "inproc"},

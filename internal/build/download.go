@@ -20,7 +20,6 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,6 +27,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/crypto/sha3"
 )
 
 // ChecksumDB keeps file checksums.

@@ -23,9 +23,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 type diffTest struct {

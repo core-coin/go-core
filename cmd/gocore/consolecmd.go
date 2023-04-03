@@ -24,11 +24,12 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/core-coin/go-core/cmd/utils"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/node"
-	"github.com/core-coin/go-core/rpc"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/console"
+	"github.com/core-coin/go-core/v2/node"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 var (
@@ -43,7 +44,7 @@ var (
 		Description: `
 The Gocore console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
-See https://developer.coreblockchain.cc/JavaScript-Console.`,
+See https://github.com/core-coin/go-core/v2/wiki/JavaScript-Console.`,
 	}
 
 	attachCommand = cli.Command{
@@ -56,7 +57,7 @@ See https://developer.coreblockchain.cc/JavaScript-Console.`,
 		Description: `
 The Gocore console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
-See https://developer.coreblockchain.cc/JavaScript-Console.
+See https://github.com/core-coin/go-core/v2/wiki/JavaScript-Console.
 This command allows to open a console on a running gocore node.`,
 	}
 
@@ -69,7 +70,7 @@ This command allows to open a console on a running gocore node.`,
 		Category:  "CONSOLE COMMANDS",
 		Description: `
 The JavaScript VM exposes a node admin interface as well as the Ðapp
-JavaScript API. See https://developer.coreblockchain.cc/JavaScript-Console`,
+JavaScript API. See https://github.com/core-coin/go-core/v2/wiki/JavaScript-Console`,
 	}
 )
 
@@ -124,7 +125,14 @@ func remoteConsole(ctx *cli.Context) error {
 		}
 		if path != "" {
 			if ctx.GlobalBool(utils.DevinFlag.Name) {
-				path = filepath.Join(path, "devin")
+				// Maintain compatibility with older Gocore configurations storing the
+				// Devin database in `testnet` instead of `devin`.
+				legacyPath := filepath.Join(path, "testnet")
+				if _, err := os.Stat(legacyPath); !os.IsNotExist(err) {
+					path = legacyPath
+				} else {
+					path = filepath.Join(path, "devin")
+				}
 			}
 		}
 		endpoint = fmt.Sprintf("%s/gocore.ipc", path)

@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 func BenchmarkCutOriginal(b *testing.B) {

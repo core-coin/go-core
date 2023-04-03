@@ -19,19 +19,19 @@ package dnsdisc
 import (
 	"context"
 	"errors"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/internal/testlog"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/p2p/enr"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/internal/testlog"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/p2p/enr"
 )
 
 const (
@@ -85,13 +85,13 @@ func TestClientSyncTreeBadNode(t *testing.T) {
 	// fmt.Printf("%#v\n", tree.ToTXT("n"))
 
 	r := mapResolver{
-		"JZ7RET254NLCICBLV5AZ3WVUHA.n": "enr:-----",
 		"LOOO2ZWKOLDJW2LQVMYL6UT77U.n": "enrtree-branch:",
-		"UXCFO6UUOO6E4BTJNZPMHAH2HY.n": "enrtree://WJQDGHW5NWGEXKGW4EWJY3ZERP4MAK4HSI4EFM5I7JST7VCU7SW4H65MFVZ4YJNCDHCLKAXLAK3GHIV7EBAVOTUDCKAA@morenodes.example.org",
-		"n":                            "enrtree-root:v1 e=JZ7RET254NLCICBLV5AZ3WVUHA l=UXCFO6UUOO6E4BTJNZPMHAH2HY seq=3 sig=2FK3ci8nkov8U9tqsXO5AKn7rPVZkJUcC2Y0FHsCsA6Ei4XsvIwhmotg0lRLMRUvePAF7BX6udYA6Nzr4bly_BM2FsZxp8rt8pD370G70IIGeHyVhc0JavC6x5zQ2QKkpcnPoGtUOXvtWj3TjydhsQoASnsKymLWBgRmVCKoPAQ5OAZITJYZuTbCaLUSZjp91KylRphiCcVVLJpwqIOG5K34ZndqiPAvZ0QA",
+		"JZ7RET254NLCICBLV5AZ3WVUHA.n": "enr:-----",
+		"LCR3TNLW2SMSEFKARSGSOWUOEI.n": "enrtree://VOCWVGXWWC3FDXJPIO26CIMTMUXMC4A4JWTPDQGSUNTKYS45VPEUGPXQTZA4UEUVKK6SYAUQQ3M3ANQE32DSUOZUGICA@morenodes.example.org",
+		"n":                            "enrtree-root:v1 e=JZ7RET254NLCICBLV5AZ3WVUHA l=LCR3TNLW2SMSEFKARSGSOWUOEI seq=3 sig=mmG0XKqV42QjGtfKY0LmkstO8As69v0XqFhY-Nv64AMu1Uj0SRXLn-B6bX6HDGhqxgVYNxLwEvcA_Z_EAP6MnRly1tj_QL7kKyF8lNlQtNSj6Rd6U7fvlO-ItaKfXT-Kgvx1ao3L2NWFwFwJtOXAphwAhR3c_l0JEw3XUFpFrCjAQu-MCmR7bhcFQ_-KFwrG6r_1oQ2Q_-glxs9NYZz2ueAgQ8Lm0te4tZsA",
 	}
 	c := NewClient(Config{Resolver: r, Logger: testlog.Logger(t, log.LvlTrace)})
-	_, err := c.SyncTree("enrtree://JJ5QVSTC2YDAIZSUEKUDYBBZHADEQTEWDG4TNQTIWUJGMOT52SWKKRUYMIE4KVJMTJYKRA4G4SW7QZTXNKEPAL3HIQAA@n")
+	_, err := c.SyncTree("enrtree://QUO5Z7S5BEJQ3V2QLJC2YKGAILXYYCTEPNXBOBKD76FBOCWG5K77LIINSD76QJOGZ5GWDHHWXHQCAQ6C43JNPOFVTMAA@n")
 	wantErr := nameError{name: "JZ7RET254NLCICBLV5AZ3WVUHA.n", err: entryError{typ: "enr", err: errInvalidENR}}
 	if err != wantErr {
 		t.Fatalf("expected sync error %q, got %q", wantErr, err)
@@ -147,7 +147,7 @@ func TestIteratorLinks(t *testing.T) {
 	c := NewClient(Config{
 		Resolver:  newMapResolver(tree1.ToTXT("t1"), tree2.ToTXT("t2")),
 		Logger:    testlog.Logger(t, log.LvlTrace),
-		RateLimit: 5,
+		RateLimit: 500,
 	})
 	it, err := c.NewIterator(url2)
 	if err != nil {
@@ -167,8 +167,8 @@ func TestIteratorNodeUpdates(t *testing.T) {
 		c        = NewClient(Config{
 			Resolver:        resolver,
 			Logger:          testlog.Logger(t, log.LvlTrace),
-			RecheckInterval: 1 * time.Minute,
-			RateLimit:       5,
+			RecheckInterval: 20 * time.Minute,
+			RateLimit:       500,
 		})
 	)
 	c.clock = clock
@@ -319,7 +319,6 @@ func checkIterator(t *testing.T, it enode.Iterator, wantNodes []*enode.Node) {
 }
 
 func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, string) {
-	//nodes = testNodes(0x29452, 3)
 	tree, err := MakeTree(1, nodes, links)
 	if err != nil {
 		panic(err)
@@ -332,11 +331,11 @@ func makeTestTree(domain string, nodes []*enode.Node, links []string) (*Tree, st
 }
 
 // testKeys creates deterministic private keys for testing.
-func testKeys(seed int64, n int) []*eddsa.PrivateKey {
-	randSeed := rand.New(rand.NewSource(seed))
-	keys := make([]*eddsa.PrivateKey, n)
+func testKeys(seed int64, n int) []*crypto.PrivateKey {
+	rand := rand.New(rand.NewSource(seed))
+	keys := make([]*crypto.PrivateKey, n)
 	for i := 0; i < n; i++ {
-		key, err := crypto.GenerateKey(randSeed)
+		key, err := crypto.GenerateKey(rand)
 		if err != nil {
 			panic("can't generate key: " + err.Error())
 		}
@@ -345,7 +344,7 @@ func testKeys(seed int64, n int) []*eddsa.PrivateKey {
 	return keys
 }
 
-func testKey(seed int64) *eddsa.PrivateKey {
+func testKey(seed int64) *crypto.PrivateKey {
 	return testKeys(seed, 1)[0]
 }
 

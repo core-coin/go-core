@@ -19,12 +19,12 @@ package crypto
 import (
 	"bytes"
 	"encoding/hex"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var testAddrHex = "cb82a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5"
@@ -40,15 +40,15 @@ func TestSHA3Hash(t *testing.T) {
 }
 
 func TestToEDDSAErrors(t *testing.T) {
-	if _, err := HexToEDDSA("0000000000000000000000000000000000000000000000000000000000000000"); err == nil {
-		t.Fatal("HexToEDDSA should've returned error")
+	if _, err := UnmarshalPrivateKeyHex("0000000000000000000000000000000000000000000000000000000000000000"); err == nil {
+		t.Fatal("UnmarshalPrivateKeyHex should've returned error")
 	}
-	if _, err := HexToEDDSA("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); err == nil {
-		t.Fatal("HexToEDDSA should've returned error")
+	if _, err := UnmarshalPrivateKeyHex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); err == nil {
+		t.Fatal("UnmarshalPrivateKeyHex should've returned error")
 	}
 }
 
-func BenchmarkSha3(b *testing.B) { //TODO: TEST
+func BenchmarkSha3(b *testing.B) {
 	a := []byte("hello world")
 	for i := 0; i < b.N; i++ {
 		SHA3(a)
@@ -56,11 +56,11 @@ func BenchmarkSha3(b *testing.B) { //TODO: TEST
 }
 
 func TestUnmarshalPubkey(t *testing.T) {
-	key, err := UnmarshalPubkey(nil)
+	key, err := UnmarshalPubKey(nil)
 	if err != errInvalidPubkey || key != nil {
 		t.Fatalf("expected error, got %v, %v", err, key)
 	}
-	key, err = UnmarshalPubkey([]byte{1, 2, 3})
+	key, err = UnmarshalPubKey([]byte{1, 2, 3})
 	if err != errInvalidPubkey || key != nil {
 		t.Fatalf("expected error, got %v, %v", err, key)
 	}
@@ -68,14 +68,14 @@ func TestUnmarshalPubkey(t *testing.T) {
 	var (
 		enc, _ = hex.DecodeString("aaee47e4f7afb3a0dfd813320278e8ce0c9b1f94bded9a7e0ad9f9250c3360e16cbb3d90484ccc59805be6398b6ca774959d37a8a4cdc81faf")
 	)
-	key, err = UnmarshalPubkey(enc)
+	key, err = UnmarshalPubKey(enc)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 }
 
 func TestSign(t *testing.T) {
-	key, _ := HexToEDDSA(testPrivHex)
+	key, _ := UnmarshalPrivateKeyHex(testPrivHex)
 	addr, err := common.HexToAddress(testAddrHex)
 	if err != nil {
 		t.Error(err)
@@ -89,8 +89,8 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Errorf("ECRecover error: %s", err)
 	}
-	pubKey, _ := UnmarshalPubkey(recoveredPub)
-	recoveredAddr := PubkeyToAddress(*pubKey)
+	pubKey, _ := UnmarshalPubKey(recoveredPub)
+	recoveredAddr := PubkeyToAddress(pubKey)
 	if addr != recoveredAddr {
 		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr)
 	}
@@ -100,7 +100,7 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Errorf("ECRecover error: %s", err)
 	}
-	recoveredAddr2 := PubkeyToAddress(*recoveredPub2)
+	recoveredAddr2 := PubkeyToAddress(recoveredPub2)
 	if addr != recoveredAddr2 {
 		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr2)
 	}
@@ -116,12 +116,12 @@ func TestInvalidSign(t *testing.T) {
 }
 
 func TestNewContractAddress(t *testing.T) {
-	key, _ := HexToEDDSA(testPrivHex)
+	key, _ := UnmarshalPrivateKeyHex(testPrivHex)
 	addr, err := common.HexToAddress(testAddrHex)
 	if err != nil {
 		t.Error(err)
 	}
-	pub := eddsa.Ed448DerivePublicKey(*key)
+	pub := DerivePublicKey(key)
 	genAddr := PubkeyToAddress(pub)
 	// sanity check before using addr to create contract address
 	checkAddr(t, genAddr, addr)
@@ -146,41 +146,82 @@ func TestNewContractAddress(t *testing.T) {
 	checkAddr(t, addr2, caddr2)
 }
 
-func TestLoadEDDSAFile(t *testing.T) {
-	keyBytes := common.FromHex(testPrivHex)
-	fileName0 := "test_key0"
-	fileName1 := "test_key1"
-	addr, _ := common.HexToAddress(testAddrHex)
-	checkKey := func(k *eddsa.PrivateKey) {
-		pub := eddsa.Ed448DerivePublicKey(*k)
-		checkAddr(t, PubkeyToAddress(pub), addr)
-		loadedKeyBytes := FromEDDSA(k)
-		if !bytes.Equal(loadedKeyBytes, keyBytes) {
-			t.Fatalf("private key mismatch: want: %x have: %x", keyBytes, loadedKeyBytes)
+func TestLoadEDDSA(t *testing.T) {
+	tests := []struct {
+		input string
+		err   string
+	}{
+		// good
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e"},
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\n"},
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\n\r"},
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\r\n"},
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\n\n"},
+		{input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\n\r"},
+		// bad
+		{
+			input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0",
+			err:   "key file too short, want 57 hex characters",
+		},
+		{
+			input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0\n",
+			err:   "key file too short, want 57 hex characters",
+		},
+		{
+			input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0X",
+			err:   "invalid hex character 'X' in private key",
+		},
+		{
+			input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0eX",
+			err:   "invalid character 'X' at end of key file",
+		},
+		{
+			input: "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e\n\n\n",
+			err:   "key file too long, want 57 hex characters",
+		},
+	}
+
+	for _, test := range tests {
+		f, err := ioutil.TempFile("", "loaded448_test.*.txt")
+		if err != nil {
+			t.Fatal(err)
+		}
+		filename := f.Name()
+		f.WriteString(test.input)
+		f.Close()
+
+		_, err = LoadEDDSA(filename)
+		switch {
+		case err != nil && test.err == "":
+			t.Fatalf("unexpected error for input %q:\n  %v", test.input, err)
+		case err != nil && err.Error() != test.err:
+			t.Fatalf("wrong error for input %q:\n  %v", test.input, err)
+		case err == nil && test.err != "":
+			t.Fatalf("LoadEDDSA did not return error for input %q", test.input)
 		}
 	}
+}
 
-	ioutil.WriteFile(fileName0, []byte(testPrivHex), 0600)
-	defer os.Remove(fileName0)
-
-	key0, err := LoadEDDSA(fileName0)
+func TestSaveEDDSA(t *testing.T) {
+	f, err := ioutil.TempFile("", "saveed448_test.*.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkKey(key0)
+	file := f.Name()
+	f.Close()
+	defer os.Remove(file)
 
-	// again, this time with SaveEDDSA instead of manual save:
-	err = SaveEDDSA(fileName1, key0)
+	key, _ := UnmarshalPrivateKeyHex(testPrivHex)
+	if err := SaveEDDSA(file, key); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := LoadEDDSA(file)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(fileName1)
-
-	key1, err := LoadEDDSA(fileName1)
-	if err != nil {
-		t.Fatal(err)
+	if !reflect.DeepEqual(key, loaded) {
+		t.Fatal("loaded key not equal to saved key")
 	}
-	checkKey(key1)
 }
 
 func checkhash(t *testing.T, name string, f func([]byte) []byte, msg, exp []byte) {
@@ -194,20 +235,4 @@ func checkAddr(t *testing.T, addr0, addr1 common.Address) {
 	if addr0 != addr1 {
 		t.Fatalf("address mismatch: want: %x have: %x", addr0, addr1)
 	}
-}
-
-// test to help Python team with integration of libsecp256k1
-// skip but keep it after they are done
-func TestPythonIntegration(t *testing.T) {
-	kh := "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0ec01df931bb7405b5db26f6b98e136fa736df081c42698e425b493891f6195cc71b5cc76fac19461468d22d1359f0ad87e22dbdd5a202a32683dcaabd9c5cf3034fe44c155c1b06c59f7d6fc14b7e6172c18c6b0076d9a4"
-	k0, _ := HexToEDDSA(kh)
-
-	msg0 := SHA3([]byte("foo"))
-	sig0, _ := Sign(msg0, k0)
-
-	msg1 := common.FromHex("00000000000000000000000000000000")
-	sig1, _ := Sign(msg0, k0)
-
-	t.Logf("msg: %x, privkey: %s sig: %x\n", msg0, kh, sig0)
-	t.Logf("msg: %x, privkey: %s sig: %x\n", msg1, kh, sig1)
 }

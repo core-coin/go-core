@@ -17,7 +17,7 @@
 package vm
 
 import (
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 type (
@@ -967,7 +967,6 @@ func newInstructionSet() JumpTable {
 			minStack:       minStack(0, 0),
 			maxStack:       maxStack(0, 0),
 		},
-		// New opcode
 		JUMPSUB: {
 			execute:        opJumpSub,
 			constantEnergy: EnergySlowStep,
@@ -975,7 +974,6 @@ func newInstructionSet() JumpTable {
 			maxStack:       maxStack(1, 0),
 			jumps:          true,
 		},
-		// New opcode
 		RETURNSUB: {
 			execute:        opReturnSub,
 			constantEnergy: EnergyFastStep,

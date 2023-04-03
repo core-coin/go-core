@@ -22,11 +22,11 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
 )
 
 // Signer is an interface defining the callback when a contract requires a
@@ -82,12 +82,12 @@ func NewTransactOpts() *TransactOpts {
 
 // NewKeyedTransactOpts is a utility method to easily create a transaction signer
 // from a single private key.
-func NewKeyedTransactOpts(keyJson []byte, passphrase string, chainID *big.Int) (*TransactOpts, error) {
+func NewKeyedTransactOpts(keyJson []byte, passphrase string, networkID *big.Int) (*TransactOpts, error) {
 	key, err := keystore.DecryptKey(keyJson, passphrase)
 	if err != nil {
 		return nil, err
 	}
-	auth, err := bind.NewKeyedTransactorWithNetworkID(key.PrivateKey, chainID)
+	auth, err := bind.NewKeyedTransactorWithNetworkID(key.PrivateKey, networkID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,20 +175,12 @@ func (c *BoundContract) GetDeployer() *Transaction {
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result.
 func (c *BoundContract) Call(opts *CallOpts, out *Interfaces, method string, args *Interfaces) error {
-	if len(out.objects) == 1 {
-		result := out.objects[0]
-		if err := c.contract.Call(&opts.opts, result, method, args.objects...); err != nil {
-			return err
-		}
-		out.objects[0] = result
-	} else {
-		results := make([]interface{}, len(out.objects))
-		copy(results, out.objects)
-		if err := c.contract.Call(&opts.opts, &results, method, args.objects...); err != nil {
-			return err
-		}
-		copy(out.objects, results)
+	results := make([]interface{}, len(out.objects))
+	copy(results, out.objects)
+	if err := c.contract.Call(&opts.opts, &results, method, args.objects...); err != nil {
+		return err
 	}
+	copy(out.objects, results)
 	return nil
 }
 

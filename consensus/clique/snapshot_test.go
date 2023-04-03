@@ -18,30 +18,29 @@ package clique
 
 import (
 	"bytes"
-	"crypto/rand"
-	eddsa "github.com/core-coin/go-goldilocks"
+	crand "crypto/rand"
 	"sort"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // testerAccountPool is a pool to maintain currently active tester accounts,
 // mapped from textual names used in the tests below to actual Core private
 // keys capable of signing transactions.
 type testerAccountPool struct {
-	accounts map[string]*eddsa.PrivateKey
+	accounts map[string]*crypto.PrivateKey
 }
 
 func newTesterAccountPool() *testerAccountPool {
 	return &testerAccountPool{
-		accounts: make(map[string]*eddsa.PrivateKey),
+		accounts: make(map[string]*crypto.PrivateKey),
 	}
 }
 
@@ -67,11 +66,10 @@ func (ap *testerAccountPool) address(account string) common.Address {
 	}
 	// Ensure we have a persistent key for the account
 	if ap.accounts[account] == nil {
-		ap.accounts[account], _ = crypto.GenerateKey(rand.Reader)
+		ap.accounts[account], _ = crypto.GenerateKey(crand.Reader)
 	}
 	// Resolve and return the Core address
-	pub := eddsa.Ed448DerivePublicKey(*ap.accounts[account])
-	return crypto.PubkeyToAddress(pub)
+	return ap.accounts[account].Address()
 }
 
 // sign calculates a Clique digital signature for the given block and embeds it
@@ -79,7 +77,7 @@ func (ap *testerAccountPool) address(account string) common.Address {
 func (ap *testerAccountPool) sign(header *types.Header, signer string) {
 	// Ensure we have a persistent key for the signer
 	if ap.accounts[signer] == nil {
-		ap.accounts[signer], _ = crypto.GenerateKey(rand.Reader)
+		ap.accounts[signer], _ = crypto.GenerateKey(crand.Reader)
 	}
 	// Sign the header and embed the signature in extra data
 	sig, _ := crypto.Sign(SealHash(header).Bytes(), ap.accounts[signer])
@@ -365,8 +363,8 @@ func TestClique(t *testing.T) {
 			failure: errRecentlySigned,
 		}, {
 			// Recent signatures should not reset on checkpoint blocks imported in a new
-			// batch (https://github.com/core-coin/go-core/issues/17593). Whilst this
-			// seems overly specific and weird, it was a consensus split.
+			// batch (https://github.com/core-coin/go-core/v2/issues/17593). Whilst this
+			// seems overly specific and weird, it was a Devin consensus split.
 			epoch:   3,
 			signers: []string{"A", "B", "C"},
 			votes: []testerVote{
@@ -425,7 +423,7 @@ func TestClique(t *testing.T) {
 		})
 		// Iterate through the blocks and seal them individually
 		for j, block := range blocks {
-			// Gocore the header and prepare it for signing
+			// Get the header and prepare it for signing
 			header := block.Header()
 			if j > 0 {
 				header.ParentHash = blocks[j-1].Hash()

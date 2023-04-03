@@ -17,13 +17,13 @@
 package dnsdisc
 
 import (
-	eddsa "github.com/core-coin/go-goldilocks"
 	"reflect"
 	"testing"
 
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/p2p/enode"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 func TestParseRoot(t *testing.T) {
@@ -41,12 +41,12 @@ func TestParseRoot(t *testing.T) {
 			err:   entryError{"root", errInvalidSig},
 		},
 		{
-			input: "enrtree-root:v1 e=QAO2PMLNIZU6HVN4OGDWWQ4UCQ l=UXCFO6UUOO6E4BTJNZPMHAH2HY seq=1 sig=dKx74xYd64nBzlEXzYdK2UiCiKT05oqi3rL3C75nQ4dWxPh2RyY6R7hcXbDPomvdd7LuAbzTPhYAQWgNfReglAJL6gm6baXw46oA-5KpvZIt6qmUwFE8W2BUQWl34Xr4m3hKmUlU4AJO9OR8rNci5h8ASnsKymLWBgRmVCKoPAQ5OAZITJYZuTbCaLUSZjp91KylRphiCcVVLJpwqIOG5K34ZndqiPAvZ0QA",
+			input: "enrtree-root:v1 e=7525E77SHV6G7TBPKTRFYQKNEI l=TCMJVN7523OUUZZ5MYGACYBBIU seq=1 sig=hbftK14lRXy81Y1WtqhWgJ8VVOT2bYo31mTDhouxMCA-ENY3JA0Du6imZIEd6voIgm1yn4_k2aKAWsfLkyKs6-q6rZhOWd81CuDYg2eEPUcK1FyWaj1hMMXj3TGVPgSqfHLX6AU1xYKcchdwCeiY0hAAhR3c_l0JEw3XUFpFrCjAQu-MCmR7bhcFQ_-KFwrG6r_1oQ2Q_-glxs9NYZz2ueAgQ8Lm0te4tZsA",
 			e: rootEntry{
-				eroot: "QAO2PMLNIZU6HVN4OGDWWQ4UCQ",
-				lroot: "UXCFO6UUOO6E4BTJNZPMHAH2HY",
+				eroot: "7525E77SHV6G7TBPKTRFYQKNEI",
+				lroot: "TCMJVN7523OUUZZ5MYGACYBBIU",
 				seq:   1,
-				sig:   hexutil.MustDecode("0x74ac7be3161deb89c1ce5117cd874ad9488288a4f4e68aa2deb2f70bbe67438756c4f87647263a47b85c5db0cfa26bdd77b2ee01bcd33e160041680d7d17a094024bea09ba6da5f0e3aa00fb92a9bd922deaa994c0513c5b6054416977e17af89b784a994954e0024ef4e47cacd722e61f004a7b0aca62d60604665422a83c04393806484c9619b936c268b512663a7dd4aca546986209c5552c9a70a88386e4adf866776a88f02f674400"),
+				sig:   hexutil.MustDecode("0x85b7ed2b5e25457cbcd58d56b6a856809f1554e4f66d8a37d664c3868bb130203e10d637240d03bba8a664811deafa08826d729f8fe4d9a2805ac7cb9322acebeabaad984e59df350ae0d88367843d470ad45c966a3d6130c5e3dd31953e04aa7c72d7e80535c5829c72177009e898d21000851ddcfe5d09130dd7505a45ac28c042ef8c0a647b6e170543ff8a170ac6eabff5a10d90ffe825c6cf4d619cf6b9e02043c2e6d2d7b8b59b00"),
 			},
 		},
 	}
@@ -63,7 +63,7 @@ func TestParseRoot(t *testing.T) {
 
 func TestParseEntry(t *testing.T) {
 	testkey := testKey(nodesSeed1)
-	pub := eddsa.Ed448DerivePublicKey(*testkey)
+	pub := testkey.PublicKey()
 	tests := []struct {
 		input string
 		e     entry
@@ -93,7 +93,7 @@ func TestParseEntry(t *testing.T) {
 		// Links
 		{
 			input: "enrtree://SALGRL5CVC6ZXZSAJ5HJWZ5X5I2MURYEE7MRPZFFS3FRN4OJJDC2ISGFNZOKZPAUC3B2SOWTTAX4F3GD6VOR777KM2AA@nodes.example.org",
-			e:     &linkEntry{"SALGRL5CVC6ZXZSAJ5HJWZ5X5I2MURYEE7MRPZFFS3FRN4OJJDC2ISGFNZOKZPAUC3B2SOWTTAX4F3GD6VOR777KM2AA@nodes.example.org", "nodes.example.org", &pub},
+			e:     &linkEntry{"SALGRL5CVC6ZXZSAJ5HJWZ5X5I2MURYEE7MRPZFFS3FRN4OJJDC2ISGFNZOKZPAUC3B2SOWTTAX4F3GD6VOR777KM2AA@nodes.example.org", "nodes.example.org", pub},
 		},
 		{
 			input: "enrtree://nodes.example.org",

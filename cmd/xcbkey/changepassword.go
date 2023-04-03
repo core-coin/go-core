@@ -21,9 +21,11 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/cmd/utils"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var newPassphraseFlag = cli.StringFlag{
@@ -39,13 +41,14 @@ var commandChangePassphrase = cli.Command{
 Change the password of a keyfile.`,
 	Flags: []cli.Flag{
 		passphraseFlag,
-		utils.NetworkIdFlag,
 		newPassphraseFlag,
+		utils.NetworkIdFlag,
 	},
 	Action: func(ctx *cli.Context) error {
 		keyfilepath := ctx.Args().First()
+
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			setDefaultNetworkId(ctx.Uint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
 		}
 		// Read key from file.
 		keyjson, err := ioutil.ReadFile(keyfilepath)
@@ -70,7 +73,7 @@ Change the password of a keyfile.`,
 			}
 			newPhrase = strings.TrimRight(string(content), "\r\n")
 		} else {
-			newPhrase = promptPassphrase(true)
+			newPhrase = utils.GetPassPhrase("", true)
 		}
 
 		// Encrypt the key with the new passphrase.

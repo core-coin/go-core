@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -24,9 +24,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-coin/go-core/internal/cmdtest"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/docker/docker/pkg/reexec"
+
+	"github.com/core-coin/go-core/v2/internal/cmdtest"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 func tmpdir(t *testing.T) string {
@@ -70,12 +71,12 @@ func runGocore(t *testing.T, args ...string) *testgocore {
 	tt := &testgocore{}
 	tt.TestCmd = cmdtest.NewTestCmd(t, tt)
 	for i, arg := range args {
-		switch {
-		case arg == "-datadir" || arg == "--datadir":
+		switch arg {
+		case "--datadir":
 			if i < len(args)-1 {
 				tt.Datadir = args[i+1]
 			}
-		case arg == "-corebase" || arg == "--corebase":
+		case "--miner.corebase":
 			if i < len(args)-1 {
 				tt.Corebase = args[i+1]
 			}
@@ -84,7 +85,7 @@ func runGocore(t *testing.T, args ...string) *testgocore {
 	if tt.Datadir == "" {
 		tt.Datadir = tmpdir(t)
 		tt.Cleanup = func() { os.RemoveAll(tt.Datadir) }
-		args = append([]string{"-datadir", tt.Datadir}, args...)
+		args = append([]string{"--datadir", tt.Datadir}, args...)
 		// Remove the temporary datadir if something fails below.
 		defer func() {
 			if t.Failed() {

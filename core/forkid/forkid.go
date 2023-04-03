@@ -20,16 +20,16 @@ package forkid
 import (
 	"encoding/binary"
 	"errors"
-	"github.com/core-coin/go-core/core/types"
 	"hash/crc32"
 	"math"
 	"math/big"
 	"reflect"
 	"strings"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
@@ -65,19 +65,8 @@ type ID struct {
 // Filter is a fork id filter to validate a remotely advertised ID.
 type Filter func(id ID) error
 
-// NewID calculates the Core fork ID from the chain config and head.
-func NewID(chain Blockchain) ID {
-	return newID(
-		chain.Config(),
-		chain.Genesis().Hash(),
-		chain.CurrentHeader().Number.Uint64(),
-	)
-}
-
-// newID is the internal version of NewID, which takes extracted values as its
-// arguments instead of a chain. The reason is to allow testing the IDs without
-// having to simulate an entire blockchain.
-func newID(config *params.ChainConfig, genesis common.Hash, head uint64) ID {
+// NewID calculates the Core fork ID from the chain config, genesis hash, and head.
+func NewID(config *params.ChainConfig, genesis common.Hash, head uint64) ID {
 	// Calculate the starting checksum from the genesis hash
 	hash := crc32.ChecksumIEEE(genesis[:])
 
@@ -235,7 +224,7 @@ func gatherForks(config *params.ChainConfig) []uint64 {
 			forks = append(forks, rule.Uint64())
 		}
 	}
-	// Sort the fork block numbers to permit chronologival XOR
+	// Sort the fork block numbers to permit chronological XOR
 	for i := 0; i < len(forks); i++ {
 		for j := i + 1; j < len(forks); j++ {
 			if forks[i] > forks[j] {

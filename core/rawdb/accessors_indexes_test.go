@@ -22,18 +22,19 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/xcbdb"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // testHasher is the helper tool for transaction/receipt list hashing.
 // The original hasher is trie, in order to get rid of import cycle,
 // use the testing hasher instead.
-
 type testHasher struct {
 	hasher hash.Hash
 }
@@ -58,13 +59,13 @@ func (h *testHasher) Hash() common.Hash {
 // Tests that positional lookup metadata can be stored and retrieved.
 func TestLookupStorage(t *testing.T) {
 	tests := []struct {
-		name                 string
-		writeTxLookupEntries func(xcbdb.Writer, *types.Block)
+		name                        string
+		writeTxLookupEntriesByBlock func(xcbdb.Writer, *types.Block)
 	}{
 		{
 			"DatabaseV6",
 			func(db xcbdb.Writer, block *types.Block) {
-				WriteTxLookupEntries(db, block)
+				WriteTxLookupEntriesByBlock(db, block)
 			},
 		},
 		{
@@ -111,7 +112,7 @@ func TestLookupStorage(t *testing.T) {
 			// Insert all the transactions into the database, and verify contents
 			WriteCanonicalHash(db, block.Hash(), block.NumberU64())
 			WriteBlock(db, block)
-			tc.writeTxLookupEntries(db, block)
+			tc.writeTxLookupEntriesByBlock(db, block)
 
 			for i, tx := range txs {
 				if txn, hash, number, index := ReadTransaction(db, tx.Hash()); txn == nil {
@@ -142,6 +143,7 @@ func TestDeleteBloomBits(t *testing.T) {
 	for i := uint(0); i < 2; i++ {
 		for s := uint64(0); s < 2; s++ {
 			WriteBloomBits(db, i, s, params.MainnetGenesisHash, []byte{0x01, 0x02})
+			WriteBloomBits(db, i, s, params.DevinGenesisHash, []byte{0x01, 0x02})
 		}
 	}
 	check := func(bit uint, section uint64, head common.Hash, exist bool) {
@@ -155,18 +157,25 @@ func TestDeleteBloomBits(t *testing.T) {
 	}
 	// Check the existence of written data.
 	check(0, 0, params.MainnetGenesisHash, true)
+	check(0, 0, params.DevinGenesisHash, true)
 
 	// Check the existence of deleted data.
 	DeleteBloombits(db, 0, 0, 1)
 	check(0, 0, params.MainnetGenesisHash, false)
+	check(0, 0, params.DevinGenesisHash, false)
 	check(0, 1, params.MainnetGenesisHash, true)
+	check(0, 1, params.DevinGenesisHash, true)
 
 	// Check the existence of deleted data.
 	DeleteBloombits(db, 0, 0, 2)
 	check(0, 0, params.MainnetGenesisHash, false)
+	check(0, 0, params.DevinGenesisHash, false)
 	check(0, 1, params.MainnetGenesisHash, false)
+	check(0, 1, params.DevinGenesisHash, false)
 
 	// Bit1 shouldn't be affect.
 	check(1, 0, params.MainnetGenesisHash, true)
+	check(1, 0, params.DevinGenesisHash, true)
 	check(1, 1, params.MainnetGenesisHash, true)
+	check(1, 1, params.DevinGenesisHash, true)
 }

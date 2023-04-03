@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,12 +17,11 @@
 package xcb
 
 import (
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/forkid"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
-	"github.com/core-coin/go-core/p2p/enode"
-	"github.com/core-coin/go-core/rlp"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/forkid"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
+	"github.com/core-coin/go-core/v2/p2p/enode"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 // xcbEntry is the "xcb" ENR entry which advertises xcb protocol
@@ -60,12 +59,13 @@ func (xcb *Core) startXcbEntryUpdate(ln *enode.LocalNode) {
 }
 
 func (xcb *Core) currentXcbEntry() *xcbEntry {
-	return &xcbEntry{ForkID: forkid.NewID(xcb.blockchain)}
+	return &xcbEntry{ForkID: forkid.NewID(xcb.blockchain.Config(), xcb.blockchain.Genesis().Hash(),
+		xcb.blockchain.CurrentHeader().Number.Uint64())}
 }
 
 // setupDiscovery creates the node discovery source for the xcb protocol.
-func (xcb *Core) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
-	if cfg.NoDiscovery || len(xcb.config.DiscoveryURLs) == 0 {
+func (xcb *Core) setupDiscovery() (enode.Iterator, error) {
+	if len(xcb.config.DiscoveryURLs) == 0 {
 		return nil, nil
 	}
 	client := dnsdisc.NewClient(dnsdisc.Config{})

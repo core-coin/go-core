@@ -24,14 +24,14 @@ import (
 	"path/filepath"
 	"time"
 
-	eddsa "github.com/core-coin/go-goldilocks"
+	"gopkg.in/urfave/cli.v1"
 
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/console"
-	"github.com/core-coin/go-core/p2p/dnsdisc"
-	"github.com/core-coin/go-core/p2p/enode"
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/console/prompt"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/p2p/dnsdisc"
+	"github.com/core-coin/go-core/v2/p2p/enode"
 )
 
 var (
@@ -222,12 +222,12 @@ func dnsToRoute53(ctx *cli.Context) error {
 }
 
 // loadSigningKey loads a private key in Core keystore format.
-func loadSigningKey(keyfile string) *eddsa.PrivateKey {
+func loadSigningKey(keyfile string) *crypto.PrivateKey {
 	keyjson, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		exit(fmt.Errorf("failed to read the keyfile at '%s': %v", keyfile, err))
 	}
-	password, _ := console.Stdin.PromptPassword("Please enter the password for '" + keyfile + "': ")
+	password, _ := prompt.Stdin.PromptPassword("Please enter the password for '" + keyfile + "': ")
 	key, err := keystore.DecryptKey(keyjson, password)
 	if err != nil {
 		exit(fmt.Errorf("error decrypting key: %v", err))
@@ -332,7 +332,7 @@ func loadTreeDefinitionForExport(dir string) (domain string, t *dnsdisc.Tree, er
 
 // ensureValidTreeSignature checks that sig is valid for tree and assigns it as the
 // tree's signature if valid.
-func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey *eddsa.PublicKey, sig string) error {
+func ensureValidTreeSignature(t *dnsdisc.Tree, pubkey *crypto.PublicKey, sig string) error {
 	if sig == "" {
 		return fmt.Errorf("missing signature, run 'devp2p dns sign' first")
 	}

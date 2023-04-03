@@ -21,15 +21,15 @@ import (
 	"math/big"
 	"sync"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/signer/core"
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/signer/core"
 )
 
 type ExternalBackend struct {
@@ -130,6 +130,12 @@ func (api *ExternalSigner) Accounts() []accounts.Account {
 func (api *ExternalSigner) Contains(account accounts.Account) bool {
 	api.cacheMu.RLock()
 	defer api.cacheMu.RUnlock()
+	if api.cache == nil {
+		// If we haven't already fetched the accounts, it's time to do so now
+		api.cacheMu.RUnlock()
+		api.Accounts()
+		api.cacheMu.RLock()
+	}
 	for _, a := range api.cache {
 		if a.Address == account.Address && (account.URL == (accounts.URL{}) || account.URL == api.URL()) {
 			return true
@@ -142,7 +148,7 @@ func (api *ExternalSigner) Derive(path accounts.DerivationPath, pin bool) (accou
 	return accounts.Account{}, fmt.Errorf("operation not supported on external signers")
 }
 
-func (api *ExternalSigner) SelfDerive(bases []accounts.DerivationPath, chain gocore.ChainStateReader) {
+func (api *ExternalSigner) SelfDerive(bases []accounts.DerivationPath, chain c.ChainStateReader) {
 	log.Error("operation SelfDerive not supported on external signers")
 }
 
@@ -150,33 +156,27 @@ func (api *ExternalSigner) signHash(account accounts.Account, hash []byte) ([]by
 	return []byte{}, fmt.Errorf("operation not supported on external signers")
 }
 
-// SignData signs keccak256(data). The mimetype parameter describes the type of data being signed
+// SignData signs SHA3(data). The mimetype parameter describes the type of data being signed
 func (api *ExternalSigner) SignData(account accounts.Account, mimeType string, data []byte) ([]byte, error) {
 	var res hexutil.Bytes
-	var signAddress = account.Address
 	if err := api.client.Call(&res, "account_signData",
 		mimeType,
-		&signAddress, // Need to use the pointer here, because of how MarshalJSON is defined
+		&account, // Need to use the pointer here, because of how MarshalJSON is defined
 		hexutil.Encode(data)); err != nil {
 		return nil, err
-	}
-	// If V is on 27/28-form, convert to to 0/1 for Clique
-	if mimeType == accounts.MimetypeClique && (res[64] == 27 || res[64] == 28) {
-		//res[64] -= 27 // Transform V from 27/28 to 0/1 for Clique use
 	}
 	return res, nil
 }
 
 func (api *ExternalSigner) SignText(account accounts.Account, text []byte) ([]byte, error) {
-	var res hexutil.Bytes
-	var signAddress = account.Address
-	if err := api.client.Call(&res, "account_signData",
+	var signature hexutil.Bytes
+	if err := api.client.Call(&signature, "account_signData",
 		accounts.MimetypeTextPlain,
-		&signAddress, // Need to use the pointer here, because of how MarshalJSON is defined
+		&account, // Need to use the pointer here, because of how MarshalJSON is defined
 		hexutil.Encode(text)); err != nil {
 		return nil, err
 	}
-	return res, nil
+	return signature, nil
 }
 
 // signTransactionResult represents the signinig result returned by clef.
@@ -187,18 +187,13 @@ type signTransactionResult struct {
 
 func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transaction, networkID *big.Int) (*types.Transaction, error) {
 	data := hexutil.Bytes(tx.Data())
-	var to *common.Address
-	if tx.To() != nil {
-		t := *tx.To()
-		to = &t
-	}
 	args := &core.SendTxArgs{
 		Data:        &data,
 		Nonce:       hexutil.Uint64(tx.Nonce()),
 		Value:       hexutil.Big(*tx.Value()),
 		Energy:      hexutil.Uint64(tx.Energy()),
 		EnergyPrice: hexutil.Big(*tx.EnergyPrice()),
-		To:          to,
+		To:          tx.To(),
 		From:        account.Address,
 	}
 	var res signTransactionResult
@@ -206,6 +201,15 @@ func (api *ExternalSigner) SignTx(account accounts.Account, tx *types.Transactio
 		return nil, err
 	}
 	return res.Tx, nil
+}
+
+func (api *ExternalSigner) SignTypedData(account accounts.Account, tx *core.TypedData, networkID *big.Int) ([]byte, error) {
+	var res hexutil.Bytes
+	if err := api.client.Call(&res, "account_signTypedData", account.Address, tx); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (api *ExternalSigner) SignTextWithPassphrase(account accounts.Account, passphrase string, text []byte) ([]byte, error) {

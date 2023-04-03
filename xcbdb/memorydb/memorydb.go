@@ -23,8 +23,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/xcbdb"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var (
@@ -149,35 +150,6 @@ func (db *Database) NewIterator(prefix []byte, start []byte) xcbdb.Iterator {
 			continue
 		}
 		if key >= st {
-			keys = append(keys, key)
-		}
-	}
-
-	// Sort the items and retrieve the associated values
-	sort.Strings(keys)
-	for _, key := range keys {
-		values = append(values, db.db[key])
-	}
-	return &iterator{
-		keys:   keys,
-		values: values,
-	}
-}
-
-// NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
-// of database content with a particular key prefix.
-func (db *Database) NewIteratorWithPrefix(prefix []byte) xcbdb.Iterator {
-	db.lock.RLock()
-	defer db.lock.RUnlock()
-
-	var (
-		pr     = string(prefix)
-		keys   = make([]string, 0, len(db.db))
-		values = make([][]byte, 0, len(db.db))
-	)
-	// Collect the keys from the memory database corresponding to the given prefix
-	for key := range db.db {
-		if strings.HasPrefix(key, pr) {
 			keys = append(keys, key)
 		}
 	}

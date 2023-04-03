@@ -20,31 +20,34 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/accounts/abi"
-	"github.com/core-coin/go-core/common/hexutil"
 	"math/big"
 	"sync"
 	"time"
 
-	gocore "github.com/core-coin/go-core"
-	"github.com/core-coin/go-core/accounts/abi/bind"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/bloombits"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/state"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/event"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rpc"
-	"github.com/core-coin/go-core/xcb/filters"
-	"github.com/core-coin/go-core/xcbdb"
+	c "github.com/core-coin/go-core/v2"
+	"github.com/core-coin/go-core/v2/xcbdb"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/abi/bind"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/bloombits"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rpc"
+	"github.com/core-coin/go-core/v2/xcb/filters"
 )
 
-// This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
+// This nil assignment ensures at compile time that SimulatedBackend implements bind.ContractBackend.
 var _ bind.ContractBackend = (*SimulatedBackend)(nil)
 
 var (
@@ -54,7 +57,7 @@ var (
 )
 
 // SimulatedBackend implements bind.ContractBackend, simulating a blockchain in
-// the background. Its main purpose is to allow easily testing contract bindings.
+// the background. Its main purpose is to allow for easy testing of contract bindings.
 // Simulated backend implements the following interfaces:
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, EnergyEstimator, EnergyPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
@@ -64,7 +67,7 @@ type SimulatedBackend struct {
 
 	mu           sync.Mutex
 	pendingBlock *types.Block   // Currently pending block that will be imported on request
-	pendingState *state.StateDB // Currently pending state that will be the active on on request
+	pendingState *state.StateDB // Currently pending state that will be the active on request
 
 	events *filters.EventSystem // Event system for filtering log events live
 
@@ -73,12 +76,14 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-// A simulated backend always uses chainID 1337.
+// A simulated backend always uses networkID 1337.
 func NewSimulatedBackendWithDatabase(database xcbdb.Database, alloc core.GenesisAlloc, energyLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.DevChainConfig, EnergyLimit: energyLimit, Alloc: alloc, Coinbase: core.DefaultCoinbaseMainnet}
+	genesis := core.Genesis{Config: params.TestChainConfig, EnergyLimit: energyLimit, Alloc: alloc}
 	genesis.MustCommit(database)
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
-
+	blockchain, err := core.NewBlockChain(database, nil, genesis.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
+	if err != nil {
+		panic(err)
+	}
 	backend := &SimulatedBackend{
 		database:   database,
 		blockchain: blockchain,
@@ -123,13 +128,16 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
-		block.SetCoinbase(core.DefaultCoinbaseMainnet)
-	})
-	statedb, _ := b.blockchain.State()
-
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	stateDB, err := b.blockchain.State()
+	if err != nil {
+		panic(err)
+	}
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
+	b.pendingState, err = state.New(b.pendingBlock.Root(), stateDB.Database(), nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // stateByBlockNumber retrieves a state by a given blocknumber.
@@ -137,11 +145,11 @@ func (b *SimulatedBackend) stateByBlockNumber(ctx context.Context, blockNumber *
 	if blockNumber == nil || blockNumber.Cmp(b.blockchain.CurrentBlock().Number()) == 0 {
 		return b.blockchain.State()
 	}
-	block, err := b.BlockByNumber(ctx, blockNumber)
+	block, err := b.blockByNumberNoLock(ctx, blockNumber)
 	if err != nil {
 		return nil, err
 	}
-	return b.blockchain.StateAt(block.Hash())
+	return b.blockchain.StateAt(block.Root())
 }
 
 // CodeAt returns the code associated with a certain account in the blockchain.
@@ -149,12 +157,12 @@ func (b *SimulatedBackend) CodeAt(ctx context.Context, contract common.Address, 
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	statedb, err := b.stateByBlockNumber(ctx, blockNumber)
+	stateDB, err := b.stateByBlockNumber(ctx, blockNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	return statedb.GetCode(contract), nil
+	return stateDB.GetCode(contract), nil
 }
 
 // BalanceAt returns the ore balance of a certain account in the blockchain.
@@ -162,12 +170,12 @@ func (b *SimulatedBackend) BalanceAt(ctx context.Context, contract common.Addres
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	statedb, err := b.stateByBlockNumber(ctx, blockNumber)
+	stateDB, err := b.stateByBlockNumber(ctx, blockNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	return statedb.GetBalance(contract), nil
+	return stateDB.GetBalance(contract), nil
 }
 
 // NonceAt returns the nonce of a certain account in the blockchain.
@@ -175,12 +183,12 @@ func (b *SimulatedBackend) NonceAt(ctx context.Context, contract common.Address,
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	statedb, err := b.stateByBlockNumber(ctx, blockNumber)
+	stateDB, err := b.stateByBlockNumber(ctx, blockNumber)
 	if err != nil {
 		return 0, err
 	}
 
-	return statedb.GetNonce(contract), nil
+	return stateDB.GetNonce(contract), nil
 }
 
 // StorageAt returns the value of key in the storage of an account in the blockchain.
@@ -188,12 +196,12 @@ func (b *SimulatedBackend) StorageAt(ctx context.Context, contract common.Addres
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	statedb, err := b.stateByBlockNumber(ctx, blockNumber)
+	stateDB, err := b.stateByBlockNumber(ctx, blockNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	val := statedb.GetState(contract, key)
+	val := stateDB.GetState(contract, key)
 	return val[:], nil
 }
 
@@ -222,10 +230,10 @@ func (b *SimulatedBackend) TransactionByHash(ctx context.Context, txHash common.
 	if tx != nil {
 		return tx, false, nil
 	}
-	return nil, false, gocore.NotFound
+	return nil, false, c.NotFound
 }
 
-// BlockByHash retrieves a block based on the block hash
+// BlockByHash retrieves a block based on the block hash.
 func (b *SimulatedBackend) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -248,6 +256,12 @@ func (b *SimulatedBackend) BlockByNumber(ctx context.Context, number *big.Int) (
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	return b.blockByNumberNoLock(ctx, number)
+}
+
+// blockByNumberNoLock retrieves a block from the database by number, caching it
+// (associated with its hash) if found without Lock.
+func (b *SimulatedBackend) blockByNumberNoLock(ctx context.Context, number *big.Int) (*types.Block, error) {
 	if number == nil || number.Cmp(b.pendingBlock.Number()) == 0 {
 		return b.blockchain.CurrentBlock(), nil
 	}
@@ -290,7 +304,7 @@ func (b *SimulatedBackend) HeaderByNumber(ctx context.Context, block *big.Int) (
 	return b.blockchain.GetHeaderByNumber(uint64(block.Int64())), nil
 }
 
-// TransactionCount returns the number of transactions in a given block
+// TransactionCount returns the number of transactions in a given block.
 func (b *SimulatedBackend) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -307,7 +321,7 @@ func (b *SimulatedBackend) TransactionCount(ctx context.Context, blockHash commo
 	return uint(block.Transactions().Len()), nil
 }
 
-// TransactionInBlock returns the transaction for a specific block at a specific index
+// TransactionInBlock returns the transaction for a specific block at a specific index.
 func (b *SimulatedBackend) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -354,15 +368,15 @@ func newRevertError(result *core.ExecutionResult) *revertError {
 	}
 }
 
-// revertError is an API error that encompassas an EVM revertal with JSON error
+// revertError is an API error that encompasses an CVM revert with JSON error
 // code and a binary data blob.
 type revertError struct {
 	error
 	reason string // revert reason hex encoded
 }
 
-// ErrorCode returns the JSON error code for a revertal.
-// See: https://github.com/ethereum/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
+// ErrorCode returns the JSON error code for a revert.
+// See: https://github.com/core/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
 func (e *revertError) ErrorCode() int {
 	return 3
 }
@@ -373,22 +387,21 @@ func (e *revertError) ErrorData() interface{} {
 }
 
 // CallContract executes a contract call.
-func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (b *SimulatedBackend) CallContract(ctx context.Context, call c.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if blockNumber != nil && blockNumber.Cmp(b.blockchain.CurrentBlock().Number()) != 0 {
 		return nil, errBlockNumberUnsupported
 	}
-	state, err := b.blockchain.State()
+	stateDB, err := b.blockchain.State()
 	if err != nil {
 		return nil, err
 	}
-	res, err := b.callContract(ctx, call, b.blockchain.CurrentBlock(), state)
+	res, err := b.callContract(ctx, call, b.blockchain.CurrentBlock(), stateDB)
 	if err != nil {
 		return nil, err
 	}
-
 	// If the result contains a revert reason, try to unpack and return it.
 	if len(res.Revert()) > 0 {
 		return nil, newRevertError(res)
@@ -397,7 +410,7 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call gocore.CallMsg
 }
 
 // PendingCallContract executes a contract call on the pending state.
-func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call gocore.CallMsg) ([]byte, error) {
+func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call c.CallMsg) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	defer b.pendingState.RevertToSnapshot(b.pendingState.Snapshot())
@@ -423,20 +436,20 @@ func (b *SimulatedBackend) PendingNonceAt(ctx context.Context, account common.Ad
 }
 
 // SuggestEnergyPrice implements ContractTransactor.SuggestEnergyPrice. Since the simulated
-// chain doesn't have miners, we just return a energy price of 1 for any call.
+// chain doesn't have miners, we just return an energy price of 1 for any call.
 func (b *SimulatedBackend) SuggestEnergyPrice(ctx context.Context) (*big.Int, error) {
 	return big.NewInt(1), nil
 }
 
 // EstimateEnergy executes the requested code against the currently pending block/state and
 // returns the used amount of energy.
-func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallMsg) (uint64, error) {
+func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call c.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	// Determine the lowest and highest possible energy limits to binary search in between
 	var (
-		lo  uint64 = params.TxEnergy - 1
+		lo  = params.TxEnergy - 1
 		hi  uint64
 		cap uint64
 	)
@@ -445,9 +458,30 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 	} else {
 		hi = b.pendingBlock.EnergyLimit()
 	}
+	// Recap the highest energy allowance with account's balance.
+	if call.EnergyPrice != nil && call.EnergyPrice.BitLen() != 0 {
+		balance := b.pendingState.GetBalance(call.From) // from can't be nil
+		available := new(big.Int).Set(balance)
+		if call.Value != nil {
+			if call.Value.Cmp(available) >= 0 {
+				return 0, errors.New("insufficient funds for transfer")
+			}
+			available.Sub(available, call.Value)
+		}
+		allowance := new(big.Int).Div(available, call.EnergyPrice)
+		if allowance.IsUint64() && hi > allowance.Uint64() {
+			transfer := call.Value
+			if transfer == nil {
+				transfer = new(big.Int)
+			}
+			log.Warn("Energy estimation capped by limited funds", "original", hi, "balance", balance,
+				"sent", transfer, "energyprice", call.EnergyPrice, "fundable", allowance)
+			hi = allowance.Uint64()
+		}
+	}
 	cap = hi
 
-	// Create a helper to check if an energy allowance results in an executable transaction
+	// Create a helper to check if a energy allowance results in an executable transaction
 	executable := func(energy uint64) (bool, *core.ExecutionResult, error) {
 		call.Energy = energy
 
@@ -456,7 +490,7 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 		b.pendingState.RevertToSnapshot(snapshot)
 
 		if err != nil {
-			if err == core.ErrIntrinsicEnergy {
+			if errors.Is(err, core.ErrIntrinsicEnergy) {
 				return true, nil, nil // Special case, raise energy limit
 			}
 			return true, nil, err // Bail out
@@ -469,8 +503,8 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 		failed, _, err := executable(mid)
 
 		// If the error is not nil(consensus error), it means the provided message
-		// call or transaction will never be accepted no matter how much gas it is
-		// assigned. Return the error directly, don't struggle any more
+		// call or transaction will never be accepted no matter how much energy it is
+		// assigned. Return the error directly, don't struggle anymore
 		if err != nil {
 			return 0, err
 		}
@@ -502,7 +536,7 @@ func (b *SimulatedBackend) EstimateEnergy(ctx context.Context, call gocore.CallM
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call gocore.CallMsg, block *types.Block, statedb *state.StateDB) (*core.ExecutionResult, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call c.CallMsg, block *types.Block, stateDB *state.StateDB) (*core.ExecutionResult, error) {
 	// Ensure message is initialized properly.
 	if call.EnergyPrice == nil {
 		call.EnergyPrice = big.NewInt(1)
@@ -514,18 +548,19 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call gocore.CallMsg
 		call.Value = new(big.Int)
 	}
 	// Set infinite balance to the fake caller account.
-	from := statedb.GetOrNewStateObject(call.From)
+	from := stateDB.GetOrNewStateObject(call.From)
 	from.SetBalance(math.MaxBig256)
 	// Execute the call.
-	msg := callmsg{call}
+	msg := callMsg{call}
 
-	cvmContext := core.NewCVMContext(msg, block.Header(), b.blockchain, nil)
+	txContext := core.NewCVMTxContext(msg)
+	cvmContext := core.NewCVMBlockContext(block.Header(), b.blockchain, nil)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
-	vmenv := vm.NewCVM(cvmContext, statedb, b.config, vm.Config{})
-	energypool := new(core.EnergyPool).AddEnergy(math.MaxUint64)
+	vmEnv := vm.NewCVM(cvmContext, txContext, stateDB, b.config, vm.Config{})
+	energyPool := new(core.EnergyPool).AddEnergy(math.MaxUint64)
 
-	return core.NewStateTransition(vmenv, msg, energypool).TransitionDb()
+	return core.NewStateTransition(vmEnv, msg, energyPool).TransitionDb()
 }
 
 // SendTransaction updates the pending block to include the given transaction.
@@ -544,30 +579,31 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	}
 
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
-		block.SetCoinbase(core.DefaultCoinbaseMainnet)
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
 		block.AddTxWithChain(b.blockchain, tx)
 	})
-	statedb, _ := b.blockchain.State()
-
+	stateDB, err := b.blockchain.State()
+	if err != nil {
+		return err
+	}
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
-	return nil
+	b.pendingState, err = state.New(b.pendingBlock.Root(), stateDB.Database(), nil)
+	return err
 }
 
 // FilterLogs executes a log filter operation, blocking during execution and
 // returning all the results in one batch.
 //
 // TODO(raisty): Deprecate when the subscription one can return past data too.
-func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gocore.FilterQuery) ([]types.Log, error) {
+func (b *SimulatedBackend) FilterLogs(ctx context.Context, query c.FilterQuery) ([]types.Log, error) {
 	var filter *filters.Filter
 	if query.BlockHash != nil {
 		// Block filter requested, construct a single-shot filter
 		filter = filters.NewBlockFilter(&filterBackend{b.database, b.blockchain}, *query.BlockHash, query.Addresses, query.Topics)
 	} else {
-		// Initialize unset filter boundaried to run from genesis to chain head
+		// Initialize unset filter boundaries to run from genesis to chain head
 		from := int64(0)
 		if query.FromBlock != nil {
 			from = query.FromBlock.Int64()
@@ -585,15 +621,15 @@ func (b *SimulatedBackend) FilterLogs(ctx context.Context, query gocore.FilterQu
 		return nil, err
 	}
 	res := make([]types.Log, len(logs))
-	for i, log := range logs {
-		res[i] = *log
+	for i, nLog := range logs {
+		res[i] = *nLog
 	}
 	return res, nil
 }
 
 // SubscribeFilterLogs creates a background log filtering operation, returning a
 // subscription immediately, which can be used to stream the found events.
-func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gocore.FilterQuery, ch chan<- types.Log) (gocore.Subscription, error) {
+func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query c.FilterQuery, ch chan<- types.Log) (c.Subscription, error) {
 	// Subscribe to contract events
 	sink := make(chan []*types.Log)
 
@@ -607,9 +643,9 @@ func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gocore
 		for {
 			select {
 			case logs := <-sink:
-				for _, log := range logs {
+				for _, nlog := range logs {
 					select {
-					case ch <- *log:
+					case ch <- *nlog:
 					case err := <-sub.Err():
 						return err
 					case <-quit:
@@ -625,8 +661,8 @@ func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query gocore
 	}), nil
 }
 
-// SubscribeNewHead returns an event subscription for a new header
-func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (gocore.Subscription, error) {
+// SubscribeNewHead returns an event subscription for a new header.
+func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (c.Subscription, error) {
 	// subscribe to a new head
 	sink := make(chan *types.Header)
 	sub := b.events.SubscribeNewHeads(sink)
@@ -653,22 +689,27 @@ func (b *SimulatedBackend) SubscribeNewHead(ctx context.Context, ch chan<- *type
 }
 
 // AdjustTime adds a time shift to the simulated clock.
+// It can only be called on empty blocks.
 func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	if len(b.pendingBlock.Transactions()) != 0 {
+		return errors.New("Could not adjust time on non-empty block")
+	}
+
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), cryptore.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
-		block.SetCoinbase(core.DefaultCoinbaseMainnet)
-		for _, tx := range b.pendingBlock.Transactions() {
-			block.AddTx(tx)
-		}
 		block.OffsetTime(int64(adjustment.Seconds()))
 	})
-	statedb, _ := b.blockchain.State()
-
+	stateDB, err := b.blockchain.State()
+	if err != nil {
+		return err
+	}
 	b.pendingBlock = blocks[0]
-	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database(), nil)
-
+	b.pendingState, err = state.New(b.pendingBlock.Root(), stateDB.Database(), nil)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -677,19 +718,19 @@ func (b *SimulatedBackend) Blockchain() *core.BlockChain {
 	return b.blockchain
 }
 
-// callmsg implements core.Message to allow passing it as a transaction simulator.
-type callmsg struct {
-	gocore.CallMsg
+// callMsg implements core.Message to allow passing it as a transaction simulator.
+type callMsg struct {
+	c.CallMsg
 }
 
-func (m callmsg) From() common.Address  { return m.CallMsg.From }
-func (m callmsg) Nonce() uint64         { return 0 }
-func (m callmsg) CheckNonce() bool      { return false }
-func (m callmsg) To() *common.Address   { return m.CallMsg.To }
-func (m callmsg) EnergyPrice() *big.Int { return m.CallMsg.EnergyPrice }
-func (m callmsg) Energy() uint64        { return m.CallMsg.Energy }
-func (m callmsg) Value() *big.Int       { return m.CallMsg.Value }
-func (m callmsg) Data() []byte          { return m.CallMsg.Data }
+func (m callMsg) From() common.Address  { return m.CallMsg.From }
+func (m callMsg) Nonce() uint64         { return 0 }
+func (m callMsg) CheckNonce() bool      { return false }
+func (m callMsg) To() *common.Address   { return m.CallMsg.To }
+func (m callMsg) EnergyPrice() *big.Int { return m.CallMsg.EnergyPrice }
+func (m callMsg) Energy() uint64        { return m.CallMsg.Energy }
+func (m callMsg) Value() *big.Int       { return m.CallMsg.Value }
+func (m callMsg) Data() []byte          { return m.CallMsg.Data }
 
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.

@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -19,9 +19,9 @@ package vm
 import (
 	"errors"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 // memoryEnergyCost calculates the quadratic energy for memory expansion. It does so
@@ -93,19 +93,19 @@ var (
 	energyReturnDataCopy = memoryCopierEnergy(2)
 )
 
-// 0. If *energyleft* is less than or equal to 2300, fail the current call.
-// 1. If current value equals new value (this is a no-op), SSTORE_NOOP_ENERGY energy is deducted.
-// 2. If current value does not equal new value:
-//   2.1. If original value equals current value (this storage slot has not been changed by the current execution context):
+//  0. If *energyleft* is less than or equal to 2300, fail the current call.
+//  1. If current value equals new value (this is a no-op), SSTORE_NOOP_ENERGY energy is deducted.
+//  2. If current value does not equal new value:
+//     2.1. If original value equals current value (this storage slot has not been changed by the current execution context):
 //     2.1.1. If original value is 0, SSTORE_INIT_ENERGY energy is deducted.
 //     2.1.2. Otherwise, SSTORE_CLEAN_ENERGY energy is deducted. If new value is 0, add SSTORE_CLEAR_REFUND to refund counter.
-//   2.2. If original value does not equal current value (this storage slot is dirty), SSTORE_DIRTY_ENERGY energy is deducted. Apply both of the following clauses:
+//     2.2. If original value does not equal current value (this storage slot is dirty), SSTORE_DIRTY_ENERGY energy is deducted. Apply both of the following clauses:
 //     2.2.1. If original value is not 0:
-//       2.2.1.1. If current value is 0 (also means that new value is not 0), subtract SSTORE_CLEAR_REFUND energy from refund counter. We can prove that refund counter will never go below 0.
-//       2.2.1.2. If new value is 0 (also means that current value is not 0), add SSTORE_CLEAR_REFUND energy to refund counter.
+//     2.2.1.1. If current value is 0 (also means that new value is not 0), subtract SSTORE_CLEAR_REFUND energy from refund counter. We can prove that refund counter will never go below 0.
+//     2.2.1.2. If new value is 0 (also means that current value is not 0), add SSTORE_CLEAR_REFUND energy to refund counter.
 //     2.2.2. If original value equals new value (this storage slot is reset):
-//       2.2.2.1. If original value is 0, add SSTORE_INIT_REFUND to refund counter.
-//       2.2.2.2. Otherwise, add SSTORE_CLEAN_REFUND energy to refund counter.
+//     2.2.2.1. If original value is 0, add SSTORE_INIT_REFUND to refund counter.
+//     2.2.2.2. Otherwise, add SSTORE_CLEAN_REFUND energy to refund counter.
 func energySStore(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	// If we fail the minimum energy availability invariant, fail (0)
 	if contract.Energy <= params.SstoreSentryEnergy {
@@ -114,14 +114,14 @@ func energySStore(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memor
 	// Energy sentry honoured, do the actual energy calculation based on the stored value
 	var (
 		y, x    = stack.Back(1), stack.Back(0)
-		current = cvm.StateDB.GetState(contract.Address(), common.Hash(x.Bytes32()))
+		current = cvm.StateDB.GetState(contract.Address(), x.Bytes32())
 	)
 	value := common.Hash(y.Bytes32())
 
 	if current == value { // noop (1)
 		return params.SstoreNoopEnergy, nil
 	}
-	original := cvm.StateDB.GetCommittedState(contract.Address(), common.Hash(x.Bytes32()))
+	original := cvm.StateDB.GetCommittedState(contract.Address(), x.Bytes32())
 	if original == current {
 		if original == (common.Hash{}) { // create slot (2.1.1)
 			return params.SstoreInitEnergy, nil
@@ -333,10 +333,10 @@ func energyStaticCall(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, m
 
 func energySelfdestruct(cvm *CVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	var energy uint64
-
 	energy = params.SelfdestructEnergy
 	var address = common.Address(stack.Back(0).Bytes22())
 
+	// if empty and transfers value
 	if cvm.StateDB.Empty(address) && cvm.StateDB.GetBalance(contract.Address()).Sign() != 0 {
 		energy += params.CreateBySelfdestructEnergy
 	}

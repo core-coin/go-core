@@ -1,4 +1,4 @@
-// Copyright 2020 by the Authors
+// Copyright 2023 by the Authors
 // This file is part of go-core.
 //
 // go-core is free software: you can redistribute it and/or modify
@@ -21,8 +21,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/internal/cmdtest"
 	"github.com/docker/docker/pkg/reexec"
+
+	"github.com/core-coin/go-core/v2/internal/cmdtest"
 )
 
 type testXcbkey struct {

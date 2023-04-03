@@ -19,17 +19,15 @@ package discv5
 import (
 	crand "crypto/rand"
 	"fmt"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"math/rand"
-
 	"net"
 	"reflect"
 	"testing"
 	"testing/quick"
 	"time"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/crypto"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/crypto"
 )
 
 func TestBucket_bumpNoDuplicates(t *testing.T) {
@@ -230,7 +228,7 @@ func gen(typ interface{}, rand *rand.Rand) interface{} {
 	return v.Interface()
 }
 
-func newkey() *eddsa.PrivateKey {
+func newkey() *crypto.PrivateKey {
 	key, err := crypto.GenerateKey(crand.Reader)
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())

@@ -19,11 +19,12 @@ package flowcontrol
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
-	"github.com/core-coin/go-core/common/mclock"
-	"github.com/core-coin/go-core/log"
+	"github.com/core-coin/go-core/v2/common/mclock"
+	"github.com/core-coin/go-core/v2/log"
 )
 
 const (
@@ -316,6 +317,9 @@ func (node *ServerNode) CanSend(maxCost uint64) (time.Duration, float64) {
 	node.lock.RLock()
 	defer node.lock.RUnlock()
 
+	if node.params.BufLimit == 0 {
+		return time.Duration(math.MaxInt64), 0
+	}
 	now := node.clock.Now()
 	node.recalcBLE(now)
 	maxCost += uint64(safetyMargin) * node.params.MinRecharge / uint64(fcTimeConst)

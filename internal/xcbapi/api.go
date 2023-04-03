@@ -21,30 +21,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/core-coin/go-core/accounts/abi"
 	"math/big"
 	"strings"
 	"time"
 
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/accounts/keystore"
-	"github.com/core-coin/go-core/accounts/scwallet"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/common/hexutil"
-	"github.com/core-coin/go-core/common/math"
-	"github.com/core-coin/go-core/consensus/clique"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/core/vm"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/p2p"
-	"github.com/core-coin/go-core/params"
-	"github.com/core-coin/go-core/rlp"
-	"github.com/core-coin/go-core/rpc"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/tyler-smith/go-bip39"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/accounts/abi"
+	"github.com/core-coin/go-core/v2/accounts/keystore"
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/common/math"
+	"github.com/core-coin/go-core/v2/consensus/clique"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/core/vm"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/p2p"
+	"github.com/core-coin/go-core/v2/params"
+	"github.com/core-coin/go-core/v2/rlp"
+	"github.com/core-coin/go-core/v2/rpc"
 )
 
 // PublicCoreAPI provides an API to access Core related information.
@@ -300,7 +301,7 @@ func fetchKeystore(am *accounts.Manager) (*keystore.KeyStore, error) {
 // ImportRawKey stores the given hex encoded EDDSA key into the key directory,
 // encrypting it with the passphrase.
 func (s *PrivateAccountAPI) ImportRawKey(privkey string, password string) (common.Address, error) {
-	key, err := crypto.HexToEDDSA(privkey)
+	key, err := crypto.UnmarshalPrivateKeyHex(privkey)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -405,6 +406,10 @@ func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs
 	if args.Nonce == nil {
 		return nil, fmt.Errorf("nonce not specified")
 	}
+	// Before actually sign the transaction, ensure the transaction fee is reasonable.
+	if err := checkTxFee(args.EnergyPrice.ToInt(), uint64(*args.Energy), s.b.RPCTxFeeCap()); err != nil {
+		return nil, err
+	}
 	signed, err := s.signTransaction(ctx, &args, passwd)
 	if err != nil {
 		log.Warn("Failed transaction sign attempt", "from", args.From, "to", args.To, "value", args.Value.ToInt(), "err", err)
@@ -452,7 +457,7 @@ func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Byt
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*rpk), nil
+	return crypto.PubkeyToAddress(rpk), nil
 }
 
 // SignAndSendTransaction was renamed to SendTransaction. This method is deprecated
@@ -463,7 +468,7 @@ func (s *PrivateAccountAPI) SignAndSendTransaction(ctx context.Context, args Sen
 
 // InitializeWallet initializes a new wallet at the provided URL, by generating and returning a new private key.
 func (s *PrivateAccountAPI) InitializeWallet(ctx context.Context, url string) (string, error) {
-	wallet, err := s.am.Wallet(url)
+	_, err := s.am.Wallet(url)
 	if err != nil {
 		return "", err
 	}
@@ -478,29 +483,19 @@ func (s *PrivateAccountAPI) InitializeWallet(ctx context.Context, url string) (s
 		return "", err
 	}
 
-	seed := bip39.NewSeed(mnemonic, "")
+	_ = bip39.NewSeed(mnemonic, "")
 
-	switch wallet := wallet.(type) {
-	case *scwallet.Wallet:
-		return mnemonic, wallet.Initialize(seed)
-	default:
-		return "", fmt.Errorf("specified wallet does not support initialization")
-	}
+	return "", fmt.Errorf("specified wallet does not support initialization")
 }
 
 // Unpair deletes a pairing between wallet and gocore.
 func (s *PrivateAccountAPI) Unpair(ctx context.Context, url string, pin string) error {
-	wallet, err := s.am.Wallet(url)
+	_, err := s.am.Wallet(url)
 	if err != nil {
 		return err
 	}
 
-	switch wallet := wallet.(type) {
-	case *scwallet.Wallet:
-		return wallet.Unpair([]byte(pin))
-	default:
-		return fmt.Errorf("specified wallet does not support pairing")
-	}
+	return fmt.Errorf("specified wallet does not support pairing")
 }
 
 // PublicBlockChainAPI provides an API to access the Core blockchain.
@@ -579,7 +574,7 @@ func (s *PublicBlockChainAPI) GetProof(ctx context.Context, address common.Addre
 			if storageError != nil {
 				return nil, storageError
 			}
-			storageProof[i] = StorageResult{key, (*hexutil.Big)(state.GetState(address, common.HexToHash(key)).Big()), common.ToHexArray(proof)}
+			storageProof[i] = StorageResult{key, (*hexutil.Big)(state.GetState(address, common.HexToHash(key)).Big()), toHexSlice(proof)}
 		} else {
 			storageProof[i] = StorageResult{key, &hexutil.Big{}, []string{}}
 		}
@@ -593,7 +588,7 @@ func (s *PublicBlockChainAPI) GetProof(ctx context.Context, address common.Addre
 
 	return &AccountResult{
 		Address:      address,
-		AccountProof: common.ToHexArray(accountProof),
+		AccountProof: toHexSlice(accountProof),
 		Balance:      (*hexutil.Big)(state.GetBalance(address)),
 		CodeHash:     codeHash,
 		Nonce:        hexutil.Uint64(state.GetNonce(address)),
@@ -630,10 +625,10 @@ func (s *PublicBlockChainAPI) GetHeaderByHash(ctx context.Context, hash common.H
 }
 
 // GetBlockByNumber returns the requested canonical block.
-// * When blockNr is -1 the chain head is returned.
-// * When blockNr is -2 the pending chain head is returned.
-// * When fullTx is true all transactions in the block are returned, otherwise
-//   only the transaction hash is returned.
+//   - When blockNr is -1 the chain head is returned.
+//   - When blockNr is -2 the pending chain head is returned.
+//   - When fullTx is true all transactions in the block are returned, otherwise
+//     only the transaction hash is returned.
 func (s *PublicBlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.BlockNumber, fullTx bool) (map[string]interface{}, error) {
 	block, err := s.b.BlockByNumber(ctx, number)
 	if block != nil && err == nil {
@@ -742,7 +737,7 @@ type CallArgs struct {
 }
 
 // ToMessage converts CallArgs to the Message type used by the core cvm
-func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
+func (args *CallArgs) ToMessage(globalEnergyCap uint64) types.Message {
 	// Set sender address or use zero address if none specified.
 	var addr common.Address
 	if args.From != nil {
@@ -750,16 +745,16 @@ func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
 	}
 
 	// Set default energy & energy price if none were set
-	energy := globalEnergyCap.Uint64()
+	energy := globalEnergyCap
 	if energy == 0 {
 		energy = uint64(math.MaxUint64 / 2)
 	}
 	if args.Energy != nil {
 		energy = uint64(*args.Energy)
 	}
-	if globalEnergyCap != nil && globalEnergyCap.Uint64() < energy {
+	if globalEnergyCap != 0 && globalEnergyCap < energy {
 		log.Warn("Caller energy above allowance, capping", "requested", energy, "cap", globalEnergyCap)
-		energy = globalEnergyCap.Uint64()
+		energy = globalEnergyCap
 	}
 	energyPrice := new(big.Int)
 	if args.EnergyPrice != nil {
@@ -773,7 +768,7 @@ func (args *CallArgs) ToMessage(globalEnergyCap *big.Int) types.Message {
 
 	var data []byte
 	if args.Data != nil {
-		data = []byte(*args.Data)
+		data = *args.Data
 	}
 
 	msg := types.NewMessage(addr, args.To, 0, value, energy, energyPrice, data, false)
@@ -794,14 +789,13 @@ type account struct {
 	StateDiff *map[common.Hash]common.Hash `json:"stateDiff"`
 }
 
-func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalEnergyCap *big.Int) (*core.ExecutionResult, error) {
+func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalEnergyCap uint64) (*core.ExecutionResult, error) {
 	defer func(start time.Time) { log.Debug("Executing CVM call finished", "runtime", time.Since(start)) }(time.Now())
 
 	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, err
 	}
-
 	// Override the fields of specified contracts before execution.
 	for addr, account := range overrides {
 		// Override account nonce.
@@ -830,7 +824,6 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 			}
 		}
 	}
-
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered energy, setup a context with a timeout.
 	var cancel context.CancelFunc
@@ -867,7 +860,10 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 	if cvm.Cancelled() {
 		return nil, fmt.Errorf("execution aborted (timeout = %v)", timeout)
 	}
-	return result, err
+	if err != nil {
+		return result, fmt.Errorf("err: %w (supplied energy %d)", err, msg.Energy())
+	}
+	return result, nil
 }
 
 func newRevertError(result *core.ExecutionResult) *revertError {
@@ -882,7 +878,7 @@ func newRevertError(result *core.ExecutionResult) *revertError {
 	}
 }
 
-// revertError is an API error that encompassas an EVM revertal with JSON error
+// revertError is an API error that encompassas an CVM revertal with JSON error
 // code and a binary data blob.
 type revertError struct {
 	error
@@ -890,7 +886,7 @@ type revertError struct {
 }
 
 // ErrorCode returns the JSON error code for a revertal.
-// See: https://github.com/ethereum/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
+// See: https://github.com/core/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
 func (e *revertError) ErrorCode() int {
 	return 3
 }
@@ -922,13 +918,18 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOr
 	return result.Return(), result.Err
 }
 
-func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, energyCap *big.Int) (hexutil.Uint64, error) {
+func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, energyCap uint64) (hexutil.Uint64, error) {
 	// Binary search the energy requirement, as it may be higher than the amount used
 	var (
 		lo  uint64 = params.TxEnergy - 1
 		hi  uint64
 		cap uint64
 	)
+	// Use zero address if sender unspecified.
+	if args.From == nil {
+		args.From = new(common.Address)
+	}
+	// Determine the highest energy limit can be used during the estimation.
 	if args.Energy != nil && uint64(*args.Energy) >= params.TxEnergy {
 		hi = uint64(*args.Energy)
 	} else {
@@ -942,23 +943,47 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 		}
 		hi = block.EnergyLimit()
 	}
-	if energyCap != nil && hi > energyCap.Uint64() {
+	// Recap the highest energy limit with account's available balance.
+	if args.EnergyPrice != nil && args.EnergyPrice.ToInt().BitLen() != 0 {
+		state, _, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+		if err != nil {
+			return 0, err
+		}
+		balance := state.GetBalance(*args.From) // from can't be nil
+		available := new(big.Int).Set(balance)
+		if args.Value != nil {
+			if args.Value.ToInt().Cmp(available) >= 0 {
+				return 0, errors.New("insufficient funds for transfer")
+			}
+			available.Sub(available, args.Value.ToInt())
+		}
+		allowance := new(big.Int).Div(available, args.EnergyPrice.ToInt())
+
+		// If the allowance is larger than maximum uint64, skip checking
+		if allowance.IsUint64() && hi > allowance.Uint64() {
+			transfer := args.Value
+			if transfer == nil {
+				transfer = new(hexutil.Big)
+			}
+			log.Warn("Energy estimation capped by limited funds", "original", hi, "balance", balance,
+				"sent", transfer.ToInt(), "energyprice", args.EnergyPrice.ToInt(), "fundable", allowance)
+			hi = allowance.Uint64()
+		}
+	}
+	// Recap the highest energy allowance with specified energycap.
+	if energyCap != 0 && hi > energyCap {
 		log.Warn("Caller energy above allowance, capping", "requested", hi, "cap", energyCap)
-		hi = energyCap.Uint64()
+		hi = energyCap
 	}
 	cap = hi
 
-	// Use zero address if sender unspecified.
-	if args.From == nil {
-		args.From = new(common.Address)
-	}
-	// Create a helper to check if an energy allowance results in an executable transaction
+	// Create a helper to check if a energy allowance results in an executable transaction
 	executable := func(energy uint64) (bool, *core.ExecutionResult, error) {
 		args.Energy = (*hexutil.Uint64)(&energy)
 
 		result, err := DoCall(ctx, b, args, blockNrOrHash, nil, vm.Config{}, 0, energyCap)
 		if err != nil {
-			if err == core.ErrIntrinsicEnergy {
+			if errors.Is(err, core.ErrIntrinsicEnergy) {
 				return true, nil, nil // Special case, raise energy limit
 			}
 			return true, nil, err // Bail out
@@ -1172,7 +1197,7 @@ type RPCTransaction struct {
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	var signer types.Signer = types.NewNucleusSigner(nil)
+	signer := types.NewNucleusSigner(big.NewInt(int64(tx.NetworkID())))
 	from, _ := types.Sender(signer, tx)
 
 	result := &RPCTransaction{
@@ -1499,10 +1524,8 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (common.Hash, error) {
 	// If the transaction fee cap is already specified, ensure the
 	// fee of the given transaction is _reasonable_.
-	feeCore := new(big.Float).Quo(new(big.Float).SetInt(new(big.Int).Mul(tx.EnergyPrice(), new(big.Int).SetUint64(tx.Energy()))), new(big.Float).SetInt(big.NewInt(params.Core)))
-	feeFloat, _ := feeCore.Float64()
-	if b.RPCTxFeeCap() != 0 && feeFloat > b.RPCTxFeeCap() {
-		return common.Hash{}, fmt.Errorf("tx fee (%.2f xcb) exceeds the configured cap (%.2f core)", feeFloat, b.RPCTxFeeCap())
+	if err := checkTxFee(tx.EnergyPrice(), tx.Energy(), b.RPCTxFeeCap()); err != nil {
+		return common.Hash{}, err
 	}
 	if err := b.SendTx(ctx, tx); err != nil {
 		return common.Hash{}, err
@@ -1582,12 +1605,9 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 // Sign calculates an EDDSA signature for:
 // keccack256("\x19Core Signed Message:\n" + len(message) + message).
 //
-// Note, the produced signature conforms to the secp256k1 curve R, S and V values,
-// where the V value will be 27 or 28 for legacy reasons.
-//
 // The account associated with addr must be unlocked.
 //
-// https://github.com/core-coin/wiki/wiki/JSON-RPC#xcb_sign
+// https://github.com/core/wiki/wiki/JSON-RPC#xcb_sign
 func (s *PublicTransactionPoolAPI) Sign(addr common.Address, data hexutil.Bytes) (hexutil.Bytes, error) {
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: addr}
@@ -1598,10 +1618,10 @@ func (s *PublicTransactionPoolAPI) Sign(addr common.Address, data hexutil.Bytes)
 	}
 	// Sign the requested hash with the wallet
 	signature, err := wallet.SignText(account, data)
-	if err == nil {
-		//signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+	if err != nil {
+		return nil, err
 	}
-	return signature, err
+	return signature, nil
 }
 
 // SignTransactionResult represents a RLP encoded signed transaction.
@@ -1624,6 +1644,10 @@ func (s *PublicTransactionPoolAPI) SignTransaction(ctx context.Context, args Sen
 		return nil, fmt.Errorf("nonce not specified")
 	}
 	if err := args.setDefaults(ctx, s.b); err != nil {
+		return nil, err
+	}
+	// Before actually sign the transaction, ensure the transaction fee is reasonable.
+	if err := checkTxFee(args.EnergyPrice.ToInt(), uint64(*args.Energy), s.b.RPCTxFeeCap()); err != nil {
 		return nil, err
 	}
 	tx, err := s.sign(args.From, args.toTransaction())
@@ -1671,11 +1695,24 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 		return common.Hash{}, err
 	}
 	matchTx := sendArgs.toTransaction()
+
+	// Before replacing the old transaction, ensure the _new_ transaction fee is reasonable.
+	var price = matchTx.EnergyPrice()
+	if energyPrice != nil {
+		price = energyPrice.ToInt()
+	}
+	var energy = matchTx.Energy()
+	if energyLimit != nil {
+		energy = uint64(*energyLimit)
+	}
+	if err := checkTxFee(price, energy, s.b.RPCTxFeeCap()); err != nil {
+		return common.Hash{}, err
+	}
+	// Iterate the pending list for replacement
 	pending, err := s.b.GetPoolTransactions()
 	if err != nil {
 		return common.Hash{}, err
 	}
-
 	for _, p := range pending {
 		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().NetworkID)
 		wantSigHash := signer.Hash(matchTx)
@@ -1848,4 +1885,28 @@ func (s *PublicNetAPI) PeerCount() hexutil.Uint {
 // Version returns the current core protocol version.
 func (s *PublicNetAPI) Version() string {
 	return fmt.Sprintf("%d", s.networkVersion)
+}
+
+// checkTxFee is an internal function used to check whether the fee of
+// the given transaction is _reasonable_(under the cap).
+func checkTxFee(energyPrice *big.Int, energy uint64, cap float64) error {
+	// Short circuit if there is no cap for transaction fee at all.
+	if cap == 0 {
+		return nil
+	}
+	feeXcb := new(big.Float).Quo(new(big.Float).SetInt(new(big.Int).Mul(energyPrice, new(big.Int).SetUint64(energy))), new(big.Float).SetInt(big.NewInt(params.Core)))
+	feeFloat, _ := feeXcb.Float64()
+	if feeFloat > cap {
+		return fmt.Errorf("tx fee (%.2f core) exceeds the configured cap (%.2f core)", feeFloat, cap)
+	}
+	return nil
+}
+
+// toHexSlice creates a slice of hex-strings based on []byte.
+func toHexSlice(b [][]byte) []string {
+	r := make([]string, len(b))
+	for i := range b {
+		r[i] = hexutil.Encode(b[i])
+	}
+	return r
 }

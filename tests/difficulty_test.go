@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
@@ -41,9 +41,16 @@ func TestDifficulty(t *testing.T) {
 	dt.skipLoad("keyaddrtest\\.json")
 	dt.skipLoad("txtest\\.json")
 
+	// files are 2 years old, contains strange values
+	dt.skipLoad("difficultyCustomHomestead\\.json")
+	dt.skipLoad("difficultyMorden\\.json")
+	dt.skipLoad("difficultyOlimpic\\.json")
+
 	dt.config("Devin", *params.DevinChainConfig)
 	dt.config("Morden", *params.DevinChainConfig)
+	dt.config("Frontier", params.ChainConfig{})
 
+	dt.config("Frontier", *params.DevinChainConfig)
 	dt.config("MainNetwork", mainnetChainConfig)
 	dt.config("CustomMainNetwork", mainnetChainConfig)
 	dt.config("difficulty.json", mainnetChainConfig)

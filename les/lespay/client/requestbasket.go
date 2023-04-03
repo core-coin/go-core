@@ -1,4 +1,4 @@
-// Copyright 2015 by the Authors
+// Copyright 2020 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -17,9 +17,10 @@
 package client
 
 import (
-	"github.com/core-coin/go-core/les/utils"
-	"github.com/core-coin/go-core/rlp"
 	"io"
+
+	"github.com/core-coin/go-core/v2/les/utils"
+	"github.com/core-coin/go-core/v2/rlp"
 )
 
 const basketFactor = 1000000 // reference basket amount and value scale factor

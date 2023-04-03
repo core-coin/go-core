@@ -29,8 +29,8 @@ func TestCheckCompatible(t *testing.T) {
 		wantErr     *ConfigCompatError
 	}
 	tests := []test{
-		{stored: AllCryptoreProtocolChanges, new: AllCryptoreProtocolChanges, head: 0, wantErr: nil},
-		{stored: AllCryptoreProtocolChanges, new: AllCryptoreProtocolChanges, head: 100, wantErr: nil},
+		{stored: MainnetChainConfig, new: MainnetChainConfig, head: 0, wantErr: nil},
+		{stored: MainnetChainConfig, new: MainnetChainConfig, head: 100, wantErr: nil},
 		{
 			stored:  &ChainConfig{},
 			new:     &ChainConfig{},
@@ -38,8 +38,8 @@ func TestCheckCompatible(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			stored: &ChainConfig{EWASMBlock:big.NewInt(10)},
-			new:    &ChainConfig{EWASMBlock:big.NewInt(20)},
+			stored: &ChainConfig{EWASMBlock: big.NewInt(10)},
+			new:    &ChainConfig{EWASMBlock: big.NewInt(20)},
 			head:   25,
 			wantErr: &ConfigCompatError{
 				What:         "ewasm fork block",

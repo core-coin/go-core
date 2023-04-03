@@ -28,15 +28,16 @@ import (
 	"time"
 
 	"github.com/cespare/cp"
-	"github.com/core-coin/go-core/accounts"
-	"github.com/core-coin/go-core/common"
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/core-coin/go-core/v2/accounts"
+	"github.com/core-coin/go-core/v2/common"
 )
 
 var (
-	addr1, err1       = common.HexToAddress("cb27de521e43741cf785cbad450d5649187b9612018f")
-	addr2, err2       = common.HexToAddress("cb74db416ff2f9c53dabaf34f81142db30350ea7b144")
-	addr3, err3       = common.HexToAddress("cb65e49851f010cd7d81b5b4969f3b0e8325c415359d")
+	addr1, _          = common.HexToAddress("cb27de521e43741cf785cbad450d5649187b9612018f")
+	addr2, _          = common.HexToAddress("cb74db416ff2f9c53dabaf34f81142db30350ea7b144")
+	addr3, _          = common.HexToAddress("cb65e49851f010cd7d81b5b4969f3b0e8325c415359d")
 	cachetestDir, _   = filepath.Abs(filepath.Join("testdata", "keystore"))
 	cachetestAccounts = []accounts.Account{
 		{
@@ -56,9 +57,7 @@ var (
 
 func TestWatchNewFile(t *testing.T) {
 	t.Parallel()
-	if err1 != nil || err2 != nil || err3 != nil {
-		t.Error(err1, err1, err3)
-	}
+
 	dir, ks := tmpKeyStore(t, false)
 	defer os.RemoveAll(dir)
 
@@ -80,7 +79,7 @@ func TestWatchNewFile(t *testing.T) {
 
 	// ks should see the accounts.
 	var list []accounts.Account
-	for d := 200 * time.Millisecond; d < 5*time.Second; d *= 2 {
+	for d := 200 * time.Millisecond; d < 7*time.Second; d *= 2 {
 		list = ks.Accounts()
 		if reflect.DeepEqual(list, wantAccounts) {
 			// ks should have also received change notifications

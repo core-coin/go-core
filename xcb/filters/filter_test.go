@@ -18,19 +18,19 @@ package filters
 
 import (
 	"context"
-	eddsa "github.com/core-coin/go-goldilocks"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
 
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/crypto"
-	"github.com/core-coin/go-core/params"
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 func makeReceipt(addr common.Address) *types.Receipt {
@@ -52,20 +52,18 @@ func BenchmarkFilters(b *testing.B) {
 	var (
 		db, _   = rawdb.NewLevelDBDatabase(dir, 0, 0, "")
 		backend = &testBackend{db: db}
-		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key1)
-		addr1   = crypto.PubkeyToAddress(pub)
+		key1, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 		addr2   = common.BytesToAddress([]byte("jeff"))
 		addr3   = common.BytesToAddress([]byte("core"))
 		addr4   = common.BytesToAddress([]byte("random addresses please"))
 	)
 	defer db.Close()
 
-	genesis := core.GenesisBlockForTesting(db, addr1, big.NewInt(1000000))
+	genesis := core.GenesisBlockForTesting(db, key1.Address(), big.NewInt(1000000))
 	chain, receipts := core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), db, 100010, func(i int, gen *core.BlockGen) {
 		switch i {
 		case 2403:
-			receipt := makeReceipt(addr1)
+			receipt := makeReceipt(key1.Address())
 			gen.AddUncheckedReceipt(receipt)
 		case 1034:
 			receipt := makeReceipt(addr2)
@@ -87,7 +85,7 @@ func BenchmarkFilters(b *testing.B) {
 	}
 	b.ResetTimer()
 
-	filter := NewRangeFilter(backend, 0, -1, []common.Address{addr1, addr2, addr3, addr4}, nil)
+	filter := NewRangeFilter(backend, 0, -1, []common.Address{key1.Address(), addr2, addr3, addr4}, nil)
 
 	for i := 0; i < b.N; i++ {
 		logs, _ := filter.Logs(context.Background())
@@ -107,9 +105,7 @@ func TestFilters(t *testing.T) {
 	var (
 		db, _   = rawdb.NewLevelDBDatabase(dir, 0, 0, "")
 		backend = &testBackend{db: db}
-		key1, _ = crypto.HexToEDDSA("856a9af6b0b651dd2f43b5e12193652ec1701c4da6f1c0d2a366ac4b9dabc9433ef09e41ca129552bd2c029086d9b03604de872a3b3432041f")
-		pub     = eddsa.Ed448DerivePublicKey(*key1)
-		addr    = crypto.PubkeyToAddress(pub)
+		key1, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 
 		hash1 = common.BytesToHash([]byte("topic1"))
 		hash2 = common.BytesToHash([]byte("topic2"))
@@ -118,14 +114,14 @@ func TestFilters(t *testing.T) {
 	)
 	defer db.Close()
 
-	genesis := core.GenesisBlockForTesting(db, addr, big.NewInt(1000000))
+	genesis := core.GenesisBlockForTesting(db, key1.Address(), big.NewInt(1000000))
 	chain, receipts := core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), db, 1000, func(i int, gen *core.BlockGen) {
 		switch i {
 		case 1:
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
 				{
-					Address: addr,
+					Address: key1.Address(),
 					Topics:  []common.Hash{hash1},
 				},
 			}
@@ -136,7 +132,7 @@ func TestFilters(t *testing.T) {
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
 				{
-					Address: addr,
+					Address: key1.Address(),
 					Topics:  []common.Hash{hash2},
 				},
 			}
@@ -148,7 +144,7 @@ func TestFilters(t *testing.T) {
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
 				{
-					Address: addr,
+					Address: key1.Address(),
 					Topics:  []common.Hash{hash3},
 				},
 			}
@@ -162,7 +158,7 @@ func TestFilters(t *testing.T) {
 			receipt := types.NewReceipt(nil, false, 0)
 			receipt.Logs = []*types.Log{
 				{
-					Address: addr,
+					Address: key1.Address(),
 					Topics:  []common.Hash{hash4},
 				},
 			}
@@ -181,14 +177,14 @@ func TestFilters(t *testing.T) {
 		rawdb.WriteReceipts(db, block.Hash(), block.NumberU64(), receipts[i])
 	}
 
-	filter := NewRangeFilter(backend, 0, -1, []common.Address{addr}, [][]common.Hash{{hash1, hash2, hash3, hash4}})
+	filter := NewRangeFilter(backend, 0, -1, []common.Address{key1.Address()}, [][]common.Hash{{hash1, hash2, hash3, hash4}})
 
 	logs, _ := filter.Logs(context.Background())
 	if len(logs) != 4 {
 		t.Error("expected 4 log, got", len(logs))
 	}
 
-	filter = NewRangeFilter(backend, 900, 999, []common.Address{addr}, [][]common.Hash{{hash3}})
+	filter = NewRangeFilter(backend, 900, 999, []common.Address{key1.Address()}, [][]common.Hash{{hash3}})
 	logs, _ = filter.Logs(context.Background())
 	if len(logs) != 1 {
 		t.Error("expected 1 log, got", len(logs))
@@ -197,7 +193,7 @@ func TestFilters(t *testing.T) {
 		t.Errorf("expected log[0].Topics[0] to be %x, got %x", hash3, logs[0].Topics[0])
 	}
 
-	filter = NewRangeFilter(backend, 990, -1, []common.Address{addr}, [][]common.Hash{{hash3}})
+	filter = NewRangeFilter(backend, 990, -1, []common.Address{key1.Address()}, [][]common.Hash{{hash3}})
 	logs, _ = filter.Logs(context.Background())
 	if len(logs) != 1 {
 		t.Error("expected 1 log, got", len(logs))

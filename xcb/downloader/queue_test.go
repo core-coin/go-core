@@ -1,4 +1,4 @@
-// Copyright 2016 by the Authors
+// Copyright 2015 by the Authors
 // This file is part of the go-core library.
 //
 // The go-core library is free software: you can redistribute it and/or modify
@@ -18,23 +18,25 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/core-coin/go-core/common"
-	"github.com/core-coin/go-core/consensus/cryptore"
-	"github.com/core-coin/go-core/core"
-	"github.com/core-coin/go-core/core/rawdb"
-	"github.com/core-coin/go-core/core/types"
-	"github.com/core-coin/go-core/log"
-	"github.com/core-coin/go-core/params"
 	"math/big"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/core-coin/go-core/v2/consensus/cryptore"
+
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/core"
+	"github.com/core-coin/go-core/v2/core/rawdb"
+	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/log"
+	"github.com/core-coin/go-core/v2/params"
 )
 
 var (
 	testdb  = rawdb.NewMemoryDatabase()
-	genesis = core.GenesisBlockForTesting(testdb, testAddress, big.NewInt(1000000000))
+	genesis = core.GenesisBlockForTesting(testdb, testKey.Address(), big.NewInt(1000000000))
 )
 
 // makeChain creates a chain of n blocks starting at and including parent.
@@ -46,8 +48,8 @@ func makeChain(n int, seed byte, parent *types.Block, empty bool) ([]*types.Bloc
 		block.SetCoinbase(common.Address{seed})
 		// Add one tx to every secondblock
 		if !empty && i%2 == 0 {
-			signer := types.MakeSigner(big.NewInt(common.Devin))
-			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testAddress), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
+			signer := types.MakeSigner(params.TestChainConfig.NetworkID)
+			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testKey.Address()), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)
 			}
@@ -96,7 +98,7 @@ func dummyPeer(id string) *peerConnection {
 }
 
 func TestBasics(t *testing.T) {
-	q := newQueue(10)
+	q := newQueue(10, 10)
 	if !q.Idle() {
 		t.Errorf("new queue should be idle")
 	}
@@ -173,7 +175,7 @@ func TestBasics(t *testing.T) {
 }
 
 func TestEmptyBlocks(t *testing.T) {
-	q := newQueue(10)
+	q := newQueue(10, 10)
 
 	q.Prepare(1, FastSync)
 	// Schedule a batch of headers
@@ -243,7 +245,7 @@ func XTestDelivery(t *testing.T) {
 		log.Root().SetHandler(log.StdoutHandler)
 
 	}
-	q := newQueue(10)
+	q := newQueue(10, 10)
 	var wg sync.WaitGroup
 	q.Prepare(1, FastSync)
 	wg.Add(1)
