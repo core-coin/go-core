@@ -45,7 +45,7 @@ type (
 
 func (cvm *CVM) precompile(addr common.Address) (PrecompiledContract, bool) {
 	var precompiles map[common.Address]PrecompiledContract
-	precompiles = PrecompiledContracts
+	precompiles = PrecompiledContracts(cvm.chainConfig, cvm.Context.BlockNumber)
 	p, ok := precompiles[addr]
 	return p, ok
 }
