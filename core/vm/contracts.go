@@ -48,7 +48,14 @@ type PrecompiledContract interface {
 func PrecompiledContracts(chainConfig *params.ChainConfig, blockNum *big.Int) map[common.Address]PrecompiledContract {
 	contracts := map[common.Address]PrecompiledContract{}
 
-	contracts[common.BytesToAddress([]byte{1})] = &ecrecover{}
+	if chainConfig != nil &&
+		blockNum != nil &&
+		blockNum.Int64() <= params.DevinOldEcrecoverBlockNum &&
+		chainConfig.NetworkID.Int64() == common.Devin {
+		contracts[common.BytesToAddress([]byte{1})] = &ecrecoverOldDevin{}
+	} else {
+		contracts[common.BytesToAddress([]byte{1})] = &ecrecover{}
+	}
 	contracts[common.BytesToAddress([]byte{2})] = &sha256hash{}
 	contracts[common.BytesToAddress([]byte{3})] = &ripemd160hash{}
 	contracts[common.BytesToAddress([]byte{4})] = &dataCopy{}
@@ -57,12 +64,6 @@ func PrecompiledContracts(chainConfig *params.ChainConfig, blockNum *big.Int) ma
 	contracts[common.BytesToAddress([]byte{7})] = &bn256ScalarMul{}
 	contracts[common.BytesToAddress([]byte{8})] = &bn256Pairing{}
 	contracts[common.BytesToAddress([]byte{9})] = &blake2F{}
-
-	if chainConfig != nil && blockNum != nil {
-		if blockNum.Int64() <= params.DevinOldEcrecoverBlockNum && chainConfig.NetworkID.Int64() == common.Devin {
-			contracts[common.BytesToAddress([]byte{1})] = &ecrecoverOldDevin{}
-		}
-	}
 
 	return contracts
 }
