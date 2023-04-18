@@ -415,7 +415,9 @@ func New(code string) (*Tracer, error) {
 		return 1
 	})
 	tracer.vm.PushGlobalGoFunction("isPrecompiled", func(ctx *duktape.Context) int {
-		_, ok := vm.PrecompiledContracts[common.BytesToAddress(popSlice(ctx))]
+		addr := common.BytesToAddress(popSlice(ctx))
+		contracts := vm.PrecompiledContracts(nil, nil)
+		_, ok := contracts[addr]
 		ctx.PushBoolean(ok)
 		return 1
 	})

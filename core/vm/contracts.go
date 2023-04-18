@@ -45,16 +45,27 @@ type PrecompiledContract interface {
 
 // PrecompiledContracts contains the default set of pre-compiled Core
 // contracts used in the release.
-var PrecompiledContracts = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256Add{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
-	common.BytesToAddress([]byte{8}): &bn256Pairing{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
+func PrecompiledContracts(chainConfig *params.ChainConfig, blockNum *big.Int) map[common.Address]PrecompiledContract {
+	contracts := map[common.Address]PrecompiledContract{}
+
+	if chainConfig != nil &&
+		blockNum != nil &&
+		blockNum.Int64() <= params.DevinOldEcrecoverBlockNum &&
+		chainConfig.NetworkID.Int64() == common.Devin {
+		contracts[common.BytesToAddress([]byte{1})] = &ecrecoverOldDevin{}
+	} else {
+		contracts[common.BytesToAddress([]byte{1})] = &ecrecover{}
+	}
+	contracts[common.BytesToAddress([]byte{2})] = &sha256hash{}
+	contracts[common.BytesToAddress([]byte{3})] = &ripemd160hash{}
+	contracts[common.BytesToAddress([]byte{4})] = &dataCopy{}
+	contracts[common.BytesToAddress([]byte{5})] = &bigModExp{}
+	contracts[common.BytesToAddress([]byte{6})] = &bn256Add{}
+	contracts[common.BytesToAddress([]byte{7})] = &bn256ScalarMul{}
+	contracts[common.BytesToAddress([]byte{8})] = &bn256Pairing{}
+	contracts[common.BytesToAddress([]byte{9})] = &blake2F{}
+
+	return contracts
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
@@ -88,6 +99,33 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	// make sure the public key is a valid one
 	if err != nil {
 		return nil, err
+	}
+	if pubKey != nil {
+		pub, err := crypto.UnmarshalPubKey(pubKey)
+		if err != nil {
+			return nil, err
+		}
+		return common.LeftPadBytes(crypto.PubkeyToAddress(pub).Bytes(), 32), nil
+	}
+	return nil, errors.New("invalid signature")
+}
+
+// ECRECOVER implemented as a native contract.
+type ecrecoverOldDevin struct{}
+
+func (c *ecrecoverOldDevin) RequiredEnergy(input []byte) uint64 {
+	return params.EcrecoverEnergy
+}
+
+func (c *ecrecoverOldDevin) Run(input []byte) ([]byte, error) {
+	var ecRecoverInputLength = sha3.New256().Size() + crypto.ExtendedSignatureLength // 32 + 171
+
+	input = common.RightPadBytes(input, ecRecoverInputLength)
+
+	pubKey, err := crypto.Ecrecover(input[:32], input[96:267])
+	// make sure the public key is a valid one
+	if err != nil {
+		return nil, nil
 	}
 	if pubKey != nil {
 		pub, err := crypto.UnmarshalPubKey(pubKey)

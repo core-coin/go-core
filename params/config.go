@@ -306,3 +306,5 @@ func newCompatError(what string, storedblock, newblock *big.Int) *ConfigCompatEr
 func (err *ConfigCompatError) Error() string {
 	return fmt.Sprintf("mismatching %s in database (have %d, want %d, rewindto %d)", err.What, err.StoredConfig, err.NewConfig, err.RewindTo)
 }
+
+var DevinOldEcrecoverBlockNum int64 = 3500000
