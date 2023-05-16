@@ -54,12 +54,11 @@ var (
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
 	MainnetTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 0,
-		SectionHead:  common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
-		CHTRoot:      common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		SectionIndex: 137,
+		SectionHead:  common.HexToHash("0x9c6c7bb3b600e9d27725101a965d33bd9f6f7260307b252866de7d793ece66ab"),
+		CHTRoot:      common.HexToHash("0x5e861527c64be9813c3f1521f45c42c74345b68f5d8585d778695836dede3c48"),
 		BloomRoot:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 	}
-
 	// MainnetCheckpointOracle contains a set of configs for the main network oracle.
 	MainnetCheckpointOracle = &CheckpointOracleConfig{
 		Address:   common.Address{},
@@ -75,9 +74,9 @@ var (
 
 	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
 	DevinTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 0,
-		SectionHead:  common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
-		CHTRoot:      common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		SectionIndex: 131,
+		SectionHead:  common.HexToHash("0xbfb8e778c05b7fb6aa934059cfe488a406f1d23525a149ba5de1854e5e8cf574"),
+		CHTRoot:      common.HexToHash("0x8851b783355fff515505af9559b29bddb72c410409b8292e41745834975cf6df"),
 		BloomRoot:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 	}
 
