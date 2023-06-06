@@ -77,10 +77,8 @@ func LocalEnv() Environment {
 	env := applyEnvFlags(Environment{Name: "local", Repo: "core-coin/go-core"})
 
 	head := readGitFile("HEAD")
-	fmt.Println("HEAD:", head)
 	if fields := strings.Fields(head); len(fields) == 2 {
 		head = fields[1]
-		fmt.Println("HEAD:", head)
 	} else {
 		// In this case we are in "detached head" state
 		// see: https://git-scm.com/docs/git-checkout#_detached_head
@@ -89,33 +87,22 @@ func LocalEnv() Environment {
 		if commit := commitRe.FindString(head); commit != "" && env.Commit == "" {
 			env.Commit = commit
 		}
-		fmt.Println("env exit", env)
 		// return env
 	}
 	if env.Commit == "" {
 		env.Commit = readGitFile(head)
 	}
 	env.Date = getDate(env.Commit)
-	fmt.Println("env date", env)
 
 	if env.Branch == "" {
 		if head != "HEAD" {
 			env.Branch = strings.TrimPrefix(head, "refs/heads/")
 		}
 	}
-	fmt.Println("env branch", env)
 	info, err := os.Stat(".git/objects")
-	fmt.Println("err", err)
-	fmt.Println("info.IsDir()", info.IsDir())
-
-	fmt.Println(`env.Tag == ""`, env.Tag == "")
-	fmt.Println("res", RunGit("tag", "-l", "--points-at", "HEAD"))
-	fmt.Println("res 2", firstLine(RunGit("tag", "-l", "--points-at", "HEAD")))
-
 	if err == nil && info.IsDir() && env.Tag == "" {
 		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
 	}
-	fmt.Println("env final", env)
 
 	return env
 }
