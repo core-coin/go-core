@@ -1,8 +1,8 @@
 name: gocore docker
 on:
   push:
-    tags:
-      - 'v*'
+    # tags:
+    #   - 'v*'
 jobs:
   docker:
     name: docker
@@ -17,5 +17,3 @@ jobs:
         run: |
           docker login ghcr.io -u ${{github.actor}} -p ${{secrets.GITHUB_TOKEN}}
           docker build . -t ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}} -t ghcr.io/core-coin/go-core:latest
-          docker push ghcr.io/core-coin/go-core:${{steps.version.outputs.tag}}
-          docker push ghcr.io/core-coin/go-core:latest
