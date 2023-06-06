@@ -90,20 +90,25 @@ func LocalEnv() Environment {
 			env.Commit = commit
 		}
 		fmt.Println("env exit", env)
-		return env
+		// return env
 	}
 	if env.Commit == "" {
 		env.Commit = readGitFile(head)
 	}
 	env.Date = getDate(env.Commit)
+	fmt.Println("env date", env)
+
 	if env.Branch == "" {
 		if head != "HEAD" {
 			env.Branch = strings.TrimPrefix(head, "refs/heads/")
 		}
 	}
+	fmt.Println("env branch", env)
 	if info, err := os.Stat(".git/objects"); err == nil && info.IsDir() && env.Tag == "" {
 		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
 	}
+	fmt.Println("env final", env)
+
 	return env
 }
 
