@@ -1,116 +1,116 @@
-# name: go-core build
-# on: push
-# jobs:
-#   build:
-#     strategy:
-#       matrix:
-#         platform: [
-#           {os: ubuntu-latest, path: linux-x86_64},
-#           {os: windows-latest, path: windows-x86_64},
-#           {os: raspbian-private, path: linux-arm64},
-#           {os: macos-latest, path: darwin-x86_64},
-#         ]
-#     runs-on: ${{ matrix.platform.os }}
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v3
-#     - name: Setup Go
-#       uses: actions/setup-go@v2
-#       with:
-#         go-version: 1.17.x
-#     - name: Setup MSYS
-#       if: ${{ matrix.platform.os == 'windows-latest' }}
-#       uses: msys2/setup-msys2@v2
-#       with:
-#         msystem: mingw64
-#         update: true
-#         install: >
-#           git
-#           base-devel
-#           autoconf-wrapper
-#           autoconf
-#           automake
-#           libtool
-#           mingw-w64-x86_64-toolchain
-#           mingw-w64-x86_64-go
-#     - name: Build Windows
-#       if: ${{ matrix.platform.os == 'windows-latest' }}
-#       shell: msys2 {0}
-#       run: |
-#         make gocore
-#         make test
-#     - name: Build
-#       if: ${{ matrix.platform.os != 'windows-latest' }}
-#       run: | 
-#         make gocore
-#         make test
-#     - name: Upload Gocore
-#       if: startsWith(github.ref, 'refs/tags/v')
-#       uses: actions/upload-artifact@v2
-#       with:
-#         name: gocore-${{ matrix.platform.path }}
-#         path: ./build/bin/gocore*
-#   release:
-#     if: startsWith(github.ref, 'refs/tags/v')
-#     needs: build
-#     runs-on: ubuntu-latest
-#     outputs:
-#       upload_url: ${{ steps.create_release.outputs.upload_url }}
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v3
-#     - name: Version
-#       id: version
-#       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
-#     - name: Release
-#       id: create_release
-#       uses: actions/create-release@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         tag_name: ${{ steps.version.outputs.tag }}
-#         release_name: ${{ steps.version.outputs.tag }} gocore release
-#         draft: false
-#         prerelease: true
-#   artifacts:
-#     needs: release
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         platform: [
-#           {path: linux-x86_64, file_ext: ""},
-#           {path: windows-x86_64, file_ext: ".exe"},
-#           {path: linux-arm64, file_ext: ""},
-#           {path: darwin-x86_64, file_ext: ""},
-#         ]
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v3
-#     - name: Artifact Gocore
-#       uses: actions/download-artifact@v2
-#       with:
-#         name: gocore-${{ matrix.platform.path}}
-#         path: ./gocore-${{ matrix.platform.path }}
-#     - name: Upload Gocore release assets
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         upload_url: ${{ needs.release.outputs.upload_url }}
-#         asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.file_ext}}
-#         asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
-#         asset_content_type: application/octet-stream
-#     - name: Generate gocore checksums
-#       working-directory: ./gocore-${{ matrix.platform.path }}
-#       run: |
-#         mv ./gocore${{matrix.platform.file_ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
-#         sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-#     - name: Upload Gocore release assets checksums (Linux and Mac)
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         upload_url: ${{ needs.release.outputs.upload_url }}
-#         asset_path: ./gocore-${{ matrix.platform.path }}/gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-#         asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
-#         asset_content_type: text/plain
+name: go-core build
+on: push
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [
+          {os: ubuntu-latest, path: linux-x86_64},
+          {os: windows-latest, path: windows-x86_64},
+          {os: raspbian-private, path: linux-arm64},
+          {os: macos-latest, path: darwin-x86_64},
+        ]
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Setup MSYS
+      if: ${{ matrix.platform.os == 'windows-latest' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: mingw64
+        update: true
+        install: >
+          git
+          base-devel
+          autoconf-wrapper
+          autoconf
+          automake
+          libtool
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-go
+    - name: Build Windows
+      if: ${{ matrix.platform.os == 'windows-latest' }}
+      shell: msys2 {0}
+      run: |
+        make gocore
+        make test
+    - name: Build
+      if: ${{ matrix.platform.os != 'windows-latest' }}
+      run: | 
+        make gocore
+        make test
+    - name: Upload Gocore
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v2
+      with:
+        name: gocore-${{ matrix.platform.path }}
+        path: ./build/bin/gocore*
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Version
+      id: version
+      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+    - name: Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        release_name: ${{ steps.version.outputs.tag }} gocore release
+        draft: false
+        prerelease: true
+  artifacts:
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [
+          {path: linux-x86_64, file_ext: ""},
+          {path: windows-x86_64, file_ext: ".exe"},
+          {path: linux-arm64, file_ext: ""},
+          {path: darwin-x86_64, file_ext: ""},
+        ]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Artifact Gocore
+      uses: actions/download-artifact@v2
+      with:
+        name: gocore-${{ matrix.platform.path}}
+        path: ./gocore-${{ matrix.platform.path }}
+    - name: Upload Gocore release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./gocore-${{ matrix.platform.path }}/gocore${{matrix.platform.file_ext}}
+        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
+        asset_content_type: application/octet-stream
+    - name: Generate gocore checksums
+      working-directory: ./gocore-${{ matrix.platform.path }}
+      run: |
+        mv ./gocore${{matrix.platform.file_ext}} ./gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}
+        sha256sum gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}} >gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
+    - name: Upload Gocore release assets checksums (Linux and Mac)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: ./gocore-${{ matrix.platform.path }}/gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
+        asset_name: gocore-${{ matrix.platform.path }}${{matrix.platform.file_ext}}.checksum
+        asset_content_type: text/plain
