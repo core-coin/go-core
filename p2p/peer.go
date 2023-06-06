@@ -141,8 +141,8 @@ func (p *Peer) Node() *enode.Node {
 // Name returns an abbreviated form of the name
 func (p *Peer) Name() string {
 	s := p.rw.name
-	if len(s) > 20 {
-		return s[:20] + "..."
+	if len(s) > 50 {
+		return s[:50] + "..."
 	}
 	return s
 }
