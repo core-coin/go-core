@@ -54,6 +54,7 @@ func (env Environment) String() string {
 // Env returns metadata about the current CI environment, falling back to LocalEnv
 // if not running on CI.
 func Env() Environment {
+	fmt.Println(os.Environ())
 	if os.Getenv("CI") == "true" && os.Getenv("GITHUB_ACTIONS") == "true" {
 		commit := os.Getenv("GITHUB_SHA")
 		return Environment{
