@@ -54,7 +54,6 @@ func (env Environment) String() string {
 // Env returns metadata about the current CI environment, falling back to LocalEnv
 // if not running on CI.
 func Env() Environment {
-	fmt.Println(os.Environ())
 	if os.Getenv("CI") == "true" && os.Getenv("GITHUB_ACTIONS") == "true" {
 		commit := os.Getenv("GITHUB_SHA")
 		return Environment{
@@ -78,8 +77,10 @@ func LocalEnv() Environment {
 	env := applyEnvFlags(Environment{Name: "local", Repo: "core-coin/go-core"})
 
 	head := readGitFile("HEAD")
+	println("HEAD:", head)
 	if fields := strings.Fields(head); len(fields) == 2 {
 		head = fields[1]
+		println("HEAD:", head)
 	} else {
 		// In this case we are in "detached head" state
 		// see: https://git-scm.com/docs/git-checkout#_detached_head
@@ -88,6 +89,7 @@ func LocalEnv() Environment {
 		if commit := commitRe.FindString(head); commit != "" && env.Commit == "" {
 			env.Commit = commit
 		}
+		println("Env exit", env)
 		return env
 	}
 	if env.Commit == "" {
