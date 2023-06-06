@@ -104,7 +104,15 @@ func LocalEnv() Environment {
 		}
 	}
 	fmt.Println("env branch", env)
-	if info, err := os.Stat(".git/objects"); err == nil && info.IsDir() && env.Tag == "" {
+	info, err := os.Stat(".git/objects")
+	fmt.Println("err", err)
+	fmt.Println("info.IsDir()", info.IsDir())
+
+	fmt.Println(`env.Tag == ""`, env.Tag == "")
+	fmt.Println("res", RunGit("tag", "-l", "--points-at", "HEAD"))
+	fmt.Println("res 2", firstLine(RunGit("tag", "-l", "--points-at", "HEAD")))
+
+	if err == nil && info.IsDir() && env.Tag == "" {
 		env.Tag = firstLine(RunGit("tag", "-l", "--points-at", "HEAD"))
 	}
 	fmt.Println("env final", env)
