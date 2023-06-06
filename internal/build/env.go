@@ -77,10 +77,10 @@ func LocalEnv() Environment {
 	env := applyEnvFlags(Environment{Name: "local", Repo: "core-coin/go-core"})
 
 	head := readGitFile("HEAD")
-	println("HEAD:", head)
+	fmt.Println("HEAD:", head)
 	if fields := strings.Fields(head); len(fields) == 2 {
 		head = fields[1]
-		println("HEAD:", head)
+		fmt.Println("HEAD:", head)
 	} else {
 		// In this case we are in "detached head" state
 		// see: https://git-scm.com/docs/git-checkout#_detached_head
@@ -89,7 +89,7 @@ func LocalEnv() Environment {
 		if commit := commitRe.FindString(head); commit != "" && env.Commit == "" {
 			env.Commit = commit
 		}
-		println("Env exit", env)
+		fmt.Println("env exit", env)
 		return env
 	}
 	if env.Commit == "" {
