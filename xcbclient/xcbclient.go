@@ -156,11 +156,15 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 			}
 		}
 	}
+	networkId, err := ec.ChainID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// Fill the sender cache of transactions in the block.
 	txs := make([]*types.Transaction, len(body.Transactions))
 	for i, tx := range body.Transactions {
 		if tx.From != nil {
-			setSenderFromServer(tx.tx, *tx.From, body.Hash)
+			setSenderFromServer(tx.tx, *tx.From, body.Hash, int(networkId.Int64()))
 		}
 		txs[i] = tx.tx
 	}
@@ -215,8 +219,12 @@ func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (tx *
 	} else if json == nil {
 		return nil, false, core.NotFound
 	}
+	networkId, err := ec.ChainID(ctx)
+	if err != nil {
+		return nil, false, err
+	}
 	if json.From != nil && json.BlockHash != nil {
-		setSenderFromServer(json.tx, *json.From, *json.BlockHash)
+		setSenderFromServer(json.tx, *json.From, *json.BlockHash, int(networkId.Int64()))
 	}
 	return json.tx, json.BlockNumber == nil, nil
 }
@@ -263,8 +271,12 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash,
 	if json == nil {
 		return nil, core.NotFound
 	}
+	networkId, err := ec.ChainID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if json.From != nil && json.BlockHash != nil {
-		setSenderFromServer(json.tx, *json.From, *json.BlockHash)
+		setSenderFromServer(json.tx, *json.From, *json.BlockHash, int(networkId.Int64()))
 	}
 	return json.tx, err
 }
@@ -518,6 +530,11 @@ func (ec *Client) EstimateEnergy(ctx context.Context, msg core.CallMsg) (uint64,
 // If the transaction was a contract creation use the TransactionReceipt method to get the
 // contract address after the transaction has been mined.
 func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+	network_id, err := ec.ChainID(ctx)
+	if err != nil {
+		return err
+	}
+	tx.SetNetworkID(uint(network_id.Int64()));
 	data, err := rlp.EncodeToBytes(tx)
 	if err != nil {
 		return err

@@ -306,4 +306,8 @@ func (err *ConfigCompatError) Error() string {
 	return fmt.Sprintf("mismatching %s in database (have %d, want %d, rewindto %d)", err.What, err.StoredConfig, err.NewConfig, err.RewindTo)
 }
 
-var DevinOldEcrecoverBlockNum int64 = 3500000
+var (
+	DevinOldEcrecoverBlockNum int64 = 3500000
+
+	ZeroNetworkIDCheckBlockTimestamp   int64 = 1695284906
+)

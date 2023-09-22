@@ -35,9 +35,9 @@ type senderFromServer struct {
 
 var errNotCached = errors.New("sender not cached")
 
-func setSenderFromServer(tx *types.Transaction, addr common.Address, block common.Hash) {
+func setSenderFromServer(tx *types.Transaction, addr common.Address, block common.Hash, networkID int) {
 	// Use types.Sender for side-effect to store our signer into the cache.
-	types.Sender(&senderFromServer{addr, block, int(tx.NetworkID())}, tx)
+	types.Sender(&senderFromServer{addr, block, networkID}, tx)
 }
 
 func (s *senderFromServer) Equal(other types.Signer) bool {
@@ -48,6 +48,9 @@ func (s *senderFromServer) Equal(other types.Signer) bool {
 func (s *senderFromServer) Sender(tx *types.Transaction) (common.Address, error) {
 	if s.blockhash == (common.Hash{}) {
 		return common.Address{}, errNotCached
+	}
+	if int(tx.NetworkID()) != int(s.networkID) {
+		return common.Address{}, types.ErrInvalidNetworkId
 	}
 	return s.addr, nil
 }
