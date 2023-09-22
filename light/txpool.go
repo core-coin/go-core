@@ -406,7 +406,10 @@ func (pool *TxPool) add(ctx context.Context, tx *types.Transaction) error {
 
 		nonce := tx.Nonce() + 1
 
-		addr, _ := types.Sender(pool.signer, tx)
+		addr, err := types.Sender(pool.signer, tx)
+		if err != nil {
+			return err
+		}
 		if nonce > pool.nonce[addr] {
 			pool.nonce[addr] = nonce
 		}

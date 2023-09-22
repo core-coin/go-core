@@ -116,7 +116,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string]*RPCTransac
 	for account, txs := range pending {
 		dump := make(map[string]*RPCTransaction)
 		for _, tx := range txs {
-			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx)
+			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx, s.b.ChainConfig().NetworkID)
 		}
 		content["pending"][account.Hex()] = dump
 	}
@@ -124,7 +124,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string]*RPCTransac
 	for account, txs := range queue {
 		dump := make(map[string]*RPCTransaction)
 		for _, tx := range txs {
-			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx)
+			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx, s.b.ChainConfig().NetworkID)
 		}
 		content["queued"][account.Hex()] = dump
 	}
@@ -1123,7 +1123,7 @@ func RPCMarshalHeader(head *types.Header) map[string]interface{} {
 // RPCMarshalBlock converts the given block to the RPC output which depends on fullTx. If inclTx is true transactions are
 // returned. When fullTx is true the returned block contains full transaction details, otherwise it will only contain
 // transaction hashes.
-func RPCMarshalBlock(block *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
+func RPCMarshalBlock(block *types.Block, inclTx bool, fullTx bool, networkID *big.Int) (map[string]interface{}, error) {
 	fields := RPCMarshalHeader(block.Header())
 	fields["size"] = hexutil.Uint64(block.Size())
 
@@ -1133,7 +1133,7 @@ func RPCMarshalBlock(block *types.Block, inclTx bool, fullTx bool) (map[string]i
 		}
 		if fullTx {
 			formatTx = func(tx *types.Transaction) (interface{}, error) {
-				return newRPCTransactionFromBlockHash(block, tx.Hash()), nil
+				return newRPCTransactionFromBlockHash(block, tx.Hash(), networkID), nil
 			}
 		}
 		txs := block.Transactions()
@@ -1167,7 +1167,7 @@ func (s *PublicBlockChainAPI) rpcMarshalHeader(ctx context.Context, header *type
 // rpcMarshalBlock uses the generalized output filler, then adds the total difficulty field, which requires
 // a `PublicBlockchainAPI`.
 func (s *PublicBlockChainAPI) rpcMarshalBlock(ctx context.Context, b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
-	fields, err := RPCMarshalBlock(b, inclTx, fullTx)
+	fields, err := RPCMarshalBlock(b, inclTx, fullTx, s.b.ChainConfig().NetworkID)
 	if err != nil {
 		return nil, err
 	}
@@ -1196,10 +1196,13 @@ type RPCTransaction struct {
 
 // newRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
-func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) *RPCTransaction {
-	signer := types.NewNucleusSigner(big.NewInt(int64(tx.NetworkID())))
-	from, _ := types.Sender(signer, tx)
-
+func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64, networkID *big.Int) *RPCTransaction {
+	signer := types.NewNucleusSigner(networkID)
+	from, err := types.Sender(signer, tx)
+	if err != nil {
+		fmt.Println("newRPCTransaction error:", err)
+		tx.SetNetworkID(uint(networkID.Uint64()))
+	}
 	result := &RPCTransaction{
 		From:        from,
 		Energy:      hexutil.Uint64(tx.Energy()),
@@ -1221,17 +1224,17 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 }
 
 // newRPCPendingTransaction returns a pending transaction that will serialize to the RPC representation
-func newRPCPendingTransaction(tx *types.Transaction) *RPCTransaction {
-	return newRPCTransaction(tx, common.Hash{}, 0, 0)
+func newRPCPendingTransaction(tx *types.Transaction, networkID *big.Int) *RPCTransaction {
+	return newRPCTransaction(tx, common.Hash{}, 0, 0, networkID)
 }
 
 // newRPCTransactionFromBlockIndex returns a transaction that will serialize to the RPC representation.
-func newRPCTransactionFromBlockIndex(b *types.Block, index uint64) *RPCTransaction {
+func newRPCTransactionFromBlockIndex(b *types.Block, index uint64, networkID *big.Int) *RPCTransaction {
 	txs := b.Transactions()
 	if index >= uint64(len(txs)) {
 		return nil
 	}
-	return newRPCTransaction(txs[index], b.Hash(), b.NumberU64(), index)
+	return newRPCTransaction(txs[index], b.Hash(), b.NumberU64(), index, networkID)
 }
 
 // newRPCRawTransactionFromBlockIndex returns the bytes of a transaction given a block and a transaction index.
@@ -1245,10 +1248,10 @@ func newRPCRawTransactionFromBlockIndex(b *types.Block, index uint64) hexutil.By
 }
 
 // newRPCTransactionFromBlockHash returns a transaction that will serialize to the RPC representation.
-func newRPCTransactionFromBlockHash(b *types.Block, hash common.Hash) *RPCTransaction {
+func newRPCTransactionFromBlockHash(b *types.Block, hash common.Hash, networkID *big.Int) *RPCTransaction {
 	for idx, tx := range b.Transactions() {
 		if tx.Hash() == hash {
-			return newRPCTransactionFromBlockIndex(b, uint64(idx))
+			return newRPCTransactionFromBlockIndex(b, uint64(idx), networkID)
 		}
 	}
 	return nil
@@ -1286,7 +1289,7 @@ func (s *PublicTransactionPoolAPI) GetBlockTransactionCountByHash(ctx context.Co
 // GetTransactionByBlockNumberAndIndex returns the transaction for the given block number and index.
 func (s *PublicTransactionPoolAPI) GetTransactionByBlockNumberAndIndex(ctx context.Context, blockNr rpc.BlockNumber, index hexutil.Uint) *RPCTransaction {
 	if block, _ := s.b.BlockByNumber(ctx, blockNr); block != nil {
-		return newRPCTransactionFromBlockIndex(block, uint64(index))
+		return newRPCTransactionFromBlockIndex(block, uint64(index), s.b.ChainConfig().NetworkID)
 	}
 	return nil
 }
@@ -1294,7 +1297,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionByBlockNumberAndIndex(ctx conte
 // GetTransactionByBlockHashAndIndex returns the transaction for the given block hash and index.
 func (s *PublicTransactionPoolAPI) GetTransactionByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) *RPCTransaction {
 	if block, _ := s.b.BlockByHash(ctx, blockHash); block != nil {
-		return newRPCTransactionFromBlockIndex(block, uint64(index))
+		return newRPCTransactionFromBlockIndex(block, uint64(index), s.b.ChainConfig().NetworkID)
 	}
 	return nil
 }
@@ -1342,11 +1345,11 @@ func (s *PublicTransactionPoolAPI) GetTransactionByHash(ctx context.Context, has
 		return nil, err
 	}
 	if tx != nil {
-		return newRPCTransaction(tx, blockHash, blockNumber, index), nil
+		return newRPCTransaction(tx, blockHash, blockNumber, index, s.b.ChainConfig().NetworkID), nil
 	}
 	// No finalized transaction, try to retrieve it from the pool
 	if tx := s.b.GetPoolTransaction(hash); tx != nil {
-		return newRPCPendingTransaction(tx), nil
+		return newRPCPendingTransaction(tx, s.b.ChainConfig().NetworkID), nil
 	}
 
 	// Transaction unknown, return as such
@@ -1441,6 +1444,7 @@ type SendTxArgs struct {
 	EnergyPrice *hexutil.Big    `json:"energyPrice"`
 	Value       *hexutil.Big    `json:"value"`
 	Nonce       *hexutil.Uint64 `json:"nonce"`
+	NetworkID int64 `json:"network_id"`
 	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`
@@ -1504,6 +1508,7 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 		args.Energy = &estimated
 		log.Trace("Estimate energy usage automatically", "energy", args.Energy)
 	}
+	args.NetworkID = b.ChainConfig().NetworkID.Int64()
 	return nil
 }
 
@@ -1514,10 +1519,14 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 	} else if args.Data != nil {
 		input = *args.Data
 	}
+	var tx *types.Transaction
 	if args.To == nil {
-		return types.NewContractCreation(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
+		tx = types.NewContractCreation(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
+	} else {
+		tx = types.NewTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
 	}
-	return types.NewTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Energy), (*big.Int)(args.EnergyPrice), input)
+	tx.SetNetworkID(uint(args.NetworkID))
+	return tx
 }
 
 // SubmitTransaction is a helper function that submits tx to txPool and logs a message.
@@ -1677,9 +1686,12 @@ func (s *PublicTransactionPoolAPI) PendingTransactions() ([]*RPCTransaction, err
 	transactions := make([]*RPCTransaction, 0, len(pending))
 	for _, tx := range pending {
 		var signer types.Signer = types.NewNucleusSigner(s.b.ChainConfig().NetworkID)
-		from, _ := types.Sender(signer, tx)
+		from, err := types.Sender(signer, tx)
+		if err != nil {
+			return nil, err
+		}
 		if _, exists := accounts[from]; exists {
-			transactions = append(transactions, newRPCPendingTransaction(tx))
+			transactions = append(transactions, newRPCPendingTransaction(tx, s.b.ChainConfig().NetworkID))
 		}
 	}
 	return transactions, nil

@@ -22,6 +22,7 @@ import (
 
 	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/crypto"
+	// "github.com/core-coin/go-core/v2/params"
 )
 
 var (
@@ -109,6 +110,15 @@ func (s NucleusSigner) Equal(s2 Signer) bool {
 	nucleus, ok := s2.(NucleusSigner)
 	return ok && nucleus.networkId.Cmp(s.networkId) == 0
 }
+
+// func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
+// 	if tx.time.Unix() > params.ZeroNetworkIDCheckBlockTimestamp || (tx.data.NetworkID != 0 && s.NetworkID() != 0) {
+// 		if tx.data.NetworkID != uint(s.networkId.Int64()) {
+// 			return common.Address{}, ErrInvalidNetworkId
+// 		}
+// 	}
+// 	return recoverPlain(s, tx)
+// }
 
 func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
 	if tx.data.NetworkID != 0 && s.NetworkID() != 0 {
