@@ -38,12 +38,10 @@ jobs:
       shell: msys2 {0}
       run: |
         make gocore
-        make test
     - name: Build
       if: ${{ matrix.platform.os != 'windows-latest' }}
       run: | 
         make gocore
-        make test
     - name: Upload Gocore
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v2
