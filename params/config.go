@@ -309,5 +309,5 @@ func (err *ConfigCompatError) Error() string {
 var (
 	DevinOldEcrecoverBlockNum int64 = 3500000
 
-	ZeroNetworkIDCheckBlockTimestamp   int64 = 1695284906
+	ZeroNetworkIDCheckBlockTimestamp   int64 = 1695548979 // 5835586 Blocknum in Devin
 )

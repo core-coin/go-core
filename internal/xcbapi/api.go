@@ -1608,10 +1608,6 @@ func (s *PublicTransactionPoolAPI) SendRawTransaction(ctx context.Context, encod
 	if err := rlp.DecodeBytes(encodedTx, tx); err != nil {
 		return common.Hash{}, err
 	}
-	// Set the network ID on the transaction if it's not already set.
-	networkID := s.b.ChainConfig().NetworkID
-	tx.SetNetworkID(uint(networkID.Uint64()))
-
 	return SubmitTransaction(ctx, s.b, tx)
 }
 
