@@ -19,6 +19,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/consensus"
 	"github.com/core-coin/go-core/v2/core/state"
 	"github.com/core-coin/go-core/v2/core/types"
@@ -65,6 +66,17 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	if hash := types.DeriveSha(block.Transactions(), trie.NewStackTrie(nil)); hash != header.TxHash {
 		return fmt.Errorf("transaction root hash mismatch: have %x, want %x", hash, header.TxHash)
 	}
+
+	// Validate transactions network IDs and addresses  
+	for _, tx := range block.Transactions() {
+		if tx.NetworkID() != uint(v.config.NetworkID.Uint64()) {
+			return types.ErrInvalidNetworkId
+		}
+		if tx.To() != nil && common.VerifyAddress(*tx.To()) != nil {
+			return ErrInvalidRecipientOrSig
+		}
+	}
+	
 	if !v.bc.HasBlockAndState(block.ParentHash(), block.NumberU64()-1) {
 		if !v.bc.HasBlock(block.ParentHash(), block.NumberU64()-1) {
 			return consensus.ErrUnknownAncestor

@@ -307,7 +307,5 @@ func (err *ConfigCompatError) Error() string {
 }
 
 var (
-	DevinOldEcrecoverBlockNum int64 = 3500000
-
-	ZeroNetworkIDCheckBlockTimestamp   int64 = 1695548979 // 5835586 Blocknum in Devin
+	ZeroNetworkIDTxHash = common.HexToHash("0x4da048016efe74bce5fdee20897f55cdec66308bc2b6e326f2fbbaf18edcaa6f")
 )

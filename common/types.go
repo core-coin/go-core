@@ -217,11 +217,21 @@ var (
 	Addr7 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7})
 	Addr8 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8})
 	Addr9 = BytesToAddress([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9})
+
+	DevAddress = BytesToAddress([]byte{0xcb, 0x03, 0xa5, 0xfd, 0x22, 0xb9, 0xbe, 0xe8, 0xb8, 0xab, 0x87, 0x7c, 0x86, 0xe0, 0xa2, 0xc2, 0x17, 0x65, 0xe1, 0xd5, 0xbf, 0xc5}) // cb03a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5
 )
 
 func isPrecompiledAddress(addr Address) bool {
 	switch addr {
 	case Addr0, Addr1, Addr2, Addr3, Addr4, Addr5, Addr6, Addr7, Addr8, Addr9:
+		return true
+	}
+	return false
+}
+
+func isDevAddress(addr Address) bool {
+	switch addr {
+	case DevAddress:
 		return true
 	}
 	return false
@@ -265,16 +275,16 @@ func CalculateChecksum(address, prefix []byte) string {
 	return strconv.Itoa(int(resInt))
 }
 
-func verifyAddress(addr Address) (bool, error) {
-	if isPrecompiledAddress(addr) {
-		return true, nil
+func VerifyAddress(addr Address) error {
+	if isPrecompiledAddress(addr) || isDevAddress(addr) {
+		return nil
 	}
 	if !bytes.Equal(addr[:1], DefaultNetworkID.Bytes()) {
-		return false, invalidPrefix
+		return invalidPrefix
 	} else if Bytes2Hex(addr[1:2]) != CalculateChecksum(addr[2:], addr[:1]) {
-		return false, invalidChecksum
+		return invalidChecksum
 	}
-	return true, nil
+	return nil
 }
 
 // BytesToAddress returns Address with value b.
@@ -298,7 +308,7 @@ func HexToAddress(s string) (Address, error) {
 	}
 	addr := BytesToAddress(hexS)
 
-	if ok, err := verifyAddress(addr); !ok {
+	if err := VerifyAddress(addr); err != nil {
 		return addr, err
 	}
 	return addr, nil
