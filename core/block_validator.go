@@ -69,7 +69,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 
 	// Validate transactions network IDs and addresses  
 	for _, tx := range block.Transactions() {
-		if tx.NetworkID() != uint(v.config.NetworkID.Uint64()) {
+		if tx.Hash().Hex() != params.ZeroNetworkIDTxHash.Hex() && tx.NetworkID() != uint(v.config.NetworkID.Uint64()) {
 			return types.ErrInvalidNetworkId
 		}
 		if tx.To() != nil && common.VerifyAddress(*tx.To()) != nil {
