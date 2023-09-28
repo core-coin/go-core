@@ -28,7 +28,7 @@ import (
 // Genesis hashes to enforce below configs on.
 var (
 	MainnetGenesisHash = common.HexToHash("0xacecc18e30188588d4932a29df096198bbbe01a955f05ecd32489a7740a9a13b")
-	DevinGenesisHash   = common.HexToHash("0x606d459cf17498583aa57713638cd1dd66ffbc2dc0addc232bc227a98cf00a5d")
+	DevinGenesisHash   = common.HexToHash("0x468448db28f988db294892b0eea2d8de51d915c7c0f4a4b4abfeb3502f80237f")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -307,7 +307,5 @@ func (err *ConfigCompatError) Error() string {
 }
 
 var (
-	DevinOldEcrecoverBlockNum int64 = 3500000
-
-	ZeroNetworkIDCheckBlockTimestamp   int64 = 1695548979 // 5835586 Blocknum in Devin
+	ZeroNetworkIDTxHash = common.HexToHash("0x4da048016efe74bce5fdee20897f55cdec66308bc2b6e326f2fbbaf18edcaa6f")
 )

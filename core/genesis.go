@@ -365,7 +365,7 @@ func DefaultDevinGenesisBlock() *Genesis {
 // DeveloperGenesisBlock returns the 'gocore --dev' genesis block.
 func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	// Override the default period to the user requested one
-	config := *params.TestChainConfig
+	config := *params.MainnetChainConfig
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{

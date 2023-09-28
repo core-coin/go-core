@@ -123,7 +123,7 @@ func makeBenchBlock() *Block {
 		key, _   = crypto.GenerateKey(crand.Reader)
 		txs      = make([]*Transaction, 70)
 		receipts = make([]*Receipt, len(txs))
-		signer   = NewNucleusSigner(params.TestChainConfig.NetworkID)
+		signer   = NewNucleusSigner(params.MainnetChainConfig.NetworkID)
 		uncles   = make([]*Header, 3)
 	)
 	header := &Header{

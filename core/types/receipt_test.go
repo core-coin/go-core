@@ -18,6 +18,7 @@ package types
 
 import (
 	"bytes"
+	crand "crypto/rand"
 	"math"
 	"math/big"
 	"reflect"
@@ -165,28 +166,41 @@ func TestDeriveFields(t *testing.T) {
 		NewContractCreation(1, big.NewInt(1), 1, big.NewInt(1), nil),
 		NewTransaction(2, addr, big.NewInt(2), 2, big.NewInt(2), nil),
 	}
-	// Create the corresponding receipts
+	
+	priv, _ := crypto.GenerateKey(crand.Reader)
+	txs[0], _ = SignTx(txs[0], MakeSigner(big.NewInt(1)), priv)
+	txs[1], _ = SignTx(txs[1], MakeSigner(big.NewInt(1)), priv)
+
+	addr1, _ := common.HexToAddress("cb661100000000000000000000000000000000000000")
+	addr2, _ := common.HexToAddress("cb150111000000000000000000000000000000000000")
+	addr3, _ := common.HexToAddress("cb810111110000000000000000000000000000000000")
+
+
+	addr4, _ := common.HexToAddress("cb782200000000000000000000000000000000000000")
+	addr5, _ := common.HexToAddress("cb730222000000000000000000000000000000000000")
+	addr6, _ := common.HexToAddress("cb110222220000000000000000000000000000000000")
+	// Create the corresponding receipts  
 	receipts := Receipts{
 		&Receipt{
 			Status:               ReceiptStatusFailed,
 			CumulativeEnergyUsed: 1,
 			Logs: []*Log{
-				{Address: common.BytesToAddress([]byte{0x11})},
-				{Address: common.BytesToAddress([]byte{0x01, 0x11})},
+				{Address: addr1},
+				{Address: addr2},
 			},
 			TxHash:          txs[0].Hash(),
-			ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
+			ContractAddress: addr3,
 			EnergyUsed:      1,
 		},
 		&Receipt{
 			PostState:            common.Hash{2}.Bytes(),
 			CumulativeEnergyUsed: 3,
 			Logs: []*Log{
-				{Address: common.BytesToAddress([]byte{0x22})},
-				{Address: common.BytesToAddress([]byte{0x02, 0x22})},
+				{Address: addr4},
+				{Address: addr5},
 			},
 			TxHash:          txs[1].Hash(),
-			ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
+			ContractAddress: addr6,
 			EnergyUsed:      2,
 		},
 	}
@@ -195,11 +209,11 @@ func TestDeriveFields(t *testing.T) {
 	hash := common.BytesToHash([]byte{0x03, 0x14})
 
 	clearComputedFieldsOnReceipts(t, receipts)
-	if err := receipts.DeriveFields(params.TestChainConfig, hash, number.Uint64(), txs); err != nil {
+	if err := receipts.DeriveFields(params.MainnetChainConfig, hash, number.Uint64(), txs); err != nil {
 		t.Fatalf("DeriveFields(...) = %v, want <nil>", err)
 	}
 	// Iterate over all the computed fields and check that they're correct
-	signer := MakeSigner(params.TestChainConfig.NetworkID)
+	signer := MakeSigner(params.MainnetChainConfig.NetworkID)
 
 	logIndex := uint(0)
 	for i := range receipts {

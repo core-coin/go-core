@@ -56,8 +56,8 @@ var (
 	// within the pool.
 	ErrAlreadyKnown = errors.New("already known")
 
-	// ErrInvalidSender is returned if the transaction contains an invalid signature.
-	ErrInvalidSender = errors.New("invalid sender")
+	// ErrInvalidRecipientOrSig is returned if the transaction contains an invalid signature.
+	ErrInvalidRecipientOrSig = errors.New("invalid signature or recipient")
 
 	// ErrUnderpriced is returned if a transaction's energy price is below the minimum
 	// configured for the transaction pool.
@@ -531,7 +531,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
-		return ErrInvalidSender
+		return ErrInvalidRecipientOrSig
 	}
 	// Drop non-local transactions under our own minimal accepted energy price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
@@ -790,7 +790,7 @@ func (pool *TxPool) addTxs(txs []*types.Transaction, local, sync bool) []error {
 		// obtaining lock
 		_, err := types.Sender(pool.signer, tx)
 		if err != nil {
-			errs[i] = ErrInvalidSender
+			errs[i] = ErrInvalidRecipientOrSig
 			invalidTxMeter.Mark(1)
 			continue
 		}

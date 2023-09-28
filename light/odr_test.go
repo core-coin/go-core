@@ -173,7 +173,7 @@ func (callmsg) CheckNonce() bool { return false }
 
 func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain, lc *LightChain, bhash common.Hash) ([]byte, error) {
 	data := common.Hex2Bytes("60CD26850000000000000000000000000000000000000000000000000000000000000000")
-	config := params.TestChainConfig
+	config := params.MainnetChainConfig
 
 	var res []byte
 	for i := 0; i < 3; i++ {
@@ -211,7 +211,7 @@ func odrContractCall(ctx context.Context, db xcbdb.Database, bc *core.BlockChain
 }
 
 func testChainGen(i int, block *core.BlockGen) {
-	signer := types.NewNucleusSigner(params.TestChainConfig.NetworkID)
+	signer := types.NewNucleusSigner(params.MainnetChainConfig.NetworkID)
 	switch i {
 	case 0:
 		// In block 1, the test bank sends account #1 some core.
@@ -260,14 +260,14 @@ func testChainOdr(t *testing.T, protocol int, fn odrTestFn) {
 	)
 	gspec.MustCommit(ldb)
 	// Assemble the test environment
-	blockchain, _ := core.NewBlockChain(sdb, nil, params.TestChainConfig, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
-	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), sdb, 4, testChainGen)
+	blockchain, _ := core.NewBlockChain(sdb, nil, params.MainnetChainConfig, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
+	gchain, _ := core.GenerateChain(params.MainnetChainConfig, genesis, cryptore.NewFaker(), sdb, 4, testChainGen)
 	if _, err := blockchain.InsertChain(gchain); err != nil {
 		t.Fatal(err)
 	}
 
 	odr := &testOdr{sdb: sdb, ldb: ldb, indexerConfig: TestClientIndexerConfig}
-	lightchain, err := NewLightChain(odr, params.TestChainConfig, cryptore.NewFullFaker(), nil)
+	lightchain, err := NewLightChain(odr, params.MainnetChainConfig, cryptore.NewFullFaker(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

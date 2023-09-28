@@ -1200,8 +1200,7 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 	signer := types.NewNucleusSigner(networkID)
 	from, err := types.Sender(signer, tx)
 	if err != nil {
-		fmt.Println("newRPCTransaction error:", err)
-		tx.SetNetworkID(uint(networkID.Uint64()))
+		log.Error("newRPCTransaction signature or recipient error", "err", err)
 	}
 	result := &RPCTransaction{
 		From:        from,

@@ -76,15 +76,15 @@ var (
 func init() {
 	testTxPoolConfig = core.DefaultTxPoolConfig
 	testTxPoolConfig.Journal = ""
-	cryptoreChainConfig = params.TestChainConfig
-	cliqueChainConfig = params.TestChainConfig
+	cryptoreChainConfig = params.MainnetChainConfig
+	cliqueChainConfig = params.MainnetChainConfig
 	cliqueChainConfig.Clique = &params.CliqueConfig{
 		Period: 10,
 		Epoch:  30000,
 	}
-	tx1, _ := types.SignTx(types.NewTransaction(0, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
+	tx1, _ := types.SignTx(types.NewTransaction(0, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.MainnetChainConfig.NetworkID), testBankKey)
 	pendingTxs = append(pendingTxs, tx1)
-	tx2, _ := types.SignTx(types.NewTransaction(1, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
+	tx2, _ := types.SignTx(types.NewTransaction(1, testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.MainnetChainConfig.NetworkID), testBankKey)
 	newTxs = append(newTxs, tx2)
 	rand.Seed(time.Now().UnixNano())
 }
@@ -169,9 +169,9 @@ func (b *testWorkerBackend) newRandomUncle() *types.Block {
 func (b *testWorkerBackend) newRandomTx(creation bool) *types.Transaction {
 	var tx *types.Transaction
 	if creation {
-		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankKey.Address()), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
+		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankKey.Address()), big.NewInt(0), testEnergy, nil, common.FromHex(testCode)), types.NewNucleusSigner(params.MainnetChainConfig.NetworkID), testBankKey)
 	} else {
-		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankKey.Address()), testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.TestChainConfig.NetworkID), testBankKey)
+		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankKey.Address()), testUserKey.Address(), big.NewInt(1000), params.TxEnergy, nil, nil), types.NewNucleusSigner(params.MainnetChainConfig.NetworkID), testBankKey)
 	}
 	return tx
 }
@@ -199,11 +199,11 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 		db          = rawdb.NewMemoryDatabase()
 	)
 	if isClique {
-		chainConfig = params.TestChainConfig
+		chainConfig = params.MainnetChainConfig
 		chainConfig.Clique = &params.CliqueConfig{Period: 1, Epoch: 30000}
 		engine = clique.New(chainConfig.Clique, db)
 	} else {
-		chainConfig = params.TestChainConfig
+		chainConfig = params.MainnetChainConfig
 		engine = cryptore.NewFaker()
 	}
 

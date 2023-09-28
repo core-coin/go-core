@@ -110,7 +110,7 @@ func prepare(n int, backend *backends.SimulatedBackend) {
 		switch i {
 		case 0:
 			// deploy checkpoint contract
-			auth, _ := bind.NewKeyedTransactorWithNetworkID(bankKey, big.NewInt(1337))
+			auth, _ := bind.NewKeyedTransactorWithNetworkID(bankKey, big.NewInt(1))
 			registrarAddr, _, _, _ = contract.DeployCheckpointOracle(auth, backend, []common.Address{signerKey.Address()}, sectionSize, processConfirms, big.NewInt(1))
 			// bankUser transfers some core to user1
 			nonce, _ := backend.PendingNonceAt(ctx, bankKey.Address())
@@ -230,7 +230,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db xcbdb.Database, clock mclock.Clock) (*serverHandler, *backends.SimulatedBackend) {
 	var (
 		gspec = core.Genesis{
-			Config:      params.TestChainConfig,
+			Config:      params.MainnetChainConfig,
 			Alloc:       core.GenesisAlloc{bankKey.Address(): {Balance: bankFunds}},
 			EnergyLimit: 100000000,
 		}
@@ -512,7 +512,7 @@ func newClientServerEnv(t *testing.T, blocks int, protocol int, callback indexer
 		clock = &mclock.Simulated{}
 	}
 	dist := newRequestDistributor(speers, clock)
-	rm := newRetrieveManager(speers, dist, func() time.Duration { return time.Millisecond * 500 })
+	rm := newRetrieveManager(speers, dist, func() time.Duration { return time.Millisecond * 1000 })
 	odr := NewLesOdr(cdb, light.TestClientIndexerConfig, rm)
 
 	sindexers := testIndexers(sdb, nil, light.TestServerIndexerConfig, true)
