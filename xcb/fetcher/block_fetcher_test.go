@@ -47,12 +47,12 @@ var (
 // contains a transaction and every 5th an uncle to allow testing correct block
 // reassembly.
 func makeChain(n int, seed byte, parent *types.Block) ([]common.Hash, map[common.Hash]*types.Block) {
-	blocks, _ := core.GenerateChain(params.TestChainConfig, parent, cryptore.NewFaker(), testdb, n, func(i int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(params.MainnetChainConfig, parent, cryptore.NewFaker(), testdb, n, func(i int, block *core.BlockGen) {
 		block.SetCoinbase(common.Address{seed})
 
 		// If the block number is multiple of 3, send a bonus transaction to the miner
 		if parent == genesis && i%3 == 0 {
-			signer := types.MakeSigner(params.TestChainConfig.NetworkID)
+			signer := types.MakeSigner(params.MainnetChainConfig.NetworkID)
 			tx, err := types.SignTx(types.NewTransaction(block.TxNonce(testKey.Address()), common.Address{seed}, big.NewInt(1000), params.TxEnergy, nil, nil), signer, testKey)
 			if err != nil {
 				panic(err)

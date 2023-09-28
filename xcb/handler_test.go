@@ -279,7 +279,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	acc1Key, _ := crypto.UnmarshalPrivateKeyHex("7db3f59e4badffb6ca7dfafd74f079403831d43f2f2b9a32988d05e859b8ed9e98d9a22439b455bc13e852f95a6386fbf692021fbd149ad23c")
 	acc2Key, _ := crypto.UnmarshalPrivateKeyHex("4485aa768e5a88e04636984ced4bac88ddb67356b1ea647cf30107ebd229b04bb9bfa6674978aed2a73b8a598c84a544153628fa28ccc1c840")
 
-	signer := types.NewNucleusSigner(big.NewInt(1337))
+	signer := types.NewNucleusSigner(big.NewInt(1))
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {
@@ -374,7 +374,7 @@ func testGetReceipt(t *testing.T, protocol int) {
 	acc1Key, _ := crypto.UnmarshalPrivateKeyHex("7db3f59e4badffb6ca7dfafd74f079403831d43f2f2b9a32988d05e859b8ed9e98d9a22439b455bc13e852f95a6386fbf692021fbd149ad23c")
 	acc2Key, _ := crypto.UnmarshalPrivateKeyHex("4485aa768e5a88e04636984ced4bac88ddb67356b1ea647cf30107ebd229b04bb9bfa6674978aed2a73b8a598c84a544153628fa28ccc1c840")
 
-	signer := types.NewNucleusSigner(big.NewInt(1337))
+	signer := types.NewNucleusSigner(big.NewInt(1))
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {

@@ -157,7 +157,7 @@ func createGQLService(t *testing.T, stack *node.Node, endpoint string) {
 		Cryptore: cryptore.Config{
 			PowMode: cryptore.ModeTest,
 		},
-		NetworkId:               1337,
+		NetworkId:               1,
 		TrieCleanCache:          5,
 		TrieCleanCacheJournal:   "triecache",
 		TrieCleanCacheRejournal: 60 * time.Minute,

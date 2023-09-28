@@ -40,11 +40,11 @@ import (
 // contain invalid transactions
 func TestStateProcessorErrors(t *testing.T) {
 	var (
-		signer     = types.NewNucleusSigner(big.NewInt(1337))
+		signer     = types.NewNucleusSigner(big.NewInt(1))
 		testKey, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 		db         = rawdb.NewMemoryDatabase()
 		gspec      = &Genesis{
-			Config: params.TestChainConfig,
+			Config: params.MainnetChainConfig,
 		}
 		genesis         = gspec.MustCommit(db)
 		blockchain, err = NewBlockChain(db, nil, gspec.Config, cryptore.NewFaker(), vm.Config{}, nil, nil)
@@ -69,31 +69,31 @@ func TestStateProcessorErrors(t *testing.T) {
 				makeTx(0, common.Address{}, big.NewInt(0), params.TxEnergy, nil, nil),
 				makeTx(0, common.Address{}, big.NewInt(0), params.TxEnergy, nil, nil),
 			},
-			want: "could not apply tx 1 [0x6525177df11954a61e2f7538b58c145fc32fd406e0403d560c8a4e7bc68fd936]: nonce too low: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e, tx: 0 state: 1",
+			want: "could not apply tx 1 [0xf8bc550eaed9cdbdee2897934410fbff78ba05f3cfa3d1cbc53ade58d6f91eea]: nonce too low: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e, tx: 0 state: 1",
 		},
 		{
 			txs: []*types.Transaction{
 				makeTx(100, common.Address{}, big.NewInt(0), params.TxEnergy, nil, nil),
 			},
-			want: "could not apply tx 0 [0x51be2588d67d8916e5eea2f02706cdfe9cc8400d78683ea121369ff2382fb4b5]: nonce too high: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e, tx: 100 state: 0",
+			want: "could not apply tx 0 [0xb0390f103112930b5f3105c7b4cf6f36ed5586d77654e28b97fa848c0dd1fde3]: nonce too high: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e, tx: 100 state: 0",
 		},
 		{
 			txs: []*types.Transaction{
 				makeTx(0, common.Address{}, big.NewInt(0), 21000000, nil, nil),
 			},
-			want: "could not apply tx 0 [0x4c4f73f64c4ed52fbc996c318443ed9853093be4b3467515ce4276c8db12d257]: energy limit reached",
+			want: "could not apply tx 0 [0x5b7c1c6a4531a327422151ab1fc7e62e67ae13456357bdf2ed14a6388bf4c23a]: energy limit reached",
 		},
 		{
 			txs: []*types.Transaction{
 				makeTx(0, common.Address{}, big.NewInt(1), params.TxEnergy, nil, nil),
 			},
-			want: "could not apply tx 0 [0x3325751de5ba3eb5e13a749b8f8d26c865bbd433eddf881fbb33b12ec884dbe5]: insufficient funds for transfer: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e",
+			want: "could not apply tx 0 [0x9eca1a545fea71373e72f0cfc881047b6c4b191160ba9e7a50fdf6775c228557]: insufficient funds for transfer: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e",
 		},
 		{
 			txs: []*types.Transaction{
 				makeTx(0, common.Address{}, big.NewInt(0), params.TxEnergy, big.NewInt(0xffffff), nil),
 			},
-			want: "could not apply tx 0 [0x2fcbc6ea0f0f35dd730f6ca030290064d442adc779ffd89ab8b26bef7ac77225]: insufficient funds for energy * price + value: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e have 0 want 352321515000",
+			want: "could not apply tx 0 [0x67c36b9e6c20ee836cbf7cd0f91ef407902cb33b2cb0529cb6ae5bf7c54fb7a4]: insufficient funds for energy * price + value: address cb53c378bf81ade6f8e505ac7c298c84f7709f9b5a4e have 0 want 352321515000",
 		},
 		{
 			txs: []*types.Transaction{
@@ -102,7 +102,7 @@ func TestStateProcessorErrors(t *testing.T) {
 				makeTx(2, common.Address{}, big.NewInt(0), params.TxEnergy, nil, nil),
 				makeTx(3, common.Address{}, big.NewInt(0), params.TxEnergy-1000, big.NewInt(0), nil),
 			},
-			want: "could not apply tx 3 [0x9adbf986d47b21a49e2fac59e20481bf50e66ffdffad2739dc09499b0a3b5b62]: intrinsic energy too low: have 20000, want 21000",
+			want: "could not apply tx 3 [0x3590cc281751dce7f99b3cc2a32f74367353236004c9b0491aa05a37500e52fe]: intrinsic energy too low: have 20000, want 21000",
 		},
 		// The last 'core' error is ErrEnergyUintOverflow: "energy uint64 overflow", but in order to
 		// trigger that one, we'd have to allocate a _huge_ chunk of data, such that the
@@ -127,7 +127,7 @@ func GenerateBadBlock(parent *types.Block, engine consensus.Engine, txs types.Tr
 	header := &types.Header{
 		ParentHash: parent.Hash(),
 		Coinbase:   parent.Coinbase(),
-		Difficulty: engine.CalcDifficulty(&fakeChainReader{params.TestChainConfig}, parent.Time()+10, &types.Header{
+		Difficulty: engine.CalcDifficulty(&fakeChainReader{params.MainnetChainConfig}, parent.Time()+10, &types.Header{
 			Number:     parent.Number(),
 			Time:       parent.Time(),
 			Difficulty: parent.Difficulty(),

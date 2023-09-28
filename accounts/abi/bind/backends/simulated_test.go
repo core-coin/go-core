@@ -40,7 +40,7 @@ import (
 func TestSimulatedBackend(t *testing.T) {
 	var energyLimit uint64 = 8000029
 	key, _ := crypto.GenerateKey(crand.Reader) // nolint: gosec
-	auth, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1))
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 	sim := NewSimulatedBackend(genAlloc, energyLimit)
@@ -119,12 +119,12 @@ func TestNewSimulatedBackend(t *testing.T) {
 	sim := simTestBackend(testKey.Address())
 	defer sim.Close()
 
-	if sim.config != params.TestChainConfig {
-		t.Errorf("expected sim config to equal params.TestChainConfig, got %v", sim.config)
+	if sim.config != params.MainnetChainConfig {
+		t.Errorf("expected sim config to equal params.MainnetChainConfig, got %v", sim.config)
 	}
 
-	if sim.blockchain.Config() != params.TestChainConfig {
-		t.Errorf("expected sim blockchain config to equal params.TestChainConfig, got %v", sim.config)
+	if sim.blockchain.Config() != params.MainnetChainConfig {
+		t.Errorf("expected sim blockchain config to equal params.MainnetChainConfig, got %v", sim.config)
 	}
 
 	stateDB, _ := sim.blockchain.State()
@@ -405,7 +405,7 @@ func TestSimulatedBackend_EstimateEnergy(t *testing.T) {
 
 	key, _ := crypto.GenerateKey(crand.Reader)
 	addr := key.Address()
-	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1337))
+	opts, _ := bind.NewKeyedTransactorWithNetworkID(key, big.NewInt(1))
 
 	sim := NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Core)}}, 10000000)
 	defer sim.Close()
@@ -880,7 +880,7 @@ func TestSimulatedBackend_PendingCodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -916,7 +916,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
+	auth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
 	contractAddr, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v tx: %v contract: %v", err, tx, contract)
@@ -949,7 +949,7 @@ func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
+	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
 	addr, _, _, err := bind.DeployContract(contractAuth, parsed, common.FromHex(abiBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v", err)
@@ -1036,7 +1036,7 @@ func TestSimulatedBackend_CallContractRevert(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not get code at test addr: %v", err)
 	}
-	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1337))
+	contractAuth, _ := bind.NewKeyedTransactorWithNetworkID(testKey, big.NewInt(1))
 	addr, _, _, err := bind.DeployContract(contractAuth, parsed, common.FromHex(reverterBin), sim)
 	if err != nil {
 		t.Errorf("could not deploy contract: %v", err)

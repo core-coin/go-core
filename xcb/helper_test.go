@@ -58,7 +58,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func
 		engine = cryptore.NewFaker()
 		db     = rawdb.NewMemoryDatabase()
 		gspec  = &core.Genesis{
-			Config: params.TestChainConfig,
+			Config: params.MainnetChainConfig,
 			Alloc:  core.GenesisAlloc{testBankKey.Address(): {Balance: big.NewInt(1000000)}},
 		}
 		genesis       = gspec.MustCommit(db)

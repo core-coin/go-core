@@ -404,7 +404,7 @@ func TestClique(t *testing.T) {
 		genesis.Commit(db)
 
 		// Assemble a chain of headers from the cast votes
-		config := *params.TestChainConfig
+		config := *params.MainnetChainConfig
 		config.Clique = &params.CliqueConfig{
 			Period: 1,
 			Epoch:  tt.epoch,

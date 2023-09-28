@@ -640,7 +640,7 @@ func testSnapshot(t *testing.T, tt *snapshotTest) {
 	if err != nil {
 		t.Fatalf("Failed to create chain: %v", err)
 	}
-	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, gendb, tt.chainBlocks, func(i int, b *BlockGen) {})
+	blocks, _ := GenerateChain(params.MainnetChainConfig, genesis, engine, gendb, tt.chainBlocks, func(i int, b *BlockGen) {})
 
 	// Insert the blocks with configured settings.
 	var breakpoints []uint64
@@ -709,7 +709,7 @@ func testSnapshot(t *testing.T, tt *snapshotTest) {
 	} else if tt.gapped > 0 {
 		// Insert blocks without enabling snapshot if gapping is required.
 		chain.Stop()
-		gappedBlocks, _ := GenerateChain(params.TestChainConfig, blocks[len(blocks)-1], engine, gendb, tt.gapped, func(i int, b *BlockGen) {})
+		gappedBlocks, _ := GenerateChain(params.MainnetChainConfig, blocks[len(blocks)-1], engine, gendb, tt.gapped, func(i int, b *BlockGen) {})
 
 		// Insert a few more blocks without enabling snapshot
 		var cacheConfig = &CacheConfig{
@@ -746,7 +746,7 @@ func testSnapshot(t *testing.T, tt *snapshotTest) {
 		chain.Stop()
 
 		// Restart chain, forcibly flush the disk layer journal with new format
-		newBlocks, _ := GenerateChain(params.TestChainConfig, blocks[len(blocks)-1], engine, gendb, tt.restartCrash, func(i int, b *BlockGen) {})
+		newBlocks, _ := GenerateChain(params.MainnetChainConfig, blocks[len(blocks)-1], engine, gendb, tt.restartCrash, func(i int, b *BlockGen) {})
 		chain, err = NewBlockChain(db, cacheConfig, params.MainnetChainConfig, engine, vm.Config{}, nil, nil)
 		if err != nil {
 			t.Fatalf("Failed to recreate chain: %v", err)
