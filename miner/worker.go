@@ -488,7 +488,11 @@ func (w *worker) mainLoop() {
 
 				txs := make(map[common.Address]types.Transactions)
 				for _, tx := range ev.Txs {
-					acc, _ := types.Sender(w.current.signer, tx)
+					acc, err := types.Sender(w.current.signer, tx)
+					if err != nil {
+						log.Error("Bad recipient address or signature", "err", err)
+						continue
+					}
 					txs[acc] = append(txs[acc], tx)
 				}
 				txset := types.NewTransactionsByPriceAndNonce(w.current.signer, txs)
@@ -775,11 +779,13 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		if tx == nil {
 			break
 		}
-		// Error may be ignored here. The error has already been checked
-		// during transaction acceptance is the transaction pool.
-		//
-		// We use the cip155 signer regardless of the current hf.
-		from, _ := types.Sender(w.current.signer, tx)
+
+		from, err := types.Sender(w.current.signer, tx)
+		if err != nil {
+			log.Error("Bad transaction recipient or signature", "err", err)
+			txs.Shift()
+			continue
+		}
 		// Start executing the transaction
 		w.current.state.Prepare(tx.Hash(), common.Hash{}, w.current.tcount)
 

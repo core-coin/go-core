@@ -46,20 +46,20 @@ func getBlock(transactions int, uncles int, dataSize int) *types.Block {
 		key, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 		funds  = big.NewInt(1000000000)
 		gspec  = &Genesis{
-			Config: params.TestChainConfig,
+			Config: params.MainnetChainConfig,
 			Alloc:  GenesisAlloc{key.Address(): {Balance: funds}},
 		}
 		genesis = gspec.MustCommit(db)
 	)
 
 	// We need to generate as many blocks +1 as uncles
-	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, uncles+1,
+	blocks, _ := GenerateChain(params.MainnetChainConfig, genesis, engine, db, uncles+1,
 		func(n int, b *BlockGen) {
 			if n == uncles {
 				// Add transactions and stuff on the last block
 				for i := 0; i < transactions; i++ {
 					tx, _ := types.SignTx(types.NewTransaction(uint64(i), aa,
-						big.NewInt(0), 50000, big.NewInt(1), make([]byte, dataSize)), types.NewNucleusSigner(big.NewInt(1337)), key)
+						big.NewInt(0), 50000, big.NewInt(1), make([]byte, dataSize)), types.NewNucleusSigner(big.NewInt(1)), key)
 					b.AddTx(tx)
 				}
 				for i := 0; i < uncles; i++ {

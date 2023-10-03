@@ -42,8 +42,8 @@ func TestNodeIterator(t *testing.T) {
 		genesis = gspec.MustCommit(fulldb)
 	)
 	gspec.MustCommit(lightdb)
-	blockchain, _ := core.NewBlockChain(fulldb, nil, params.TestChainConfig, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
-	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, cryptore.NewFaker(), fulldb, 4, testChainGen)
+	blockchain, _ := core.NewBlockChain(fulldb, nil, params.MainnetChainConfig, cryptore.NewFullFaker(), vm.Config{}, nil, nil)
+	gchain, _ := core.GenerateChain(params.MainnetChainConfig, genesis, cryptore.NewFaker(), fulldb, 4, testChainGen)
 	if _, err := blockchain.InsertChain(gchain); err != nil {
 		panic(err)
 	}

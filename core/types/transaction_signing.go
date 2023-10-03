@@ -112,10 +112,15 @@ func (s NucleusSigner) Equal(s2 Signer) bool {
 }
 
 func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
-	if tx.time.Unix() > params.ZeroNetworkIDCheckBlockTimestamp || (tx.data.NetworkID != 0 && s.NetworkID() != 0) {
-		if tx.data.NetworkID != uint(s.networkId.Int64()) {
-			return common.Address{}, ErrInvalidNetworkId
+	if tx.data.Recipient != nil {
+		err := common.VerifyAddress(*tx.data.Recipient)
+		if err != nil {
+			return common.Address{}, err
 		}
+	}
+	
+	if tx.Hash().Hex() != params.ZeroNetworkIDTxHash.Hex() && tx.data.NetworkID != uint(s.networkId.Int64()) {
+		return common.Address{}, ErrInvalidNetworkId
 	}
 	return recoverPlain(s, tx)
 }

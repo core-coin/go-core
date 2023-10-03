@@ -60,7 +60,7 @@ func newTestBackend(t *testing.T) *testBackend {
 	var (
 		key, _ = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 		gspec  = &core.Genesis{
-			Config: params.TestChainConfig,
+			Config: params.MainnetChainConfig,
 			Alloc:  core.GenesisAlloc{key.Address(): {Balance: big.NewInt(math.MaxInt64)}},
 		}
 		signer = types.NewNucleusSigner(gspec.Config.NetworkID)
@@ -74,7 +74,7 @@ func newTestBackend(t *testing.T) *testBackend {
 		t.Error(err)
 	}
 	// Generate testing blocks
-	blocks, _ := core.GenerateChain(params.TestChainConfig, genesis, engine, db, 32, func(i int, b *core.BlockGen) {
+	blocks, _ := core.GenerateChain(params.MainnetChainConfig, genesis, engine, db, 32, func(i int, b *core.BlockGen) {
 		b.SetCoinbase(common.Address{1})
 		tx, err := types.SignTx(types.NewTransaction(b.TxNonce(key.Address()), address, big.NewInt(100), 21000, big.NewInt(int64(i+1)*params.Nucle), nil), signer, key)
 		if err != nil {
@@ -85,7 +85,7 @@ func newTestBackend(t *testing.T) *testBackend {
 	// Construct testing chain
 	diskdb := rawdb.NewMemoryDatabase()
 	gspec.Commit(diskdb)
-	chain, err := core.NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{}, nil, nil)
+	chain, err := core.NewBlockChain(diskdb, nil, params.MainnetChainConfig, engine, vm.Config{}, nil, nil)
 	if err != nil {
 		t.Fatalf("Failed to create local chain, %v", err)
 	}
