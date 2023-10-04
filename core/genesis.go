@@ -354,8 +354,8 @@ func DefaultDevinGenesisBlock() *Genesis {
 	return &Genesis{
 		Coinbase:    DefaultCoinbaseDevin,
 		Config:      params.DevinChainConfig,
-		Difficulty:  big.NewInt(1000000),
-		Timestamp:   1651833293,
+		Difficulty:  big.NewInt(32000),
+		Timestamp:   1696411912,
 		Nonce:       0x000000000003,
 		EnergyLimit: 14700000,
 		Alloc:       decodePrealloc(devinAllocData),
