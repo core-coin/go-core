@@ -1,14 +1,15 @@
 ## Go Core
 
-Official Golang implementation of the CORE protocol.
+CORE protocol — Official Golang implementation.
 
-Automated builds are available for stable releases and the unstable master branch. Binary archives are published at [CORE website > downloads](https://coreblockchain.cc/download).
+The stable releases and the unstable master branch of the automated builds are both accessible in binary packages at [CORE website > downloads](https://coreblockchain.net/download).
 
-## Building the source
+## Source Building
 
-Building `gocore` requires both a Go (version 1.14 or later) and C/C++ compiler. You can install them using your favorite package manager. Once the dependencies are installed, run
+To build `gocore`, it is necessary to download a Go (version 1.14 or later) and C/C++ compiler. Any package manager is capable of installing these onto your device. Once installed, run
 
 ### To build gocore on Linux or Mac
+
 ```shell
 make gocore
 ```
@@ -20,7 +21,8 @@ make all
 ```
 
 ### To build or run on Windows
-**Note: It is important to note that gocore requires mingw to run and build on Windows**
+
+**Note: It is important to note that gocore requires mingw to run and be built on Windows.**
 
 To install mingw:
 ```shell
@@ -39,54 +41,53 @@ Privatenets | CE | 44 | hh!kk!hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh!
 
 ## Executables
 
-The go-core project comes with several wrappers/executables found in the `cmd`
-directory.
+Bellow, find the wrappers and executables in the `cmd` directory that the go-core project entails.
 
 Command | Description
 --- | ---
-gocore | Main Core CLI client. It is the entry point into the CORE network (main-, "testnets" or private net), capable of running as a full node (default), archive node (retaining all historical state), or a light node (retrieving data live). It can be used by other processes as a gateway into the CORE network via JSON RPC endpoints exposed on top of HTTP, WebSocket, and/or IPC transports. Type `gocore --help` for command-line options.
-abigen | Source code generator to convert CORE contract definitions into easy-to-use, compile-time type-safe Go packages. It operates on plain CORE contract ABIs with expanded functionality if the contract bytecode is also available. However, it also accepts Ylem source files, making development much more streamlined.
-bootnode | Stripped down version of our CORE client implementation that only takes part in the network node discovery protocol, but does not run any of the higher-level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.
-cvm | Developer utility version of the CVM (CORE Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of CVM opcodes.
-gocorerpctest | Developer utility tool to support our core/rpc-test test suite which validates baseline conformity to the CORE JSON RPC specs.
-rlpdump | Developer utility tool to convert binary RLP (Recursive Length Prefix) dumps (data encoding used by the CORE protocol both network as well as consensus wise) to user-friendlier hierarchical representation.
+gocore | The main Core CLI client that provides the network with a point of entrance (mainnet, testnet, or private net), running as a full node (default), archive node (that maintains all historical states), or a light node (live data recollection). Capable of being utilized by other processes as a gateway into the CORE network via JSON RPC endpoints exposed on top of HTTP, WebSocket, and/or IPC transports. To access command-line options, type `gocore --help`.
+abigen | Generator of the source code capable of converting definitions of CORE contracts into user-friendly, compatible, and secure Go packages. Working with basic CORE contract ABIs, it offers enhanced features when accompanied by the contract bytecode. Additionally, it accommodates Ylem source files, simplifying the development process considerably.
+bootnode | This streamlined rendition of our CORE client implementation solely engages in the network node discovery protocol, abstaining from executing any of the more advanced application protocols. It serves as a nimble bootstrap node, facilitating the discovery of peers within private networks.
+cvm | An iteration tailored for developers, the CVM (CORE Virtual Machine) utility possesses the ability to execute bytecode snippets within a customizable environment and mode of execution, whose primary function is to enable precise, isolated debugging of CVM opcodes.
+gocorerpctest | A developer utility tool designed to bolster our core/rpc-test test suite, ensuring adherence to the fundamental specifications outlined in the CORE JSON RPC standards.
+rlpdump | A specialized developer tool that transforms binary RLP (Recursive Length Prefix) dumps — utilized by the CORE protocol in both network and consensus contexts — into a more intuitive, user-friendly hierarchical format.
 
 ### Full node on the main CORE network
 
-By far the most common scenario is people wanting to simply interact with the CORE network: create accounts; transfer funds; deploy and interact with contracts. For this particular use case, the user doesn't care about years-old historical data, so we can fast-sync quickly to the current state of the network. To do so:
+The prevalent scenario encountered involves individuals seeking basic interaction with the CORE network. This includes tasks such as setting up accounts, conducting fund transfers, and deploying or engaging with contracts. In this specific situation, there's no interest in delving into extensive historical data from years past. Therefore, a swift fast-sync to the present state of the network suffices. To initiate this process:
 
 ```shell
 $ gocore console
 ```
 
-This command will:
-* Start `gocore` in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to download more data in exchange for avoiding processing the entire history of the CORE network, which is very CPU intensive.
-* Startup `gocore`'s built-in interactive JavaScript console, (via the trailing `console` subcommand) through which you can invoke all official `web3` methods as well as `gocore`'s own management APIs. This tool is optional and if you leave it out you can always attach it to an already running `gocore` instance with `gocore attach`.
+Executing this directive will:
+* Initiate `gocore` in rapid synchronization mode (which is the default setting, but adjustable using the `--syncmode` parameter). This mode entails downloading more data in exchange for bypassing the processing of the complete historical record of the CORE network, a task demanding significant CPU resources.
+* Launch gocore's integrated interactive JavaScript console (accessed via the appended `console` subcommand). Through this interface, you gain the ability to call upon all official `web3` methods as well as gocore's proprietary management APIs. It's worth noting that this tool is discretionary, and if omitted, you can always link it to a currently active gocore instance using the command `gocore attach`.
 
-### A Full node on the Devin network (PoW)
+### A Full node on the Devín network (PoW)
 
-Transitioning towards developers, if you'd like to play around with creating CORE contracts, you almost certainly would like to do that without any real money involved until you get the hang of the entire system. In other words, instead of attaching to the main network, you want to join the test network (Devin) with your node, which is fully equivalent to the main network, but with play-Core only.
+For developers delving into CORE contract development, it's advisable to initially explore the process without the involvement of actual currency. Familiarity with the system is key before committing real resources. Rather than connecting to the primary network, consider affiliating your node with the test network known as Devín. This environment mirrors the main network in functionality but operates exclusively with simulated play-Core funds. This approach provides a secure space for developers to experiment and refine their contract-building skills without any financial risk. By engaging with the Devín test network, you're working in an environment that faithfully replicates the main network's capabilities, using play-Core as your testing currency. This way, you can gain proficiency and confidence in CORE contract creation before venturing into live transactions.
 
 ```shell
 $ gocore --devin console
 ```
 
-The `console` subcommand has the exact same meaning as above and they are equally useful on the devin too. Please see above for their explanations if you've skipped them here.
+Equally significant within the Devín network, the `console` subcommand retains its identical significance as previously outlined. Should you have overlooked the explanations provided here, we encourage you to refer back to the preceding content for a comprehensive understanding.
 
-Specifying the `--devin` flag, however, will reconfigure your `gocore` instance a bit:
+Let’s describe the `--devin` flag while reconfiguring your gocore instance:
 
-* Instead of using the default data directory (`~/core` on Linux for example), `gocore` will nest itself one level deeper into a `devin` subfolder (`~/core/devin` on Linux). Note, on OSX and Linux this also means that attaching to a running devin node requires the use of a custom endpoint since `gocore attach` will try to attach to a production node endpoint by default.
-* Instead of connecting to the main Core network, the client will connect to the test network, which uses different P2P bootnodes, different network IDs, and genesis states.
+* When opting for gocore, it veers from the standard data directory path, residing a level deeper within a devin subdirectory (such as `~/core/devin` on Linux, as opposed to the default `~/core`). It's essential to bear in mind that on both OSX and Linux platforms, this configuration necessitates the specification of a custom endpoint when attaching to a running devin node. This deviation arises because the default behavior of `gocore attach` is to seek a connection with a production node endpoint.
+* Furthermore, instead of interfacing with the primary Core network, the client seamlessly integrates with the test network. This transition entails a shift in P2P bootnodes, network IDs, and genesis states, ensuring a distinct environment tailored for testing and development purposes.
 
 ### Configuration
 
-As an alternative to passing the numerous flags to the `gocore` binary, you can also pass a configuration file via:
+Instead of burdening the `gocore` binary with an array of flags, there's an alternative approach. You can provide a configuration file using the following syntax:
 
 ```shell
 $ gocore --config /path/to/your_config.toml
 ```
 
-To get an idea of how the file should look like you can use the `dumpconfig` subcommand to export your existing configuration:
+For a visual reference on how the file's structure should be, consider using the `dumpconfig` subcommand. This enables you to export your current configuration effortlessly, even incorporating your preferred flags:
 
 ```shell
 $ gocore --your-favourite-flags dumpconfig
@@ -94,8 +95,7 @@ $ gocore --your-favourite-flags dumpconfig
 
 #### Docker quick start
 
-One of the quickest ways to get Core up and running on your machine is by using
-Docker:
+Swiftly initiating Core on your system can be effortlessly achieved through Docker. Execute the following command:
 
 ```shell
 docker run -d --name core-node -v /Users/robocop/core-coin:/root \
@@ -103,43 +103,45 @@ docker run -d --name core-node -v /Users/robocop/core-coin:/root \
            core-coin/client-go
 ```
 
-This will start `gocore` in fast-sync mode with a DB memory allowance of 1GB just as the above command does. It will also create a persistent volume in your home directory for saving your blockchain as well as map the default ports.
+This command not only initiates gocore in fast-sync mode with a 1GB DB memory allocation, mirroring the earlier approach, but also establishes a lasting volume in your home directory for preserving your blockchain data. Furthermore, it facilitates the mapping of default ports.
 
-Do not forget `--rpcaddr 0.0.0.0`, if you want to access RPC from other containers and/or hosts. By default, `gocore` binds to the local interface, and RPC endpoints are not accessible from the outside.
+It's crucial to remember to include `--rpcaddr 0.0.0.0` if you intend to access RPC from other containers or hosts. By default, gocore is bound to the local interface, restricting external accessibility to RPC endpoints.
 
 ### Programmatically interfacing gocore nodes
 
-As a developer, sooner rather than later you'll want to start interacting with `gocore` and the CORE network via your own programs and not manually through the console. To aid this, `gocore` has built-in support for JSON-RPC-based APIs and `gocore` specific APIs. These can be exposed via HTTP, WebSockets, and IPC (UNIX sockets on UNIX-based platforms, and named pipes on Windows).
+For developers, transitioning from manual console interaction to programmatic interfacing with gocore nodes is a natural progression. To facilitate this shift, gocore offers built-in support for APIs based on JSON-RPC, as well as specific gocore APIs. These interfaces can be accessed through HTTP, WebSockets, and IPC. The IPC interface is activated by default, granting access to the complete range of gocore APIs.
 
-The IPC interface is enabled by default and exposes all the APIs supported by `gocore`, whereas the HTTP and WS interfaces need to manually be enabled and only expose a subset of APIs due to security reasons. These can be turned on/off and configured as you'd expect.
+On the other hand, the HTTP and WS interfaces require manual activation and provide a limited subset of APIs due to security considerations. These interfaces can be toggled on or off and customized to suit your requirements.
 
-HTTP based JSON-RPC API options:
+If you opt for HTTP-based JSON-RPC API, you have a variety of options to configure:
 
-* `--rpc` Enable the HTTP-RPC server
-* `--rpcaddr` HTTP-RPC server listening interface (default: `localhost`)
-* `--rpcport` HTTP-RPC server listening port (default: `8545`)
-* `--rpcapi` API's offered over the HTTP-RPC interface (default: `xcb,net,web3`)
-* `--rpccorsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
-* `--ws` Enable the WS-RPC server
-* `--wsaddr` WS-RPC server listening interface (default: `localhost`)
-* `--wsport` WS-RPC server listening port (default: `8546`)
-* `--wsapi` API's offered over the WS-RPC interface (default: `xcb,net,web3`)
-* `--wsorigins` Origins from which to accept websockets requests
-* `--ipcdisable` Disable the IPC-RPC server
-* `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,xcb,miner,net,personal,txpool,web3`)
-* `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
+* `--rpc` Enables the HTTP-RPC server.
+* `--rpcaddr` Specifies the interface on which the HTTP-RPC server listens (default: `localhost`).
+* `--rpcport` Sets the port for the HTTP-RPC server (default: `8545`).
+* `--rpcapi` Defines the APIs accessible via the HTTP-RPC interface (default: `xcb,net,web3`).
+* `--rpccorsdomain` Designates a comma-separated list of domains from which cross-origin requests are accepted (subject to browser enforcement).
+* `--ws` Activates the WS-RPC server.
+* `--wsaddr` Specifies the interface for the WS-RPC server to listen on (default: `localhost`).
+* `--wsport` Sets the port for the WS-RPC server (default: `8546`).
+* `--wsapi` Specifies the APIs accessible through the WS-RPC interface (default: `xcb,net,web3`).
+* `--wsorigins` Indicates origins from which websocket requests are accepted.
+* `--ipcdisable` Disables the IPC-RPC server.
+* `--ipcapi` Specifies the APIs accessible via the IPC-RPC interface (default: `admin,debug,xcb,miner,net,personal,txpool,web3`).
+* `--ipcpath` Specifies the filename for the IPC socket/pipe within the datadir (explicit paths require escaping).
 
-You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect via HTTP, WS, or IPC to a `gocore` node configured with the above flags and you'll need to speak JSON-RPC on all transports. You can reuse the same connection for multiple requests!
+To establish connections via HTTP, WS, or IPC to a gocore node configured with these flags, you'll need to leverage the capabilities of your programming environment (libraries, tools, etc.) and communicate using JSON-RPC on all transports.
 
-**Note: Please understand the security implications of opening up an HTTP/WS-based transport before doing so! Hackers on the internet are actively trying to subvert CORE nodes with exposed APIs! Further, all browser tabs can access locally running web servers, so malicious web pages could try to subvert locally available APIs!**
+Importantly, you can reuse the same connection for multiple requests. It's crucial, however, to be mindful of the security implications of exposing an HTTP/WS-based transport, as there are active attempts by malicious actors to compromise CORE nodes with accessible APIs. 
 
-### Operating a private network
+Additionally, be aware that all browser tabs have access to locally running web servers, potentially opening avenues for malicious web pages to exploit locally available APIs.
 
-Maintaining your own private network is more involved as a lot of configurations taken for granted in the official networks need to be manually set up.
+### Private Network Operation
+
+Establishing and managing your private network requires a more hands-on approach, as many configurations typically handled automatically in official networks must now be set up manually.
 
 #### Defining the private genesis state
 
-First, you'll need to create the genesis state of your networks, which all nodes need to be aware of and agree upon. This consists of a small JSON file (e.g. call it `genesis.json`):
+The initial step involves crafting the genesis state for your network, a crucial consensus point that all nodes must acknowledge and concur upon. This involves creating a concise JSON file (let's name it `genesis.json`):
 
 ```json
 {
@@ -157,7 +159,7 @@ First, you'll need to create the genesis state of your networks, which all nodes
 }
 ```
 
-The above fields should be fine for most purposes, although we'd recommend changing the `nonce` to some random value so you prevent unknown remote nodes from being able to connect to you. If you'd like to pre-fund some accounts for easier testing, create the accounts and populate the `alloc` field with their addresses.
+While the provided fields suffice for most cases, it's advisable to alter the `nonce` to a random value to thwart potential connections from unknown remote nodes. If you wish to pre-fund specific accounts for streamlined testing, generate the accounts and populate the `alloc` field with their respective addresses:
 
 ```json
 {
@@ -172,93 +174,88 @@ The above fields should be fine for most purposes, although we'd recommend chang
 }
 ```
 
-With the genesis state defined in the above JSON file, you'll need to initialize **every** `gocore` node with it prior to starting it up to ensure all blockchain parameters are correctly set:
+After defining the genesis state in the provided JSON file, it's imperative to initialize every gocore node with this configuration before commencing operations to ensure all blockchain parameters are accurately configured:
 
 ```shell
 $ gocore init path/to/genesis.json
 ```
 
-#### Creating the rendezvous point
+#### Setting Up the Meeting Point
 
-With all nodes that you want to run initialized to the desired genesis state, you'll need to start a bootstrap node that others can use to find each other in your network and/or over the internet. The clean way is to configure and run a dedicated bootnode:
+After initializing all the nodes you intend to run with the desired genesis state, the next step is to launch a bootstrap node that others can utilize for discovering one another within your network or even over the internet. The preferred method is to configure and activate a dedicated bootnode:
 
 ```shell
 $ bootnode --genkey=boot.key
 $ bootnode --nodekey=boot.key
 ```
 
-With the bootnode online, it will display an `enode` URL that other nodes can use to connect to it and exchange peer information. Make sure to replace the displayed IP address information (most probably `[::]`) with your externally
-accessible IP to get the actual `enode` URL.
+With the bootnode now active, it will present an `enode` URL for other nodes to connect to and exchange peer details. Remember to substitute the IP address details displayed (most likely [::]) with your externally accessible IP to obtain the actual `enode` URL.
 
-*Note: You could also use a full-fledged `gocore` node as a bootnode, but it's the less recommended way.*
+*Note: While you could potentially utilize a fully-fledged gocore node as a bootnode, it's considered the less recommended approach.*
 
-#### Starting up your member nodes
+#### Launching Your Member Nodes
 
-With the bootnode operational and externally reachable (you can try
-`telnet <ip> <port>` to ensure it's indeed reachable), start every subsequent `gocore` node pointed to the bootnode for peer discovery via the `--bootnodes` flag. It will probably also be desirable to keep the data directory of your private network separated, so do also specify a custom `--datadir` flag.
+With the bootnode up and externally reachable (you can verify its accessibility with `telnet <ip> <port>`), initiate each subsequent gocore node directed towards the bootnode for peer discovery through the `--bootnodes` flag. It's also advisable to keep the data directory of your private network distinct, so be sure to specify a custom `--datadir` flag.
 
 ```shell
 $ gocore --datadir=path/to/custom/data/folder --bootnodes=<bootnode-enode-url-from-above>
 ```
 
-*Note: Since your network will be completely cut off from the main and test networks, you'll also need to configure a miner to process transactions and create new blocks for you.*
+*Note: Since your network will be completely isolated from the main and test networks, you'll also need to configure a miner to process transactions and generate new blocks for you.*
 
-#### Running a private miner
+#### Running a Private Miner
 
-In a private network setting, however, a single CPU miner instance is more than enough for practical purposes as it can produce a stable stream of blocks at the correct intervals without needing heavy resources (consider running on a single thread, no need for multiple ones either). To start a `gocore` instance for mining, run it with all your usual flags, extended by:
+In a private network context, a single CPU miner instance suffices for practical purposes as it can generate a steady flow of blocks at the appropriate intervals without requiring substantial resources (consider running on a single thread, multiple threads are unnecessary). To initiate a gocore instance for mining, run it with your customary flags, extended by:
 
 ```shell
 $ gocore <usual-flags> --mine --miner.threads=1 --corebase=ce450000000000000000000000000000000000000000
 ```
 
-Which will start mining blocks and transactions on a single CPU thread, crediting all proceedings to the account specified by `--corebase`. You can further tune the mining by changing the default energy limit blocks converge to (`--targetenergylimit`) and the price transactions are accepted at (`--energyprice`).
+This will commence mining blocks and transactions on a single CPU thread, attributing all earnings to the account specified by `--corebase`. Further adjustments to the mining process can be made by altering the default energy limit blocks converge to (`--targetenergylimit`) and the price at which transactions are accepted (`--energyprice`).
 
-#### Send the transaction
+#### Initiating the Transaction
 
-This is guide how to send the transaction with go-core client.
+Here's a guide on how to execute a transaction using the go-core client.
 
-- Start go-core Client
+- Launch the go-core Client
 
 `./gocore --verbosity 2 --nat any console`
 
-- Get latest transaction // for nonce [0x0] // 0 = first; 1 = second; …
-
-Same tx nonce with a higher fee may be a replacement.
+- Retrieve the Latest Transaction for Nonce [0x0] (0 for the first; 1 for the second; and so on)
+(Note: Transactions with the same nonce but a higher fee may serve as replacements)
 
 `web3.xcb.getTransactionCount("cb…")`
 
-> Expected result: number
+> Expected result: a number
 
-- Compose transaction
+- Compose the Transaction
 
-web3.toOre(1) is value in Cores
-
-energyPrice is the default in ores, default one nucle
+(Note: web3.toOre(1) represents the value in Cores)
 
 `var tx = {nonce: '0x0', energy: 21000, energyPrice: 1000000000, to : "cb…", value: web3.toOre(1), from: "cb…"}`
 
 > Expected result: undefined
 
-- Unlock account
+- Unlock the Account
 
 `personal.unlockAccount("cb…")`
 
-> Enter Passphrase or enter
+> Enter Passphrase or leave it blank.
 > Expected result: true
 
-- Sign transaction with the private key
+- Sign the Transaction with the Private Key
 
 `var txSigned = xcb.signTransaction(tx)`
 
 > Expected result: undefined
 
-- Return Raw transaction for streaming later
+- Obtain the Raw Transaction for future broadcasting
 
 `txSigned.raw`
 
 > Expected result: Raw transaction
 
-- Stream transaction (online)
+- Broadcast the Transaction (while online)
 
 `xcb.sendRawTransaction(txSigned.raw)`
 
@@ -285,21 +282,21 @@ S5 Note | Note about feature and/or code
 
 ## Contribution
 
-Thank you for considering helping out with the source code! We welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
+We greatly appreciate your interest in lending a hand to enhance the source code! We extend a warm welcome to contributions from individuals across the internet, and value even the tiniest of adjustments!
 
-If you'd like to contribute to go-core, please fork, fix, commit and send a pull request for the maintainers to review and merge into the main codebase. If you wish to submit more complex changes though, please check up with the core devs first on the [Core ◆ Talk](https://coretalk.info) to ensure those changes are in line with the general philosophy of the project and/or get some early feedback which can make both your efforts much lighter as well as our review and merge procedures quick and simple.
+If you're inclined to make a contribution to go-core, kindly commence by forking the repository, effecting the necessary fixes, committing your changes, and subsequently dispatching a pull request. This allows our maintainers to scrutinize and integrate your alterations into the primary codebase. However, if you plan to propose more intricate modifications, we recommend reaching out to the core developers first via the [Core ◆ Talk](https://coretalk.space) forum. This step ensures that your proposed changes align with the overarching philosophy of the project, and also grants you the opportunity to receive early feedback. This can streamline both your efforts and our subsequent review and integration procedures.
 
-Please make sure your contributions adhere to our coding guidelines:
+We kindly request that your contributions align with our coding principles:
 
-* Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting) guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
-* Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
-* Pull requests need to be based on and opened against the `master` branch.
-* Commit messages should be prefixed with the package(s) they modify.
-  * E.g. "xcb, rpc: make trace configs optional"
+* Code should conform to the established [Go formatting](https://golang.org/doc/effective_go.html#formatting) standards, as outlined in the official Go guidelines (i.e. it should be formatted using [gofmt](https://golang.org/cmd/gofmt)).
+* Code must be thoroughly documented, adhering to the official [Go commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
+* Pull requests should be established based on, and directed towards, the `master` branch.
+* Commit messages ought to be prefixed with the package(s) they pertain to.
+  * For instance, "xcb, rpc: implement optional trace configurations."
 
-## Security vulnerability disclosure
+## Security Declaration
 
-Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.cc/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities. For more information, please look into [Security recommendations](SECURITY.md).
+Please report suspected security vulnerabilities in private following the [Security manual](https://dev.coreblockchain.net/docs/bug). Do NOT create publicly viewable issues for suspected security vulnerabilities. For more information, please look into [Security recommendations](SECURITY.md).
 
 ## License
 
@@ -307,5 +304,5 @@ Licensed under the [CORE License](LICENSE).
 
 ## Community
 
-[![Developer Portal](https://img.shields.io/badge/Developer-dev.coreblockchain.cc-46b549)](https://dev.coreblockchain.cc/)
-[![Core ◆ Talk](https://img.shields.io/badge/Core%20%E2%97%86%20Talk-Protocol%20and%20Client-green)](https://coretalk.info/c/protocol-and-client/8/)
+[![Developer Portal](https://img.shields.io/badge/Developer-dev.coreblockchain.cc-46b549)](https://dev.coreblockchain.net/)
+[![Core ◆ Talk](https://img.shields.io/badge/Core%20%E2%97%86%20Talk-Protocol%20and%20Client-green)](https://coretalk.space)
