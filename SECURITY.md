@@ -1,17 +1,16 @@
 ## Introduction
 
-We in Core Blockchain want to engage with responsible security researchers around the globe to further secure the Blockchain environment.
-We developed a program to make it easier to report vulnerabilities to the Core Team and to recognize your efforts to make the Blockchain a secure and reliable technology.
+Core Blockchain aspires to engage with responsible global security experts to bolster the security of the Core Blockchain ecosystem. We've instituted a program to facilitate the reporting of vulnerabilities to the Core Team and to recognize your efforts in strengthening blockchain as a reliable and trustworthy technology.
 
-## Responsible Disclosure
+## Security Declaration
 
-The Core development team has up to 90 days to implement a fix based on the severity of the report. Please allow for this process to be fully completed before you publicly disclose the vulnerability.
+The Core development team's allocated time frame for implementing a solution varies according to the severity level indicated in the report, which can last up to 90 days. Kindly ensure this process has been concluded before bringing the vulnerability to public light.
 
 ## Rewards
 
-We are rewarding researchers that find bugs with a bounty of our digital currency, Core Coin (XCB). The amount of the award depends on the degree of severity of the vulnerability reported.
+In recognition of researchers uncovering systemic flaws, we extend bounties in our digital currency, Core Coin (XCB). The final sum of the reward is contingent upon the severity level of the reported vulnerability.
 
-We calculate rewards accordingly to the [OWASP](https://www.owasp.org/index.php/OWASP_Risk_Rating_Methodology) risk rating model based on Impact and Likelihood.
+The assessment of rewards in our system aligns with the [OWASP](https://www.owasp.org/index.php/OWASP_Risk_Rating_Methodology) risk rating model, which takes into account both impact and likelihood in the calculation process.
 
 | **Impact**   | **Severity**    | **Severity**    | **Severity**    |
 |--------------|-----------------|-----------------|-----------------|
@@ -23,43 +22,42 @@ We calculate rewards accordingly to the [OWASP](https://www.owasp.org/index.php/
 
 ## Eligibility
 
-Any bug that poses a significant vulnerability to the security or integrity of the Core Network could be eligible for a reward. However, it’s entirely at our discretion to decide whether a bug is significant enough to be eligible for a reward.
+In our assessment, a bug's potential to jeopardize the security or stability of the Core Network forms the basis for potential reward qualification. However, it ultimately falls under our purview to discern whether a bug aligns with the established criteria for reward eligibility.
 
-- You must be the first person to responsibly disclose an unknown issue.
-- You must report the bug via the latest version of the software.
-- Bug shouldn't be already discovered. Please, check [published security advisories](https://github.com/core-coin/go-core/security/advisories).
+- You must be the very first individual to ethically report a previously unknown problem.
+- The bug must be reported using the most recent software version.
+- Ensure the bug has not been previously identified. Please, review any [published security advisories](https://github.com/core-coin/go-core/security/advisories).
 
-In general, the following would not meet the threshold for severity:
+Generally, the following vulnerabilities are not considered severe and are, therefore, not eligible to report:
 
-- Recently disclosed 0-day vulnerabilities
-- Vulnerabilities on sites hosted by third parties, unless they lead to a vulnerability on the main website
-- Vulnerabilities contingent on physical attack, social engineering, spamming, DDOS attack, etc.
-- Vulnerabilities affecting outdated or unpatched browsers
-- Vulnerabilities in third-party applications that make use of Stellar’s API
-- Bugs that have not been responsibly investigated and reported
-- Bugs already known to us, or already reported by someone else (reward goes to the first reporter)
-- Issues that aren’t reproducible
-- Issues that we can’t reasonably be expected to do anything about
+- 0-day vulnerabilities that have just been released.
+- Vulnerabilities reliant on physical attacks, spamming, DDOS attacks, social engineering, etc.
+- Vulnerabilities on third-party hosted sites that are not proven prone to causing a vulnerability on a main-website scale.
+- Third-party application vulnerabilities utilizing Core Blockchain’s API.
+- Vulnerabilities found on past versions of or otherwise unpatched applications.
+- Flaws that have not been thoroughly investigated and have not been reported in a satisfying manner.
+- Issues with no successful reproducibility.
+- Bugs that the team had prior knowledge of or those previously reported by another party (the reward is granted to the initial reporter).
+- Vulnerabilities that the team cannot reasonably be expected to address.
 
 ## Severity
 
-The severity of a bug is taken into consideration when deciding the bounty payout amount. We consider how many people are affected as well if the core or additional modules are affected.
+The evaluation of a bug's severity plays a pivotal role in determining the monetary reward. Factors taken into account encompass the number of individuals affected and whether the core or supplementary modules are implicated.
 
 ## Best Practices
 
-- Please use your local instance of Go-core and a separate network (not test/public network) when searching for security bugs. Remember that blockchains are public and someone may see your findings and report a bug before you.
-- Step by step report (or an exploit script) is more than welcomed. It will allow us to understand and fix the issue faster and you will get your rewards more quickly.
+- Employ your localized Go-core instance alongside a distinct network (avoid the test or public networks) for scouring security vulnerabilities.
+- Keep in mind the public nature of blockchains; someone might chance upon your discoveries and report a bug ahead of you.
+- Providing a detailed step-by-step report or an exploit script is highly encouraged. This expedites our comprehension and resolution of the issue, ensuring you receive your rewards promptly.
 
 ## Legal
 
-You may not participate in this program if you are a resident or individual located within a country appearing on any EU sanctions lists.
-You are responsible for any tax implications or additional restrictions depending on your country and local law.
-We may modify the terms of this program or terminate this program at any time, but we won’t apply any changes we make to these program terms retroactively.
+Residents or individuals situated within countries listed on any EU sanctions roster are ineligible to partake in this program. It is incumbent upon you to account for any tax ramifications or supplementary constraints contingent on your country's specific laws and regulations. While we reserve the right to amend or conclude this program at any juncture, any alterations made to the program terms will not be applied retroactively.
 
-## Report Vulnerability
+## Vulnerability Reporting
 
-* Try to include as much information in your report as you can, including a description of the bug, its potential impact, and steps for reproducing it or proof of concept.
-* Compose your message in the English language.
-* Please allow 3 business days for us to respond before sending another email.
+- Ensure your report is comprehensive, encompassing details about the bug's nature, potential consequences, and instructions for reproduction or a proof of concept.
+- Express your message in English.
+- Kindly allow a period of three business days for our response before considering sending a follow-up email.
 
-[Report Vulnerability](https://dev.coreblockchain.cc/vulnerability-report)
+[Report Vulnerability](https://dev.coreblockchain.net/vulnerability-report)
