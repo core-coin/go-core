@@ -342,8 +342,8 @@ func DefaultGenesisBlock() *Genesis {
 		Coinbase:    DefaultCoinbaseMainnet,
 		Config:      params.MainnetChainConfig,
 		Timestamp:   1651833293,
-		Nonce:       71,
-		Difficulty:  big.NewInt(10000000),
+		Nonce:       72,
+		Difficulty:  big.NewInt(8192),
 		EnergyLimit: 14700000,
 		Alloc:       decodePrealloc(mainnetAllocData),
 	}
