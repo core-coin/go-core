@@ -62,7 +62,7 @@ If you want to encrypt an existing private key, it can be specified by setting
 	},
 	Action: func(ctx *cli.Context) error {
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 
 		// Check if keyfile path given and make sure it doesn't already exist.

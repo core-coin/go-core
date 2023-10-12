@@ -48,7 +48,7 @@ Change the password of a keyfile.`,
 		keyfilepath := ctx.Args().First()
 
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 		// Read key from file.
 		keyjson, err := ioutil.ReadFile(keyfilepath)

@@ -55,7 +55,7 @@ To sign a message contained in a file, use the --msgfile flag.
 	},
 	Action: func(ctx *cli.Context) error {
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 
 		message := getMessage(ctx, 1)
@@ -108,7 +108,7 @@ It is possible to refer to a file containing the message.`,
 	},
 	Action: func(ctx *cli.Context) error {
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 
 		addressStr := ctx.Args().First()

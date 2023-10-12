@@ -55,7 +55,7 @@ make sure to use this feature with great caution!`,
 	},
 	Action: func(ctx *cli.Context) error {
 		if ctx.IsSet(utils.NetworkIdFlag.Name) {
-			common.DefaultNetworkID = common.NetworkID(ctx.GlobalUint64(utils.NetworkIdFlag.Name))
+			common.DefaultNetworkID = common.NetworkID(ctx.Uint64(utils.NetworkIdFlag.Name))
 		}
 
 		keyfilepath := ctx.Args().First()
