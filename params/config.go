@@ -28,7 +28,7 @@ import (
 // Genesis hashes to enforce below configs on.
 var (
 	MainnetGenesisHash = common.HexToHash("0xacecc18e30188588d4932a29df096198bbbe01a955f05ecd32489a7740a9a13b")
-	DevinGenesisHash   = common.HexToHash("0x75819f1f5186624bdc0a8dbec59658f87c99447c56af69624dec59a24c4ac18e")
+	DevinGenesisHash   = common.HexToHash("0x2a92b248f5843827cbbd5045161cd6f294a154505ee1a14b607a2c26ffc6fddf")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -74,9 +74,9 @@ var (
 
 	// DevinTrustedCheckpoint contains the light client trusted checkpoint for the Devin test network.
 	DevinTrustedCheckpoint = &TrustedCheckpoint{
-		SectionIndex: 131,
-		SectionHead:  common.HexToHash("0xbfb8e778c05b7fb6aa934059cfe488a406f1d23525a149ba5de1854e5e8cf574"),
-		CHTRoot:      common.HexToHash("0x8851b783355fff515505af9559b29bddb72c410409b8292e41745834975cf6df"),
+		SectionIndex: 0,
+		SectionHead:  common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		CHTRoot:      common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		BloomRoot:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 	}
 
