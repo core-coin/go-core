@@ -152,9 +152,6 @@ func (api *SignerAPI) sign(req *SignDataRequest, legacyV bool) (hexutil.Bytes, e
 	if err != nil {
 		return nil, err
 	}
-	if legacyV {
-		signature[64] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-	}
 	return signature, nil
 }
 
