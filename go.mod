@@ -11,7 +11,7 @@ require (
 	github.com/cloudflare/cloudflare-go v0.10.2
 	github.com/core-coin/ed448 v1.0.2
 	github.com/core-coin/go-core v1.0.24-dev
-	github.com/core-coin/go-goldilocks v1.0.15
+	github.com/core-coin/go-goldilocks v1.0.16
 	github.com/core-coin/go-randomy v0.0.18
 	github.com/core-coin/uint256 v1.0.0
 	github.com/davecgh/go-spew v1.1.1
