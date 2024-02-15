@@ -25,6 +25,7 @@ import (
 	"reflect"
 
 	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/rpc"
 
 	"github.com/core-coin/go-core/v2/accounts"
 	"github.com/core-coin/go-core/v2/accounts/keystore"
@@ -144,23 +145,24 @@ func StartClefAccountManager(ksLocation string, lightKDF bool) *accounts.Manager
 
 // MetadataFromContext extracts Metadata from a given context.Context
 func MetadataFromContext(ctx context.Context) Metadata {
+	info := rpc.PeerInfoFromContext(ctx)
+
 	m := Metadata{"NA", "NA", "NA", "", ""} // batman
 
-	if v := ctx.Value("remote"); v != nil {
-		m.Remote = v.(string)
+	if info.Transport != "" {
+		if info.Transport == "http" {
+			m.Scheme = info.HTTP.Version
+		}
+		m.Scheme = info.Transport
 	}
-	if v := ctx.Value("scheme"); v != nil {
-		m.Scheme = v.(string)
+	if info.RemoteAddr != "" {
+		m.Remote = info.RemoteAddr
 	}
-	if v := ctx.Value("local"); v != nil {
-		m.Local = v.(string)
+	if info.HTTP.Host != "" {
+		m.Local = info.HTTP.Host
 	}
-	if v := ctx.Value("Origin"); v != nil {
-		m.Origin = v.(string)
-	}
-	if v := ctx.Value("User-Agent"); v != nil {
-		m.UserAgent = v.(string)
-	}
+	m.Origin = info.HTTP.Origin
+	m.UserAgent = info.HTTP.UserAgent
 	return m
 }
 

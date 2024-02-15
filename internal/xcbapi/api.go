@@ -1443,7 +1443,7 @@ type SendTxArgs struct {
 	EnergyPrice *hexutil.Big    `json:"energyPrice"`
 	Value       *hexutil.Big    `json:"value"`
 	Nonce       *hexutil.Uint64 `json:"nonce"`
-	NetworkID int64 `json:"network_id"`
+	NetworkID   int64           `json:"network_id"`
 	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`

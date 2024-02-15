@@ -534,7 +534,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	tx.SetNetworkID(uint(network_id.Int64()));
+	tx.SetNetworkID(uint(network_id.Int64()))
 	data, err := rlp.EncodeToBytes(tx)
 	if err != nil {
 		return err

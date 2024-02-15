@@ -1345,13 +1345,13 @@ func TestCIP155Transition(t *testing.T) {
 func TestCIP161AccountRemoval(t *testing.T) {
 	// Configure and generate a sample block chain
 	var (
-		db      = rawdb.NewMemoryDatabase()
-		key, _  = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
+		db         = rawdb.NewMemoryDatabase()
+		key, _     = crypto.UnmarshalPrivateKeyHex("89bdfaa2b6f9c30b94ee98fec96c58ff8507fabf49d36a6267e6cb5516eaa2a9e854eccc041f9f67e109d0eb4f653586855355c5b2b87bb313")
 		addrKey, _ = crypto.GenerateKey(crand.Reader)
-		address = key.Address()
-		funds   = big.NewInt(1000000000)
-		theAddr = addrKey.Address()
-		gspec   = &Genesis{
+		address    = key.Address()
+		funds      = big.NewInt(1000000000)
+		theAddr    = addrKey.Address()
+		gspec      = &Genesis{
 			Config: &params.ChainConfig{
 				NetworkID: big.NewInt(1),
 			},
