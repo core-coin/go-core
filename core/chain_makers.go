@@ -125,6 +125,11 @@ func (b *BlockGen) Number() *big.Int {
 	return new(big.Int).Set(b.header.Number)
 }
 
+// Energy returns the amount of energy left in the current block.
+func (b *BlockGen) Energy() uint64 {
+	return b.header.EnergyLimit - b.header.EnergyUsed
+}
+
 // AddUncheckedReceipt forcefully adds a receipts to the block without a
 // backing transaction.
 //
