@@ -213,6 +213,8 @@ func (cryptore *Cryptore) VerifyUncles(chain consensus.ChainReader, block *types
 			return errUncleIsAncestor
 		}
 		if ancestors[uncle.ParentHash] == nil || uncle.ParentHash == block.ParentHash() {
+			fmt.Println(ancestors[uncle.ParentHash] == nil)
+			fmt.Println(uncle.ParentHash == block.ParentHash())
 			return errDanglingUncle
 		}
 		if err := cryptore.verifyHeader(chain, uncle, ancestors[uncle.ParentHash], true, true); err != nil {
