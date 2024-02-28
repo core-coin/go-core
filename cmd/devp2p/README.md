@@ -79,7 +79,10 @@ unintended connections to the global DHT is listening on `127.0.0.1`.
 
 Now get the ENR of your node and store it in the `NODE` environment variable.
 
-Start the test by running `devp2p discv5 test -listen1 127.0.0.1 -listen2 127.0.0.2 $NODE`.
+Start the test by running `devp2p discv5 test -listen1 127.0.0.1 -listen2 127.0.0.2 $NODE`. 
+
+For discv4 tests run the node locally and then start the test by running 
+`./devp2p discv4 test -remote {ENR}`
 
 ### Xcb Protocol Test Suite
 
@@ -96,7 +99,7 @@ gocore --datadir <datadir> --nodiscover --nat=none --networkid 19763 --verbosity
 
 Then, run the following command, replacing `<enode ID>` with the enode of the gocore node: 
  ```
- devp2p rlpx xcb-test <enode ID> cmd/devp2p/internal/xcbtest/testdata/fullchain.rlp cmd/devp2p/internal/xcbtest/testdata/genesis.json
+ devp2p rlpx xcb-test <enode ID> cmd/devp2p/internal/xcbtest/testdata/chain.rlp cmd/devp2p/internal/xcbtest/testdata/genesis.json
 ```
  
 [xcb]: https://github.com/core/devp2p/blob/master/caps/xcb.md

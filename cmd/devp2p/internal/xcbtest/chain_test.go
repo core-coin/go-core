@@ -23,6 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/p2p"
 )
 
@@ -74,7 +75,7 @@ func TestXcbProtocolNegotiation(t *testing.T) {
 // TestChain_GetHeaders tests whether the test suite can correctly
 // respond to a GetBlockHeaders request from a node.
 func TestChain_GetHeaders(t *testing.T) {
-	t.Skip("")
+	common.DefaultNetworkID = 19763
 	chainFile, err := filepath.Abs("./testdata/chain.rlp")
 	if err != nil {
 		t.Fatal(err)
@@ -149,4 +150,5 @@ func TestChain_GetHeaders(t *testing.T) {
 			assert.Equal(t, headers, tt.expected)
 		})
 	}
+	common.DefaultNetworkID = 1
 }

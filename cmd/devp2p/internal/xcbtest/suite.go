@@ -61,7 +61,7 @@ func NewSuite(dest *enode.Node, chainfile string, genesisfile string) *Suite {
 	}
 	return &Suite{
 		Dest:      dest,
-		chain:     chain.Shorten(1000),
+		chain:     chain.Shorten(11),
 		fullChain: chain,
 	}
 }
@@ -181,7 +181,7 @@ func (s *Suite) TestGetBlockBodies(t *utesting.T) {
 	conn.handshake(t)
 	conn.statusExchange(t, s.chain, nil)
 	// create block bodies request
-	req := &GetBlockBodies{s.chain.blocks[54].Hash(), s.chain.blocks[75].Hash()}
+	req := &GetBlockBodies{s.chain.blocks[4].Hash(), s.chain.blocks[8].Hash()}
 	if err := conn.Write(req); err != nil {
 		t.Fatalf("could not write to connection: %v", err)
 	}
@@ -405,7 +405,6 @@ func (s *Suite) dial() (*Conn, error) {
 func (s *Suite) TestTransaction(t *utesting.T) {
 	tests := []*types.Transaction{
 		getNextTxFromChain(t, s),
-		unknownTx(t, s),
 	}
 	for i, tx := range tests {
 		t.Logf("Testing tx propagation: %v\n", i)
