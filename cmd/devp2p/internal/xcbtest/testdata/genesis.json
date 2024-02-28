@@ -12,6 +12,9 @@
     "alloc": {
         "ce9571562b71999873db5b286df957af199ec94617f7": {
             "balance": "0xffffffffffffffffffffffffff"
+        },
+        "ce65db416ff2f9c53dabaf34f81142db30350ea7b144": {
+            "balance": "0xffffffffffffffffffffffffff"
         }
     },
     "number": "0x0",
