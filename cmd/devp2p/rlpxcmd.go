@@ -24,6 +24,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	xcbtest "github.com/core-coin/go-core/v2/cmd/devp2p/internal/xcbtest"
+	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/crypto"
 	"github.com/core-coin/go-core/v2/p2p"
 	"github.com/core-coin/go-core/v2/p2p/rlpx"
@@ -96,6 +97,7 @@ func rlpxXcbTest(ctx *cli.Context) error {
 	if ctx.NArg() < 3 {
 		exit("missing path to chain.rlp as command-line argument")
 	}
+	common.DefaultNetworkID = 19763
 	suite := xcbtest.NewSuite(getNodeArg(ctx), ctx.Args()[1], ctx.Args()[2])
 	return runTests(ctx, suite.AllTests())
 }

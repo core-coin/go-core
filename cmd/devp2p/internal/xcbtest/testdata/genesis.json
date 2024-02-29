@@ -7,10 +7,13 @@
     "timestamp": "0x0",
     "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "energyLimit": "0x80000000",
-    "difficulty": "0x20000",
-    "coinbase": "0x0000000000000000000000000000000000000000",
+    "difficulty": "0x20",
+    "coinbase": "ce450000000000000000000000000000000000000000",
     "alloc": {
-        "71562b71999873db5b286df957af199ec94617f7": {
+        "ce9571562b71999873db5b286df957af199ec94617f7": {
+            "balance": "0xffffffffffffffffffffffffff"
+        },
+        "ce65db416ff2f9c53dabaf34f81142db30350ea7b144": {
             "balance": "0xffffffffffffffffffffffffff"
         }
     },

@@ -54,7 +54,7 @@ func sendSuccessfulTx(t *utesting.T, s *Suite, tx *types.Transaction) {
 			t.Fatalf("received transactions do not match send: %v", txHashes)
 		}
 		if tx.Hash() != txHashes[len(txHashes)-1] {
-			t.Fatalf("wrong announcement received, wanted %v got %v", tx, txHashes)
+			t.Fatalf("wrong announcement received, wanted %v got %v", tx.Hash().Hex(), common.Bytes2Hex(txHashes[len(txHashes)-1][:]))
 		}
 	default:
 		t.Fatalf("unexpected message in sendSuccessfulTx: %s", pretty.Sdump(msg))

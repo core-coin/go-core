@@ -132,7 +132,6 @@ func loadChain(chainfile string, genesis string) (*Chain, error) {
 	if err := json.Unmarshal(chainConfig, &gen); err != nil {
 		return nil, err
 	}
-	gblock := gen.ToBlock(nil)
 
 	// Load chain.rlp.
 	fh, err := os.Open(chainfile)
@@ -147,8 +146,7 @@ func loadChain(chainfile string, genesis string) (*Chain, error) {
 		}
 	}
 	stream := rlp.NewStream(reader, 0)
-	var blocks = make([]*types.Block, 1)
-	blocks[0] = gblock
+	var blocks = make([]*types.Block, 0)
 	for i := 0; ; i++ {
 		var b types.Block
 		if err := stream.Decode(&b); err == io.EOF {
@@ -156,7 +154,7 @@ func loadChain(chainfile string, genesis string) (*Chain, error) {
 		} else if err != nil {
 			return nil, fmt.Errorf("at block index %d: %v", i, err)
 		}
-		if b.NumberU64() != uint64(i+1) {
+		if b.NumberU64() != uint64(i) {
 			return nil, fmt.Errorf("block at index %d has wrong number %d", i, b.NumberU64())
 		}
 		blocks = append(blocks, &b)
