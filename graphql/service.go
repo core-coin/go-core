@@ -76,7 +76,7 @@ func newHandler(stack *node.Node, backend xcbapi.Backend, cors, vhosts []string)
 		return err
 	}
 	h := handler{Schema: s}
-	handler := node.NewHTTPHandlerStack(h, cors, vhosts)
+	handler := node.NewHTTPHandlerStack(h, cors, vhosts, nil)
 
 	stack.RegisterHandler("GraphQL UI", "/graphql/ui", GraphiQL{})
 	stack.RegisterHandler("GraphQL", "/graphql", handler)

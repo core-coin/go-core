@@ -67,7 +67,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 		return fmt.Errorf("transaction root hash mismatch: have %x, want %x", hash, header.TxHash)
 	}
 
-	// Validate transactions network IDs and addresses  
+	// Validate transactions network IDs and addresses
 	for _, tx := range block.Transactions() {
 		if tx.Hash().Hex() != params.ZeroNetworkIDTxHash.Hex() && tx.NetworkID() != uint(v.config.NetworkID.Uint64()) {
 			return types.ErrInvalidNetworkId
@@ -76,7 +76,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 			return ErrInvalidRecipientOrSig
 		}
 	}
-	
+
 	if !v.bc.HasBlockAndState(block.ParentHash(), block.NumberU64()-1) {
 		if !v.bc.HasBlock(block.ParentHash(), block.NumberU64()-1) {
 			return consensus.ErrUnknownAncestor

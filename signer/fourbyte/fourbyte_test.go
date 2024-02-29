@@ -33,7 +33,7 @@ func TestEmbeddedDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 	for id, selector := range db.embedded {
-		abistring, err := parseSelector(selector)
+		abistring, err := ParseSelector(selector)
 		if err != nil {
 			t.Errorf("Failed to convert selector to ABI: %v", err)
 			continue

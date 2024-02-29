@@ -29,10 +29,11 @@ import (
 
 // API describes the set of methods offered over the RPC interface
 type API struct {
-	Namespace string      // namespace under which the rpc methods of Service are exposed
-	Version   string      // api version for DApp's
-	Service   interface{} // receiver instance which holds the methods
-	Public    bool        // indication if the methods must be considered safe for public use
+	Namespace     string      // namespace under which the rpc methods of Service are exposed
+	Version       string      // api version for DApp's
+	Service       interface{} // receiver instance which holds the methods
+	Public        bool        // indication if the methods must be considered safe for public use
+	Authenticated bool        // whether the api should only be available behind authentication.
 }
 
 // Error wraps RPC errors, which contain an error code in addition to the message.
@@ -51,8 +52,10 @@ type DataError interface {
 // a RPC session. Implementations must be go-routine safe since the codec can be called in
 // multiple go-routines concurrently.
 type ServerCodec interface {
+	peerInfo() PeerInfo
 	readBatch() (msgs []*jsonrpcMessage, isBatch bool, err error)
 	close()
+
 	jsonWriter
 }
 

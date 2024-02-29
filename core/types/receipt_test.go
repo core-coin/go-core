@@ -166,7 +166,7 @@ func TestDeriveFields(t *testing.T) {
 		NewContractCreation(1, big.NewInt(1), 1, big.NewInt(1), nil),
 		NewTransaction(2, addr, big.NewInt(2), 2, big.NewInt(2), nil),
 	}
-	
+
 	priv, _ := crypto.GenerateKey(crand.Reader)
 	txs[0], _ = SignTx(txs[0], MakeSigner(big.NewInt(1)), priv)
 	txs[1], _ = SignTx(txs[1], MakeSigner(big.NewInt(1)), priv)
@@ -175,11 +175,10 @@ func TestDeriveFields(t *testing.T) {
 	addr2, _ := common.HexToAddress("cb150111000000000000000000000000000000000000")
 	addr3, _ := common.HexToAddress("cb810111110000000000000000000000000000000000")
 
-
 	addr4, _ := common.HexToAddress("cb782200000000000000000000000000000000000000")
 	addr5, _ := common.HexToAddress("cb730222000000000000000000000000000000000000")
 	addr6, _ := common.HexToAddress("cb110222220000000000000000000000000000000000")
-	// Create the corresponding receipts  
+	// Create the corresponding receipts
 	receipts := Receipts{
 		&Receipt{
 			Status:               ReceiptStatusFailed,

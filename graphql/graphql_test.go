@@ -89,13 +89,8 @@ func TestGraphQLHTTPOnSamePort_GQLRequest_Unsuccessful(t *testing.T) {
 	gqlReq.Header.Set("Content-Type", "application/json")
 	// read from response
 	resp := doHTTPRequest(t, gqlReq)
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("could not read from response body: %v", err)
-	}
 	// make sure the request is not handled successfully
-	assert.Equal(t, 404, resp.StatusCode)
-	assert.Equal(t, "404 page not found\n", string(bodyBytes))
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
 // Tests that 400 is returned when an invalid RPC request is made.

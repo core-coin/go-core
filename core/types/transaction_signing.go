@@ -118,7 +118,7 @@ func (s NucleusSigner) Sender(tx *Transaction) (common.Address, error) {
 			return common.Address{}, err
 		}
 	}
-	
+
 	if tx.Hash().Hex() != params.ZeroNetworkIDTxHash.Hex() && tx.data.NetworkID != uint(s.networkId.Int64()) {
 		return common.Address{}, ErrInvalidNetworkId
 	}

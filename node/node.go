@@ -17,6 +17,7 @@
 package node
 
 import (
+	crand "crypto/rand"
 	"errors"
 	"fmt"
 	"net/http"
@@ -28,6 +29,8 @@ import (
 
 	"github.com/prometheus/tsdb/fileutil"
 
+	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 	"github.com/core-coin/go-core/v2/core/led"
 	"github.com/core-coin/go-core/v2/xcbdb"
 
@@ -57,6 +60,8 @@ type Node struct {
 	rpcAPIs       []rpc.API   // List of APIs currently provided by the node
 	http          *httpServer //
 	ws            *httpServer //
+	httpAuth      *httpServer //
+	wsAuth        *httpServer //
 	ipc           *ipcServer  // Stores information about the ipc http server
 	inprocHandler *rpc.Server // In-process RPC request handler to process the API requests
 
@@ -138,9 +143,19 @@ func New(conf *Config) (*Node, error) {
 		node.server.Config.NodeDatabase = node.config.NodeDB()
 	}
 
+	// Check HTTP/WS prefixes are valid.
+	if err := validatePrefix("HTTP", conf.HTTPPathPrefix); err != nil {
+		return nil, err
+	}
+	if err := validatePrefix("WebSocket", conf.WSPathPrefix); err != nil {
+		return nil, err
+	}
+
 	// Configure RPC servers.
 	node.http = newHTTPServer(node.log, conf.HTTPTimeouts)
+	node.httpAuth = newHTTPServer(node.log, conf.HTTPTimeouts)
 	node.ws = newHTTPServer(node.log, rpc.DefaultHTTPTimeouts)
+	node.wsAuth = newHTTPServer(node.log, rpc.DefaultHTTPTimeouts)
 	node.ipc = newIPCServer(node.log, conf.IPCEndpoint())
 
 	return node, nil
@@ -332,6 +347,51 @@ func (n *Node) closeDataDir() {
 	}
 }
 
+// obtainJWTSecret loads the jwt-secret, either from the provided config,
+// or from the default location. If neither of those are present, it generates
+// a new secret and stores to the default location.
+func (n *Node) obtainJWTSecret(cliParam string) ([]byte, error) {
+	var fileName string
+	if len(cliParam) > 0 {
+		// If a plaintext secret was provided via cli flags, use that
+		jwtSecret := common.FromHex(cliParam)
+		if len(jwtSecret) == 32 && strings.HasPrefix(cliParam, "0x") {
+			log.Warn("Plaintext JWT secret provided, please consider passing via file")
+			return jwtSecret, nil
+		}
+		// path provided
+		fileName = cliParam
+	} else {
+		// no path provided, use default
+		fileName = n.ResolvePath(datadirJWTKey)
+	}
+	// try reading from file
+	log.Debug("Reading JWT secret", "path", fileName)
+	if data, err := os.ReadFile(fileName); err == nil {
+
+		jwtSecret := common.FromHex(strings.TrimSpace(string(data)))
+		if len(jwtSecret) == 32 {
+			return jwtSecret, nil
+		}
+		log.Error("Invalid JWT secret", "path", fileName, "length", len(jwtSecret))
+		return nil, errors.New("invalid JWT secret")
+	}
+	// Need to generate one
+	jwtSecret := make([]byte, 32)
+	crand.Read(jwtSecret)
+	// if we're in --dev mode, don't bother saving, just show it
+	if fileName == "" {
+		log.Info("Generated ephemeral JWT secret", "secret", hexutil.Encode(jwtSecret))
+		return jwtSecret, nil
+	}
+	if err := os.WriteFile(fileName, []byte(hexutil.Encode(jwtSecret)), 0600); err != nil {
+		return nil, err
+	}
+	log.Info("Generated JWT secret", "path", fileName)
+	return jwtSecret, nil
+}
+
+// startRPC is a helper method to configure all the various RPC endpoints during node
 // configureRPC is a helper method to configure all the various RPC endpoints during node
 // startup. It's not meant to be called at any time afterwards as it makes certain
 // assumptions about the state of the node.
@@ -347,52 +407,125 @@ func (n *Node) startRPC() error {
 		}
 	}
 
-	// Configure HTTP.
-	if n.config.HTTPHost != "" {
-		config := httpConfig{
+	var (
+		servers   []*httpServer
+		open, all = n.GetAPIs()
+	)
+
+	initHttp := func(server *httpServer, apis []rpc.API, port int) error {
+		if err := server.setListenAddr(n.config.HTTPHost, port); err != nil {
+			return err
+		}
+		if err := server.enableRPC(apis, httpConfig{
 			CorsAllowedOrigins: n.config.HTTPCors,
 			Vhosts:             n.config.HTTPVirtualHosts,
 			Modules:            n.config.HTTPModules,
-		}
-		if err := n.http.setListenAddr(n.config.HTTPHost, n.config.HTTPPort); err != nil {
+			prefix:             n.config.HTTPPathPrefix,
+		}); err != nil {
 			return err
 		}
-		if err := n.http.enableRPC(n.rpcAPIs, config); err != nil {
-			return err
-		}
+		servers = append(servers, server)
+		return nil
 	}
 
-	// Configure WebSocket.
-	if n.config.WSHost != "" {
-		server := n.wsServerForPort(n.config.WSPort)
-		config := wsConfig{
+	initWS := func(apis []rpc.API, port int) error {
+		server := n.wsServerForPort(port, false)
+		if err := server.setListenAddr(n.config.WSHost, port); err != nil {
+			return err
+		}
+		if err := server.enableWS(n.rpcAPIs, wsConfig{
 			Modules: n.config.WSModules,
 			Origins: n.config.WSOrigins,
-		}
-		if err := server.setListenAddr(n.config.WSHost, n.config.WSPort); err != nil {
+			prefix:  n.config.WSPathPrefix,
+		}); err != nil {
 			return err
 		}
-		if err := server.enableWS(n.rpcAPIs, config); err != nil {
-			return err
-		}
+		servers = append(servers, server)
+		return nil
 	}
 
-	if err := n.http.start(); err != nil {
-		return err
+	initAuth := func(apis []rpc.API, port int, secret []byte) error {
+		// Enable auth via HTTP
+		server := n.httpAuth
+		if err := server.setListenAddr(n.config.AuthAddr, port); err != nil {
+			return err
+		}
+		if err := server.enableRPC(apis, httpConfig{
+			CorsAllowedOrigins: DefaultAuthCors,
+			Vhosts:             n.config.AuthVirtualHosts,
+			Modules:            DefaultAuthModules,
+			prefix:             DefaultAuthPrefix,
+			jwtSecret:          secret,
+		}); err != nil {
+			return err
+		}
+		servers = append(servers, server)
+		// Enable auth via WS
+		server = n.wsServerForPort(port, true)
+		if err := server.setListenAddr(n.config.AuthAddr, port); err != nil {
+			return err
+		}
+
+		if err := server.enableWS(apis, wsConfig{
+			Modules:   DefaultAuthModules,
+			Origins:   DefaultAuthOrigins,
+			prefix:    DefaultAuthPrefix,
+			jwtSecret: secret,
+		}); err != nil {
+			return err
+		}
+		servers = append(servers, server)
+		return nil
 	}
-	return n.ws.start()
+	// Set up HTTP.
+	if n.config.HTTPHost != "" {
+		// Configure legacy unauthenticated HTTP.
+		if err := initHttp(n.http, open, n.config.HTTPPort); err != nil {
+			return err
+		}
+	}
+	// Configure WebSocket.
+	if n.config.WSHost != "" {
+		// legacy unauthenticated
+		if err := initWS(open, n.config.WSPort); err != nil {
+			return err
+		}
+	}
+	// Configure authenticated API
+	if len(open) != len(all) {
+		jwtSecret, err := n.obtainJWTSecret(n.config.JWTSecret)
+		if err != nil {
+			return err
+		}
+		if err := initAuth(all, n.config.AuthPort, jwtSecret); err != nil {
+			return err
+		}
+	}
+	// Start the servers
+	for _, server := range servers {
+		if err := server.start(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (n *Node) wsServerForPort(port int) *httpServer {
-	if n.config.HTTPHost == "" || n.http.port == port {
-		return n.http
+func (n *Node) wsServerForPort(port int, authenticated bool) *httpServer {
+	httpServer, wsServer := n.http, n.ws
+	if authenticated {
+		httpServer, wsServer = n.httpAuth, n.wsAuth
 	}
-	return n.ws
+	if n.config.HTTPHost == "" || httpServer.port == port {
+		return httpServer
+	}
+	return wsServer
 }
 
 func (n *Node) stopRPC() {
 	n.http.stop()
 	n.ws.stop()
+	n.httpAuth.stop()
+	n.wsAuth.stop()
 	n.ipc.stop()
 	n.stopInProc()
 }
@@ -451,6 +584,17 @@ func (n *Node) RegisterAPIs(apis []rpc.API) {
 		panic("can't register APIs on running/stopped node")
 	}
 	n.rpcAPIs = append(n.rpcAPIs, apis...)
+}
+
+// GetAPIs return two sets of APIs, both the ones that do not require
+// authentication, and the complete set
+func (n *Node) GetAPIs() (unauthenticated, all []rpc.API) {
+	for _, api := range n.rpcAPIs {
+		if !api.Authenticated {
+			unauthenticated = append(unauthenticated, api)
+		}
+	}
+	return unauthenticated, n.rpcAPIs
 }
 
 // RegisterHandler mounts a handler on the given path on the canonical HTTP server.
@@ -520,17 +664,31 @@ func (n *Node) IPCEndpoint() string {
 	return n.ipc.endpoint
 }
 
-// HTTPEndpoint returns the URL of the HTTP server.
+// HTTPEndpoint returns the URL of the HTTP server. Note that this URL does not
+// contain the JSON-RPC path prefix set by HTTPPathPrefix.
 func (n *Node) HTTPEndpoint() string {
 	return "http://" + n.http.listenAddr()
 }
 
-// WSEndpoint retrieves the current WS endpoint used by the protocol stack.
+// WSEndpoint returns the current JSON-RPC over WebSocket endpoint.
 func (n *Node) WSEndpoint() string {
 	if n.http.wsAllowed() {
-		return "ws://" + n.http.listenAddr()
+		return "ws://" + n.http.listenAddr() + n.http.wsConfig.prefix
 	}
-	return "ws://" + n.ws.listenAddr()
+	return "ws://" + n.ws.listenAddr() + n.ws.wsConfig.prefix
+}
+
+// HTTPAuthEndpoint returns the URL of the authenticated HTTP server.
+func (n *Node) HTTPAuthEndpoint() string {
+	return "http://" + n.httpAuth.listenAddr()
+}
+
+// WSAuthEndpoint returns the current authenticated JSON-RPC over WebSocket endpoint.
+func (n *Node) WSAuthEndpoint() string {
+	if n.httpAuth.wsAllowed() {
+		return "ws://" + n.httpAuth.listenAddr() + n.httpAuth.wsConfig.prefix
+	}
+	return "ws://" + n.wsAuth.listenAddr() + n.wsAuth.wsConfig.prefix
 }
 
 // EventMux retrieves the event multiplexer used by all the network services in

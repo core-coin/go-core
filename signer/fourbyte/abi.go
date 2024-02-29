@@ -67,7 +67,7 @@ func (cd decodedCallData) String() string {
 // function signature.
 func verifySelector(selector string, calldata []byte) (*decodedCallData, error) {
 	// Parse the selector into an ABI JSON spec
-	abidata, err := parseSelector(selector)
+	abidata, err := ParseSelector(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +83,9 @@ func verifySelector(selector string, calldata []byte) (*decodedCallData, error) 
 // by the type checker.
 var selectorRegexp = regexp.MustCompile(`^([^\)]+)\(([A-Za-z0-9,\[\]]*)\)`)
 
-// parseSelector converts a method selector into an ABI JSON spec. The returned
+// ParseSelector converts a method selector into an ABI JSON spec. The returned
 // data is a valid JSON string which can be consumed by the standard abi package.
-func parseSelector(unescapedSelector string) ([]byte, error) {
+func ParseSelector(unescapedSelector string) ([]byte, error) {
 	// Define a tiny fake ABI struct for JSON marshalling
 	type fakeArg struct {
 		Type string `json:"type"`
