@@ -424,7 +424,7 @@ func (a *Address) UnmarshalGraphQL(input interface{}) error {
 	var err error
 	switch input := input.(type) {
 	case string:
-		err = a.UnmarshalText([]byte(input))
+		*a, err = HexToAddress(input)
 	default:
 		err = fmt.Errorf("unexpected type %T for Address", input)
 	}
