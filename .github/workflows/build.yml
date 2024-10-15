@@ -7,7 +7,7 @@ jobs:
           {os: ubuntu-latest, path: linux-x86_64},
           {os: windows-latest, path: windows-x86_64},
           {os: raspbian-private, path: linux-arm64},
-          {os: macos-latest, path: darwin-x86_64},
+          # {os: macos-latest, path: darwin-x86_64},
         ]
     runs-on: ${{ matrix.platform.os }}
     steps:
