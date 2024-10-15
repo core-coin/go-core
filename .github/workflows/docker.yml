@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -23,12 +23,12 @@ jobs:
 
       - name: Extract version
         id: version
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/tags/})
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Build and push Docker images
         run: |
           docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t ghcr.io/core-coin/go-core:${{ steps.version.outputs.tag }} \
+            -t ghcr.io/core-coin/go-core:${{ env.tag }} \
             -t ghcr.io/core-coin/go-core:latest \
             --push .
