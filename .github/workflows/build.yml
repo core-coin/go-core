@@ -80,6 +80,7 @@ jobs:
       shell: alpine.sh --root {0}
       run: apk add git cmake gcc g++ make go
     - name: Build & Test
+      shell: alpine.sh --root {0}
       run: |
         make gocore
         make test
