@@ -82,8 +82,8 @@ github.com/core-coin/ed448 v1.0.2 h1:t9fwBGw8i3HN8cISUlt4GA3TpYPNPR6xD09qtCuoyFA
 github.com/core-coin/ed448 v1.0.2/go.mod h1:/S7hge2XKh2GI/dFp551tIsXDGGD6OU/CSRId+/OjII=
 github.com/core-coin/go-goldilocks v1.0.17 h1:NLXGS0pbwrTfWo6ocPUxiTCMPIELVq9FtYdlrpJrm7U=
 github.com/core-coin/go-goldilocks v1.0.17/go.mod h1:3GiDQX2tf7aIhnQoyL+N3pwU3a3IUuCeaFdOOFXCF/8=
-github.com/core-coin/go-randomy v0.0.19 h1:Takoihc6nw/wL5FJjGqfmGB1da5GBy5RQK2VnXqn9OM=
-github.com/core-coin/go-randomy v0.0.19/go.mod h1:gSn1tIjmiJC7c6GWbBXRlb75xvrruJZu3c/gDehBLCU=
+github.com/core-coin/go-randomy v0.0.20 h1:ucbQW+ZMGH3PP6lqJ+fc3MNH9dlQVJpvsQTux4vhlRQ=
+github.com/core-coin/go-randomy v0.0.20/go.mod h1:gSn1tIjmiJC7c6GWbBXRlb75xvrruJZu3c/gDehBLCU=
 github.com/core-coin/uint256 v1.0.0 h1:AzgINl9YCnYDRJBlqFlWsVb4sr814LcvPAvkPyVBFVo=
 github.com/core-coin/uint256 v1.0.0/go.mod h1:rrinB/+X6+31MswTK2xwoFGi8i75SH1ILSsRSoOFa1I=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
