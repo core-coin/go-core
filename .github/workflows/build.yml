@@ -42,11 +42,11 @@ jobs:
         name: gocore-${{ matrix.platform.path }}
         path: ./build/bin/gocore*
   build-mac:
-    matrix:
-      strategy:
+    strategy:
+      matrix:
         config:
-        - {os: macos-13, path: darwin-x86_64},
-        - {os: macos-latest, path: darwin-arm64},
+            - {os: macos-13, path: darwin-x86_64},
+            - {os: macos-latest, path: darwin-arm64},
     runs-on: ${{ matrix.config.os }}
     - name: Checkout
       uses: actions/checkout@v4
