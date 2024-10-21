@@ -1,5 +1,5 @@
 name: go-core build
-on: [push]
+on: push
 jobs:
   build-windows:
     runs-on: windows-latest
