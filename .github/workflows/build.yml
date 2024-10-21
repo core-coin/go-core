@@ -92,7 +92,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-windows, build-mac, build-ubuntu, build-alpine]
+    needs: [build-windows, build-mac, build-alpine]
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
