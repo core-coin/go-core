@@ -74,7 +74,7 @@ jobs:
       uses: jirutka/setup-alpine@v1
       with:
         arch: ${{ matrix.config.arch }}
-        branch: ${{ matrix.config.bran}
+        branch: ${{ matrix.config.branch }}
     - name: Safelist
       shell: alpine.sh --root {0}
       run: git config --global --add safe.directory ${{ github.workspace }}
