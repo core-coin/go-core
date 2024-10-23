@@ -10,7 +10,7 @@ require (
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.10.2
 	github.com/core-coin/ed448 v1.0.2
-	github.com/core-coin/go-goldilocks v1.0.17
+	github.com/core-coin/go-goldilocks v1.0.18
 	github.com/core-coin/go-randomy v0.0.21
 	github.com/core-coin/uint256 v1.0.0
 	github.com/davecgh/go-spew v1.1.1
