@@ -34,6 +34,7 @@ jobs:
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-go
     - name: Build & Test
+      shell: bash
       run: |
         uname -m
         export GOOS=${{ matrix.config.os }}
