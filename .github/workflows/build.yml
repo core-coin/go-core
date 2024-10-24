@@ -1,8 +1,16 @@
 name: go-core build
 on: push
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - {platform: windows-latest,   os: windows, arch: amd64, path: windows-x86_64}
+          - {platform: macos-14,         os: darwin,  arch: amd64, path: darwin-x86_64}
+          - {platform: macos-latest,     os: darwin,  arch: arm64, path: darwin-arm64}
+          - {platform: ubuntu-latest,    os: linux,   arch: amd64, path: linux-x86_64}
+          - {platform: raspbian-private, os: linux,   arch: arm64, path: linux-arm64}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -11,6 +19,7 @@ jobs:
       with:
         go-version: 1.23
     - name: Setup MSYS
+      if: ${{ matrix.config.platform == "windows-latest" }}
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
@@ -24,33 +33,6 @@ jobs:
           libtool
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-go
-    - name: Build Windows
-      run: |
-        make gocore
-        make test
-    - name: Upload Gocore
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v4
-      with:
-        name: gocore-windows-x86_64
-        path: ./build/bin/gocore*
-
-  build:
-    runs-on: ${{ matrix.config.os }}
-    strategy:
-      matrix:
-        config:
-          - {platform: macos-14,         os: darwin, arch: amd64, path: darwin-x86_64}
-          - {platform: macos-latest,     os: dawin,  arch: arm64, path: darwin-arm64}
-          - {platform: ubuntu-latest,    os: linux,  arch: amd64, path: linux-x86_64}
-          - {platform: raspbian-private, os: linux,  arch: arm64, path: linux-arm64}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 1.23
     - name: Build & Test
       run: |
         uname -m
@@ -67,7 +49,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-windows, build-mac, build-alpine]
+    needs: build
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -96,8 +78,7 @@ jobs:
         platform: [
           {path: linux-x86_64, file_ext: ""},
           {path: windows-x86_64, file_ext: ".exe"},
-          {path: linux-aarch64, file_ext: ""},
-          {path: linux-riscv64, file_ext: ""},
+          {path: linux-arm64, file_ext: ""},
           {path: darwin-x86_64, file_ext: ""},
           {path: darwin-arm64, file_ext: ""},
         ]
