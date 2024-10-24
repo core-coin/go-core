@@ -2,7 +2,7 @@ name: go-core build
 on: push
 jobs:
   build:
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.platform }}
     strategy:
       matrix:
         config:
