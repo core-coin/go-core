@@ -53,11 +53,11 @@ var DefaultConfig = Config{
 	AuthAddr:            DefaultAuthHost,
 	AuthPort:            DefaultAuthPort,
 	AuthVirtualHosts:    DefaultAuthVhosts,
-	HTTPModules:         []string{"net", "web3"},
+	HTTPModules:         []string{"net", "web3", "xcb", "sc"},
 	HTTPVirtualHosts:    []string{"localhost"},
 	HTTPTimeouts:        rpc.DefaultHTTPTimeouts,
 	WSPort:              DefaultWSPort,
-	WSModules:           []string{"net", "web3"},
+	WSModules:           []string{"net", "web3", "xcb", "sc"},
 	GraphQLVirtualHosts: []string{"localhost"},
 	P2P: p2p.Config{
 		ListenAddr:      ":30300",

@@ -1819,6 +1819,127 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	return common.Hash{}, fmt.Errorf("transaction %#x not found", matchTx.Hash())
 }
 
+// ComposeTransactionArgs represents the arguments for composing a transaction.
+type ComposeTransactionArgs struct {
+	From        common.Address  `json:"from"`
+	To          *common.Address `json:"to"`
+	Amount      *hexutil.Big    `json:"amount"`
+	Nonce       *hexutil.Uint64 `json:"nonce,omitempty"`
+	Energy      *hexutil.Uint64 `json:"energy,omitempty"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice,omitempty"`
+	Data        *hexutil.Bytes  `json:"data,omitempty"`
+	Sign        bool            `json:"sign,omitempty"`
+}
+
+// ComposeTransactionResult represents the result of composing a transaction.
+type ComposeTransactionResult struct {
+	Hash        *common.Hash           `json:"hash,omitempty"`        // Only present if sign=true
+	Transaction *SignTransactionResult `json:"transaction,omitempty"` // Only present if sign=false
+}
+
+// ComposeTransaction composes a transaction with automatic nonce, energy, and energy price estimation.
+// If sign=true, it signs and submits the transaction, returning the hash.
+// If sign=false, it returns the transaction data for external signing.
+func (s *PublicTransactionPoolAPI) ComposeTransaction(ctx context.Context, args ComposeTransactionArgs) (*ComposeTransactionResult, error) {
+	// Convert to SendTxArgs for compatibility with existing functions
+	sendArgs := SendTxArgs{
+		From:  args.From,
+		To:    args.To,
+		Value: args.Amount,
+		Data:  args.Data,
+	}
+
+	// 1. Get nonce if not provided
+	if args.Nonce == nil {
+		nonce, err := s.b.GetPoolNonce(ctx, args.From)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get nonce: %v", err)
+		}
+		nonceUint64 := hexutil.Uint64(nonce)
+		sendArgs.Nonce = &nonceUint64
+	} else {
+		sendArgs.Nonce = args.Nonce
+	}
+
+	// 2. Estimate energy and energy price if not provided
+	if args.Energy == nil || args.EnergyPrice == nil {
+		// Get suggested energy price
+		suggestedPrice, err := s.b.SuggestPrice(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get suggested energy price: %v", err)
+		}
+		sendArgs.EnergyPrice = (*hexutil.Big)(suggestedPrice)
+
+		// Estimate energy if not provided
+		if args.Energy == nil {
+			callArgs := CallArgs{
+				From:        &args.From,
+				To:          args.To,
+				EnergyPrice: sendArgs.EnergyPrice,
+				Value:       args.Amount,
+				Data:        args.Data,
+			}
+			pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
+			estimated, err := DoEstimateEnergy(ctx, s.b, callArgs, pendingBlockNr, s.b.RPCEnergyCap())
+			if err != nil {
+				return nil, fmt.Errorf("failed to estimate energy: %v", err)
+			}
+			sendArgs.Energy = &estimated
+		} else {
+			sendArgs.Energy = args.Energy
+		}
+	} else {
+		sendArgs.Energy = args.Energy
+		sendArgs.EnergyPrice = args.EnergyPrice
+	}
+
+	// 3a. If sign=true, sign and submit the transaction
+	if args.Sign {
+		// Look up the wallet containing the requested signer
+		account := accounts.Account{Address: args.From}
+		wallet, err := s.b.AccountManager().Find(account)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get wallet: %v", err)
+		}
+
+		// Hold the address's mutex around signing to prevent concurrent assignment of
+		// the same nonce to multiple accounts.
+		s.nonceLock.LockAddr(args.From)
+		defer s.nonceLock.UnlockAddr(args.From)
+
+		// Assemble the transaction and sign with the wallet
+		tx := sendArgs.toTransaction()
+		signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().NetworkID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign transaction: %v", err)
+		}
+
+		// Submit the signed transaction
+		hash, err := SubmitTransaction(ctx, s.b, signed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to submit transaction: %v", err)
+		}
+
+		return &ComposeTransactionResult{
+			Hash: &hash,
+		}, nil
+	}
+
+	// 3b. If sign=false, return transaction data for external signing
+	tx := sendArgs.toTransaction()
+	data, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode transaction: %v", err)
+	}
+
+	return &ComposeTransactionResult{
+		Transaction: &SignTransactionResult{
+			Raw: data,
+			Tx:  tx,
+		},
+	}, nil
+}
+
 // PublicDebugAPI is the collection of Core APIs exposed over the public
 // debugging endpoint.
 type PublicDebugAPI struct {
