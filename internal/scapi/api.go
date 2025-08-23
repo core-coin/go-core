@@ -1209,3 +1209,140 @@ type Backend interface {
 	// StateAndHeaderByNumber gets the state and header at a specific block number
 	StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error)
 }
+
+// ExpiredResult represents the result of checking token expiration status
+type ExpiredResult struct {
+	Expired         bool     `json:"expired"`                   // Whether the token is expired
+	TokenExpiration *big.Int `json:"tokenExpiration,omitempty"` // Unix timestamp when token expires
+	TradingStop     *big.Int `json:"tradingStop,omitempty"`     // Unix timestamp when trading should stop
+}
+
+// Expired checks if a token is expired based on CIP-151 Token Lifecycle Metadata Standard.
+// Based on CIP-151 for Core Blockchain token lifecycle management.
+//
+// Function selectors used (from CIP-150 KV metadata):
+// - getValue(string key): 0x960384a0
+//
+// Parameters:
+// - tokenAddress: The address of the smart contract
+// - stopData: If true, also returns tradingStop timestamp (default: true)
+func (s *PublicSmartContractAPI) Expired(ctx context.Context, tokenAddress common.Address, stopData bool) (*ExpiredResult, error) {
+	result := &ExpiredResult{
+		Expired: false,
+	}
+
+	// Get tokenExpiration metadata
+	expirationResult, err := s.GetKV(ctx, "tokenExpiration", tokenAddress, false)
+	if err != nil {
+		// If no expiration metadata exists, token is not expired
+		return result, nil
+	}
+
+	// If tokenExpiration exists, check if expired
+	if expirationResult.Exists && expirationResult.Value != "" {
+		// Parse the expiration timestamp
+		expirationStr := strings.TrimSpace(expirationResult.Value)
+		if expirationStr != "" {
+			expirationInt, ok := new(big.Int).SetString(expirationStr, 10)
+			if ok {
+				result.TokenExpiration = expirationInt
+
+				// Check if current block timestamp is past expiration
+				_, header, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get latest block header: %v", err)
+				}
+
+				currentTime := big.NewInt(int64(header.Time))
+				if currentTime.Cmp(expirationInt) >= 0 {
+					result.Expired = true
+				}
+			}
+		}
+	}
+
+	// If stopData is requested, also get tradingStop metadata
+	if stopData {
+		tradingStopResult, err := s.GetKV(ctx, "tradingStop", tokenAddress, false)
+		if err == nil && tradingStopResult.Exists && tradingStopResult.Value != "" {
+			tradingStopStr := strings.TrimSpace(tradingStopResult.Value)
+			if tradingStopStr != "" {
+				tradingStopInt, ok := new(big.Int).SetString(tradingStopStr, 10)
+				if ok {
+					result.TradingStop = tradingStopInt
+				}
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// ExpiredSubscription provides real-time updates for token expiration status.
+// Based on CIP-151 for Core Blockchain token lifecycle management.
+func (s *PublicSmartContractAPI) ExpiredSubscription(ctx context.Context, tokenAddress common.Address, stopData bool) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return nil, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		var lastResult *ExpiredResult
+		ticker := time.NewTicker(60 * time.Second) // Check every minute for expiration changes
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// Get current expiration status
+				currentResult, err := s.Expired(ctx, tokenAddress, stopData)
+				if err != nil {
+					log.Warn("Failed to get expiration status for subscription", "error", err, "contract", tokenAddress.Hex())
+					continue
+				}
+
+				// Only notify if the result changed
+				if lastResult == nil || expirationStatusChanged(lastResult, currentResult) {
+					lastResult = currentResult
+					err = notifier.Notify(rpcSub.ID, currentResult)
+					if err != nil {
+						log.Warn("Failed to send expiration notification", "error", err)
+						return
+					}
+				}
+
+			case <-rpcSub.Err():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// expirationStatusChanged checks if the expiration status has changed
+func expirationStatusChanged(last, current *ExpiredResult) bool {
+	if last.Expired != current.Expired {
+		return true
+	}
+
+	if last.TokenExpiration != nil && current.TokenExpiration != nil {
+		if last.TokenExpiration.Cmp(current.TokenExpiration) != 0 {
+			return true
+		}
+	} else if last.TokenExpiration != current.TokenExpiration {
+		return true
+	}
+
+	if last.TradingStop != nil && current.TradingStop != nil {
+		if last.TradingStop.Cmp(current.TradingStop) != 0 {
+			return true
+		}
+	} else if last.TradingStop != current.TradingStop {
+		return true
+	}
+
+	return false
+}

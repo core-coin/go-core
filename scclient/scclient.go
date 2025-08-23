@@ -244,3 +244,24 @@ func (c *Client) GetPrice(ctx context.Context, tokenAddress common.Address, aggr
 func (c *Client) GetPriceSubscription(ctx context.Context, tokenAddress common.Address, aggregated bool) (Subscription, error) {
 	return c.c.XcbSubscribe(ctx, "sc_getPrice", tokenAddress, aggregated)
 }
+
+// ExpiredResult represents the result of checking token expiration status
+type ExpiredResult struct {
+	Expired         bool     `json:"expired"`                   // Whether the token is expired
+	TokenExpiration *big.Int `json:"tokenExpiration,omitempty"` // Unix timestamp when token expires
+	TradingStop     *big.Int `json:"tradingStop,omitempty"`     // Unix timestamp when trading should stop
+}
+
+// Expired checks if a token is expired based on CIP-151 Token Lifecycle Metadata Standard.
+// Based on CIP-151 for Core Blockchain token lifecycle management.
+func (c *Client) Expired(ctx context.Context, tokenAddress common.Address, stopData bool) (*ExpiredResult, error) {
+	var result *ExpiredResult
+	err := c.c.CallContext(ctx, &result, "sc_expired", tokenAddress, stopData)
+	return result, err
+}
+
+// ExpiredSubscription provides real-time updates for token expiration status.
+// Based on CIP-151 for Core Blockchain token lifecycle management.
+func (c *Client) ExpiredSubscription(ctx context.Context, tokenAddress common.Address, stopData bool) (Subscription, error) {
+	return c.c.XcbSubscribe(ctx, "sc_expired", tokenAddress, stopData)
+}
