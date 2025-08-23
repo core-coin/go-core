@@ -23,11 +23,14 @@ import (
 	"math/big"
 	"strings"
 
+	"time"
+
 	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/common/hexutil"
 	"github.com/core-coin/go-core/v2/core/state"
 	"github.com/core-coin/go-core/v2/core/types"
 	"github.com/core-coin/go-core/v2/internal/xcbapi"
+	"github.com/core-coin/go-core/v2/log"
 	"github.com/core-coin/go-core/v2/rpc"
 )
 
@@ -1093,6 +1096,110 @@ func (s *PublicSmartContractAPI) TokenURI(ctx context.Context, tokenAddress comm
 	}
 
 	return "", fmt.Errorf("empty response from tokenURI call on contract %s for tokenId %s", tokenAddress.Hex(), tokenId.String())
+}
+
+// GetPrice retrieves the latest price from a PriceFeed contract.
+// Based on CIP-104 for Core Blockchain PriceFeed contracts.
+//
+// Function selectors used (verified for Core Blockchain CIP-104):
+// - getLatestPrice(): 0x677dcf04
+// - getAggregatedPrice(): 0xd9c1c1c9
+//
+// Parameters:
+// - tokenAddress: The address of the PriceFeed contract
+// - aggregated: If true, returns aggregated price; if false, returns latest individual price
+func (s *PublicSmartContractAPI) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*big.Int, error) {
+	var selector string
+	var data []byte
+
+	if aggregated {
+		// getAggregatedPrice() function selector: 0xd9c1c1c9
+		selector = "0xd9c1c1c9"
+		data = hexutil.MustDecode(selector)
+	} else {
+		// getLatestPrice() function selector: 0x677dcf04
+		selector = "0x677dcf04"
+		data = hexutil.MustDecode(selector)
+	}
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		funcName := "getLatestPrice"
+		if aggregated {
+			funcName = "getAggregatedPrice"
+		}
+		return nil, fmt.Errorf("failed to call %s on PriceFeed contract %s: %v",
+			funcName,
+			tokenAddress.Hex(), err)
+	}
+
+	// If we got a result, decode it as uint256
+	if len(result) >= 32 {
+		price := new(big.Int).SetBytes(result)
+		return price, nil
+	}
+
+	funcName := "getLatestPrice"
+	if aggregated {
+		funcName = "getAggregatedPrice"
+	}
+	return nil, fmt.Errorf("invalid response length from %s call on PriceFeed contract %s",
+		funcName,
+		tokenAddress.Hex())
+}
+
+// GetPriceSubscription provides real-time updates for the latest price from a PriceFeed contract.
+// Based on CIP-104 for Core Blockchain PriceFeed contracts.
+func (s *PublicSmartContractAPI) GetPriceSubscription(ctx context.Context, tokenAddress common.Address, aggregated bool) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return nil, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		var lastPrice *big.Int
+		ticker := time.NewTicker(30 * time.Second) // Check every 30 seconds (provider cycle dependent)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// Get current price
+				currentPrice, err := s.GetPrice(ctx, tokenAddress, aggregated)
+				if err != nil {
+					log.Warn("Failed to get price for subscription", "error", err, "contract", tokenAddress.Hex())
+					continue
+				}
+
+				// Only notify if price changed by more than 1%
+				if lastPrice == nil || pricesChanged(lastPrice, currentPrice) {
+					lastPrice = currentPrice
+					err = notifier.Notify(rpcSub.ID, currentPrice)
+					if err != nil {
+						log.Warn("Failed to send price notification", "error", err)
+						return
+					}
+				}
+
+			case <-rpcSub.Err():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// pricesChanged checks if two price arrays are different
+func pricesChanged(current, last *big.Int) bool {
+	return current.Cmp(last) != 0
 }
 
 // Backend interface provides the common API services needed for smart contract operations.

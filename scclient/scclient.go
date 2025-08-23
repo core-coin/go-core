@@ -230,3 +230,17 @@ type Subscription interface {
 	// The error channel is closed by Unsubscribe.
 	Err() <-chan error
 }
+
+// GetPrice retrieves the latest price from a PriceFeed contract.
+// Based on CIP-104 for Core Blockchain PriceFeed contracts.
+func (c *Client) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*big.Int, error) {
+	var result *big.Int
+	err := c.c.CallContext(ctx, &result, "sc_getPrice", tokenAddress, aggregated)
+	return result, err
+}
+
+// GetPriceSubscription provides real-time updates for the latest price from a PriceFeed contract.
+// Based on CIP-104 for Core Blockchain PriceFeed contracts.
+func (c *Client) GetPriceSubscription(ctx context.Context, tokenAddress common.Address, aggregated bool) (Subscription, error) {
+	return c.c.XcbSubscribe(ctx, "sc_getPrice", tokenAddress, aggregated)
+}
