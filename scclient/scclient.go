@@ -69,6 +69,16 @@ func (sc *Client) Decimals(ctx context.Context, tokenAddress common.Address) (ui
 	return uint8(result), nil
 }
 
+// TotalSupply returns the total supply of a given token contract.
+func (sc *Client) TotalSupply(ctx context.Context, tokenAddress common.Address) (*big.Int, error) {
+	var result hexutil.Big
+	err := sc.c.CallContext(ctx, &result, "sc_totalSupply", tokenAddress)
+	if err != nil {
+		return nil, err
+	}
+	return (*big.Int)(&result), nil
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {

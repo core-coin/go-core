@@ -174,6 +174,35 @@ func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress comm
 	return 0, fmt.Errorf("invalid response length from decimals() call on contract %s", tokenAddress.Hex())
 }
 
+// TotalSupply returns the total supply of a given token contract.
+// It automatically decodes the uint256 response and converts it to a big.Int.
+func (s *PublicSmartContractAPI) TotalSupply(ctx context.Context, tokenAddress common.Address) (*big.Int, error) {
+	// CBC20 totalSupply() function selector: 0x1f1881f8
+	selector := "0x1f1881f8" // standard CBC20 totalSupply()
+
+	// Create the call data
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to call totalSupply() on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// If we got a result, decode it as uint256
+	if len(result) > 0 {
+		// Convert the 32-byte result to big.Int
+		supply := new(big.Int).SetBytes(result)
+		return supply, nil
+	}
+
+	return nil, fmt.Errorf("empty response from totalSupply() call on contract %s", tokenAddress.Hex())
+}
+
 // SymbolSubscription provides real-time updates about token symbols.
 // This can be useful for monitoring token metadata changes.
 func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
