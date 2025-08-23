@@ -94,6 +94,75 @@ func (s *PublicCoreAPI) Syncing() (interface{}, error) {
 	}, nil
 }
 
+// Synced returns the number of blocks remaining to sync. If the node is fully synced, it returns 0.
+// The return value represents (highestBlock - currentBlock) or 0 if synced.
+func (s *PublicCoreAPI) Synced() (hexutil.Uint64, error) {
+	progress := s.b.Downloader().Progress()
+
+	// If current block is greater than or equal to highest block, we're synced
+	if progress.CurrentBlock >= progress.HighestBlock {
+		return hexutil.Uint64(0), nil
+	}
+
+	// Return the difference between highest and current block
+	return hexutil.Uint64(progress.HighestBlock - progress.CurrentBlock), nil
+}
+
+// SyncedSubscription provides real-time updates about the number of blocks remaining to sync.
+// It returns a subscription that will notify when the sync status changes.
+func (s *PublicCoreAPI) SyncedSubscription(ctx context.Context) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial status
+		progress := s.b.Downloader().Progress()
+		var initialSynced uint64
+		if progress.CurrentBlock >= progress.HighestBlock {
+			initialSynced = 0
+		} else {
+			initialSynced = progress.HighestBlock - progress.CurrentBlock
+		}
+		notifier.Notify(rpcSub.ID, hexutil.Uint64(initialSynced))
+
+		// Create a ticker to check sync status periodically
+		ticker := time.NewTicker(2 * time.Second) // Check every 2 seconds
+		defer ticker.Stop()
+
+		lastSynced := initialSynced
+
+		for {
+			select {
+			case <-ticker.C:
+				// Check current sync status
+				progress := s.b.Downloader().Progress()
+				var currentSynced uint64
+				if progress.CurrentBlock >= progress.HighestBlock {
+					currentSynced = 0
+				} else {
+					currentSynced = progress.HighestBlock - progress.CurrentBlock
+				}
+
+				// Only notify if the status changed
+				if currentSynced != lastSynced {
+					notifier.Notify(rpcSub.ID, hexutil.Uint64(currentSynced))
+					lastSynced = currentSynced
+				}
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
 // PublicTxPoolAPI offers and API for the transaction pool. It only operates on data that is non confidential.
 type PublicTxPoolAPI struct {
 	b Backend

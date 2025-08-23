@@ -338,6 +338,22 @@ func (ec *Client) SyncProgress(ctx context.Context) (*core.SyncProgress, error) 
 	}, nil
 }
 
+// Synced returns the number of blocks remaining to sync. If the node is fully synced, it returns 0.
+// The return value represents (highestBlock - currentBlock) or 0 if synced.
+func (ec *Client) Synced(ctx context.Context) (uint64, error) {
+	var result hexutil.Uint64
+	if err := ec.c.CallContext(ctx, &result, "xcb_synced"); err != nil {
+		return 0, err
+	}
+	return uint64(result), nil
+}
+
+// SyncedSubscription subscribes to real-time updates about the number of blocks remaining to sync.
+// It returns a subscription that will notify when the sync status changes.
+func (ec *Client) SyncedSubscription(ctx context.Context, ch chan<- uint64) (core.Subscription, error) {
+	return ec.c.XcbSubscribe(ctx, ch, "synced")
+}
+
 // SubscribeNewHead subscribes to notifications about the current blockchain head
 // on the given channel.
 func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (core.Subscription, error) {
