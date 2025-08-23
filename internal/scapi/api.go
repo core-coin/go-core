@@ -316,6 +316,106 @@ func (s *PublicSmartContractAPI) GetKV(ctx context.Context, key string, tokenAdd
 	}, nil
 }
 
+// ListKVResult represents the result of a listKV call
+type ListKVResult struct {
+	Keys   []string `json:"keys"`   // List of all keys
+	Count  uint64   `json:"count"`  // Total number of keys
+	Sealed []bool   `json:"sealed"` // Sealed status for each key (if sealed=false)
+	Values []string `json:"values"` // Values for each key (if sealed=false)
+}
+
+// ListKV retrieves all keys from a smart contract implementing CIP-150.
+// Based on the CIP-150 standard for On-Chain Key-Value Metadata Storage.
+// If sealed=false (default), returns keys, sealed status, and values.
+// If sealed=true, only returns keys that are sealed.
+//
+// Function selectors used (verified for Core Blockchain CIP-150):
+// - listKeys(): 0xfd322c14
+// - count(): 0x06661abd
+// - isSealed(string): 0xc2b79222
+// - getValue(string): 0x960384a0
+func (s *PublicSmartContractAPI) ListKV(ctx context.Context, tokenAddress common.Address, sealed bool) (*ListKVResult, error) {
+	// Get the total count of keys
+	count, err := s.callCount(ctx, tokenAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get key count for contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	if count == 0 {
+		return &ListKVResult{
+			Keys:   []string{},
+			Count:  0,
+			Sealed: []bool{},
+			Values: []string{},
+		}, nil
+	}
+
+	// Get all keys
+	keys, err := s.callListKeys(ctx, tokenAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get keys for contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	var sealedStatus []bool
+	var values []string
+
+	// Process each key based on the sealed parameter
+	for _, key := range keys {
+		if sealed {
+			// If we only want sealed keys, check the sealed status
+			isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+			}
+			if isSealed {
+				sealedStatus = append(sealedStatus, true)
+				values = append(values, "") // We don't need the value for sealed-only requests
+			}
+		} else {
+			// If we want all keys, get the sealed status and value
+			isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+			}
+			sealedStatus = append(sealedStatus, isSealed)
+
+			value, err := s.callGetValue(ctx, key, tokenAddress)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get value for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+			}
+			values = append(values, value)
+		}
+	}
+
+	// Filter keys based on sealed parameter
+	var filteredKeys []string
+	var filteredSealed []bool
+	var filteredValues []string
+
+	for i, key := range keys {
+		if sealed {
+			// Only include sealed keys
+			if sealedStatus[i] {
+				filteredKeys = append(filteredKeys, key)
+				filteredSealed = append(filteredSealed, sealedStatus[i])
+				filteredValues = append(filteredValues, values[i])
+			}
+		} else {
+			// Include all keys
+			filteredKeys = append(filteredKeys, key)
+			filteredSealed = append(filteredSealed, sealedStatus[i])
+			filteredValues = append(filteredValues, values[i])
+		}
+	}
+
+	return &ListKVResult{
+		Keys:   filteredKeys,
+		Count:  uint64(len(filteredKeys)),
+		Sealed: filteredSealed,
+		Values: filteredValues,
+	}, nil
+}
+
 // callHasKey calls the hasKey function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callHasKey(ctx context.Context, key string, tokenAddress common.Address) (bool, error) {
 	// hasKey(string key) function selector: 0x332d3780
@@ -606,6 +706,130 @@ func decodeDynString(res string) (string, error) {
 
 	// Convert to UTF-8 string
 	return string(dataBytes), nil
+}
+
+// callCount calls the count function on the contract (CIP-150)
+func (s *PublicSmartContractAPI) callCount(ctx context.Context, tokenAddress common.Address) (uint64, error) {
+	// count() function selector: 0x06661abd
+	selector := "0x06661abd"
+
+	// Create the call data: just the selector (no parameters)
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to call count on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode the uint256 result
+	if len(result) >= 32 {
+		count := new(big.Int).SetBytes(result)
+		return count.Uint64(), nil
+	}
+
+	return 0, fmt.Errorf("invalid response length from count call")
+}
+
+// callListKeys calls the listKeys function on the contract (CIP-150)
+func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress common.Address) ([]string, error) {
+	// listKeys() function selector: 0xfd322c14
+	selector := "0xfd322c14"
+
+	// Create the call data: just the selector (no parameters)
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to call listKeys on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode the string[] result
+	// This is a dynamic array of strings, so we need to parse the ABI encoding
+	if len(result) < 32 {
+		return nil, fmt.Errorf("response too short for dynamic array")
+	}
+
+	// Get the offset to the array data
+	offsetHex := hexutil.Encode(result[:32])
+	offset, err := hex.DecodeString(strings.TrimPrefix(offsetHex, "0x"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode array offset: %v", err)
+	}
+	offsetInt := new(big.Int).SetBytes(offset)
+	offsetBytes := offsetInt.Int64() * 2
+
+	if int64(len(result)) < offsetBytes+32 {
+		return nil, fmt.Errorf("invalid response length for array offset %d", offsetBytes)
+	}
+
+	// Get the array length
+	lengthHex := hexutil.Encode(result[offsetBytes : offsetBytes+32])
+	length, err := hex.DecodeString(strings.TrimPrefix(lengthHex, "0x"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode array length: %v", err)
+	}
+	lengthInt := new(big.Int).SetBytes(length)
+	arrayLength := lengthInt.Int64()
+
+	var keys []string
+	currentOffset := offsetBytes + 32
+
+	// Parse each string in the array
+	for i := int64(0); i < arrayLength; i++ {
+		if int64(len(result)) < currentOffset+32 {
+			return nil, fmt.Errorf("response too short for string %d offset", i)
+		}
+
+		// Get the string offset
+		stringOffsetHex := hexutil.Encode(result[currentOffset : currentOffset+32])
+		stringOffset, err := hex.DecodeString(strings.TrimPrefix(stringOffsetHex, "0x"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode string %d offset: %v", i, err)
+		}
+		stringOffsetInt := new(big.Int).SetBytes(stringOffset)
+		stringOffsetBytes := stringOffsetInt.Int64() * 2
+
+		if int64(len(result)) < stringOffsetBytes+32 {
+			return nil, fmt.Errorf("response too short for string %d data", i)
+		}
+
+		// Get the string length
+		stringLengthHex := hexutil.Encode(result[stringOffsetBytes : stringOffsetBytes+32])
+		stringLength, err := hex.DecodeString(strings.TrimPrefix(stringLengthHex, "0x"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode string %d length: %v", i, err)
+		}
+		stringLengthInt := new(big.Int).SetBytes(stringLength)
+		stringLengthBytes := stringLengthInt.Int64() * 2
+
+		// Get the string data
+		stringDataStart := stringOffsetBytes + 32
+		stringDataEnd := stringDataStart + stringLengthBytes
+		if int64(len(result)) < stringDataEnd {
+			return nil, fmt.Errorf("response too short for string %d content", i)
+		}
+
+		stringDataHex := hexutil.Encode(result[stringDataStart:stringDataEnd])
+		stringData, err := hex.DecodeString(strings.TrimPrefix(stringDataHex, "0x"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode string %d content: %v", i, err)
+		}
+
+		keys = append(keys, string(stringData))
+		currentOffset += 32
+	}
+
+	return keys, nil
 }
 
 // Backend interface provides the common API services needed for smart contract operations.

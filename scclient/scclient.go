@@ -96,6 +96,14 @@ type GetKVResult struct {
 	Exists bool   `json:"exists"` // Whether the key exists
 }
 
+// ListKVResult represents the result of a listKV call
+type ListKVResult struct {
+	Keys   []string `json:"keys"`   // List of all keys
+	Count  uint64   `json:"count"`  // Total number of keys
+	Sealed []bool   `json:"sealed"` // Sealed status for each key (if sealed=false)
+	Values []string `json:"values"` // Values for each key (if sealed=false)
+}
+
 // GetKV retrieves key-value metadata from a smart contract implementing CIP-150.
 // Based on the CIP-150 standard for On-Chain Key-Value Metadata Storage.
 // If sealed=false (default), returns the value and sealed status.
@@ -103,6 +111,19 @@ type GetKVResult struct {
 func (sc *Client) GetKV(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (*GetKVResult, error) {
 	var result GetKVResult
 	err := sc.c.CallContext(ctx, &result, "sc_getKV", key, tokenAddress, sealed)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ListKV retrieves all keys from a smart contract implementing CIP-150.
+// Based on the CIP-150 standard for On-Chain Key-Value Metadata Storage.
+// If sealed=false (default), returns keys, sealed status, and values.
+// If sealed=true, only returns keys that are sealed.
+func (sc *Client) ListKV(ctx context.Context, tokenAddress common.Address, sealed bool) (*ListKVResult, error) {
+	var result ListKVResult
+	err := sc.c.CallContext(ctx, &result, "sc_listKV", tokenAddress, sealed)
 	if err != nil {
 		return nil, err
 	}
