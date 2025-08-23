@@ -19,6 +19,7 @@ package xcb
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/core-coin/go-core/v2/xcb/energyprice"
@@ -35,6 +36,7 @@ import (
 	"github.com/core-coin/go-core/v2/core/types"
 	"github.com/core-coin/go-core/v2/core/vm"
 	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
 	"github.com/core-coin/go-core/v2/miner"
 	"github.com/core-coin/go-core/v2/params"
 	"github.com/core-coin/go-core/v2/rpc"
@@ -296,6 +298,48 @@ func (b *XcbAPIBackend) AccountManager() *accounts.Manager {
 
 func (b *XcbAPIBackend) ExtRPCEnabled() bool {
 	return b.extRPCEnabled
+}
+
+// CallContract executes a contract call.
+func (b *XcbAPIBackend) CallContract(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
+	// Get the block number
+	var block *types.Block
+	switch blockNumber {
+	case rpc.LatestBlockNumber:
+		block = b.xcb.BlockChain().CurrentBlock()
+	case rpc.PendingBlockNumber:
+		block = b.xcb.BlockChain().CurrentBlock()
+	default:
+		block = b.xcb.BlockChain().GetBlockByNumber(uint64(blockNumber))
+	}
+	if block == nil {
+		return nil, fmt.Errorf("block not found")
+	}
+
+	// Get the state at the block
+	state, err := b.xcb.BlockChain().StateAt(block.Root())
+	if err != nil {
+		return nil, err
+	}
+
+	// Create the CVM context
+	header := block.Header()
+	context := core.NewCVMBlockContext(header, b.xcb.BlockChain(), nil)
+	txContext := core.NewCVMTxContext(call)
+
+	// Create the CVM
+	cvm := vm.NewCVM(context, txContext, state, b.xcb.blockchain.Config(), *b.xcb.blockchain.GetVMConfig())
+
+	// Execute the call
+	if call.To() == nil {
+		return nil, fmt.Errorf("contract address is nil")
+	}
+	result, _, err := cvm.Call(vm.AccountRef(call.From()), *call.To(), call.Data(), call.Energy(), call.Value())
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (b *XcbAPIBackend) RPCEnergyCap() uint64 {
