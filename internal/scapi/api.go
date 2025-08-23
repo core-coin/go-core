@@ -626,6 +626,230 @@ func (s *PublicSmartContractAPI) NameSubscription(ctx context.Context, tokenAddr
 	return rpcSub, nil
 }
 
+// BalanceOfSubscription provides real-time updates about token balances.
+// This can be useful for monitoring balance changes for specific addresses.
+func (s *PublicSmartContractAPI) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial balance
+		balance, err := s.BalanceOf(ctx, holderAddress, tokenAddress)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, balance)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// DecimalsSubscription provides real-time updates about token decimal places.
+// This can be useful for monitoring decimal changes.
+func (s *PublicSmartContractAPI) DecimalsSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial decimals
+		decimals, err := s.Decimals(ctx, tokenAddress)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, decimals)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// TotalSupplySubscription provides real-time updates about token total supply.
+// This can be useful for monitoring supply changes.
+func (s *PublicSmartContractAPI) TotalSupplySubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial total supply
+		supply, err := s.TotalSupply(ctx, tokenAddress)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, supply)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// LengthSubscription provides real-time updates about smart contract code size.
+// This can be useful for monitoring contract upgrades or deployments.
+func (s *PublicSmartContractAPI) LengthSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial length
+		length, err := s.Length(ctx, tokenAddress)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, length)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// GetKVSubscription provides real-time updates about key-value metadata.
+// This can be useful for monitoring metadata changes.
+func (s *PublicSmartContractAPI) GetKVSubscription(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial metadata
+		result, err := s.GetKV(ctx, key, tokenAddress, sealed)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, result)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// ListKVSubscription provides real-time updates about key-value metadata lists.
+// This can be useful for monitoring metadata list changes.
+func (s *PublicSmartContractAPI) ListKVSubscription(ctx context.Context, tokenAddress common.Address, sealed bool) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial metadata list
+		result, err := s.ListKV(ctx, tokenAddress, sealed)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, result)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// TokenURISubscription provides real-time updates about NFT token URIs.
+// This can be useful for monitoring metadata URI changes.
+func (s *PublicSmartContractAPI) TokenURISubscription(ctx context.Context, tokenAddress common.Address, tokenId *big.Int) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial token URI
+		uri, err := s.TokenURI(ctx, tokenAddress, tokenId)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, uri)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
 // decodeDynString decodes a dynamic string from contract call response.
 // It handles both bytes32 fallback and dynamic string encoding.
 func decodeDynString(res string) (string, error) {

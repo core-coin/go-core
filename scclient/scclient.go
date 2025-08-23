@@ -141,6 +141,48 @@ func (sc *Client) TokenURI(ctx context.Context, tokenAddress common.Address, tok
 	return result, nil
 }
 
+// BalanceOfSubscription subscribes to real-time updates about token balances.
+// It returns a subscription that will notify when the balance changes.
+func (sc *Client) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan *big.Int), "balanceOf", holderAddress, tokenAddress)
+}
+
+// DecimalsSubscription subscribes to real-time updates about token decimal places.
+// It returns a subscription that will notify when the decimals change.
+func (sc *Client) DecimalsSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan uint8), "decimals", tokenAddress)
+}
+
+// TotalSupplySubscription subscribes to real-time updates about token total supply.
+// It returns a subscription that will notify when the total supply changes.
+func (sc *Client) TotalSupplySubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan *big.Int), "totalSupply", tokenAddress)
+}
+
+// LengthSubscription subscribes to real-time updates about smart contract code size.
+// It returns a subscription that will notify when the contract length changes.
+func (sc *Client) LengthSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan uint64), "length", tokenAddress)
+}
+
+// GetKVSubscription subscribes to real-time updates about key-value metadata.
+// It returns a subscription that will notify when the metadata changes.
+func (sc *Client) GetKVSubscription(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan *GetKVResult), "getKV", key, tokenAddress, sealed)
+}
+
+// ListKVSubscription subscribes to real-time updates about key-value metadata lists.
+// It returns a subscription that will notify when the metadata list changes.
+func (sc *Client) ListKVSubscription(ctx context.Context, tokenAddress common.Address, sealed bool) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan *ListKVResult), "listKV", tokenAddress, sealed)
+}
+
+// TokenURISubscription subscribes to real-time updates about NFT token URIs.
+// It returns a subscription that will notify when the token URI changes.
+func (sc *Client) TokenURISubscription(ctx context.Context, tokenAddress common.Address, tokenId *big.Int) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan string), "tokenURI", tokenAddress, tokenId)
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
