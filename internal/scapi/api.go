@@ -233,6 +233,233 @@ func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common
 	return uint64(len(code)), nil
 }
 
+// GetKVResult represents the result of a getKV call
+type GetKVResult struct {
+	Value  string `json:"value"`  // The metadata value
+	Sealed bool   `json:"sealed"` // Whether the key is sealed (immutable)
+	Exists bool   `json:"exists"` // Whether the key exists
+}
+
+// GetKV retrieves key-value metadata from a smart contract implementing CIP-150.
+// Based on the CIP-150 standard for On-Chain Key-Value Metadata Storage.
+// If sealed=false (default), returns the value and sealed status.
+// If sealed=true, only returns data if the item is actually sealed.
+//
+// Function selectors used (verified for Core Blockchain CIP-150):
+// - hasKey(string): 0x332d3780
+// - isSealed(string): 0xc2b79222
+// - getValue(string): 0x960384a0
+// - listKeys(): 0xfd322c14
+// - getByIndex(uint256): 0x2d883a73
+// - count(): 0x06661abd
+// - setValue(string,string): 0xec86cfad
+// - sealKey(string): 0x1ef55f1a
+
+func (s *PublicSmartContractAPI) GetKV(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (*GetKVResult, error) {
+	// CIP-150 interface functions:
+	// - getValue(string key) returns (string value)
+	// - isSealed(string key) returns (bool sealed)
+	// - hasKey(string key) returns (bool exists)
+
+	// First check if the key exists
+	exists, err := s.callHasKey(ctx, key, tokenAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if key exists for contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	if !exists {
+		return &GetKVResult{
+			Value:  "",
+			Sealed: false,
+			Exists: false,
+		}, nil
+	}
+
+	// If we only want sealed items, check the sealed status first
+	if sealed {
+		isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+		}
+
+		// If we want sealed items but this one isn't sealed, return nothing
+		if !isSealed {
+			return &GetKVResult{
+				Value:  "",
+				Sealed: false,
+				Exists: true,
+			}, nil
+		}
+	}
+
+	// Get the value
+	value, err := s.callGetValue(ctx, key, tokenAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get value for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+	}
+
+	// Get the sealed status (only if we need it)
+	var isSealed bool
+	if !sealed {
+		isSealed, err = s.callIsSealed(ctx, key, tokenAddress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+		}
+	} else {
+		isSealed = true // We already know it's sealed from above
+	}
+
+	return &GetKVResult{
+		Value:  value,
+		Sealed: isSealed,
+		Exists: true,
+	}, nil
+}
+
+// callHasKey calls the hasKey function on the contract (CIP-150)
+func (s *PublicSmartContractAPI) callHasKey(ctx context.Context, key string, tokenAddress common.Address) (bool, error) {
+	// hasKey(string key) function selector: 0x332d3780
+	selector := "0x332d3780"
+
+	// Create the call data: selector + encoded string key
+	data := hexutil.MustDecode(selector)
+
+	// Encode the string key (dynamic string encoding)
+	keyBytes := []byte(key)
+	keyLength := len(keyBytes)
+
+	// Add offset (32 bytes for dynamic string)
+	offset := big.NewInt(32)
+	offsetBytes := make([]byte, 32)
+	offset.FillBytes(offsetBytes)
+	data = append(data, offsetBytes...)
+
+	// Add length
+	lengthBytes := make([]byte, 32)
+	big.NewInt(int64(keyLength)).FillBytes(lengthBytes)
+	data = append(data, lengthBytes...)
+
+	// Add the key data (padded to 32 bytes)
+	keyPadded := make([]byte, 32)
+	copy(keyPadded, keyBytes)
+	data = append(data, keyPadded...)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return false, fmt.Errorf("failed to call hasKey on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode the boolean result
+	if len(result) >= 32 {
+		// The last byte contains the boolean value
+		return result[31] != 0, nil
+	}
+
+	return false, fmt.Errorf("invalid response length from hasKey call")
+}
+
+// callIsSealed calls the isSealed function on the contract (CIP-150)
+func (s *PublicSmartContractAPI) callIsSealed(ctx context.Context, key string, tokenAddress common.Address) (bool, error) {
+	// isSealed(string key) function selector: 0xc2b79222
+	selector := "0xc2b79222"
+
+	// Create the call data: selector + encoded string key
+	data := hexutil.MustDecode(selector)
+
+	// Encode the string key (dynamic string encoding)
+	keyBytes := []byte(key)
+	keyLength := len(keyBytes)
+
+	// Add offset (32 bytes for dynamic string)
+	offset := big.NewInt(32)
+	offsetBytes := make([]byte, 32)
+	offset.FillBytes(offsetBytes)
+	data = append(data, offsetBytes...)
+
+	// Add length
+	lengthBytes := make([]byte, 32)
+	big.NewInt(int64(keyLength)).FillBytes(lengthBytes)
+	data = append(data, lengthBytes...)
+
+	// Add the key data (padded to 32 bytes)
+	keyPadded := make([]byte, 32)
+	copy(keyPadded, keyBytes)
+	data = append(data, keyPadded...)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return false, fmt.Errorf("failed to call isSealed on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode the boolean result
+	if len(result) >= 32 {
+		// The last byte contains the boolean value
+		return result[31] != 0, nil
+	}
+
+	return false, fmt.Errorf("invalid response length from isSealed call")
+}
+
+// callGetValue calls the getValue function on the contract (CIP-150)
+func (s *PublicSmartContractAPI) callGetValue(ctx context.Context, key string, tokenAddress common.Address) (string, error) {
+	// getValue(string key) function selector: 0x960384a0
+	selector := "0x960384a0"
+
+	// Create the call data: selector + encoded string key
+	data := hexutil.MustDecode(selector)
+
+	// Encode the string key (dynamic string encoding)
+	keyBytes := []byte(key)
+	keyLength := len(keyBytes)
+
+	// Add offset (32 bytes for dynamic string)
+	offset := big.NewInt(32)
+	offsetBytes := make([]byte, 32)
+	offset.FillBytes(offsetBytes)
+	data = append(data, offsetBytes...)
+
+	// Add length
+	lengthBytes := make([]byte, 32)
+	big.NewInt(int64(keyLength)).FillBytes(lengthBytes)
+	data = append(data, lengthBytes...)
+
+	// Add the key data (padded to 32 bytes)
+	keyPadded := make([]byte, 32)
+	copy(keyPadded, keyBytes)
+	data = append(data, keyPadded...)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to call getValue on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode the dynamic string response using our existing decodeDynString function
+	if len(result) > 0 {
+		decoded, err := decodeDynString(hexutil.Encode(result))
+		if err != nil {
+			return "", fmt.Errorf("failed to decode getValue response from contract %s: %v", tokenAddress.Hex(), err)
+		}
+		return decoded, nil
+	}
+
+	return "", fmt.Errorf("empty response from getValue call")
+}
+
 // SymbolSubscription provides real-time updates about token symbols.
 // This can be useful for monitoring token metadata changes.
 func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {

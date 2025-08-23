@@ -89,6 +89,26 @@ func (sc *Client) Length(ctx context.Context, tokenAddress common.Address) (uint
 	return uint64(result), nil
 }
 
+// GetKVResult represents the result of a getKV call
+type GetKVResult struct {
+	Value  string `json:"value"`  // The metadata value
+	Sealed bool   `json:"sealed"` // Whether the key is sealed (immutable)
+	Exists bool   `json:"exists"` // Whether the key exists
+}
+
+// GetKV retrieves key-value metadata from a smart contract implementing CIP-150.
+// Based on the CIP-150 standard for On-Chain Key-Value Metadata Storage.
+// If sealed=false (default), returns the value and sealed status.
+// If sealed=true, only returns data if the item is actually sealed.
+func (sc *Client) GetKV(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (*GetKVResult, error) {
+	var result GetKVResult
+	err := sc.c.CallContext(ctx, &result, "sc_getKV", key, tokenAddress, sealed)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
