@@ -1346,3 +1346,135 @@ func expirationStatusChanged(last, current *ExpiredResult) bool {
 
 	return false
 }
+
+// KYCResult represents the result of checking KYC verification status
+type KYCResult struct {
+	Verified     bool     `json:"verified"`               // Whether the user is KYC verified
+	Timestamp    *big.Int `json:"timestamp,omitempty"`    // Unix timestamp when KYC verification happened
+	SubmissionID *big.Int `json:"submissionId,omitempty"` // Submission ID for the verification
+	Role         string   `json:"role,omitempty"`         // Role associated with the verification
+}
+
+// GetKYC checks if a user is KYC verified based on CorePass KYC smart contract.
+// Based on CorePass KYC verification system for Core Blockchain.
+//
+// Function selector used:
+// - isVerified(address user, bytes32 field): 0x8f283970
+//
+// Parameters:
+// - tokenAddress: The address of the KYC provider smart contract
+// - address: The user address to check KYC verification for
+func (s *PublicSmartContractAPI) GetKYC(ctx context.Context, tokenAddress, userAddress common.Address) (*KYCResult, error) {
+	result := &KYCResult{
+		Verified: false,
+	}
+
+	// Use the standard "KYC" field - this is a common field name used in CorePass contracts
+	// The isVerified function will check if the user has any valid submission for this field
+	kycField := "KYC"
+	fieldHash := common.BytesToHash([]byte(kycField))
+
+	// Call isVerified(address user, bytes32 field)
+	// isVerified(address, bytes32) function selector: 0x8f283970
+	selector := "0x8f283970"
+	data := hexutil.MustDecode(selector)
+
+	// Encode the user address parameter (32 bytes, left-padded)
+	userAddressBytes := make([]byte, 32)
+	copy(userAddressBytes[12:], userAddress.Bytes()) // Right-align address
+	data = append(data, userAddressBytes...)
+
+	// Encode the field parameter (32 bytes)
+	fieldBytes := make([]byte, 32)
+	copy(fieldBytes, fieldHash.Bytes())
+	data = append(data, fieldBytes...)
+
+	// Make the contract call to check verification
+	verificationResult, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to call isVerified on KYC contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Parse the verification result (bool)
+	if len(verificationResult) >= 32 {
+		verified := new(big.Int).SetBytes(verificationResult)
+		result.Verified = verified.Cmp(big.NewInt(0)) != 0
+	}
+
+	// If verified, set basic information
+	if result.Verified {
+		// Set the field name as the role
+		result.Role = kycField
+	}
+
+	return result, nil
+}
+
+// GetKYCSubscription provides real-time updates for KYC verification status.
+// Based on CorePass KYC verification system for Core Blockchain.
+func (s *PublicSmartContractAPI) GetKYCSubscription(ctx context.Context, tokenAddress, userAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return nil, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		var lastResult *KYCResult
+		ticker := time.NewTicker(30 * time.Second) // Check every 30 seconds for KYC changes - Ongoing KYC verification
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// Get current KYC status
+				currentResult, err := s.GetKYC(ctx, tokenAddress, userAddress)
+				if err != nil {
+					log.Warn("Failed to get KYC status for subscription", "error", err, "contract", tokenAddress.Hex(), "user", userAddress.Hex())
+					continue
+				}
+
+				// Only notify if the result changed
+				if lastResult == nil || kycStatusChanged(lastResult, currentResult) {
+					lastResult = currentResult
+					err = notifier.Notify(rpcSub.ID, currentResult)
+					if err != nil {
+						log.Warn("Failed to send KYC notification", "error", err)
+						return
+					}
+				}
+
+			case <-rpcSub.Err():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// kycStatusChanged checks if the KYC status has changed
+func kycStatusChanged(last, current *KYCResult) bool {
+	if last.Verified != current.Verified {
+		return true
+	}
+
+	if last.Timestamp != nil && current.Timestamp != nil {
+		if last.Timestamp.Cmp(current.Timestamp) != 0 {
+			return true
+		}
+	} else if last.Timestamp != current.Timestamp {
+		return true
+	}
+
+	if last.Role != current.Role {
+		return true
+	}
+
+	return false
+}

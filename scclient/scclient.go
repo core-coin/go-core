@@ -265,3 +265,25 @@ func (c *Client) Expired(ctx context.Context, tokenAddress common.Address, stopD
 func (c *Client) ExpiredSubscription(ctx context.Context, tokenAddress common.Address, stopData bool) (Subscription, error) {
 	return c.c.XcbSubscribe(ctx, "sc_expired", tokenAddress, stopData)
 }
+
+// KYCResult represents the result of checking KYC verification status
+type KYCResult struct {
+	Verified     bool     `json:"verified"`               // Whether the user is KYC verified
+	Timestamp    *big.Int `json:"timestamp,omitempty"`    // Unix timestamp when KYC verification happened
+	SubmissionID *big.Int `json:"submissionId,omitempty"` // Submission ID for the verification
+	Role         string   `json:"role,omitempty"`         // Role associated with the verification
+}
+
+// GetKYC checks if a user is KYC verified based on CorePass KYC smart contract.
+// Based on CorePass KYC verification system for Core Blockchain.
+func (c *Client) GetKYC(ctx context.Context, tokenAddress, userAddress common.Address) (*KYCResult, error) {
+	var result *KYCResult
+	err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress)
+	return result, err
+}
+
+// GetKYCSubscription provides real-time updates for KYC verification status.
+// Based on CorePass KYC verification system for Core Blockchain.
+func (c *Client) GetKYCSubscription(ctx context.Context, tokenAddress, userAddress common.Address) (Subscription, error) {
+	return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress)
+}
