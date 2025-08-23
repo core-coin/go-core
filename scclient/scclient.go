@@ -79,6 +79,16 @@ func (sc *Client) TotalSupply(ctx context.Context, tokenAddress common.Address) 
 	return (*big.Int)(&result), nil
 }
 
+// Length returns the smart contract code size in bytes for a given contract address.
+func (sc *Client) Length(ctx context.Context, tokenAddress common.Address) (uint64, error) {
+	var result hexutil.Uint64
+	err := sc.c.CallContext(ctx, &result, "sc_length", tokenAddress)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(result), nil
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {

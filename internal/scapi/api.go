@@ -25,6 +25,8 @@ import (
 
 	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/common/hexutil"
+	"github.com/core-coin/go-core/v2/core/state"
+	"github.com/core-coin/go-core/v2/core/types"
 	"github.com/core-coin/go-core/v2/internal/xcbapi"
 	"github.com/core-coin/go-core/v2/rpc"
 )
@@ -203,6 +205,34 @@ func (s *PublicSmartContractAPI) TotalSupply(ctx context.Context, tokenAddress c
 	return nil, fmt.Errorf("empty response from totalSupply() call on contract %s", tokenAddress.Hex())
 }
 
+// Length returns the smart contract code size in bytes for a given contract address.
+// It uses xcb.getCode to fetch the contract code and returns the size in bytes.
+func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common.Address) (uint64, error) {
+	// Since xcb.getCode is already implemented as a standard RPC method,
+	// we can use the existing blockchain API directly
+	// This is equivalent to calling xcb.getCode(addr, "latest")
+
+	// Get the latest block number
+	latestBlock := rpc.LatestBlockNumber
+
+	// Get the state at the latest block
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, latestBlock)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get state for contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Get the code from the state
+	code := state.GetCode(tokenAddress)
+
+	// Check if it's an EOA (no code) or empty code
+	if len(code) == 0 {
+		return 0, nil
+	}
+
+	// Return the code size in bytes
+	return uint64(len(code)), nil
+}
+
 // SymbolSubscription provides real-time updates about token symbols.
 // This can be useful for monitoring token metadata changes.
 func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
@@ -355,4 +385,6 @@ func decodeDynString(res string) (string, error) {
 type Backend interface {
 	// CallContract executes a contract call
 	CallContract(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error)
+	// StateAndHeaderByNumber gets the state and header at a specific block number
+	StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error)
 }
