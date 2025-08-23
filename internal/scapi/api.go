@@ -76,6 +76,42 @@ func (s *PublicSmartContractAPI) Symbol(ctx context.Context, tokenAddress common
 	return "", fmt.Errorf("failed to get symbol from contract %s", tokenAddress.Hex())
 }
 
+// Name returns the name of a token contract by calling the name() function.
+// It automatically decodes the dynamic string response using decodeDynString.
+func (s *PublicSmartContractAPI) Name(ctx context.Context, tokenAddress common.Address) (string, error) {
+	// ERC20 name() function selector: 0x06fdde03
+	// But some contracts use 0x07ba2a17, so we'll try both
+	nameSelectors := []string{
+		"0x06fdde03", // standard ERC20 name()
+		"0x07ba2a17", // alternative name()
+	}
+
+	for _, selector := range nameSelectors {
+		// Create the call data
+		data := hexutil.MustDecode(selector)
+
+		// Make the contract call
+		result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+			ToAddr:    &tokenAddress,
+			DataBytes: data,
+		}, rpc.LatestBlockNumber)
+
+		if err != nil {
+			continue // Try next selector
+		}
+
+		// If we got a result, decode it
+		if len(result) > 0 {
+			decoded, err := decodeDynString(hexutil.Encode(result))
+			if err == nil && decoded != "" {
+				return decoded, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("failed to get name from contract %s", tokenAddress.Hex())
+}
+
 // SymbolSubscription provides real-time updates about token symbols.
 // This can be useful for monitoring token metadata changes.
 func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
@@ -91,6 +127,39 @@ func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAd
 		symbol, err := s.Symbol(ctx, tokenAddress)
 		if err == nil {
 			notifier.Notify(rpcSub.ID, symbol)
+		}
+
+		// Monitor for changes (this is a simplified implementation)
+		// In a real scenario, you might want to monitor specific events
+		// or use a different strategy for detecting changes
+		for {
+			select {
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
+// NameSubscription provides real-time updates about token names.
+// This can be useful for monitoring token metadata changes.
+func (s *PublicSmartContractAPI) NameSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial name
+		name, err := s.Name(ctx, tokenAddress)
+		if err == nil {
+			notifier.Notify(rpcSub.ID, name)
 		}
 
 		// Monitor for changes (this is a simplified implementation)

@@ -40,10 +40,23 @@ func (sc *Client) Symbol(ctx context.Context, tokenAddress common.Address) (stri
 	return result, err
 }
 
+// Name returns the name of a token contract by calling the sc.name RPC method.
+func (sc *Client) Name(ctx context.Context, tokenAddress common.Address) (string, error) {
+	var result string
+	err := sc.c.CallContext(ctx, &result, "sc_name", tokenAddress)
+	return result, err
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
 	return sc.c.XcbSubscribe(ctx, make(chan string), "symbol", tokenAddress)
+}
+
+// NameSubscription subscribes to real-time updates about token names.
+// It returns a subscription that will notify when the name changes.
+func (sc *Client) NameSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan string), "name", tokenAddress)
 }
 
 // Dial connects to a smart contracts RPC endpoint.
