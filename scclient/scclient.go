@@ -59,6 +59,16 @@ func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress com
 	return (*big.Int)(&result), nil
 }
 
+// Decimals returns the number of decimal places for a given token contract.
+func (sc *Client) Decimals(ctx context.Context, tokenAddress common.Address) (uint8, error) {
+	var result hexutil.Uint64
+	err := sc.c.CallContext(ctx, &result, "sc_decimals", tokenAddress)
+	if err != nil {
+		return 0, err
+	}
+	return uint8(result), nil
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {

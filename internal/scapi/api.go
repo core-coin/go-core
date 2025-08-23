@@ -143,6 +143,37 @@ func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, t
 	return nil, fmt.Errorf("empty response from balanceOf call on contract %s for address %s", tokenAddress.Hex(), holderAddress.Hex())
 }
 
+// Decimals returns the number of decimal places for a given token contract.
+// It automatically decodes the uint8 response and converts it to uint8.
+func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress common.Address) (uint8, error) {
+	// CBC20 decimals() function selector: 0x5d1fb5f9
+	selector := "0x5d1fb5f9" // standard CBC20 decimals()
+
+	// Create the call data
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to call decimals() on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// If we got a result, decode it as uint8
+	if len(result) > 0 {
+		// Convert the 32-byte result to uint8 (last byte)
+		if len(result) >= 32 {
+			decimals := result[31] // Last byte contains the uint8 value
+			return decimals, nil
+		}
+	}
+
+	return 0, fmt.Errorf("invalid response length from decimals() call on contract %s", tokenAddress.Hex())
+}
+
 // SymbolSubscription provides real-time updates about token symbols.
 // This can be useful for monitoring token metadata changes.
 func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
