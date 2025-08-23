@@ -130,6 +130,17 @@ func (sc *Client) ListKV(ctx context.Context, tokenAddress common.Address, seale
 	return &result, nil
 }
 
+// TokenURI retrieves the token URI for a specific NFT token ID from a CoreNFT contract.
+// Based on the CIP-721 standard for Core Blockchain Non-Fungible Tokens.
+func (sc *Client) TokenURI(ctx context.Context, tokenAddress common.Address, tokenId *big.Int) (string, error) {
+	var result string
+	err := sc.c.CallContext(ctx, &result, "sc_tokenURI", tokenAddress, tokenId)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
 // SymbolSubscription subscribes to real-time updates about token symbols.
 // It returns a subscription that will notify when the symbol changes.
 func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {

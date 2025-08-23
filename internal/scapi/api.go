@@ -832,6 +832,45 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	return keys, nil
 }
 
+// TokenURI retrieves the token URI for a specific NFT token ID from a CoreNFT contract.
+// Based on the CIP-721 standard for Core Blockchain Non-Fungible Tokens.
+//
+// Function selector used (verified for Core Blockchain CIP-721):
+// - tokenURI(uint256): 0xc87b56dd
+func (s *PublicSmartContractAPI) TokenURI(ctx context.Context, tokenAddress common.Address, tokenId *big.Int) (string, error) {
+	// tokenURI(uint256 tokenId) function selector: 0xc87b56dd
+	selector := "0xc87b56dd"
+
+	// Create the call data: selector + encoded uint256 tokenId
+	data := hexutil.MustDecode(selector)
+
+	// Encode the tokenId (uint256)
+	tokenIdBytes := make([]byte, 32)
+	tokenId.FillBytes(tokenIdBytes)
+	data = append(data, tokenIdBytes...)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to call tokenURI on contract %s for tokenId %s: %v", tokenAddress.Hex(), tokenId.String(), err)
+	}
+
+	// Decode the dynamic string response using our existing decodeDynString function
+	if len(result) > 0 {
+		decoded, err := decodeDynString(hexutil.Encode(result))
+		if err != nil {
+			return "", fmt.Errorf("failed to decode tokenURI response from contract %s for tokenId %s: %v", tokenAddress.Hex(), tokenId.String(), err)
+		}
+		return decoded, nil
+	}
+
+	return "", fmt.Errorf("empty response from tokenURI call on contract %s for tokenId %s", tokenAddress.Hex(), tokenId.String())
+}
+
 // Backend interface provides the common API services needed for smart contract operations.
 type Backend interface {
 	// CallContract executes a contract call
