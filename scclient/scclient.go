@@ -18,8 +18,10 @@ package scclient
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/core-coin/go-core/v2/common"
+	"github.com/core-coin/go-core/v2/common/hexutil"
 	"github.com/core-coin/go-core/v2/rpc"
 )
 
@@ -45,6 +47,16 @@ func (sc *Client) Name(ctx context.Context, tokenAddress common.Address) (string
 	var result string
 	err := sc.c.CallContext(ctx, &result, "sc_name", tokenAddress)
 	return result, err
+}
+
+// BalanceOf returns the token balance of a specific address for a given token contract.
+func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*big.Int, error) {
+	var result hexutil.Big
+	err := sc.c.CallContext(ctx, &result, "sc_balanceOf", holderAddress, tokenAddress)
+	if err != nil {
+		return nil, err
+	}
+	return (*big.Int)(&result), nil
 }
 
 // SymbolSubscription subscribes to real-time updates about token symbols.

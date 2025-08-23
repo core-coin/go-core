@@ -43,73 +43,104 @@ func NewPublicSmartContractAPI(b Backend) *PublicSmartContractAPI {
 // Symbol returns the symbol of a token contract by calling the symbol() function.
 // It automatically decodes the dynamic string response using decodeDynString.
 func (s *PublicSmartContractAPI) Symbol(ctx context.Context, tokenAddress common.Address) (string, error) {
-	// ERC20 symbol() function selector: 0x95d89b41
-	// But some contracts use 0x231782d8, so we'll try both
-	symbolSelectors := []string{
-		"0x95d89b41", // standard ERC20 symbol()
-		"0x231782d8", // alternative symbol()
+	// CBC20 symbol() function selector: 0x231782d8
+	selector := "0x231782d8" // standard CBC20 symbol()
+
+	// Create the call data
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to call symbol() on contract %s: %v", tokenAddress.Hex(), err)
 	}
 
-	for _, selector := range symbolSelectors {
-		// Create the call data
-		data := hexutil.MustDecode(selector)
-
-		// Make the contract call
-		result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-			ToAddr:    &tokenAddress,
-			DataBytes: data,
-		}, rpc.LatestBlockNumber)
-
+	// If we got a result, decode it
+	if len(result) > 0 {
+		decoded, err := decodeDynString(hexutil.Encode(result))
 		if err != nil {
-			continue // Try next selector
+			return "", fmt.Errorf("failed to decode symbol response from contract %s: %v", tokenAddress.Hex(), err)
 		}
-
-		// If we got a result, decode it
-		if len(result) > 0 {
-			decoded, err := decodeDynString(hexutil.Encode(result))
-			if err == nil && decoded != "" {
-				return decoded, nil
-			}
+		if decoded != "" {
+			return decoded, nil
 		}
 	}
 
-	return "", fmt.Errorf("failed to get symbol from contract %s", tokenAddress.Hex())
+	return "", fmt.Errorf("empty response from symbol() call on contract %s", tokenAddress.Hex())
 }
 
 // Name returns the name of a token contract by calling the name() function.
 // It automatically decodes the dynamic string response using decodeDynString.
 func (s *PublicSmartContractAPI) Name(ctx context.Context, tokenAddress common.Address) (string, error) {
-	// ERC20 name() function selector: 0x06fdde03
-	// But some contracts use 0x07ba2a17, so we'll try both
-	nameSelectors := []string{
-		"0x06fdde03", // standard ERC20 name()
-		"0x07ba2a17", // alternative name()
+	// CBC20 name() function selector: 0x07ba2a17
+	selector := "0x07ba2a17" // standard CBC20 name()
+
+	// Create the call data
+	data := hexutil.MustDecode(selector)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to call name() on contract %s: %v", tokenAddress.Hex(), err)
 	}
 
-	for _, selector := range nameSelectors {
-		// Create the call data
-		data := hexutil.MustDecode(selector)
-
-		// Make the contract call
-		result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-			ToAddr:    &tokenAddress,
-			DataBytes: data,
-		}, rpc.LatestBlockNumber)
-
+	// If we got a result, decode it
+	if len(result) > 0 {
+		decoded, err := decodeDynString(hexutil.Encode(result))
 		if err != nil {
-			continue // Try next selector
+			return "", fmt.Errorf("failed to decode name response from contract %s: %v", tokenAddress.Hex(), err)
 		}
-
-		// If we got a result, decode it
-		if len(result) > 0 {
-			decoded, err := decodeDynString(hexutil.Encode(result))
-			if err == nil && decoded != "" {
-				return decoded, nil
-			}
+		if decoded != "" {
+			return decoded, nil
 		}
 	}
 
-	return "", fmt.Errorf("failed to get name from contract %s", tokenAddress.Hex())
+	return "", fmt.Errorf("empty response from name() call on contract %s", tokenAddress.Hex())
+}
+
+// BalanceOf returns the token balance of a specific address for a given token contract.
+// It automatically decodes the uint256 response and converts it to a big.Int.
+func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*big.Int, error) {
+	// CBC20 balanceOf(address) function selector: 0x1d7976f3
+	selector := "0x1d7976f3" // standard CBC20 balanceOf(address)
+
+	// Create the call data: selector + padded address (32 bytes)
+	data := hexutil.MustDecode(selector)
+
+	// Pad the holder address to 32 bytes (left-pad with zeros)
+	addressBytes := holderAddress.Bytes()
+	paddedAddress := make([]byte, 32)
+	copy(paddedAddress[32-len(addressBytes):], addressBytes)
+
+	// Append the padded address to the selector
+	data = append(data, paddedAddress...)
+
+	// Make the contract call
+	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
+		ToAddr:    &tokenAddress,
+		DataBytes: data,
+	}, rpc.LatestBlockNumber)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to call balanceOf on contract %s for address %s: %v", tokenAddress.Hex(), holderAddress.Hex(), err)
+	}
+
+	// If we got a result, decode it as uint256
+	if len(result) > 0 {
+		// Convert the 32-byte result to big.Int
+		balance := new(big.Int).SetBytes(result)
+		return balance, nil
+	}
+
+	return nil, fmt.Errorf("empty response from balanceOf call on contract %s for address %s", tokenAddress.Hex(), holderAddress.Hex())
 }
 
 // SymbolSubscription provides real-time updates about token symbols.
