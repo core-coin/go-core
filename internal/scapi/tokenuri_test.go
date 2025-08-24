@@ -15,10 +15,10 @@ import (
 
 func TestTokenURIFunctionSelector(t *testing.T) {
 	t.Logf("Testing CIP-721 function selector for TokenURI:")
-	t.Logf("  - tokenURI(uint256 tokenId): 0xc87b56dd")
+	t.Logf("  - tokenURI(uint256): 0xa89da637")
 
 	// Test tokenURI selector
-	tokenURISelector := "0xc87b56dd"
+	tokenURISelector := "0xa89da637"
 	tokenURIData := hexutil.MustDecode(tokenURISelector)
 	t.Logf("  tokenURI selector: %s -> %d bytes", tokenURISelector, len(tokenURIData))
 
@@ -36,7 +36,7 @@ func TestTokenURIDataConstruction(t *testing.T) {
 	t.Logf("  Token ID: %s", tokenId.String())
 
 	// Expected selector
-	expectedSelector := "0xc87b56dd"
+	expectedSelector := "0xa89da637"
 	expectedData := hexutil.MustDecode(expectedSelector)
 	t.Logf("  Expected selector: %s -> %d bytes", expectedSelector, len(expectedData))
 
@@ -87,8 +87,8 @@ func TestTokenURIWithMockContract(t *testing.T) {
 
 			// Verify selector
 			selector := hexutil.Encode(call.DataBytes[:4])
-			if selector != "0xc87b56dd" {
-				t.Errorf("Expected selector 0xc87b56dd, got %s", selector)
+			if selector != "0xa89da637" {
+				t.Errorf("Expected selector 0xa89da637, got %s", selector)
 			}
 
 			// Verify tokenId encoding

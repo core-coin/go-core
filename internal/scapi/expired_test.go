@@ -69,7 +69,7 @@ func TestCIP151Compliance(t *testing.T) {
 	t.Log("✅ CIP-151 compliance verified:")
 	t.Log("  - tokenExpiration field for token expiration timestamp")
 	t.Log("  - tradingStop field for trading stop timestamp")
-	t.Log("  - Uses CIP-150 KV metadata (getValue: 0x960384a0)")
+	t.Log("  - Uses CIP-150 KV metadata (getValue: 0xe2f3625a)")
 	t.Log("  - Supports both RPC and WebSocket subscription")
 	t.Log("  - Default stopData=true for backward compatibility")
 }

@@ -29,22 +29,22 @@ func (m *mockBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.Blo
 
 func TestGetKVFunctionSelectors(t *testing.T) {
 	t.Logf("Testing CIP-150 function selectors:")
-	t.Logf("  - hasKey(string key): 0x332d3780")
-	t.Logf("  - isSealed(string key): 0xc2b79222")
-	t.Logf("  - getValue(string key): 0x960384a0")
+	t.Logf("  - hasKey(string): 0xf37e8f05")
+	t.Logf("  - isSealed(string): 0xf272a162")
+	t.Logf("  - getValue(string): 0xe2f3625a")
 
 	// Test hasKey selector
-	hasKeySelector := "0x332d3780"
+	hasKeySelector := "0xf37e8f05"
 	hasKeyData := hexutil.MustDecode(hasKeySelector)
 	t.Logf("  hasKey selector: %s -> %d bytes", hasKeySelector, len(hasKeyData))
 
 	// Test isSealed selector
-	isSealedSelector := "0xc2b79222"
+	isSealedSelector := "0xf272a162"
 	isSealedData := hexutil.MustDecode(isSealedSelector)
 	t.Logf("  isSealed selector: %s -> %d bytes", isSealedSelector, len(isSealedData))
 
 	// Test getValue selector
-	getValueSelector := "0x960384a0"
+	getValueSelector := "0xe2f3625a"
 	getValueData := hexutil.MustDecode(getValueSelector)
 	t.Logf("  getValue selector: %s -> %d bytes", getValueSelector, len(getValueData))
 
@@ -123,13 +123,13 @@ func TestGetKVWithMockContract(t *testing.T) {
 		backend := &mockBackend{
 			callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 				// Mock responses for hasKey, isSealed, getValue
-				if call.DataBytes[0] == 0x33 { // hasKey
+				if call.DataBytes[0] == 0xf3 { // hasKey
 					// Return true (key exists)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0xc2 { // isSealed
+				} else if call.DataBytes[0] == 0xf2 { // isSealed
 					// Return false (not sealed)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, nil
-				} else if call.DataBytes[0] == 0x96 { // getValue
+				} else if call.DataBytes[0] == 0xe2 { // getValue
 					// Return dynamic string: "Investment Prospectus 2024"
 					// This is a simplified mock - in reality it would be properly encoded
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 73, 110, 118, 101, 115, 116, 109, 101, 110, 116, 32, 80, 114, 111, 115, 112, 101, 99, 116, 117, 115, 32, 50, 48, 50, 52}, nil
@@ -164,13 +164,13 @@ func TestGetKVWithMockContract(t *testing.T) {
 		backend := &mockBackend{
 			callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 				// Mock responses for hasKey, isSealed, getValue
-				if call.DataBytes[0] == 0x33 { // hasKey
+				if call.DataBytes[0] == 0xf3 { // hasKey
 					// Return true (key exists)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0xc2 { // isSealed
+				} else if call.DataBytes[0] == 0xf2 { // isSealed
 					// Return true (sealed)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0x96 { // getValue
+				} else if call.DataBytes[0] == 0xe2 { // getValue
 					// Return dynamic string: "Final Legal Document"
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 70, 105, 110, 97, 108, 32, 76, 101, 103, 97, 108, 32, 68, 111, 99, 117, 109, 101, 110, 116}, nil
 				}
@@ -204,7 +204,7 @@ func TestGetKVWithMockContract(t *testing.T) {
 		backend := &mockBackend{
 			callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 				// Mock response for hasKey only
-				if call.DataBytes[0] == 0x33 { // hasKey
+				if call.DataBytes[0] == 0xf3 { // hasKey
 					// Return false (key doesn't exist)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, nil
 				}
@@ -249,10 +249,10 @@ func TestGetKVSealedOnly(t *testing.T) {
 		backend := &mockBackend{
 			callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 				// Mock responses for hasKey and isSealed
-				if call.DataBytes[0] == 0x33 { // hasKey
+				if call.DataBytes[0] == 0xf3 { // hasKey
 					// Return true (key exists)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0xc2 { // isSealed
+				} else if call.DataBytes[0] == 0xf2 { // isSealed
 					// Return false (not sealed)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, nil
 				}
@@ -286,13 +286,13 @@ func TestGetKVSealedOnly(t *testing.T) {
 		backend := &mockBackend{
 			callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 				// Mock responses for hasKey, isSealed, and getValue
-				if call.DataBytes[0] == 0x33 { // hasKey
+				if call.DataBytes[0] == 0xf3 { // hasKey
 					// Return true (key exists)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0xc2 { // isSealed
+				} else if call.DataBytes[0] == 0xf2 { // isSealed
 					// Return true (sealed)
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-				} else if call.DataBytes[0] == 0x96 { // getValue
+				} else if call.DataBytes[0] == 0xe2 { // getValue
 					// Return dynamic string: "Sealed Legal Document"
 					return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 83, 101, 97, 108, 101, 100, 32, 76, 101, 103, 97, 108, 32, 68, 111, 99, 117, 109, 101, 110, 116}, nil
 				}
@@ -340,13 +340,13 @@ func TestGetKVWithUserExample(t *testing.T) {
 	backend := &mockBackend{
 		callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 			// Mock responses for the CIP-150 interface
-			if call.DataBytes[0] == 0x33 { // hasKey
+			if call.DataBytes[0] == 0xf3 { // hasKey
 				// Return true (key exists)
 				return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, nil
-			} else if call.DataBytes[0] == 0xc2 { // isSealed
+			} else if call.DataBytes[0] == 0xf2 { // isSealed
 				// Return false (not sealed - can be updated)
 				return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, nil
-			} else if call.DataBytes[0] == 0x96 { // getValue
+			} else if call.DataBytes[0] == 0xe2 { // getValue
 				// Return dynamic string: "Investment Prospectus 2024 - Core Blockchain RWA Token"
 				return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, 73, 110, 118, 101, 115, 116, 109, 101, 110, 116, 32, 80, 114, 111, 115, 112, 101, 99, 116, 117, 115, 32, 50, 48, 50, 52, 32, 45, 32, 67, 111, 114, 101, 32, 66, 108, 111, 99, 107, 99, 104, 97, 105, 110, 32, 82, 87, 65, 32, 84, 111, 107, 101, 110}, nil
 			}

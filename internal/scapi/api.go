@@ -249,20 +249,20 @@ type GetKVResult struct {
 // If sealed=true, only returns data if the item is actually sealed.
 //
 // Function selectors used (verified for Core Blockchain CIP-150):
-// - hasKey(string): 0x332d3780
-// - isSealed(string): 0xc2b79222
-// - getValue(string): 0x960384a0
-// - listKeys(): 0xfd322c14
-// - getByIndex(uint256): 0x2d883a73
-// - count(): 0x06661abd
-// - setValue(string,string): 0xec86cfad
-// - sealKey(string): 0x1ef55f1a
+// - hasKey(string): 0xf37e8f05
+// - isSealed(string): 0xf272a162
+// - getValue(string): 0xe2f3625a
+// - listKeys(): 0xe4d90ad0
+// - getByIndex(uint256): 0x2ae4e412
+// - count(): 0x2d7d47f2
+// - setValue(string,string): 0x516c0734
+// - sealKey(string): 0x78506b1e
 
 func (s *PublicSmartContractAPI) GetKV(ctx context.Context, key string, tokenAddress common.Address, sealed bool) (*GetKVResult, error) {
 	// CIP-150 interface functions:
-	// - getValue(string key) returns (string value)
-	// - isSealed(string key) returns (bool sealed)
-	// - hasKey(string key) returns (bool exists)
+	// - getValue(string) returns (string value)
+	// - isSealed(string) returns (bool sealed)
+	// - hasKey(string) returns (bool exists)
 
 	// First check if the key exists
 	exists, err := s.callHasKey(ctx, key, tokenAddress)
@@ -333,10 +333,10 @@ type ListKVResult struct {
 // If sealed=true, only returns keys that are sealed.
 //
 // Function selectors used (verified for Core Blockchain CIP-150):
-// - listKeys(): 0xfd322c14
-// - count(): 0x06661abd
-// - isSealed(string): 0xc2b79222
-// - getValue(string): 0x960384a0
+// - listKeys(): 0xe4d90ad0
+// - count(): 0x2d7d47f2
+// - isSealed(string): 0xf272a162
+// - getValue(string): 0xe2f3625a
 func (s *PublicSmartContractAPI) ListKV(ctx context.Context, tokenAddress common.Address, sealed bool) (*ListKVResult, error) {
 	// Get the total count of keys
 	count, err := s.callCount(ctx, tokenAddress)
@@ -421,8 +421,8 @@ func (s *PublicSmartContractAPI) ListKV(ctx context.Context, tokenAddress common
 
 // callHasKey calls the hasKey function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callHasKey(ctx context.Context, key string, tokenAddress common.Address) (bool, error) {
-	// hasKey(string key) function selector: 0x332d3780
-	selector := "0x332d3780"
+	// hasKey(string) function selector: 0xf37e8f05
+	selector := "0xf37e8f05"
 
 	// Create the call data: selector + encoded string key
 	data := hexutil.MustDecode(selector)
@@ -468,8 +468,8 @@ func (s *PublicSmartContractAPI) callHasKey(ctx context.Context, key string, tok
 
 // callIsSealed calls the isSealed function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callIsSealed(ctx context.Context, key string, tokenAddress common.Address) (bool, error) {
-	// isSealed(string key) function selector: 0xc2b79222
-	selector := "0xc2b79222"
+	// isSealed(string) function selector: 0xf272a162
+	selector := "0xf272a162"
 
 	// Create the call data: selector + encoded string key
 	data := hexutil.MustDecode(selector)
@@ -515,8 +515,8 @@ func (s *PublicSmartContractAPI) callIsSealed(ctx context.Context, key string, t
 
 // callGetValue calls the getValue function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callGetValue(ctx context.Context, key string, tokenAddress common.Address) (string, error) {
-	// getValue(string key) function selector: 0x960384a0
-	selector := "0x960384a0"
+	// getValue(string) function selector: 0xe2f3625a
+	selector := "0xe2f3625a"
 
 	// Create the call data: selector + encoded string key
 	data := hexutil.MustDecode(selector)
@@ -937,8 +937,8 @@ func decodeDynString(res string) (string, error) {
 
 // callCount calls the count function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callCount(ctx context.Context, tokenAddress common.Address) (uint64, error) {
-	// count() function selector: 0x06661abd
-	selector := "0x06661abd"
+	// count() function selector: 0x2d7d47f2
+	selector := "0x2d7d47f2"
 
 	// Create the call data: just the selector (no parameters)
 	data := hexutil.MustDecode(selector)
@@ -964,8 +964,8 @@ func (s *PublicSmartContractAPI) callCount(ctx context.Context, tokenAddress com
 
 // callListKeys calls the listKeys function on the contract (CIP-150)
 func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress common.Address) ([]string, error) {
-	// listKeys() function selector: 0xfd322c14
-	selector := "0xfd322c14"
+	// listKeys() function selector: 0xe4d90ad0
+	selector := "0xe4d90ad0"
 
 	// Create the call data: just the selector (no parameters)
 	data := hexutil.MustDecode(selector)
@@ -1063,10 +1063,10 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 // Based on the CIP-721 standard for Core Blockchain Non-Fungible Tokens.
 //
 // Function selector used (verified for Core Blockchain CIP-721):
-// - tokenURI(uint256): 0xc87b56dd
+// - tokenURI(uint256): 0xa89da637
 func (s *PublicSmartContractAPI) TokenURI(ctx context.Context, tokenAddress common.Address, tokenId *big.Int) (string, error) {
-	// tokenURI(uint256 tokenId) function selector: 0xc87b56dd
-	selector := "0xc87b56dd"
+	// tokenURI(uint256) function selector: 0xa89da637
+	selector := "0xa89da637"
 
 	// Create the call data: selector + encoded uint256 tokenId
 	data := hexutil.MustDecode(selector)
@@ -1221,7 +1221,7 @@ type ExpiredResult struct {
 // Based on CIP-151 for Core Blockchain token lifecycle management.
 //
 // Function selectors used (from CIP-150 KV metadata):
-// - getValue(string key): 0x960384a0
+// - getValue(string): 0xe2f3625a
 //
 // Parameters:
 // - tokenAddress: The address of the smart contract
@@ -1359,7 +1359,7 @@ type KYCResult struct {
 // Based on CorePass KYC verification system for Core Blockchain.
 //
 // Function selector used:
-// - isVerified(address user, bytes32 field): 0x8f283970
+// - isVerified(address,bytes32): 0xc9e14248
 //
 // Parameters:
 // - tokenAddress: The address of the KYC provider smart contract
@@ -1374,9 +1374,9 @@ func (s *PublicSmartContractAPI) GetKYC(ctx context.Context, tokenAddress, userA
 	kycField := "KYC"
 	fieldHash := common.BytesToHash([]byte(kycField))
 
-	// Call isVerified(address user, bytes32 field)
-	// isVerified(address, bytes32) function selector: 0x8f283970
-	selector := "0x8f283970"
+	// Call isVerified(address,bytes32)
+	// isVerified(address,bytes32) function selector: 0xc9e14248
+	selector := "0xc9e14248"
 	data := hexutil.MustDecode(selector)
 
 	// Encode the user address parameter (32 bytes, left-padded)

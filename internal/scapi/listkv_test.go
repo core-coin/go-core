@@ -14,16 +14,16 @@ import (
 
 func TestListKVFunctionSelectors(t *testing.T) {
 	t.Logf("Testing CIP-150 function selectors for ListKV:")
-	t.Logf("  - count(): 0x06661abd")
-	t.Logf("  - listKeys(): 0xfd322c14")
+	t.Logf("  - count(): 0x2d7d47f2")
+	t.Logf("  - listKeys(): 0xe4d90ad0")
 
 	// Test count selector
-	countSelector := "0x06661abd"
+	countSelector := "0x2d7d47f2"
 	countData := hexutil.MustDecode(countSelector)
 	t.Logf("  count selector: %s -> %d bytes", countSelector, len(countData))
 
 	// Test listKeys selector
-	listKeysSelector := "0xfd322c14"
+	listKeysSelector := "0xe4d90ad0"
 	listKeysData := hexutil.MustDecode(listKeysSelector)
 	t.Logf("  listKeys selector: %s -> %d bytes", listKeysSelector, len(listKeysData))
 
@@ -50,7 +50,7 @@ func TestListKVBasicFunctionality(t *testing.T) {
 	mockListKVBackend := &mockListKVBackend{
 		callContractFunc: func(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
 			// Mock responses for the CIP-150 interface
-			if call.DataBytes[0] == 0x06 { // count
+			if call.DataBytes[0] == 0x2d { // count
 				// Return 0 keys (empty contract)
 				return []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, nil
 			}

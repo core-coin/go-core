@@ -65,11 +65,11 @@ func TestKYCResultStructure(t *testing.T) {
 // TestCorePassKYCIntegration verifies the CorePass KYC contract integration.
 func TestCorePassKYCIntegration(t *testing.T) {
 	// Verify we implement the CorePass KYC contract functions correctly
-	// - isVerified(address user, bytes32 field): 0x8f283970
-	// - submission(uint256 submission_): 0x7b1837de
+	// - isVerified(address,bytes32): 0xc9e14248
+	// - submission(uint256): 0x98662a03
 
 	t.Log("✅ CorePass KYC integration verified:")
-	t.Log("  - isVerified(address, bytes32) selector: 0x8f283970")
+	t.Log("  - isVerified(address,bytes32) selector: 0xc9e14248")
 	t.Log("  - Uses standard 'KYC' field for verification")
 	t.Log("  - Supports both RPC and WebSocket subscription")
 	t.Log("  - Returns verification status and role")
@@ -153,12 +153,12 @@ func TestKYCSelectorLogic(t *testing.T) {
 	}{
 		{
 			name:        "isVerified function",
-			selector:    "0x8f283970",
-			description: "isVerified(address user, bytes32 field)",
+			selector:    "0xc9e14248",
+			description: "isVerified(address,bytes32)",
 		},
 		{
 			name:        "submission function",
-			selector:    "0x7b1837de",
+			selector:    "0x98662a03",
 			description: "submission(uint256 submission_)",
 		},
 	}
