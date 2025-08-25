@@ -19,7 +19,7 @@ func TestDecodeDynString(t *testing.T) {
 		},
 		{
 			name:     "simple bytes32",
-			input:    "0x414243440000000000000000000000000000000000000000000000000000000000",
+			input:    "0x4142434400000000000000000000000000000000000000000000000000000000",
 			expected: "ABCD",
 			hasError: false,
 		},

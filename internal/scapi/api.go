@@ -869,7 +869,9 @@ func decodeDynString(res string) (string, error) {
 
 		// Convert to string and remove null bytes
 		result := string(bytes)
-		return strings.TrimRight(result, "\x00"), nil
+		trimmed := strings.TrimRight(result, "\x00")
+
+		return trimmed, nil
 	}
 
 	// Handle dynamic string encoding
@@ -932,7 +934,8 @@ func decodeDynString(res string) (string, error) {
 	}
 
 	// Convert to UTF-8 string
-	return string(dataBytes), nil
+	result := string(dataBytes)
+	return result, nil
 }
 
 // callCount calls the count function on the contract (CIP-150)
