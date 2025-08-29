@@ -51,7 +51,7 @@ func TestComposeTransactionResultStructure(t *testing.T) {
 	// Test with transaction instead of hash
 	result2 := ComposeTransactionResult{
 		Hash:        nil,
-		Transaction: &SignTransactionResult{},
+		Transaction: &ComposeTransactionTx{},
 	}
 
 	if result2.Hash != nil {

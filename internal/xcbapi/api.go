@@ -1097,9 +1097,9 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 }
 
 // EstimateEnergy returns an estimate of the amount of energy needed to execute the
-// given transaction against the current pending block.
+// given transaction against the current latest block.
 func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
-	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
+	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
 	if blockNrOrHash != nil {
 		bNrOrHash = *blockNrOrHash
 	}
@@ -1833,8 +1833,20 @@ type ComposeTransactionArgs struct {
 
 // ComposeTransactionResult represents the result of composing a transaction.
 type ComposeTransactionResult struct {
-	Hash        *common.Hash           `json:"hash,omitempty"`        // Only present if sign=true
-	Transaction *SignTransactionResult `json:"transaction,omitempty"` // Only present if sign=false
+	Hash        *common.Hash          `json:"hash,omitempty"`        // Only present if sign=true
+	Transaction *ComposeTransactionTx `json:"transaction,omitempty"` // Only present if sign=false
+}
+
+// ComposeTransactionTx represents a transaction for composition (unsigned)
+type ComposeTransactionTx struct {
+	Raw         hexutil.Bytes   `json:"raw"`
+	Nonce       hexutil.Uint64  `json:"nonce"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice"`
+	Energy      hexutil.Uint64  `json:"energy"`
+	To          *common.Address `json:"to,omitempty"`
+	Value       *hexutil.Big    `json:"value,omitempty"`
+	Data        hexutil.Bytes   `json:"data,omitempty"`
+	NetworkID   hexutil.Uint64  `json:"network_id"`
 }
 
 // ComposeTransaction composes a transaction with automatic nonce, energy, and energy price estimation.
@@ -1879,8 +1891,8 @@ func (s *PublicTransactionPoolAPI) ComposeTransaction(ctx context.Context, args 
 				Value:       args.Amount,
 				Data:        args.Data,
 			}
-			pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-			estimated, err := DoEstimateEnergy(ctx, s.b, callArgs, pendingBlockNr, s.b.RPCEnergyCap())
+			latestBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
+			estimated, err := DoEstimateEnergy(ctx, s.b, callArgs, latestBlockNr, s.b.RPCEnergyCap())
 			if err != nil {
 				return nil, fmt.Errorf("failed to estimate energy: %v", err)
 			}
@@ -1932,11 +1944,32 @@ func (s *PublicTransactionPoolAPI) ComposeTransaction(ctx context.Context, args 
 		return nil, fmt.Errorf("failed to encode transaction: %v", err)
 	}
 
+	// Create a clean transaction response with only meaningful fields
+	txResponse := &ComposeTransactionTx{
+		Raw:         data,
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		EnergyPrice: (*hexutil.Big)(tx.EnergyPrice()),
+		Energy:      hexutil.Uint64(tx.Energy()),
+		NetworkID:   hexutil.Uint64(tx.NetworkID()),
+	}
+
+	// Only include To if it's not nil (contract creation vs transfer)
+	if tx.To() != nil {
+		txResponse.To = tx.To()
+	}
+
+	// Only include Value if it's not zero
+	if tx.Value().Sign() > 0 {
+		txResponse.Value = (*hexutil.Big)(tx.Value())
+	}
+
+	// Only include Data if it's not empty
+	if len(tx.Data()) > 0 {
+		txResponse.Data = tx.Data()
+	}
+
 	return &ComposeTransactionResult{
-		Transaction: &SignTransactionResult{
-			Raw: data,
-			Tx:  tx,
-		},
+		Transaction: txResponse,
 	}, nil
 }
 
