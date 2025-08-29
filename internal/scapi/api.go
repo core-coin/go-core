@@ -185,8 +185,8 @@ func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, t
 }
 
 // Decimals returns the number of decimal places for a given token contract.
-// It automatically decodes the uint8 response and converts it to uint8.
-func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress common.Address) (uint8, error) {
+// It automatically decodes the uint8 response and converts it to hexutil.Big.
+func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
 	// CBC20 decimals() function selector: 0x5d1fb5f9
 	selector := "0x5d1fb5f9" // standard CBC20 decimals()
 
@@ -197,25 +197,25 @@ func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress comm
 	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to call decimals() on contract %s: %v", tokenAddress.Hex(), err)
+		return nil, fmt.Errorf("failed to call decimals() on contract %s: %v", tokenAddress.Hex(), err)
 	}
 
 	// Add response size limit to prevent DoS attacks
 	const MaxResponseSize = 1024 * 1024 // 1MB limit
 	if len(result) > MaxResponseSize {
-		return 0, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// If we got a result, decode it as uint8
 	if len(result) > 0 {
-		// Convert the 32-byte result to uint8 (last byte)
+		// Convert the 32-byte result to uint8 (last byte), then to hexutil.Big
 		if len(result) >= 32 {
-			decimals := result[31] // Last byte contains the uint8 value
-			return decimals, nil
+			decimals := new(big.Int).SetUint64(uint64(result[31])) // Last byte contains the uint8 value
+			return (*hexutil.Big)(decimals), nil
 		}
 	}
 
-	return 0, fmt.Errorf("invalid response length from decimals() call on contract %s", tokenAddress.Hex())
+	return nil, fmt.Errorf("invalid response length from decimals() call on contract %s", tokenAddress.Hex())
 }
 
 // TotalSupply returns the total supply of a given token contract.
@@ -251,8 +251,8 @@ func (s *PublicSmartContractAPI) TotalSupply(ctx context.Context, tokenAddress c
 }
 
 // Length returns the smart contract code size in bytes for a given contract address.
-// It uses xcb.getCode to fetch the contract code and returns the size in bytes.
-func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common.Address) (uint64, error) {
+// It uses xcb.getCode to fetch the contract code and returns the size in bytes as hexutil.Big.
+func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
 	// Since xcb.getCode is already implemented as a standard RPC method,
 	// we can use the existing blockchain API directly
 	// This is equivalent to calling xcb.getCode(addr, "latest")
@@ -263,7 +263,7 @@ func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common
 	// Get the state at the latest block
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, latestBlock)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get state for contract %s: %v", tokenAddress.Hex(), err)
+		return nil, fmt.Errorf("failed to get state for contract %s: %v", tokenAddress.Hex(), err)
 	}
 
 	// Get the code from the state
@@ -271,11 +271,11 @@ func (s *PublicSmartContractAPI) Length(ctx context.Context, tokenAddress common
 
 	// Check if it's an EOA (no code) or empty code
 	if len(code) == 0 {
-		return 0, nil
+		return (*hexutil.Big)(big.NewInt(0)), nil
 	}
 
-	// Return the code size in bytes
-	return uint64(len(code)), nil
+	// Return the code size in bytes as hexutil.Big
+	return (*hexutil.Big)(big.NewInt(int64(len(code)))), nil
 }
 
 // GetKVResult represents the result of a getKV call

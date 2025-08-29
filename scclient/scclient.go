@@ -57,13 +57,10 @@ func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress com
 }
 
 // Decimals returns the number of decimal places for a given token contract.
-func (sc *Client) Decimals(ctx context.Context, tokenAddress common.Address) (uint8, error) {
-	var result hexutil.Uint64
+func (sc *Client) Decimals(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
+	var result hexutil.Big
 	err := sc.c.CallContext(ctx, &result, "sc_decimals", tokenAddress)
-	if err != nil {
-		return 0, err
-	}
-	return uint8(result), nil
+	return &result, err
 }
 
 // TotalSupply returns the total supply of a given token contract.
@@ -74,13 +71,10 @@ func (sc *Client) TotalSupply(ctx context.Context, tokenAddress common.Address) 
 }
 
 // Length returns the smart contract code size in bytes for a given contract address.
-func (sc *Client) Length(ctx context.Context, tokenAddress common.Address) (uint64, error) {
-	var result hexutil.Uint64
+func (sc *Client) Length(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
+	var result hexutil.Big
 	err := sc.c.CallContext(ctx, &result, "sc_length", tokenAddress)
-	if err != nil {
-		return 0, err
-	}
-	return uint64(result), nil
+	return &result, err
 }
 
 // GetKVResult represents the result of a getKV call
