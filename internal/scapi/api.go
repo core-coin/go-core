@@ -35,7 +35,7 @@ import (
 )
 
 // PublicSmartContractAPI provides an API to access smart contract related information.
-// It offers methods that operate on smart contract data that can be available to anyone.
+// It offers methods that operate on public data that is freely available to anyone.
 type PublicSmartContractAPI struct {
 	b Backend
 }
@@ -43,6 +43,33 @@ type PublicSmartContractAPI struct {
 // NewPublicSmartContractAPI creates a new smart contract protocol API.
 func NewPublicSmartContractAPI(b Backend) *PublicSmartContractAPI {
 	return &PublicSmartContractAPI{b}
+}
+
+// createViewCallMsg creates a properly initialized CallMsg for view calls
+func (s *PublicSmartContractAPI) createViewCallMsg(toAddr common.Address, data []byte) xcbapi.CallMsg {
+	return xcbapi.CallMsg{
+		FromAddr:         common.Address{}, // Zero address for view calls
+		ToAddr:           &toAddr,
+		EnergyLimit:      100000,        // Reasonable energy limit for view calls
+		EnergyPriceValue: big.NewInt(0), // Zero energy price for view calls
+		ValueAmount:      big.NewInt(0), // Zero value for view calls
+		DataBytes:        data,
+	}
+}
+
+// validateOffsetAndLength safely validates offset and length values to prevent integer overflow and bounds issues
+func validateOffsetAndLength(offset, length *big.Int, maxSize int64) error {
+	// Check for negative values
+	if offset.Sign() < 0 || length.Sign() < 0 {
+		return fmt.Errorf("negative offset or length: offset=%v, length=%v", offset, length)
+	}
+
+	// Check for overflow in multiplication by 2
+	if offset.Int64() > maxSize/2 || length.Int64() > maxSize/2 {
+		return fmt.Errorf("offset or length too large: offset=%v, length=%v, max=%v", offset, length, maxSize/2)
+	}
+
+	return nil
 }
 
 // Symbol returns the symbol of a token contract by calling the symbol() function.
@@ -54,14 +81,17 @@ func (s *PublicSmartContractAPI) Symbol(ctx context.Context, tokenAddress common
 	// Create the call data
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to call symbol() on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return "", fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// If we got a result, decode it
@@ -87,14 +117,17 @@ func (s *PublicSmartContractAPI) Name(ctx context.Context, tokenAddress common.A
 	// Create the call data
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to call name() on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return "", fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// If we got a result, decode it
@@ -111,11 +144,11 @@ func (s *PublicSmartContractAPI) Name(ctx context.Context, tokenAddress common.A
 	return "", fmt.Errorf("empty response from name() call on contract %s", tokenAddress.Hex())
 }
 
-// BalanceOf returns the token balance of a specific address for a given token contract.
-// It automatically decodes the uint256 response and converts it to a big.Int.
-func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*big.Int, error) {
+// BalanceOf returns the balance of a given token holder for a given token contract.
+// It automatically decodes the uint256 response and converts it to a hexutil.Big.
+func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*hexutil.Big, error) {
 	// CBC20 balanceOf(address) function selector: 0x1d7976f3
-	selector := "0x1d7976f3" // standard CBC20 balanceOf(address)
+	selector := "0x1d7976f3" // standard CBC20 balanceOf()
 
 	// Create the call data: selector + padded address (32 bytes)
 	data := hexutil.MustDecode(selector)
@@ -128,21 +161,24 @@ func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, t
 	// Append the padded address to the selector
 	data = append(data, paddedAddress...)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to call balanceOf on contract %s for address %s: %v", tokenAddress.Hex(), holderAddress.Hex(), err)
 	}
 
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
+	}
+
 	// If we got a result, decode it as uint256
 	if len(result) > 0 {
-		// Convert the 32-byte result to big.Int
+		// Convert the 32-byte result to big.Int, then to hexutil.Big
 		balance := new(big.Int).SetBytes(result)
-		return balance, nil
+		return (*hexutil.Big)(balance), nil
 	}
 
 	return nil, fmt.Errorf("empty response from balanceOf call on contract %s for address %s", tokenAddress.Hex(), holderAddress.Hex())
@@ -157,14 +193,17 @@ func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress comm
 	// Create the call data
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return 0, fmt.Errorf("failed to call decimals() on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return 0, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// If we got a result, decode it as uint8
@@ -180,32 +219,35 @@ func (s *PublicSmartContractAPI) Decimals(ctx context.Context, tokenAddress comm
 }
 
 // TotalSupply returns the total supply of a given token contract.
-// It automatically decodes the uint256 response and converts it to a big.Int.
-func (s *PublicSmartContractAPI) TotalSupply(ctx context.Context, tokenAddress common.Address) (*big.Int, error) {
+// It automatically decodes the uint256 response and converts it to a hexutil.Big.
+func (s *PublicSmartContractAPI) TotalSupply(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
 	// CBC20 totalSupply() function selector: 0x1f1881f8
 	selector := "0x1f1881f8" // standard CBC20 totalSupply()
 
 	// Create the call data
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to call totalSupply() on contract %s: %v", tokenAddress.Hex(), err)
 	}
 
-	// If we got a result, decode it as uint256
-	if len(result) > 0 {
-		// Convert the 32-byte result to big.Int
-		supply := new(big.Int).SetBytes(result)
-		return supply, nil
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
-	return nil, fmt.Errorf("empty response from totalSupply() call on contract %s", tokenAddress.Hex())
+	// If we got a result, decode it as uint256
+	if len(result) > 0 {
+		// Convert the 32-byte result to big.Int, then to hexutil.Big
+		supply := new(big.Int).SetBytes(result)
+		return (*hexutil.Big)(supply), nil
+	}
+
+	return nil, fmt.Errorf("invalid response length from totalSupply() call on contract %s", tokenAddress.Hex())
 }
 
 // Length returns the smart contract code size in bytes for a given contract address.
@@ -447,14 +489,17 @@ func (s *PublicSmartContractAPI) callHasKey(ctx context.Context, key string, tok
 	copy(keyPadded, keyBytes)
 	data = append(data, keyPadded...)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return false, fmt.Errorf("failed to call hasKey on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return false, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Decode the boolean result
@@ -494,14 +539,17 @@ func (s *PublicSmartContractAPI) callIsSealed(ctx context.Context, key string, t
 	copy(keyPadded, keyBytes)
 	data = append(data, keyPadded...)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return false, fmt.Errorf("failed to call isSealed on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return false, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Decode the boolean result
@@ -541,14 +589,17 @@ func (s *PublicSmartContractAPI) callGetValue(ctx context.Context, key string, t
 	copy(keyPadded, keyBytes)
 	data = append(data, keyPadded...)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to call getValue on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return "", fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Decode the dynamic string response using our existing decodeDynString function
@@ -853,18 +904,25 @@ func (s *PublicSmartContractAPI) TokenURISubscription(ctx context.Context, token
 	return rpcSub, nil
 }
 
-// decodeDynString decodes a dynamic string from contract call response.
+// decodeDynString decodes a dynamic string response from a smart contract call.
 // It handles both bytes32 fallback and dynamic string encoding.
 func decodeDynString(res string) (string, error) {
 	// Remove 0x prefix
 	h := strings.TrimPrefix(res, "0x")
+
+	// Add size limits to prevent DoS attacks
+	const MaxHexLength = 1024 * 1024 // 1MB limit for hex string
+
+	if len(h) > MaxHexLength {
+		return "", fmt.Errorf("response too large: %d hex chars exceeds limit of %d", len(h), MaxHexLength)
+	}
 
 	// Check if it's a bytes32 fallback (64 hex chars = 32 bytes)
 	if len(h) == 64 {
 		// Decode as bytes32 and convert to ASCII
 		bytes, err := hex.DecodeString(h)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to decode bytes32: %v", err)
 		}
 
 		// Convert to string and remove null bytes
@@ -876,18 +934,24 @@ func decodeDynString(res string) (string, error) {
 
 	// Handle dynamic string encoding
 	if len(h) < 64 {
-		return "", fmt.Errorf("response too short for dynamic string")
+		return "", fmt.Errorf("response too short for dynamic string: got %d hex chars, need at least 64", len(h))
 	}
 
 	// Parse offset (first 32 bytes)
 	offsetHex := h[:64]
 	offset, err := hex.DecodeString(offsetHex)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to decode offset: %v", err)
 	}
 
 	// Convert offset to int (big-endian)
 	offsetInt := new(big.Int).SetBytes(offset)
+
+	// Validate offset
+	if err := validateOffsetAndLength(offsetInt, big.NewInt(0), int64(len(h))); err != nil {
+		return "", fmt.Errorf("invalid offset: %v", err)
+	}
+
 	offsetBytes := offsetInt.Int64() * 2 // Convert to hex string position
 
 	// Check if offset is 0 (simple bytes32 case) or if it's a valid offset
@@ -895,7 +959,7 @@ func decodeDynString(res string) (string, error) {
 		// This is a simple bytes32 case, decode the entire response as bytes32
 		bytes, err := hex.DecodeString(h)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to decode bytes32 fallback: %v", err)
 		}
 		result := string(bytes)
 		return strings.TrimRight(result, "\x00"), nil
@@ -903,18 +967,24 @@ func decodeDynString(res string) (string, error) {
 
 	// Check if we have enough data
 	if int64(len(h)) < offsetBytes+64 {
-		return "", fmt.Errorf("response too short for offset %d", offsetBytes)
+		return "", fmt.Errorf("response too short for offset %d: got %d hex chars, need at least %d", offsetBytes, len(h), offsetBytes+64)
 	}
 
 	// Parse length (32 bytes after offset)
 	lengthHex := h[offsetBytes : offsetBytes+64]
-	length, err := hex.DecodeString(lengthHex)
+	length, err := hex.DecodeString(strings.TrimPrefix(lengthHex, "0x"))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to decode length: %v", err)
 	}
 
 	// Convert length to int (big-endian)
 	lengthInt := new(big.Int).SetBytes(length)
+
+	// Validate length
+	if err := validateOffsetAndLength(big.NewInt(0), lengthInt, int64(len(h))); err != nil {
+		return "", fmt.Errorf("invalid length: %v", err)
+	}
+
 	lengthBytes := lengthInt.Int64() * 2 // Convert to hex string position
 
 	// Extract the actual string data
@@ -922,7 +992,7 @@ func decodeDynString(res string) (string, error) {
 	dataEnd := dataStart + lengthBytes
 
 	if int64(len(h)) < dataEnd {
-		return "", fmt.Errorf("response too short for data length %d", lengthBytes)
+		return "", fmt.Errorf("response too short for data length %d: got %d hex chars, need at least %d", lengthBytes, len(h), dataEnd)
 	}
 
 	dataHex := h[dataStart:dataEnd]
@@ -930,7 +1000,7 @@ func decodeDynString(res string) (string, error) {
 	// Decode the hex data to bytes
 	dataBytes, err := hex.DecodeString(dataHex)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to decode string data: %v", err)
 	}
 
 	// Convert to UTF-8 string
@@ -946,14 +1016,17 @@ func (s *PublicSmartContractAPI) callCount(ctx context.Context, tokenAddress com
 	// Create the call data: just the selector (no parameters)
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return 0, fmt.Errorf("failed to call count on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return 0, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Decode the uint256 result
@@ -973,11 +1046,8 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	// Create the call data: just the selector (no parameters)
 	data := hexutil.MustDecode(selector)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to call listKeys on contract %s: %v", tokenAddress.Hex(), err)
@@ -985,8 +1055,17 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 
 	// Decode the string[] result
 	// This is a dynamic array of strings, so we need to parse the ABI encoding
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	const MaxArrayLength = 1000         // Maximum array elements
+
 	if len(result) < 32 {
-		return nil, fmt.Errorf("response too short for dynamic array")
+		return nil, fmt.Errorf("response too short for dynamic array: got %d bytes, need at least 32", len(result))
+	}
+
+	if len(result) > MaxResponseSize {
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Get the offset to the array data
@@ -996,10 +1075,16 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 		return nil, fmt.Errorf("failed to decode array offset: %v", err)
 	}
 	offsetInt := new(big.Int).SetBytes(offset)
+
+	// Validate offset before using it
+	if err := validateOffsetAndLength(offsetInt, big.NewInt(0), int64(len(result))); err != nil {
+		return nil, fmt.Errorf("invalid array offset: %v", err)
+	}
+
 	offsetBytes := offsetInt.Int64() * 2
 
 	if int64(len(result)) < offsetBytes+32 {
-		return nil, fmt.Errorf("invalid response length for array offset %d", offsetBytes)
+		return nil, fmt.Errorf("invalid response length for array offset %d: got %d bytes, need at least %d", offsetBytes, len(result), offsetBytes+32)
 	}
 
 	// Get the array length
@@ -1009,6 +1094,12 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 		return nil, fmt.Errorf("failed to decode array length: %v", err)
 	}
 	lengthInt := new(big.Int).SetBytes(length)
+
+	// Validate array length
+	if lengthInt.Cmp(big.NewInt(MaxArrayLength)) > 0 {
+		return nil, fmt.Errorf("array too large: %d elements exceeds limit of %d", lengthInt, MaxArrayLength)
+	}
+
 	arrayLength := lengthInt.Int64()
 
 	var keys []string
@@ -1017,7 +1108,7 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	// Parse each string in the array
 	for i := int64(0); i < arrayLength; i++ {
 		if int64(len(result)) < currentOffset+32 {
-			return nil, fmt.Errorf("response too short for string %d offset", i)
+			return nil, fmt.Errorf("response too short for string %d offset: got %d bytes, need at least %d", i, len(result), currentOffset+32)
 		}
 
 		// Get the string offset
@@ -1027,26 +1118,38 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 			return nil, fmt.Errorf("failed to decode string %d offset: %v", i, err)
 		}
 		stringOffsetInt := new(big.Int).SetBytes(stringOffset)
+
+		// Validate string offset
+		if err := validateOffsetAndLength(stringOffsetInt, big.NewInt(0), int64(len(result))); err != nil {
+			return nil, fmt.Errorf("invalid string %d offset: %v", i, err)
+		}
+
 		stringOffsetBytes := stringOffsetInt.Int64() * 2
 
 		if int64(len(result)) < stringOffsetBytes+32 {
-			return nil, fmt.Errorf("response too short for string %d data", i)
+			return nil, fmt.Errorf("response too short for string %d data: got %d bytes, need at least %d", i, len(result), stringOffsetBytes+32)
 		}
 
 		// Get the string length
-		stringLengthHex := hexutil.Encode(result[stringOffsetBytes : stringOffsetBytes+32])
-		stringLength, err := hex.DecodeString(strings.TrimPrefix(stringLengthHex, "0x"))
+		lengthHex := hexutil.Encode(result[stringOffsetBytes : stringOffsetBytes+32])
+		stringLength, err := hex.DecodeString(strings.TrimPrefix(lengthHex, "0x"))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode string %d length: %v", i, err)
 		}
 		stringLengthInt := new(big.Int).SetBytes(stringLength)
+
+		// Validate string length
+		if err := validateOffsetAndLength(big.NewInt(0), stringLengthInt, int64(len(result))); err != nil {
+			return nil, fmt.Errorf("invalid string %d length: %v", i, err)
+		}
+
 		stringLengthBytes := stringLengthInt.Int64() * 2
 
 		// Get the string data
 		stringDataStart := stringOffsetBytes + 32
 		stringDataEnd := stringDataStart + stringLengthBytes
 		if int64(len(result)) < stringDataEnd {
-			return nil, fmt.Errorf("response too short for string %d content", i)
+			return nil, fmt.Errorf("response too short for string %d content: got %d bytes, need at least %d", i, len(result), stringDataEnd)
 		}
 
 		stringDataHex := hexutil.Encode(result[stringDataStart:stringDataEnd])
@@ -1079,14 +1182,17 @@ func (s *PublicSmartContractAPI) TokenURI(ctx context.Context, tokenAddress comm
 	tokenId.FillBytes(tokenIdBytes)
 	data = append(data, tokenIdBytes...)
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to call tokenURI on contract %s for tokenId %s: %v", tokenAddress.Hex(), tokenId.String(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return "", fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
 	// Decode the dynamic string response using our existing decodeDynString function
@@ -1111,7 +1217,7 @@ func (s *PublicSmartContractAPI) TokenURI(ctx context.Context, tokenAddress comm
 // Parameters:
 // - tokenAddress: The address of the PriceFeed contract
 // - aggregated: If true, returns aggregated price; if false, returns latest individual price
-func (s *PublicSmartContractAPI) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*big.Int, error) {
+func (s *PublicSmartContractAPI) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*hexutil.Big, error) {
 	var selector string
 	var data []byte
 
@@ -1125,11 +1231,8 @@ func (s *PublicSmartContractAPI) GetPrice(ctx context.Context, tokenAddress comm
 		data = hexutil.MustDecode(selector)
 	}
 
-	// Make the contract call
-	result, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call with properly initialized CallMsg
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		funcName := "getLatestPrice"
@@ -1141,10 +1244,21 @@ func (s *PublicSmartContractAPI) GetPrice(ctx context.Context, tokenAddress comm
 			tokenAddress.Hex(), err)
 	}
 
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		funcName := "getLatestPrice"
+		if aggregated {
+			funcName = "getAggregatedPrice"
+		}
+		return nil, fmt.Errorf("response too large from %s: %d bytes exceeds limit of %d",
+			funcName, len(result), MaxResponseSize)
+	}
+
 	// If we got a result, decode it as uint256
 	if len(result) >= 32 {
 		price := new(big.Int).SetBytes(result)
-		return price, nil
+		return (*hexutil.Big)(price), nil
 	}
 
 	funcName := "getLatestPrice"
@@ -1167,7 +1281,7 @@ func (s *PublicSmartContractAPI) GetPriceSubscription(ctx context.Context, token
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
-		var lastPrice *big.Int
+		var lastPrice *hexutil.Big
 		ticker := time.NewTicker(30 * time.Second) // Check every 30 seconds (provider cycle dependent)
 		defer ticker.Stop()
 
@@ -1201,8 +1315,8 @@ func (s *PublicSmartContractAPI) GetPriceSubscription(ctx context.Context, token
 }
 
 // pricesChanged checks if two price arrays are different
-func pricesChanged(current, last *big.Int) bool {
-	return current.Cmp(last) != 0
+func pricesChanged(current, last *hexutil.Big) bool {
+	return (*big.Int)(current).Cmp((*big.Int)(last)) != 0
 }
 
 // Backend interface provides the common API services needed for smart contract operations.
@@ -1392,14 +1506,17 @@ func (s *PublicSmartContractAPI) GetKYC(ctx context.Context, tokenAddress, userA
 	copy(fieldBytes, fieldHash.Bytes())
 	data = append(data, fieldBytes...)
 
-	// Make the contract call to check verification
-	verificationResult, err := s.b.CallContract(ctx, xcbapi.CallMsg{
-		ToAddr:    &tokenAddress,
-		DataBytes: data,
-	}, rpc.LatestBlockNumber)
+	// Make the contract call to check verification with properly initialized CallMsg
+	verificationResult, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to call isVerified on KYC contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Add response size limit to prevent DoS attacks
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(verificationResult) > MaxResponseSize {
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(verificationResult), MaxResponseSize)
 	}
 
 	// Parse the verification result (bool)

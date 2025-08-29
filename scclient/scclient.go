@@ -49,14 +49,11 @@ func (sc *Client) Name(ctx context.Context, tokenAddress common.Address) (string
 	return result, err
 }
 
-// BalanceOf returns the token balance of a specific address for a given token contract.
-func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*big.Int, error) {
+// BalanceOf returns the balance of a given token holder for a given token contract.
+func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*hexutil.Big, error) {
 	var result hexutil.Big
 	err := sc.c.CallContext(ctx, &result, "sc_balanceOf", holderAddress, tokenAddress)
-	if err != nil {
-		return nil, err
-	}
-	return (*big.Int)(&result), nil
+	return &result, err
 }
 
 // Decimals returns the number of decimal places for a given token contract.
@@ -70,13 +67,10 @@ func (sc *Client) Decimals(ctx context.Context, tokenAddress common.Address) (ui
 }
 
 // TotalSupply returns the total supply of a given token contract.
-func (sc *Client) TotalSupply(ctx context.Context, tokenAddress common.Address) (*big.Int, error) {
+func (sc *Client) TotalSupply(ctx context.Context, tokenAddress common.Address) (*hexutil.Big, error) {
 	var result hexutil.Big
 	err := sc.c.CallContext(ctx, &result, "sc_totalSupply", tokenAddress)
-	if err != nil {
-		return nil, err
-	}
-	return (*big.Int)(&result), nil
+	return &result, err
 }
 
 // Length returns the smart contract code size in bytes for a given contract address.
@@ -231,12 +225,12 @@ type Subscription interface {
 	Err() <-chan error
 }
 
-// GetPrice retrieves the latest price from a PriceFeed contract.
+// GetPrice returns the latest price or aggregated price from a PriceFeed contract.
 // Based on CIP-104 for Core Blockchain PriceFeed contracts.
-func (c *Client) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*big.Int, error) {
-	var result *big.Int
+func (c *Client) GetPrice(ctx context.Context, tokenAddress common.Address, aggregated bool) (*hexutil.Big, error) {
+	var result hexutil.Big
 	err := c.c.CallContext(ctx, &result, "sc_getPrice", tokenAddress, aggregated)
-	return result, err
+	return &result, err
 }
 
 // GetPriceSubscription provides real-time updates for the latest price from a PriceFeed contract.
