@@ -58,17 +58,34 @@ func (s *PublicSmartContractAPI) createViewCallMsg(toAddr common.Address, data [
 }
 
 // validateOffsetAndLength safely validates offset and length values to prevent integer overflow and bounds issues
-func validateOffsetAndLength(offset, length *big.Int, maxSize int64) error {
-	// Check for negative values
+// validateHexOffsetAndLength validates offset/length when the maxSize is expressed
+// in hex characters (nibbles). This helper preserves the original conservative
+// bound that accounted for converting bytes -> hex (×2).
+func validateHexOffsetAndLength(offset, length *big.Int, maxHexLen int64) error {
 	if offset.Sign() < 0 || length.Sign() < 0 {
 		return fmt.Errorf("negative offset or length: offset=%v, length=%v", offset, length)
 	}
-
-	// Check for overflow in multiplication by 2
-	if offset.Int64() > maxSize/2 || length.Int64() > maxSize/2 {
-		return fmt.Errorf("offset or length too large: offset=%v, length=%v, max=%v", offset, length, maxSize/2)
+	// Keep the original check that compared against max/2 to account for ×2 later
+	if offset.Int64() > maxHexLen/2 || length.Int64() > maxHexLen/2 {
+		return fmt.Errorf("offset or length too large: offset=%v, length=%v, max=%v", offset, length, maxHexLen/2)
 	}
+	return nil
+}
 
+// validateByteOffsetAndLength validates offset/length when working directly with
+// raw byte slices. No division by 2 is needed; we validate against the actual
+// byte length.
+func validateByteOffsetAndLength(offset, length *big.Int, maxBytesLen int64) error {
+	if offset.Sign() < 0 || length.Sign() < 0 {
+		return fmt.Errorf("negative offset or length: offset=%v, length=%v", offset, length)
+	}
+	if offset.Int64() > maxBytesLen || length.Int64() > maxBytesLen {
+		return fmt.Errorf("offset or length too large: offset=%v, length=%v, max=%v", offset, length, maxBytesLen)
+	}
+	// Best‑effort guard to avoid offset+length overflow the buffer
+	if (new(big.Int).Add(offset, length)).Int64() > maxBytesLen {
+		return fmt.Errorf("offset+length exceeds buffer: offset=%v, length=%v, max=%v", offset, length, maxBytesLen)
+	}
 	return nil
 }
 
@@ -363,10 +380,10 @@ func (s *PublicSmartContractAPI) GetKV(ctx context.Context, key string, tokenAdd
 
 // ListKVResult represents the result of a listKV call
 type ListKVResult struct {
-	Keys   []string `json:"keys"`   // List of all keys
-	Count  uint64   `json:"count"`  // Total number of keys
-	Sealed []bool   `json:"sealed"` // Sealed status for each key (if sealed=false)
-	Values []string `json:"values"` // Values for each key (if sealed=false)
+	Keys   []string `json:"keys"`             // List of all keys
+	Count  uint64   `json:"count"`            // Total number of keys
+	Sealed []bool   `json:"sealed,omitempty"` // Sealed status for each key (if sealed=false)
+	Values []string `json:"values,omitempty"` // Values for each key (if sealed=false)
 }
 
 // ListKV retrieves all keys from a smart contract implementing CIP-150.
@@ -395,69 +412,73 @@ func (s *PublicSmartContractAPI) ListKV(ctx context.Context, tokenAddress common
 		}, nil
 	}
 
-	// Get all keys
+	// Try to get all keys in a single call first
 	keys, err := s.callListKeys(ctx, tokenAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get keys for contract %s: %v", tokenAddress.Hex(), err)
+		// Fallback: fetch keys individually by index to avoid large return payloads
+		keys = make([]string, 0, count)
+		for i := uint64(0); i < count; i++ {
+			k, ierr := s.callGetByIndex(ctx, tokenAddress, i)
+			if ierr != nil {
+				return nil, fmt.Errorf("failed to get key by index %d for contract %s: %v", i, tokenAddress.Hex(), ierr)
+			}
+			keys = append(keys, k)
+		}
 	}
 
-	var sealedStatus []bool
-	var values []string
-
-	// Process each key based on the sealed parameter
-	for _, key := range keys {
-		if sealed {
-			// If we only want sealed keys, check the sealed status
+	// Two branches: sealed-only and full listing
+	if sealed {
+		var filteredKeys []string
+		var filteredSealed []bool
+		var filteredValues []string
+		for _, key := range keys {
 			isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
 			if err != nil {
 				return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
 			}
 			if isSealed {
-				sealedStatus = append(sealedStatus, true)
-				values = append(values, "") // We don't need the value for sealed-only requests
-			}
-		} else {
-			// If we want all keys, get the sealed status and value
-			isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
-			if err != nil {
-				return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
-			}
-			sealedStatus = append(sealedStatus, isSealed)
-
-			value, err := s.callGetValue(ctx, key, tokenAddress)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get value for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
-			}
-			values = append(values, value)
-		}
-	}
-
-	// Filter keys based on sealed parameter
-	var filteredKeys []string
-	var filteredSealed []bool
-	var filteredValues []string
-
-	for i, key := range keys {
-		if sealed {
-			// Only include sealed keys
-			if sealedStatus[i] {
 				filteredKeys = append(filteredKeys, key)
-				filteredSealed = append(filteredSealed, sealedStatus[i])
-				filteredValues = append(filteredValues, values[i])
+				filteredSealed = append(filteredSealed, true)
+				// Keep the response shape identical to the full listing: include values
+				value, err := s.callGetValue(ctx, key, tokenAddress)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get value for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+				}
+				filteredValues = append(filteredValues, value)
 			}
-		} else {
-			// Include all keys
-			filteredKeys = append(filteredKeys, key)
-			filteredSealed = append(filteredSealed, sealedStatus[i])
-			filteredValues = append(filteredValues, values[i])
 		}
+
+		return &ListKVResult{
+			Keys:   filteredKeys,
+			Count:  uint64(len(filteredKeys)),
+			Sealed: filteredSealed,
+			Values: filteredValues,
+		}, nil
 	}
 
+	// sealed == false: include all keys with sealed status and values
+	sealedStatus := make([]bool, 0, len(keys))
+	values := make([]string, 0, len(keys))
+	for _, key := range keys {
+		isSealed, err := s.callIsSealed(ctx, key, tokenAddress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check sealed status for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+		}
+		sealedStatus = append(sealedStatus, isSealed)
+
+		value, err := s.callGetValue(ctx, key, tokenAddress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get value for key %s on contract %s: %v", key, tokenAddress.Hex(), err)
+		}
+		values = append(values, value)
+	}
+
+	// Directly return all keys with their statuses/values
 	return &ListKVResult{
-		Keys:   filteredKeys,
-		Count:  uint64(len(filteredKeys)),
-		Sealed: filteredSealed,
-		Values: filteredValues,
+		Keys:   keys,
+		Count:  uint64(len(keys)),
+		Sealed: sealedStatus,
+		Values: values,
 	}, nil
 }
 
@@ -948,7 +969,7 @@ func decodeDynString(res string) (string, error) {
 	offsetInt := new(big.Int).SetBytes(offset)
 
 	// Validate offset
-	if err := validateOffsetAndLength(offsetInt, big.NewInt(0), int64(len(h))); err != nil {
+	if err := validateHexOffsetAndLength(offsetInt, big.NewInt(0), int64(len(h))); err != nil {
 		return "", fmt.Errorf("invalid offset: %v", err)
 	}
 
@@ -981,7 +1002,7 @@ func decodeDynString(res string) (string, error) {
 	lengthInt := new(big.Int).SetBytes(length)
 
 	// Validate length
-	if err := validateOffsetAndLength(big.NewInt(0), lengthInt, int64(len(h))); err != nil {
+	if err := validateHexOffsetAndLength(big.NewInt(0), lengthInt, int64(len(h))); err != nil {
 		return "", fmt.Errorf("invalid length: %v", err)
 	}
 
@@ -1077,17 +1098,18 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	offsetInt := new(big.Int).SetBytes(offset)
 
 	// Validate offset before using it
-	if err := validateOffsetAndLength(offsetInt, big.NewInt(0), int64(len(result))); err != nil {
+	if err := validateByteOffsetAndLength(offsetInt, big.NewInt(0), int64(len(result))); err != nil {
 		return nil, fmt.Errorf("invalid array offset: %v", err)
 	}
 
-	offsetBytes := offsetInt.Int64() * 2
+	// Offsets in ABI-encoded return data are byte offsets, not hex-string positions
+	offsetBytes := offsetInt.Int64()
 
 	if int64(len(result)) < offsetBytes+32 {
 		return nil, fmt.Errorf("invalid response length for array offset %d: got %d bytes, need at least %d", offsetBytes, len(result), offsetBytes+32)
 	}
 
-	// Get the array length
+	// Get the array length (first word at the start of the array data)
 	lengthHex := hexutil.Encode(result[offsetBytes : offsetBytes+32])
 	length, err := hex.DecodeString(strings.TrimPrefix(lengthHex, "0x"))
 	if err != nil {
@@ -1103,7 +1125,10 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	arrayLength := lengthInt.Int64()
 
 	var keys []string
-	currentOffset := offsetBytes + 32
+	// Base of the array data (where the length word lives)
+	arrayBase := offsetBytes
+	// Offset inside the array where per-element pointers start
+	currentOffset := arrayBase + 32
 
 	// Parse each string in the array
 	for i := int64(0); i < arrayLength; i++ {
@@ -1119,12 +1144,15 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 		}
 		stringOffsetInt := new(big.Int).SetBytes(stringOffset)
 
-		// Validate string offset
-		if err := validateOffsetAndLength(stringOffsetInt, big.NewInt(0), int64(len(result))); err != nil {
+		// Offsets inside dynamic arrays are relative to the start of the array data
+		absStringOffset := new(big.Int).Add(stringOffsetInt, big.NewInt(arrayBase))
+		// Validate absolute string offset
+		if err := validateByteOffsetAndLength(absStringOffset, big.NewInt(0), int64(len(result))); err != nil {
 			return nil, fmt.Errorf("invalid string %d offset: %v", i, err)
 		}
 
-		stringOffsetBytes := stringOffsetInt.Int64() * 2
+		// String offsets are in bytes (absolute position in the result buffer)
+		stringOffsetBytes := absStringOffset.Int64()
 
 		if int64(len(result)) < stringOffsetBytes+32 {
 			return nil, fmt.Errorf("response too short for string %d data: got %d bytes, need at least %d", i, len(result), stringOffsetBytes+32)
@@ -1139,11 +1167,12 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 		stringLengthInt := new(big.Int).SetBytes(stringLength)
 
 		// Validate string length
-		if err := validateOffsetAndLength(big.NewInt(0), stringLengthInt, int64(len(result))); err != nil {
+		if err := validateByteOffsetAndLength(big.NewInt(0), stringLengthInt, int64(len(result))); err != nil {
 			return nil, fmt.Errorf("invalid string %d length: %v", i, err)
 		}
 
-		stringLengthBytes := stringLengthInt.Int64() * 2
+		// String length is in bytes
+		stringLengthBytes := stringLengthInt.Int64()
 
 		// Get the string data
 		stringDataStart := stringOffsetBytes + 32
@@ -1163,6 +1192,34 @@ func (s *PublicSmartContractAPI) callListKeys(ctx context.Context, tokenAddress 
 	}
 
 	return keys, nil
+}
+
+// callGetByIndex calls the getByIndex(uint256) function on the contract (CIP-150)
+// selector: 0x2ae4e412
+func (s *PublicSmartContractAPI) callGetByIndex(ctx context.Context, tokenAddress common.Address, idx uint64) (string, error) {
+	selector := "0x2ae4e412"
+	data := hexutil.MustDecode(selector)
+
+	// Encode index as uint256
+	idxBytes := make([]byte, 32)
+	new(big.Int).SetUint64(idx).FillBytes(idxBytes)
+	data = append(data, idxBytes...)
+
+	// Call contract
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
+	if err != nil {
+		return "", fmt.Errorf("failed to call getByIndex on contract %s: %v", tokenAddress.Hex(), err)
+	}
+
+	// Decode dynamic string
+	if len(result) > 0 {
+		decoded, err := decodeDynString(hexutil.Encode(result))
+		if err != nil {
+			return "", fmt.Errorf("failed to decode getByIndex response from contract %s: %v", tokenAddress.Hex(), err)
+		}
+		return decoded, nil
+	}
+	return "", fmt.Errorf("empty response from getByIndex call")
 }
 
 // TokenURI retrieves the token URI for a specific NFT token ID from a CoreNFT contract.

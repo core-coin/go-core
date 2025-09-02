@@ -1853,13 +1853,17 @@ type ComposeTransactionTx struct {
 // If sign=true, it signs and submits the transaction, returning the hash.
 // If sign=false, it returns the transaction data for external signing.
 func (s *PublicTransactionPoolAPI) ComposeTransaction(ctx context.Context, args ComposeTransactionArgs) (*ComposeTransactionResult, error) {
-	// Convert to SendTxArgs for compatibility with existing functions
-	sendArgs := SendTxArgs{
-		From:  args.From,
-		To:    args.To,
-		Value: args.Amount,
-		Data:  args.Data,
-	}
+    // Convert to SendTxArgs for compatibility with existing functions
+    sendArgs := SendTxArgs{
+        From:  args.From,
+        To:    args.To,
+        Value: args.Amount,
+        Data:  args.Data,
+    }
+    // Ensure network ID is set on the composed transaction
+    if sendArgs.NetworkID == 0 {
+        sendArgs.NetworkID = s.b.ChainConfig().NetworkID.Int64()
+    }
 
 	// 1. Get nonce if not provided
 	if args.Nonce == nil {
