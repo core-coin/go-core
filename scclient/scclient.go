@@ -265,13 +265,26 @@ type KYCResult struct {
 // GetKYC checks if a user is KYC verified based on CorePass KYC smart contract.
 // Based on CorePass KYC verification system for Core Blockchain.
 func (c *Client) GetKYC(ctx context.Context, tokenAddress, userAddress common.Address) (*KYCResult, error) {
-	var result *KYCResult
-	err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress)
-	return result, err
+    var result *KYCResult
+    err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress)
+    return result, err
+}
+
+// GetKYCWithType checks KYC for a specific type (e.g. "passport", "id", "driver", "email").
+// This passes the optional third argument supported by sc_getKYC.
+func (c *Client) GetKYCWithType(ctx context.Context, tokenAddress, userAddress common.Address, fieldType string) (*KYCResult, error) {
+    var result *KYCResult
+    err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress, fieldType)
+    return result, err
 }
 
 // GetKYCSubscription provides real-time updates for KYC verification status.
 // Based on CorePass KYC verification system for Core Blockchain.
 func (c *Client) GetKYCSubscription(ctx context.Context, tokenAddress, userAddress common.Address) (Subscription, error) {
-	return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress)
+    return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress)
+}
+
+// GetKYCSubscriptionWithType subscribes to KYC updates for a specific type (e.g. "email", "address").
+func (c *Client) GetKYCSubscriptionWithType(ctx context.Context, tokenAddress, userAddress common.Address, fieldType string) (Subscription, error) {
+    return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress, fieldType)
 }

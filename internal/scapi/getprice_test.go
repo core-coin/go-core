@@ -74,8 +74,8 @@ func TestGetPriceSelectors(t *testing.T) {
 // TestCIP104Compliance verifies that our implementation follows the CIP-104 specification.
 func TestCIP104Compliance(t *testing.T) {
 	// Verify we only implement the core CIP-104 functions
-	// - getLatestPrice(): 0x50d25bcd
-	// - getAggregatedPrice(): 0x9a6fc8f5
+	// - getLatestPrice(): 0x677dcf04
+	// - getAggregatedPrice(): 0xd9c1c1c9
 
 	t.Log("✅ CIP-104 compliance verified:")
 	t.Log("  - getLatestPrice() selector: 0x677dcf04")
