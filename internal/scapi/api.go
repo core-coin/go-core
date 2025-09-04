@@ -27,9 +27,9 @@ import (
 
 	"github.com/core-coin/go-core/v2/common"
 	"github.com/core-coin/go-core/v2/common/hexutil"
-	"github.com/core-coin/go-core/v2/crypto"
 	"github.com/core-coin/go-core/v2/core/state"
 	"github.com/core-coin/go-core/v2/core/types"
+	"github.com/core-coin/go-core/v2/crypto"
 	"github.com/core-coin/go-core/v2/internal/xcbapi"
 	"github.com/core-coin/go-core/v2/log"
 	"github.com/core-coin/go-core/v2/rpc"
@@ -90,9 +90,9 @@ func validateByteOffsetAndLength(offset, length *big.Int, maxBytesLen int64) err
 	return nil
 }
 
-// Symbol returns the symbol of a token contract by calling the symbol() function.
+// Ticker returns the ticker symbol of a token contract by calling the symbol() function.
 // It automatically decodes the dynamic string response using decodeDynString.
-func (s *PublicSmartContractAPI) Symbol(ctx context.Context, tokenAddress common.Address) (string, error) {
+func (s *PublicSmartContractAPI) Ticker(ctx context.Context, tokenAddress common.Address) (string, error) {
 	// CBC20 symbol() function selector: 0x231782d8
 	selector := "0x231782d8" // standard CBC20 symbol()
 
@@ -116,7 +116,7 @@ func (s *PublicSmartContractAPI) Symbol(ctx context.Context, tokenAddress common
 	if len(result) > 0 {
 		decoded, err := decodeDynString(hexutil.Encode(result))
 		if err != nil {
-			return "", fmt.Errorf("failed to decode symbol response from contract %s: %v", tokenAddress.Hex(), err)
+			return "", fmt.Errorf("failed to decode ticker response from contract %s: %v", tokenAddress.Hex(), err)
 		}
 		if decoded != "" {
 			return decoded, nil
@@ -636,9 +636,9 @@ func (s *PublicSmartContractAPI) callGetValue(ctx context.Context, key string, t
 	return "", fmt.Errorf("empty response from getValue call")
 }
 
-// SymbolSubscription provides real-time updates about token symbols.
+// TickerSubscription provides real-time updates about token ticker symbols.
 // This can be useful for monitoring token metadata changes.
-func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
+func (s *PublicSmartContractAPI) TickerSubscription(ctx context.Context, tokenAddress common.Address) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
@@ -647,10 +647,10 @@ func (s *PublicSmartContractAPI) SymbolSubscription(ctx context.Context, tokenAd
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
-		// Send initial symbol
-		symbol, err := s.Symbol(ctx, tokenAddress)
+		// Send initial ticker
+		ticker, err := s.Ticker(ctx, tokenAddress)
 		if err == nil {
-			notifier.Notify(rpcSub.ID, symbol)
+			notifier.Notify(rpcSub.ID, ticker)
 		}
 
 		// Monitor for changes (this is a simplified implementation)
@@ -1537,83 +1537,83 @@ type KYCResult struct {
 // - isVerified(address,bytes32): 0xc9e14248
 //
 // Parameters:
-// - tokenAddress: The address of the KYC provider smart contract
-// - address: The user address to check KYC verification for
-// - fieldType (optional): specific verification type (e.g. "passport", "id", "driver", "email").
-//   If nil, defaults to checking any of: Passport, IDCard, DriverLicense.
+//   - tokenAddress: The address of the KYC provider smart contract
+//   - address: The user address to check KYC verification for
+//   - fieldType (optional): specific verification type (e.g. "passport", "id", "driver", "email").
+//     If nil, defaults to checking any of: Passport, IDCard, DriverLicense.
 func (s *PublicSmartContractAPI) GetKYC(ctx context.Context, tokenAddress, userAddress common.Address, fieldType *string) (*KYCResult, error) {
-    result := &KYCResult{Verified: false}
-    // Encode address to 32 bytes (left-padded).
-    userAddressBytes := make([]byte, 32)
-    ua := userAddress.Bytes()
-    copy(userAddressBytes[32-len(ua):], ua)
+	result := &KYCResult{Verified: false}
+	// Encode address to 32 bytes (left-padded).
+	userAddressBytes := make([]byte, 32)
+	ua := userAddress.Bytes()
+	copy(userAddressBytes[32-len(ua):], ua)
 
-    // Build role candidates based on optional fieldType parameter
-    normalize := func(s string) string { return strings.ToLower(strings.TrimSpace(s)) }
-    roleMap := map[string]string{
-        "id":              "IDCard",
-        "idcard":          "IDCard",
-        "passport":        "Passport",
-        "driver":          "DriverLicense",
-        "driverlicense":   "DriverLicense",
-        "drivinglicense":  "DriverLicense",
-        "email":           "Email",
-        "phone":           "Phone",
-        "address":         "Address",
-        "externalwallet":  "ExternalWallet",
-        "wallet":          "ExternalWallet",
-        "residencepermit": "ResidencePermit",
-    }
-    var roleCandidates []string
-    if fieldType != nil && *fieldType != "" {
-        if mapped, ok := roleMap[normalize(*fieldType)]; ok {
-            roleCandidates = []string{mapped}
-        } else {
-            // Try raw provided name if no mapping is known
-            roleCandidates = []string{*fieldType}
-        }
-    } else {
-        // Default (requested): Passport OR ID OR Driver License
-        roleCandidates = []string{"Passport", "IDCard", "DriverLicense"}
-    }
+	// Build role candidates based on optional fieldType parameter
+	normalize := func(s string) string { return strings.ToLower(strings.TrimSpace(s)) }
+	roleMap := map[string]string{
+		"id":              "IDCard",
+		"idcard":          "IDCard",
+		"passport":        "Passport",
+		"driver":          "DriverLicense",
+		"driverlicense":   "DriverLicense",
+		"drivinglicense":  "DriverLicense",
+		"email":           "Email",
+		"phone":           "Phone",
+		"address":         "Address",
+		"externalwallet":  "ExternalWallet",
+		"wallet":          "ExternalWallet",
+		"residencepermit": "ResidencePermit",
+	}
+	var roleCandidates []string
+	if fieldType != nil && *fieldType != "" {
+		if mapped, ok := roleMap[normalize(*fieldType)]; ok {
+			roleCandidates = []string{mapped}
+		} else {
+			// Try raw provided name if no mapping is known
+			roleCandidates = []string{*fieldType}
+		}
+	} else {
+		// Default (requested): Passport OR ID OR Driver License
+		roleCandidates = []string{"Passport", "IDCard", "DriverLicense"}
+	}
 
-    // isRoleVerified(address,bytes32)
-    roleSig := []byte("isRoleVerified(address,bytes32)")
-    roleSelector := crypto.SHA3Hash(roleSig).Bytes()[:4]
-    callIsRoleVerified := func(name string, roleID common.Hash) (bool, error) {
-        data := append([]byte{}, roleSelector...)
-        data = append(data, userAddressBytes...)
-        rb := make([]byte, 32)
-        copy(rb, roleID.Bytes())
-        data = append(data, rb...)
-        out, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
-        if err != nil {
-            return false, err
-        }
-        if len(out) >= 32 {
-            v := new(big.Int).SetBytes(out[:32])
-            if v.Cmp(big.NewInt(0)) != 0 {
-                result.Verified = true
-                result.Role = name
-                return true, nil
-            }
-        }
-        return false, nil
-    }
+	// isRoleVerified(address,bytes32)
+	roleSig := []byte("isRoleVerified(address,bytes32)")
+	roleSelector := crypto.SHA3Hash(roleSig).Bytes()[:4]
+	callIsRoleVerified := func(name string, roleID common.Hash) (bool, error) {
+		data := append([]byte{}, roleSelector...)
+		data = append(data, userAddressBytes...)
+		rb := make([]byte, 32)
+		copy(rb, roleID.Bytes())
+		data = append(data, rb...)
+		out, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
+		if err != nil {
+			return false, err
+		}
+		if len(out) >= 32 {
+			v := new(big.Int).SetBytes(out[:32])
+			if v.Cmp(big.NewInt(0)) != 0 {
+				result.Verified = true
+				result.Role = name
+				return true, nil
+			}
+		}
+		return false, nil
+	}
 
-    var lastErr error
-    for _, n := range roleCandidates {
-        if ok, err := callIsRoleVerified(n, crypto.SHA3Hash([]byte(n))); err != nil {
-            lastErr = err
-        } else if ok {
-            return result, nil
-        }
-    }
+	var lastErr error
+	for _, n := range roleCandidates {
+		if ok, err := callIsRoleVerified(n, crypto.SHA3Hash([]byte(n))); err != nil {
+			lastErr = err
+		} else if ok {
+			return result, nil
+		}
+	}
 
-    if lastErr != nil {
-        log.Warn("GetKYC returned false for all attempts", "contract", tokenAddress.Hex(), "user", userAddress.Hex(), "err", lastErr)
-    }
-    return result, nil
+	if lastErr != nil {
+		log.Warn("GetKYC returned false for all attempts", "contract", tokenAddress.Hex(), "user", userAddress.Hex(), "err", lastErr)
+	}
+	return result, nil
 }
 
 // GetKYCSubscription provides real-time updates for KYC verification status.

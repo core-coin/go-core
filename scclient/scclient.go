@@ -35,10 +35,10 @@ func NewClient(c *rpc.Client) *Client {
 	return &Client{c: c}
 }
 
-// Symbol returns the symbol of a token contract by calling the sc.symbol RPC method.
-func (sc *Client) Symbol(ctx context.Context, tokenAddress common.Address) (string, error) {
+// Ticker returns the ticker symbol of a token contract by calling the sc.ticker RPC method.
+func (sc *Client) Ticker(ctx context.Context, tokenAddress common.Address) (string, error) {
 	var result string
-	err := sc.c.CallContext(ctx, &result, "sc_symbol", tokenAddress)
+	err := sc.c.CallContext(ctx, &result, "sc_ticker", tokenAddress)
 	return result, err
 }
 
@@ -171,10 +171,10 @@ func (sc *Client) TokenURISubscription(ctx context.Context, tokenAddress common.
 	return sc.c.XcbSubscribe(ctx, make(chan string), "tokenURI", tokenAddress, tokenId)
 }
 
-// SymbolSubscription subscribes to real-time updates about token symbols.
-// It returns a subscription that will notify when the symbol changes.
-func (sc *Client) SymbolSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
-	return sc.c.XcbSubscribe(ctx, make(chan string), "symbol", tokenAddress)
+// TickerSubscription subscribes to real-time updates about token ticker symbols.
+// It returns a subscription that will notify when the ticker changes.
+func (sc *Client) TickerSubscription(ctx context.Context, tokenAddress common.Address) (Subscription, error) {
+	return sc.c.XcbSubscribe(ctx, make(chan string), "ticker", tokenAddress)
 }
 
 // NameSubscription subscribes to real-time updates about token names.
@@ -265,26 +265,26 @@ type KYCResult struct {
 // GetKYC checks if a user is KYC verified based on CorePass KYC smart contract.
 // Based on CorePass KYC verification system for Core Blockchain.
 func (c *Client) GetKYC(ctx context.Context, tokenAddress, userAddress common.Address) (*KYCResult, error) {
-    var result *KYCResult
-    err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress)
-    return result, err
+	var result *KYCResult
+	err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress)
+	return result, err
 }
 
 // GetKYCWithType checks KYC for a specific type (e.g. "passport", "id", "driver", "email").
 // This passes the optional third argument supported by sc_getKYC.
 func (c *Client) GetKYCWithType(ctx context.Context, tokenAddress, userAddress common.Address, fieldType string) (*KYCResult, error) {
-    var result *KYCResult
-    err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress, fieldType)
-    return result, err
+	var result *KYCResult
+	err := c.c.CallContext(ctx, &result, "sc_getKYC", tokenAddress, userAddress, fieldType)
+	return result, err
 }
 
 // GetKYCSubscription provides real-time updates for KYC verification status.
 // Based on CorePass KYC verification system for Core Blockchain.
 func (c *Client) GetKYCSubscription(ctx context.Context, tokenAddress, userAddress common.Address) (Subscription, error) {
-    return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress)
+	return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress)
 }
 
 // GetKYCSubscriptionWithType subscribes to KYC updates for a specific type (e.g. "email", "address").
 func (c *Client) GetKYCSubscriptionWithType(ctx context.Context, tokenAddress, userAddress common.Address, fieldType string) (Subscription, error) {
-    return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress, fieldType)
+	return c.c.XcbSubscribe(ctx, "sc_getKYC", tokenAddress, userAddress, fieldType)
 }
