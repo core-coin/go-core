@@ -94,6 +94,75 @@ func (s *PublicCoreAPI) Syncing() (interface{}, error) {
 	}, nil
 }
 
+// Synced returns the number of blocks remaining to sync. If the node is fully synced, it returns 0.
+// The return value represents (highestBlock - currentBlock) or 0 if synced.
+func (s *PublicCoreAPI) Synced() (hexutil.Uint64, error) {
+	progress := s.b.Downloader().Progress()
+
+	// If current block is greater than or equal to highest block, we're synced
+	if progress.CurrentBlock >= progress.HighestBlock {
+		return hexutil.Uint64(0), nil
+	}
+
+	// Return the difference between highest and current block
+	return hexutil.Uint64(progress.HighestBlock - progress.CurrentBlock), nil
+}
+
+// SyncedSubscription provides real-time updates about the number of blocks remaining to sync.
+// It returns a subscription that will notify when the sync status changes.
+func (s *PublicCoreAPI) SyncedSubscription(ctx context.Context) (*rpc.Subscription, error) {
+	notifier, supported := rpc.NotifierFromContext(ctx)
+	if !supported {
+		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
+	}
+
+	rpcSub := notifier.CreateSubscription()
+
+	go func() {
+		// Send initial status
+		progress := s.b.Downloader().Progress()
+		var initialSynced uint64
+		if progress.CurrentBlock >= progress.HighestBlock {
+			initialSynced = 0
+		} else {
+			initialSynced = progress.HighestBlock - progress.CurrentBlock
+		}
+		notifier.Notify(rpcSub.ID, hexutil.Uint64(initialSynced))
+
+		// Create a ticker to check sync status periodically
+		ticker := time.NewTicker(2 * time.Second) // Check every 2 seconds
+		defer ticker.Stop()
+
+		lastSynced := initialSynced
+
+		for {
+			select {
+			case <-ticker.C:
+				// Check current sync status
+				progress := s.b.Downloader().Progress()
+				var currentSynced uint64
+				if progress.CurrentBlock >= progress.HighestBlock {
+					currentSynced = 0
+				} else {
+					currentSynced = progress.HighestBlock - progress.CurrentBlock
+				}
+
+				// Only notify if the status changed
+				if currentSynced != lastSynced {
+					notifier.Notify(rpcSub.ID, hexutil.Uint64(currentSynced))
+					lastSynced = currentSynced
+				}
+			case <-rpcSub.Err():
+				return
+			case <-notifier.Closed():
+				return
+			}
+		}
+	}()
+
+	return rpcSub, nil
+}
+
 // PublicTxPoolAPI offers and API for the transaction pool. It only operates on data that is non confidential.
 type PublicTxPoolAPI struct {
 	b Backend
@@ -1028,9 +1097,9 @@ func DoEstimateEnergy(ctx context.Context, b Backend, args CallArgs, blockNrOrHa
 }
 
 // EstimateEnergy returns an estimate of the amount of energy needed to execute the
-// given transaction against the current pending block.
+// given transaction against the current latest block.
 func (s *PublicBlockChainAPI) EstimateEnergy(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
-	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
+	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
 	if blockNrOrHash != nil {
 		bNrOrHash = *blockNrOrHash
 	}
@@ -1748,6 +1817,164 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 	}
 
 	return common.Hash{}, fmt.Errorf("transaction %#x not found", matchTx.Hash())
+}
+
+// ComposeTransactionArgs represents the arguments for composing a transaction.
+type ComposeTransactionArgs struct {
+	From        common.Address  `json:"from"`
+	To          *common.Address `json:"to"`
+	Amount      *hexutil.Big    `json:"amount"`
+	Nonce       *hexutil.Uint64 `json:"nonce,omitempty"`
+	Energy      *hexutil.Uint64 `json:"energy,omitempty"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice,omitempty"`
+	Data        *hexutil.Bytes  `json:"data,omitempty"`
+	Sign        bool            `json:"sign,omitempty"`
+}
+
+// ComposeTransactionResult represents the result of composing a transaction.
+type ComposeTransactionResult struct {
+	Hash        *common.Hash          `json:"hash,omitempty"`        // Only present if sign=true
+	Transaction *ComposeTransactionTx `json:"transaction,omitempty"` // Only present if sign=false
+}
+
+// ComposeTransactionTx represents a transaction for composition (unsigned)
+type ComposeTransactionTx struct {
+	Raw         hexutil.Bytes   `json:"raw"`
+	Nonce       hexutil.Uint64  `json:"nonce"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice"`
+	Energy      hexutil.Uint64  `json:"energy"`
+	To          *common.Address `json:"to,omitempty"`
+	Value       *hexutil.Big    `json:"value,omitempty"`
+	Data        hexutil.Bytes   `json:"data,omitempty"`
+	NetworkID   hexutil.Uint64  `json:"network_id"`
+}
+
+// ComposeTransaction composes a transaction with automatic nonce, energy, and energy price estimation.
+// If sign=true, it signs and submits the transaction, returning the hash.
+// If sign=false, it returns the transaction data for external signing.
+func (s *PublicTransactionPoolAPI) ComposeTransaction(ctx context.Context, args ComposeTransactionArgs) (*ComposeTransactionResult, error) {
+    // Convert to SendTxArgs for compatibility with existing functions
+    sendArgs := SendTxArgs{
+        From:  args.From,
+        To:    args.To,
+        Value: args.Amount,
+        Data:  args.Data,
+    }
+    // Ensure network ID is set on the composed transaction
+    if sendArgs.NetworkID == 0 {
+        sendArgs.NetworkID = s.b.ChainConfig().NetworkID.Int64()
+    }
+
+	// 1. Get nonce if not provided
+	if args.Nonce == nil {
+		nonce, err := s.b.GetPoolNonce(ctx, args.From)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get nonce: %v", err)
+		}
+		nonceUint64 := hexutil.Uint64(nonce)
+		sendArgs.Nonce = &nonceUint64
+	} else {
+		sendArgs.Nonce = args.Nonce
+	}
+
+	// 2. Estimate energy and energy price if not provided
+	if args.Energy == nil || args.EnergyPrice == nil {
+		// Get suggested energy price
+		suggestedPrice, err := s.b.SuggestPrice(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get suggested energy price: %v", err)
+		}
+		sendArgs.EnergyPrice = (*hexutil.Big)(suggestedPrice)
+
+		// Estimate energy if not provided
+		if args.Energy == nil {
+			callArgs := CallArgs{
+				From:        &args.From,
+				To:          args.To,
+				EnergyPrice: sendArgs.EnergyPrice,
+				Value:       args.Amount,
+				Data:        args.Data,
+			}
+			latestBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
+			estimated, err := DoEstimateEnergy(ctx, s.b, callArgs, latestBlockNr, s.b.RPCEnergyCap())
+			if err != nil {
+				return nil, fmt.Errorf("failed to estimate energy: %v", err)
+			}
+			sendArgs.Energy = &estimated
+		} else {
+			sendArgs.Energy = args.Energy
+		}
+	} else {
+		sendArgs.Energy = args.Energy
+		sendArgs.EnergyPrice = args.EnergyPrice
+	}
+
+	// 3a. If sign=true, sign and submit the transaction
+	if args.Sign {
+		// Look up the wallet containing the requested signer
+		account := accounts.Account{Address: args.From}
+		wallet, err := s.b.AccountManager().Find(account)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get wallet: %v", err)
+		}
+
+		// Hold the address's mutex around signing to prevent concurrent assignment of
+		// the same nonce to multiple accounts.
+		s.nonceLock.LockAddr(args.From)
+		defer s.nonceLock.UnlockAddr(args.From)
+
+		// Assemble the transaction and sign with the wallet
+		tx := sendArgs.toTransaction()
+		signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().NetworkID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign transaction: %v", err)
+		}
+
+		// Submit the signed transaction
+		hash, err := SubmitTransaction(ctx, s.b, signed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to submit transaction: %v", err)
+		}
+
+		return &ComposeTransactionResult{
+			Hash: &hash,
+		}, nil
+	}
+
+	// 3b. If sign=false, return transaction data for external signing
+	tx := sendArgs.toTransaction()
+	data, err := rlp.EncodeToBytes(tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode transaction: %v", err)
+	}
+
+	// Create a clean transaction response with only meaningful fields
+	txResponse := &ComposeTransactionTx{
+		Raw:         data,
+		Nonce:       hexutil.Uint64(tx.Nonce()),
+		EnergyPrice: (*hexutil.Big)(tx.EnergyPrice()),
+		Energy:      hexutil.Uint64(tx.Energy()),
+		NetworkID:   hexutil.Uint64(tx.NetworkID()),
+	}
+
+	// Only include To if it's not nil (contract creation vs transfer)
+	if tx.To() != nil {
+		txResponse.To = tx.To()
+	}
+
+	// Only include Value if it's not zero
+	if tx.Value().Sign() > 0 {
+		txResponse.Value = (*hexutil.Big)(tx.Value())
+	}
+
+	// Only include Data if it's not empty
+	if len(tx.Data()) > 0 {
+		txResponse.Data = tx.Data()
+	}
+
+	return &ComposeTransactionResult{
+		Transaction: txResponse,
+	}, nil
 }
 
 // PublicDebugAPI is the collection of Core APIs exposed over the public

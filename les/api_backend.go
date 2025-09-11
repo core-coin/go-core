@@ -19,6 +19,7 @@ package les
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/core-coin/go-core/v2/xcb/energyprice"
@@ -35,6 +36,7 @@ import (
 	"github.com/core-coin/go-core/v2/core/types"
 	"github.com/core-coin/go-core/v2/core/vm"
 	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/internal/xcbapi"
 	"github.com/core-coin/go-core/v2/light"
 	"github.com/core-coin/go-core/v2/params"
 	"github.com/core-coin/go-core/v2/rpc"
@@ -263,6 +265,11 @@ func (b *LesApiBackend) AccountManager() *accounts.Manager {
 
 func (b *LesApiBackend) ExtRPCEnabled() bool {
 	return b.extRPCEnabled
+}
+
+// CallContract executes a contract call (stub implementation for light client)
+func (b *LesApiBackend) CallContract(ctx context.Context, call xcbapi.CallMsg, blockNumber rpc.BlockNumber) ([]byte, error) {
+	return nil, fmt.Errorf("contract calls not supported in light client mode")
 }
 
 func (b *LesApiBackend) RPCEnergyCap() uint64 {

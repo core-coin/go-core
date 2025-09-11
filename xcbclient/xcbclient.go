@@ -338,6 +338,57 @@ func (ec *Client) SyncProgress(ctx context.Context) (*core.SyncProgress, error) 
 	}, nil
 }
 
+// Synced returns the number of blocks remaining to sync. If the node is fully synced, it returns 0.
+// The return value represents (highestBlock - currentBlock) or 0 if synced.
+func (ec *Client) Synced(ctx context.Context) (uint64, error) {
+	var result hexutil.Uint64
+	if err := ec.c.CallContext(ctx, &result, "xcb_synced"); err != nil {
+		return 0, err
+	}
+	return uint64(result), nil
+}
+
+// SyncedSubscription subscribes to real-time updates about the number of blocks remaining to sync.
+// It returns a subscription that will notify when the sync status changes.
+func (ec *Client) SyncedSubscription(ctx context.Context, ch chan<- uint64) (core.Subscription, error) {
+	return ec.c.XcbSubscribe(ctx, ch, "synced")
+}
+
+// ComposeTransactionArgs represents the arguments for composing a transaction.
+type ComposeTransactionArgs struct {
+	From        common.Address  `json:"from"`
+	To          *common.Address `json:"to"`
+	Amount      *hexutil.Big    `json:"amount"`
+	Nonce       *hexutil.Uint64 `json:"nonce,omitempty"`
+	Energy      *hexutil.Uint64 `json:"energy,omitempty"`
+	EnergyPrice *hexutil.Big    `json:"energyPrice,omitempty"`
+	Data        *hexutil.Bytes  `json:"data,omitempty"`
+	Sign        bool            `json:"sign,omitempty"`
+}
+
+// SignTransactionResult represents a RLP encoded signed transaction.
+type SignTransactionResult struct {
+	Raw hexutil.Bytes      `json:"raw"`
+	Tx  *types.Transaction `json:"tx"`
+}
+
+// ComposeTransactionResult represents the result of composing a transaction.
+type ComposeTransactionResult struct {
+	Hash        *common.Hash           `json:"hash,omitempty"`        // Only present if sign=true
+	Transaction *SignTransactionResult `json:"transaction,omitempty"` // Only present if sign=false
+}
+
+// ComposeTransaction composes a transaction with automatic nonce, energy, and energy price estimation.
+// If sign=true, it signs and submits the transaction, returning the hash.
+// If sign=false, it returns the transaction data for external signing.
+func (ec *Client) ComposeTransaction(ctx context.Context, args ComposeTransactionArgs) (*ComposeTransactionResult, error) {
+	var result ComposeTransactionResult
+	if err := ec.c.CallContext(ctx, &result, "xcb_composeTransaction", args); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // SubscribeNewHead subscribes to notifications about the current blockchain head
 // on the given channel.
 func (ec *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (core.Subscription, error) {

@@ -44,6 +44,7 @@ import (
 	"github.com/core-coin/go-core/v2/core/types"
 	"github.com/core-coin/go-core/v2/core/vm"
 	"github.com/core-coin/go-core/v2/event"
+	"github.com/core-coin/go-core/v2/internal/scapi"
 	"github.com/core-coin/go-core/v2/log"
 	"github.com/core-coin/go-core/v2/miner"
 	"github.com/core-coin/go-core/v2/node"
@@ -319,6 +320,11 @@ func (s *Core) APIs() []rpc.API {
 			Namespace: "net",
 			Version:   "1.0",
 			Service:   s.netRPCService,
+			Public:    true,
+		}, {
+			Namespace: "sc",
+			Version:   "1.0",
+			Service:   scapi.NewPublicSmartContractAPI(s.APIBackend),
 			Public:    true,
 		},
 	}...)

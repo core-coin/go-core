@@ -89,7 +89,30 @@ type Backend interface {
 
 	ChainConfig() *params.ChainConfig
 	Engine() consensus.Engine
+
+	// Smart Contract API
+	CallContract(ctx context.Context, call CallMsg, blockNumber rpc.BlockNumber) ([]byte, error)
 }
+
+// CallMsg contains parameters for contract calls.
+type CallMsg struct {
+	FromAddr         common.Address  // the sender of the 'transaction'
+	ToAddr           *common.Address // the destination contract (nil for contract creation)
+	EnergyLimit      uint64          // if 0, the call executes with near-infinite energy
+	EnergyPriceValue *big.Int        // ore <-> energy exchange ratio
+	ValueAmount      *big.Int        // amount of ore sent along with the call
+	DataBytes        []byte          // input data, usually an ABI-encoded contract method invocation
+}
+
+// Implement core.Message interface
+func (m CallMsg) Nonce() uint64         { return 0 }
+func (m CallMsg) CheckNonce() bool      { return false }
+func (m CallMsg) From() common.Address  { return m.FromAddr }
+func (m CallMsg) To() *common.Address   { return m.ToAddr }
+func (m CallMsg) EnergyPrice() *big.Int { return m.EnergyPriceValue }
+func (m CallMsg) Energy() uint64        { return m.EnergyLimit }
+func (m CallMsg) Value() *big.Int       { return m.ValueAmount }
+func (m CallMsg) Data() []byte          { return m.DataBytes }
 
 func GetAPIs(apiBackend Backend) []rpc.API {
 	nonceLock := new(AddrLocker)
