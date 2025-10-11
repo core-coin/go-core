@@ -18,6 +18,7 @@ package scapi
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -164,37 +165,91 @@ func (s *PublicSmartContractAPI) Name(ctx context.Context, tokenAddress common.A
 
 // BalanceOf returns the balance of a given token holder for a given token contract.
 // It automatically decodes the uint256 response and converts it to a hexutil.Big.
-func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*hexutil.Big, error) {
-	// CBC20 balanceOf(address) function selector: 0x1d7976f3
-	selector := "0x1d7976f3" // standard CBC20 balanceOf()
+// If unit is provided, it will first attempt to call balanceOf(address,string) and fall back
+// to the canonical balanceOf(address) if the aliased call fails.
+func (s *PublicSmartContractAPI) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address, unit *string) (*hexutil.Big, error) {
+	if unit != nil {
+		unitValue := *unit
+		normalizedUnit := strings.ToLower(unitValue)
+		balance, err := s.balanceOfWithUnit(ctx, holderAddress, tokenAddress, normalizedUnit)
+		if err != nil {
+			log.Debug("balanceOf alias call failed",
+				"holder", holderAddress,
+				"token", tokenAddress,
+				"unit", unitValue,
+				"err", err,
+			)
+			return nil, fmt.Errorf("unit %s does not exist", unitValue)
+		}
+		return balance, nil
+	}
 
-	// Create the call data: selector + padded address (32 bytes)
-	data := hexutil.MustDecode(selector)
+	return s.balanceOfDefault(ctx, holderAddress, tokenAddress)
+}
 
-	// Pad the holder address to 32 bytes (left-pad with zeros)
+// balanceOfWithUnit calls balanceOf(address,string) and decodes the result.
+func (s *PublicSmartContractAPI) balanceOfWithUnit(ctx context.Context, holderAddress, tokenAddress common.Address, unit string) (*hexutil.Big, error) {
+	selector := hexutil.MustDecode("0x5a805b98") // balanceOf(address,string)
+	data := append([]byte{}, selector...)
+
 	addressBytes := holderAddress.Bytes()
 	paddedAddress := make([]byte, 32)
 	copy(paddedAddress[32-len(addressBytes):], addressBytes)
-
-	// Append the padded address to the selector
 	data = append(data, paddedAddress...)
 
-	// Make the contract call with properly initialized CallMsg
-	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
+	offset := make([]byte, 32)
+	offset[31] = 0x40 // dynamic data starts right after the two static slots
+	data = append(data, offset...)
 
+	unitBytes := []byte(unit)
+	lengthBytes := make([]byte, 32)
+	binary.BigEndian.PutUint64(lengthBytes[24:], uint64(len(unitBytes)))
+	data = append(data, lengthBytes...)
+
+	paddedLen := ((len(unitBytes) + 31) / 32) * 32
+	paddedUnit := make([]byte, paddedLen)
+	copy(paddedUnit, unitBytes)
+	data = append(data, paddedUnit...)
+
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call balanceOf on contract %s for address %s: %v", tokenAddress.Hex(), holderAddress.Hex(), err)
+		return nil, fmt.Errorf("failed to call balanceOf(address,string) on contract %s for address %s and unit %s: %w", tokenAddress.Hex(), holderAddress.Hex(), unit, err)
 	}
 
-	// Add response size limit to prevent DoS attacks
 	const MaxResponseSize = 1024 * 1024 // 1MB limit
 	if len(result) > MaxResponseSize {
 		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
 	}
 
-	// If we got a result, decode it as uint256
+	if len(result) == 0 {
+		return nil, fmt.Errorf("empty response from balanceOf(address,string) call on contract %s for address %s and unit %s", tokenAddress.Hex(), holderAddress.Hex(), unit)
+	}
+
+	balance := new(big.Int).SetBytes(result)
+	return (*hexutil.Big)(balance), nil
+}
+
+// balanceOfDefault calls the canonical balanceOf(address) selector.
+func (s *PublicSmartContractAPI) balanceOfDefault(ctx context.Context, holderAddress, tokenAddress common.Address) (*hexutil.Big, error) {
+	selector := "0x1d7976f3" // standard CBC20 balanceOf()
+	data := hexutil.MustDecode(selector)
+
+	addressBytes := holderAddress.Bytes()
+	paddedAddress := make([]byte, 32)
+	copy(paddedAddress[32-len(addressBytes):], addressBytes)
+	data = append(data, paddedAddress...)
+
+	result, err := s.b.CallContract(ctx, s.createViewCallMsg(tokenAddress, data), rpc.LatestBlockNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call balanceOf on contract %s for address %s: %v", tokenAddress.Hex(), holderAddress.Hex(), err)
+	}
+
+	const MaxResponseSize = 1024 * 1024 // 1MB limit
+	if len(result) > MaxResponseSize {
+		return nil, fmt.Errorf("response too large: %d bytes exceeds limit of %d", len(result), MaxResponseSize)
+	}
+
 	if len(result) > 0 {
-		// Convert the 32-byte result to big.Int, then to hexutil.Big
 		balance := new(big.Int).SetBytes(result)
 		return (*hexutil.Big)(balance), nil
 	}
@@ -704,7 +759,7 @@ func (s *PublicSmartContractAPI) NameSubscription(ctx context.Context, tokenAddr
 
 // BalanceOfSubscription provides real-time updates about token balances.
 // This can be useful for monitoring balance changes for specific addresses.
-func (s *PublicSmartContractAPI) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address) (*rpc.Subscription, error) {
+func (s *PublicSmartContractAPI) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address, unit *string) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
@@ -713,7 +768,7 @@ func (s *PublicSmartContractAPI) BalanceOfSubscription(ctx context.Context, hold
 
 	go func() {
 		// Send initial balance
-		balance, err := s.BalanceOf(ctx, holderAddress, tokenAddress)
+		balance, err := s.BalanceOf(ctx, holderAddress, tokenAddress, unit)
 		if err == nil {
 			notifier.Notify(rpcSub.ID, balance)
 		}
