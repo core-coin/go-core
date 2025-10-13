@@ -50,9 +50,14 @@ func (sc *Client) Name(ctx context.Context, tokenAddress common.Address) (string
 }
 
 // BalanceOf returns the balance of a given token holder for a given token contract.
-func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address) (*hexutil.Big, error) {
+// Optional unit parameter enables querying human-readable units.
+func (sc *Client) BalanceOf(ctx context.Context, holderAddress, tokenAddress common.Address, unit ...string) (*hexutil.Big, error) {
 	var result hexutil.Big
-	err := sc.c.CallContext(ctx, &result, "sc_balanceOf", holderAddress, tokenAddress)
+	args := []interface{}{holderAddress, tokenAddress}
+	if len(unit) > 0 {
+		args = append(args, unit[0])
+	}
+	err := sc.c.CallContext(ctx, &result, "sc_balanceOf", args...)
 	return &result, err
 }
 
@@ -131,8 +136,12 @@ func (sc *Client) TokenURI(ctx context.Context, tokenAddress common.Address, tok
 
 // BalanceOfSubscription subscribes to real-time updates about token balances.
 // It returns a subscription that will notify when the balance changes.
-func (sc *Client) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address) (Subscription, error) {
-	return sc.c.XcbSubscribe(ctx, make(chan *big.Int), "balanceOf", holderAddress, tokenAddress)
+func (sc *Client) BalanceOfSubscription(ctx context.Context, holderAddress, tokenAddress common.Address, unit ...string) (Subscription, error) {
+	args := []interface{}{"balanceOf", holderAddress, tokenAddress}
+	if len(unit) > 0 {
+		args = append(args, unit[0])
+	}
+	return sc.c.XcbSubscribe(ctx, make(chan *big.Int), args...)
 }
 
 // DecimalsSubscription subscribes to real-time updates about token decimal places.
