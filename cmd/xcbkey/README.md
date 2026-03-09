@@ -41,6 +41,45 @@ Change the password of a keyfile.
 use the `--newpasswordfile` to point to the new password file.
 
 
+### `xcbkey generate-mnemonic`
+
+Generate a new wallet with a BIP-39 mnemonic phrase.
+The mnemonic can later be used to recover the private key.
+
+```
+xcbkey generate-mnemonic                          # 24-word mnemonic, mainnet
+xcbkey generate-mnemonic --words 12               # 12-word mnemonic
+xcbkey generate-mnemonic --lang japanese           # Japanese wordlist
+xcbkey generate-mnemonic --networkid 3             # Devin testnet (ab prefix)
+xcbkey generate-mnemonic --account 1               # Derive account 1
+```
+
+Use `--account N` to derive multiple wallets from the same mnemonic.
+
+
+### `xcbkey mnemonic-to-key <mnemonic words...>`
+
+Recover a private key from a BIP-39 mnemonic phrase.
+
+```
+xcbkey mnemonic-to-key word1 word2 ... word24
+xcbkey mnemonic-to-key --account 1 word1 word2 ... word24
+xcbkey mnemonic-to-key --networkid 3 word1 word2 ... word24
+```
+
+
+### `xcbkey verify-mnemonic <mnemonic words...>`
+
+Verify that a mnemonic derives the expected private key.
+Requires either `--privatekey <hex>` or `--keyfile <path>`.
+
+```
+xcbkey verify-mnemonic --privatekey <hex> word1 word2 ... word24
+xcbkey verify-mnemonic --keyfile /path/to/key word1 word2 ... word24
+xcbkey verify-mnemonic --account 3 --privatekey <hex> word1 word2 ... word24
+```
+
+
 ## Passwords
 
 For every command that uses a keyfile, you will be prompted to provide the 

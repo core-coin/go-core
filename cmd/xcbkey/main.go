@@ -44,6 +44,9 @@ func init() {
 		commandChangePassphrase,
 		commandSignMessage,
 		commandVerifyMessage,
+		commandGenerateMnemonic,
+		commandMnemonicToKey,
+		commandVerifyMnemonic,
 	}
 	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
@@ -57,6 +60,11 @@ var (
 	jsonFlag = cli.BoolFlag{
 		Name:  "json",
 		Usage: "output JSON instead of human-readable format",
+	}
+	langFlag = cli.StringFlag{
+		Name:  "lang",
+		Usage: "mnemonic language: english, japanese, korean, spanish, french, italian, chinese_simplified, chinese_traditional",
+		Value: "english",
 	}
 )
 
